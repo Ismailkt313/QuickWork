@@ -9,12 +9,14 @@ export class SendOtpDto {
     public readonly name: string;
     public readonly email: string;
     public readonly password: string;
+    public readonly confirmPassword: string;
     public readonly role: ISendOtpInput["role"];
 
     private constructor(data: ISendOtpInput) {
         this.name = data.name;
         this.email = data.email;
         this.password = data.password;
+        this.confirmPassword = data.confirmPassword;
         this.role = data.role;
     }
 
@@ -31,6 +33,10 @@ export class SendOtpDto {
 
         if (!data.password || data.password.length < MIN_PASSWORD_LENGTH) {
             errors.push(`Password must be at least ${MIN_PASSWORD_LENGTH} characters`);
+        }
+
+        if (!data.confirmPassword || data.password !== data.confirmPassword) {
+            errors.push("Passwords do not match");
         }
 
         if (!data.role || !VALID_ROLES.includes(data.role as ISendOtpInput["role"])) {
