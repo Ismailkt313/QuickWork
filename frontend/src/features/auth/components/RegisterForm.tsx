@@ -1,5 +1,8 @@
 import { useState, useMemo } from "react";
-
+import type { RegisterFormProps } from "../types";
+import { sendOtp, login } from "../services/authApi"
+import { useNavigate } from "react-router-dom";
+import "../auth.css";
 
 const UserIcon = () => (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -46,7 +49,6 @@ const GoogleIcon = () => (
     </svg>
 );
 
-
 const ShieldCheckIcon = () => (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
         <circle cx="12" cy="12" r="10" fill="#22c55e" />
@@ -65,7 +67,9 @@ const styles = {
 
     card: {
         backgroundColor: "#ffffff",
-        border: "1px solid #e5e7eb",
+        borderWidth: "1px",
+        borderStyle: "solid",
+        borderColor: "#e5e7eb",
         borderRadius: "16px",
         padding: "40px 36px",
         boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)",
@@ -109,19 +113,17 @@ const styles = {
         gap: "12px",
         padding: "12px 16px",
         borderRadius: "12px",
-        border: "1.5px solid #e5e7eb",
+        borderWidth: "1.5px",
+        borderStyle: "solid",
+        borderColor: "#e5e7eb",
         backgroundColor: "#f9fafb",
         transition: "border-color 0.2s, box-shadow 0.2s",
     } as React.CSSProperties,
 
-    inputGroupFocused: {
-        borderColor: "#2563eb",
-        boxShadow: "0 0 0 3px rgba(37, 99, 235, 0.1)",
-    } as React.CSSProperties,
-
     input: {
         width: "100%",
-        border: "none",
+        borderWidth: 0,
+        borderStyle: "none",
         outline: "none",
         backgroundColor: "transparent",
         fontSize: "14px",
@@ -132,7 +134,8 @@ const styles = {
     eyeButton: {
         flexShrink: 0,
         cursor: "pointer",
-        border: "none",
+        borderWidth: 0,
+        borderStyle: "none",
         background: "transparent",
         padding: 0,
         display: "flex",
@@ -153,18 +156,12 @@ const styles = {
         marginTop: "6px",
     } as React.CSSProperties,
 
-    inputGroupError: {
-        borderColor: "#ef4444",
-        boxShadow: "0 0 0 3px rgba(239, 68, 68, 0.1)",
-    } as React.CSSProperties,
-
-    errorText: {
+    fieldError: {
         fontSize: "12px",
         color: "#ef4444",
         marginTop: "6px",
-        display: "flex",
-        alignItems: "center",
-        gap: "4px",
+        margin: 0,
+        marginBlockStart: "6px",
     } as React.CSSProperties,
 
     termsRow: {
@@ -196,7 +193,8 @@ const styles = {
         width: "100%",
         padding: "14px",
         borderRadius: "12px",
-        border: "none",
+        borderWidth: 0,
+        borderStyle: "none",
         backgroundColor: "#2563eb",
         color: "#ffffff",
         fontSize: "15px",
@@ -245,7 +243,9 @@ const styles = {
         gap: "10px",
         padding: "12px",
         borderRadius: "12px",
-        border: "1.5px solid #e5e7eb",
+        borderWidth: "1.5px",
+        borderStyle: "solid",
+        borderColor: "#e5e7eb",
         backgroundColor: "#ffffff",
         fontSize: "14px",
         fontWeight: 500,
@@ -271,8 +271,17 @@ const styles = {
         fontWeight: 500,
         color: "#16a34a",
     } as React.CSSProperties,
-};
 
+    apiError: {
+        fontSize: "13px",
+        color: "#ef4444",
+        textAlign: "center" as const,
+        padding: "10px 16px",
+        backgroundColor: "#fef2f2",
+        borderRadius: "8px",
+        marginBottom: "4px",
+    } as React.CSSProperties,
+};
 
 function getPasswordStrength(pw: string): number {
     let s = 0;
@@ -289,79 +298,181 @@ function strengthColor(score: number): string {
 }
 
 
-const RegisterForm = () => {
+type FieldErrors = {
+    fullName?: string;
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+};
+
+function validateFields(
+    isSignup: boolean,
+    fullName: string,
+    email: string,
+    password: string,
+    confirmPassword: string,
+): FieldErrors {
+    const errors: FieldErrors = {};
+
+    if (isSignup && fullName.trim().length === 0) {
+        errors.fullName = "Full name is required";
+    }
+
+    if (email.trim().length === 0) {
+        errors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errors.email = "Enter a valid email address";
+    }
+
+    if (password.length === 0) {
+        errors.password = "Password is required";
+    } else if (password.length < 6) {
+        errors.password = "Password must be at least 6 characters";
+    }
+
+    if (isSignup) {
+        if (confirmPassword.length === 0) {
+            errors.confirmPassword = "Please confirm your password";
+        } else if (password !== confirmPassword) {
+            errors.confirmPassword = "Passwords do not match";
+        }
+    }
+
+    return errors;
+}
+
+
+const RegisterForm = ({ mode }: RegisterFormProps) => {
     const [fullName, setFullName] = useState("");
-    const [emailOrPhone, setEmailOrPhone] = useState("");
+    const [email, setemail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [agreedToTerms, setAgreedToTerms] = useState(false);
     const [focusedField, setFocusedField] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>();
+    const [touched, setTouched] = useState<Record<string, boolean>>({});
+    const [submitted, setSubmitted] = useState(false);
+    const navigate = useNavigate();
+
+    const isLogin = mode === "/login";
+    const isSignup = mode === "/signup";
 
     const strength = useMemo(() => getPasswordStrength(password), [password]);
-    const passwordsMatch = confirmPassword.length === 0 || password === confirmPassword;
-    const canSubmit = agreedToTerms && passwordsMatch && confirmPassword.length > 0;
+    const fieldErrors = useMemo(
+        () => validateFields(isSignup, fullName, email, password, confirmPassword),
+        [isSignup, fullName, email, password, confirmPassword]
+    );
+    const hasNoErrors = Object.keys(fieldErrors).length === 0;
+    const canSubmit = isLogin
+        ? hasNoErrors && !loading
+        : hasNoErrors && agreedToTerms && !loading;
+    const isDisabled = !canSubmit || loading;
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!canSubmit) return;
-        console.log({ fullName, emailOrPhone, password, confirmPassword, agreedToTerms });
+    const markTouched = (field: string) => {
+        setTouched((prev) => ({ ...prev, [field]: true }));
     };
 
-    const getInputGroupStyle = (field: string, hasError?: boolean) => ({
-        ...styles.inputGroup,
-        ...(focusedField === field ? styles.inputGroupFocused : {}),
-        ...(hasError ? styles.inputGroupError : {}),
-    });
+    const showFieldError = (field: keyof FieldErrors): string | undefined => {
+        if (submitted || touched[field]) {
+            return fieldErrors[field];
+        }
+        return undefined;
+    };
+
+    const getInputGroupStyle = (field: string): React.CSSProperties => {
+        const err = showFieldError(field as keyof FieldErrors);
+        return {
+            ...styles.inputGroup,
+            ...(focusedField === field
+                ? { borderColor: "#2563eb", boxShadow: "0 0 0 3px rgba(37, 99, 235, 0.1)" }
+                : {}),
+            ...(err
+                ? { borderColor: "#ef4444", boxShadow: "0 0 0 3px rgba(239, 68, 68, 0.1)" }
+                : {}),
+        };
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSubmitted(true);
+        if (!canSubmit) return;
+        try {
+            setLoading(true);
+            setError(null);
+            if (isSignup) {
+                console.log({ name: fullName, email, password, confirmPassword })
+                await sendOtp({ name: fullName, email, password, confirmPassword });
+                navigate("/verify-otp", { state: {email} });
+            } else {
+                const response = await login({ email, password });
+                localStorage.setItem("token", response.data.token);
+                navigate("/");
+            }
+        } catch (err: any) {
+            setError(err?.response?.data?.message || "Something went wrong");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
-        <div style={styles.wrapper}>
-            <div style={styles.card}>
-                <h1 style={styles.title}>Create your client account</h1>
+        <div className="auth-card-wrapper" style={styles.wrapper}>
+            <div className="auth-card" style={styles.card}>
+                <h1 style={styles.title}>
+                    {isLogin ? "Welcome back" : "Create your client account"}
+                </h1>
                 <p style={styles.subtitle}>
-                    Join thousands of businesses hiring verified experts.
+                    {isSignup ? "Join thousands of businesses hiring verified experts." : ""}
                 </p>
 
                 <form onSubmit={handleSubmit} style={styles.form}>
-                    <div>
-                        <label htmlFor="fullName" style={styles.label}>Full Name</label>
-                        <div
-                            style={getInputGroupStyle("fullName")}
-                            onFocus={() => setFocusedField("fullName")}
-                            onBlur={() => setFocusedField(null)}
-                        >
-                            <UserIcon />
-                            <input
-                                id="fullName"
-                                type="text"
-                                placeholder="John Doe"
-                                value={fullName}
-                                onChange={(e) => setFullName(e.target.value)}
-                                style={styles.input}
-                                required
-                            />
+                    {isSignup && (
+                        <div>
+                            <label htmlFor="fullName" style={styles.label}>Full Name</label>
+                            <div
+                                style={getInputGroupStyle("fullName")}
+                                onFocus={() => setFocusedField("fullName")}
+                                onBlur={() => { setFocusedField(null); markTouched("fullName"); }}
+                            >
+                                <UserIcon />
+                                <input
+                                    id="fullName"
+                                    type="text"
+                                    placeholder="ismail knr"
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
+                                    style={styles.input}
+                                />
+                            </div>
+                            {showFieldError("fullName") && (
+                                <p style={styles.fieldError}>{showFieldError("fullName")}</p>
+                            )}
                         </div>
-                    </div>
+                    )}
 
                     <div>
-                        <label htmlFor="emailOrPhone" style={styles.label}>Email</label>
+                        <label htmlFor="email" style={styles.label}>Email</label>
                         <div
-                            style={getInputGroupStyle("emailOrPhone")}
-                            onFocus={() => setFocusedField("emailOrPhone")}
-                            onBlur={() => setFocusedField(null)}
+                            style={getInputGroupStyle("email")}
+                            onFocus={() => setFocusedField("email")}
+                            onBlur={() => { setFocusedField(null); markTouched("email"); }}
                         >
                             <MailIcon />
                             <input
-                                id="emailOrPhone"
+                                id="email"
                                 type="text"
                                 placeholder="name@company.com"
-                                value={emailOrPhone}
-                                onChange={(e) => setEmailOrPhone(e.target.value)}
+                                value={email}
+                                onChange={(e) => setemail(e.target.value)}
                                 style={styles.input}
-                                required
                             />
                         </div>
+                        {showFieldError("email") && (
+                            <p style={styles.fieldError}>{showFieldError("email")}</p>
+                        )}
                     </div>
 
                     <div>
@@ -369,7 +480,7 @@ const RegisterForm = () => {
                         <div
                             style={getInputGroupStyle("password")}
                             onFocus={() => setFocusedField("password")}
-                            onBlur={() => setFocusedField(null)}
+                            onBlur={() => { setFocusedField(null); markTouched("password"); }}
                         >
                             <LockIcon />
                             <input
@@ -379,7 +490,6 @@ const RegisterForm = () => {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 style={styles.input}
-                                required
                             />
                             <button
                                 type="button"
@@ -390,99 +500,107 @@ const RegisterForm = () => {
                                 {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                             </button>
                         </div>
-
-                        <div style={{ display: "flex", gap: "6px", marginTop: "10px" }}>
-                            {[0, 1, 2].map((i) => (
-                                <div
-                                    key={i}
-                                    style={styles.strengthBar(
-                                        i < strength,
-                                        strengthColor(strength)
-                                    )}
-                                />
-                            ))}
-                        </div>
-                        <p style={styles.hint}>
-                            At least 8 characters, a number &amp; symbol.
-                        </p>
-                    </div>
-
-                    <div>
-                        <label htmlFor="confirmPassword" style={styles.label}>Verify Password</label>
-                        <div
-                            style={getInputGroupStyle("confirmPassword", !passwordsMatch)}
-                            onFocus={() => setFocusedField("confirmPassword")}
-                            onBlur={() => setFocusedField(null)}
-                        >
-                            <LockIcon />
-                            <input
-                                id="confirmPassword"
-                                type={showConfirmPassword ? "text" : "password"}
-                                placeholder="••••••••"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                style={styles.input}
-                                required
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowConfirmPassword((v) => !v)}
-                                style={styles.eyeButton}
-                                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-                            >
-                                {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
-                            </button>
-                        </div>
-                        {!passwordsMatch && (
-                            <p style={styles.errorText}>
-                                Passwords do not match
-                            </p>
+                        {showFieldError("password") ? (
+                            <p style={styles.fieldError}>{showFieldError("password")}</p>
+                        ) : (
+                            <>
+                                <div style={{ display: "flex", gap: "6px", marginTop: "10px" }}>
+                                    {[0, 1, 2].map((i) => (
+                                        <div
+                                            key={i}
+                                            style={styles.strengthBar(
+                                                i < strength,
+                                                strengthColor(strength)
+                                            )}
+                                        />
+                                    ))}
+                                </div>
+                                <p style={styles.hint}>
+                                    At least 8 characters, a number &amp; symbol.
+                                </p>
+                            </>
                         )}
                     </div>
 
-                    <label htmlFor="terms" style={styles.termsRow}>
-                        <input
-                            id="terms"
-                            type="checkbox"
-                            checked={agreedToTerms}
-                            onChange={(e) => setAgreedToTerms(e.target.checked)}
-                            style={styles.checkbox}
-                        />
-                        <span>
-                            By creating an account, you agree to the{" "}
-                            <a href="#" style={styles.link}>Terms of Service</a>{" "}
-                            and{" "}
-                            <a href="#" style={styles.link}>Privacy Policy</a>.
-                        </span>
-                    </label>
+                    {isSignup && (
+                        <div>
+                            <label htmlFor="confirmPassword" style={styles.label}>Verify Password</label>
+                            <div
+                                style={getInputGroupStyle("confirmPassword")}
+                                onFocus={() => setFocusedField("confirmPassword")}
+                                onBlur={() => { setFocusedField(null); markTouched("confirmPassword"); }}
+                            >
+                                <LockIcon />
+                                <input
+                                    id="confirmPassword"
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    placeholder="••••••••"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    style={styles.input}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword((v) => !v)}
+                                    style={styles.eyeButton}
+                                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                                >
+                                    {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
+                                </button>
+                            </div>
+                            {showFieldError("confirmPassword") && (
+                                <p style={styles.fieldError}>{showFieldError("confirmPassword")}</p>
+                            )}
+                        </div>
+                    )}
+
+                    {isSignup && (
+                        <label htmlFor="terms" style={styles.termsRow}>
+                            <input
+                                id="terms"
+                                type="checkbox"
+                                checked={agreedToTerms}
+                                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                                style={styles.checkbox}
+                            />
+                            <span>
+                                By creating an account, you agree to the{" "}
+                                <a href="#" style={styles.link}>Terms of Service</a>{" "}
+                                and{" "}
+                                <a href="#" style={styles.link}>Privacy Policy</a>.
+                            </span>
+                        </label>
+                    )}
+
+                    {error && <p style={styles.apiError}>{error}</p>}
 
                     <button
                         type="submit"
-                        disabled={!canSubmit}
+                        disabled={isDisabled && submitted}
                         style={{
                             ...styles.submitBtn,
-                            ...(!canSubmit ? styles.submitBtnDisabled : {}),
+                            ...(isDisabled && submitted ? styles.submitBtnDisabled : {}),
                         }}
                         onMouseEnter={(e) => {
-                            if (canSubmit) {
+                            if (!isDisabled) {
                                 e.currentTarget.style.backgroundColor = "#1d4ed8";
                                 e.currentTarget.style.boxShadow = "0 6px 20px rgba(37, 99, 235, 0.35)";
                             }
                         }}
                         onMouseLeave={(e) => {
-                            if (canSubmit) {
+                            if (!isDisabled) {
                                 e.currentTarget.style.backgroundColor = "#2563eb";
                                 e.currentTarget.style.boxShadow = "0 4px 14px rgba(37, 99, 235, 0.25)";
                             }
                         }}
                     >
-                        Create Account
+                        {loading ? "Processing..." : isSignup ? "Create Account" : "Login"}
                     </button>
                 </form>
 
                 <div style={styles.dividerRow}>
                     <div style={styles.dividerLine} />
-                    <span style={styles.dividerText}>Or sign up with</span>
+                    <span style={styles.dividerText}>{isSignup ? "Or sign up with" : "Or login with"}</span>
                     <div style={styles.dividerLine} />
                 </div>
 

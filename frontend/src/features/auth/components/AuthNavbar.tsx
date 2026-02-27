@@ -1,33 +1,13 @@
 import { Link } from "react-router-dom";
+import type { RegisterFormProps } from "../types";
+import "../auth.css";
 
-const AuthNavbar = () => {
+const AuthNavbar = ({ mode }: RegisterFormProps) => {
+    const isSignup = mode === "/signup";
     return (
-        <nav
-            style={{
-                width: "100%",
-                borderBottom: "1px solid #e5e7eb",
-                backgroundColor: "#ffffff",
-            }}
-        >
-            <div
-                style={{
-                    maxWidth: "1200px",
-                    margin: "0 auto",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "14px 24px",
-                }}
-            >
-                 <Link
-                    to="/"
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        textDecoration: "none",
-                    }}
-                >
+        <nav className="auth-navbar">
+            <div className="auth-navbar-inner">
+                <Link to="/" className="auth-navbar-logo">
                     <svg
                         width="22"
                         height="22"
@@ -40,51 +20,18 @@ const AuthNavbar = () => {
                             fill="#2563eb"
                         />
                     </svg>
-                    <span
-                        style={{
-                            fontSize: "18px",
-                            fontWeight: 700,
-                            color: "#111827",
-                            fontFamily: "'Inter', sans-serif",
-                        }}
-                    >
-                        QuickWork
-                    </span>
+                    <span className="auth-navbar-logo-text">QuickWork</span>
                 </Link>
 
-                 <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                    <span
-                        style={{
-                            fontSize: "14px",
-                            color: "#6b7280",
-                            fontFamily: "'Inter', sans-serif",
-                        }}
-                    >
-                        Already have an account?
+                <div className="auth-navbar-right">
+                    <span className="auth-navbar-hint">
+                        {isSignup ? "Already have an account?" : "Don\u2019t have an account?"}
                     </span>
                     <Link
-                        to="/login"
-                        style={{
-                            padding: "8px 20px",
-                            borderRadius: "8px",
-                            border: "1.5px solid #2563eb",
-                            fontSize: "14px",
-                            fontWeight: 600,
-                            color: "#2563eb",
-                            textDecoration: "none",
-                            fontFamily: "'Inter', sans-serif",
-                            transition: "all 0.2s",
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = "#2563eb";
-                            e.currentTarget.style.color = "#ffffff";
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = "transparent";
-                            e.currentTarget.style.color = "#2563eb";
-                        }}
+                        to={isSignup ? "/login" : "/signup"}
+                        className="auth-navbar-btn"
                     >
-                        Log in
+                        {isSignup ? "Log in" : "Sign up"}
                     </Link>
                 </div>
             </div>

@@ -1,9 +1,8 @@
-// import React from 'react'
 
 const LandingPage = () => {
   return (
     <div>
-      
+      inside the landing page
     </div>
   )
 }

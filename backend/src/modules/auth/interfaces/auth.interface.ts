@@ -36,7 +36,7 @@ export interface ISendOtpInput {
     email: string;
     password: string;
     confirmPassword: string;
-    role: "user" | "freelancer";
+    role: "user" | "admin";
 }
 
 export interface IVerifyOtpInput {
@@ -88,6 +88,21 @@ export interface ILoginResponse {
     };
 }
 
+export interface IAdminLoginResponse {
+    success: boolean;
+    message: string;
+    data: {
+        accessToken: string;
+        refreshToken: string;
+        admin: {
+            id: string;
+            name: string;
+            email: string;
+            role: string;
+        };
+    };
+}
+
 export interface IRefreshTokenResponse {
     success: boolean;
     message: string;
@@ -116,5 +131,6 @@ export interface IAuthService {
     verifyOtp(input: IVerifyOtpInput): Promise<IVerifyOtpResponse>;
     resendOtp(input: IResendOtpInput): Promise<IResendOtpResponse>;
     login(input: ILoginInput): Promise<ILoginResponse>;
+    adminLogin(input: ILoginInput): Promise<IAdminLoginResponse>;
     refreshToken(token: string): Promise<IRefreshTokenResponse>;
 }

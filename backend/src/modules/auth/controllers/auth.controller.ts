@@ -18,6 +18,7 @@ export class AuthController {
         next: NextFunction
     ): Promise<void> => {
         try {
+            console.log(req.body)
             const dto = SendOtpDto.create(req.body);
             const result = await this.authService.sendOtp(dto);
             res.status(200).json(result);
@@ -85,6 +86,19 @@ export class AuthController {
             }
 
             const result = await this.authService.refreshToken(refreshToken);
+            res.status(200).json(result);
+        } catch (error) {
+            next(error);
+        }
+    };
+    public adminLogin = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try {
+            const dto = LoginDto.create(req.body);
+            const result = await this.authService.adminLogin(dto);
             res.status(200).json(result);
         } catch (error) {
             next(error);

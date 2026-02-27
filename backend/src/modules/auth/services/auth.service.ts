@@ -12,6 +12,7 @@ import {
     ICreateUserData,
     ILoginInput,
     ILoginResponse,
+    IAdminLoginResponse,
     IRefreshTokenResponse,
     ITokenPayload,
 } from "../interfaces/auth.interface";
@@ -40,7 +41,7 @@ export class AuthService implements IAuthService {
             throw new AppError("Email already exists", 409);
         }
 
-        const isServiceProvider = input.role === "freelancer";
+        const isServiceProvider = input.role === "admin";
 
         const hashedPassword = await bcrypt.hash(
             input.password,
@@ -184,6 +185,50 @@ export class AuthService implements IAuthService {
             data: {
                 accessToken,
                 refreshToken: newRefreshToken,
+            },
+        };
+    }
+    public async adminLogin(input: ILoginInput): Promise<IAdminLoginResponse> {
+        const genericError = new AppError("Unauthorized access", 401);
+
+        const user = await this.authRepository.findByEmailWithPassword(input.email);
+        if (!user) {
+            throw genericError;
+        }
+
+        const isPasswordValid = await bcrypt.compare(input.password, user.hashedPassword);
+        if (!isPasswordValid) {
+            throw genericError;
+        }
+
+        if (user.isBlocked) {
+            throw genericError;
+        }
+
+        if (user.role !== "admin") {
+            throw genericError;
+        }
+
+        const tokenPayload: ITokenPayload = {
+            userId: user._id.toString(),
+            role: user.role,
+        };
+
+        const accessToken = generateAccessToken(tokenPayload);
+        const refreshToken = generateRefreshToken(tokenPayload);
+
+        return {
+            success: true,
+            message: "Admin login successful",
+            data: {
+                accessToken,
+                refreshToken,
+                admin: {
+                    id: user._id.toString(),
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                },
             },
         };
     }

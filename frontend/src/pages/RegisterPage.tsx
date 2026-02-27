@@ -12,7 +12,7 @@ const RegisterPage = () => {
         fontFamily: "'Inter', system-ui, sans-serif",
       }}
     >
-       <AuthNavbar />
+       <AuthNavbar mode="/signup"/>
 
        <main
         style={{
@@ -23,7 +23,7 @@ const RegisterPage = () => {
           padding: "48px 16px",
         }}
       >
-        <RegisterForm />
+        <RegisterForm mode='/signup'/>
       </main>
 
        <footer

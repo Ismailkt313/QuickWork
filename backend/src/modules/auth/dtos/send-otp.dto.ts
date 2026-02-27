@@ -1,7 +1,6 @@
 import { ISendOtpInput } from "../interfaces/auth.interface";
 import { AppError } from "../../../utils/AppError";
 
-const VALID_ROLES: ISendOtpInput["role"][] = ["user", "freelancer"];
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 6;
 
@@ -37,10 +36,6 @@ export class SendOtpDto {
 
         if (!data.confirmPassword || data.password !== data.confirmPassword) {
             errors.push("Passwords do not match");
-        }
-
-        if (!data.role || !VALID_ROLES.includes(data.role as ISendOtpInput["role"])) {
-            errors.push(`Role must be one of: ${VALID_ROLES.join(", ")}`);
         }
 
         if (errors.length > 0) {
