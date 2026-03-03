@@ -10,10 +10,12 @@ import AdminAuthGuard from "./components/AdminAuthGuard"
 import AdminLayout from "./admin/components/AdminLayout"
 import AdminDashboard from "./admin/pages/AdminDashboard"
 import UserManagement from "./admin/pages/UserManagement"
+import SkillRequests from "./admin/pages/SkillRequests"
 import GoogleCallback from "./pages/GoogleCallback"
 import ForgotPasswordPage from "./pages/ForgotPasswordPage"
 import ResetPasswordPage from "./pages/ResetPasswordPage"
 import BecomeProviderPage from "./pages/BecomeProviderPage"
+import ProviderSuccessPage from "./features/providerOnboarding/components/ProviderSuccessPage"
 import AuthGuard from "./components/AuthGuard"
 
 const App = () => {
@@ -31,8 +33,10 @@ const App = () => {
         <Route path="/admin" element={<AdminAuthGuard><AdminLayout /></AdminAuthGuard>}>
           <Route index element={<AdminDashboard />} />
           <Route path="users" element={<UserManagement />} />
+          <Route path="skill-requests" element={<SkillRequests />} />
         </Route>
         <Route path="/become-provider" element={<AuthGuard><BecomeProviderPage /></AuthGuard>} />
+        <Route path="/provider/status" element={<AuthGuard><ProviderSuccessPage /></AuthGuard>} />
       </Routes>
     </BrowserRouter>
   )

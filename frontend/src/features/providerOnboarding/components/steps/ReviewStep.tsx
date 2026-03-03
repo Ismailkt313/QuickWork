@@ -7,6 +7,7 @@ import {
     setAgreedToTerms,
     resetOnboarding
 } from "../../store/onboardingSlice";
+import { submitProviderApplication } from "../../../../services/provider.service";
 
 const ReviewStep: React.FC = () => {
     const dispatch = useDispatch();
@@ -14,6 +15,7 @@ const ReviewStep: React.FC = () => {
     const { formData } = useSelector((state: RootState) => state.onboarding);
 
     const [isAccuracyConfirmed, setIsAccuracyConfirmed] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const isValid = isAccuracyConfirmed &&
         formData.agreedToTerms &&
@@ -24,13 +26,35 @@ const ReviewStep: React.FC = () => {
     const handleSubmit = async () => {
         if (!isValid) return;
 
-        // Simulating API Call
-        console.log("Submitting Profile:", formData);
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        setIsSubmitting(true);
+        try {
+            const mappedSkills = formData.skills
+                .filter(s => !s.id.startsWith("req_"))
+                .map(s => s.id);
 
-        // Reset and navigate
-        dispatch(resetOnboarding());
-        navigate("/provider/status");
+            const payload = {
+                headline: formData.headline,
+                about: formData.about,
+                profileImage: formData.profileImage || "https://placedog.net/500",
+                skills: mappedSkills,
+                yearsOfExperience: formData.yearsOfExperience,
+                hourlyRate: formData.hourlyRate,
+                location: formData.location!,
+                portfolio: formData.portfolio.map(p => ({
+                    title: p.title,
+                    description: p.description,
+                    images: p.images
+                }))
+            };
+
+            await submitProviderApplication(payload);
+            dispatch(resetOnboarding());
+            navigate("/provider/status");
+        } catch (error: any) {
+            alert(error.message || "Failed to submit application");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -42,7 +66,6 @@ const ReviewStep: React.FC = () => {
                     <p className="text-secondary small">Please review your details before submitting for verification.</p>
                 </div>
 
-                {/* Section 1: Identity */}
                 <div className="mb-4 bg-light rounded-4 p-4 border position-relative">
                     <div className="d-flex justify-content-between align-items-center mb-3">
                         <h6 className="fw-bold mb-0 text-primary">Identity & Background</h6>
@@ -76,7 +99,6 @@ const ReviewStep: React.FC = () => {
                     )}
                 </div>
 
-                {/* Section 2: Skills & Service Area */}
                 <div className="mb-4 bg-light rounded-4 p-4 border">
                     <div className="d-flex justify-content-between align-items-center mb-3">
                         <h6 className="fw-bold mb-0 text-primary">Skills & Service Area</h6>
@@ -112,7 +134,6 @@ const ReviewStep: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Section 3: Portfolio Preview */}
                 <div className="mb-4 bg-light rounded-4 p-4 border">
                     <div className="d-flex justify-content-between align-items-center mb-3">
                         <h6 className="fw-bold mb-0 text-primary">Portfolio Projects</h6>
@@ -148,7 +169,6 @@ const ReviewStep: React.FC = () => {
                     )}
                 </div>
 
-                {/* Section 4: Agreement Checkbox */}
                 <div className="bg-primary bg-opacity-10 rounded-4 p-4 border border-primary border-opacity-25 mt-4">
                     <h6 className="fw-bold mb-3 text-primary">Agreement & Verification</h6>
 
@@ -190,12 +210,12 @@ const ReviewStep: React.FC = () => {
 
                     <div className="d-flex flex-column align-items-center align-items-sm-end order-1 order-sm-2 w-100">
                         <button
-                            disabled={!isValid}
+                            disabled={!isValid || isSubmitting}
                             onClick={handleSubmit}
                             className="btn btn-primary px-5 py-3 fw-bold rounded-pill shadow w-100 w-sm-auto mb-2"
                         >
-                            Submit for Verification
-                            <i className="bi bi-check-circle ms-2"></i>
+                            {isSubmitting ? "Submitting..." : "Submit for Verification"}
+                            {!isSubmitting && <i className="bi bi-check-circle ms-2"></i>}
                         </button>
                         <span className="text-success small fw-medium mt-1">
                             <i className="bi bi-info-circle me-1"></i>

@@ -12,6 +12,17 @@ import { searchSkills, requestSkill } from "../../../../services/skill.service";
 import { searchLocation, selectLocation } from "../../../../services/location.service";
 import { debounce } from "../../../../utils/debounce";
 
+const POPULAR_SKILLS = [
+    { id: '69a66fce2d21bc43fc0f9daa', name: 'Plumbing' },
+    { id: '69a66fce2d21bc43fc0f9dab', name: 'Electrical Work' },
+    { id: '69a66fce2d21bc43fc0f9dac', name: 'House Cleaning' },
+    { id: '69a66fce2d21bc43fc0f9dad', name: 'Carpentry' },
+    { id: '69a66fce2d21bc43fc0f9dae', name: 'Painting' },
+    { id: '69a66fce2d21bc43fc0f9daf', name: 'AC Repair' },
+    { id: '69a66fce2d21bc43fc0f9db0', name: 'Pest Control' },
+    { id: '69a66fce2d21bc43fc0f9db1', name: 'Landscaping' }
+];
+
 const SkillsStep: React.FC = () => {
     const dispatch = useDispatch();
     const { formData } = useSelector((state: RootState) => state.onboarding);
@@ -25,10 +36,10 @@ const SkillsStep: React.FC = () => {
     const [isSearchingLocation, setIsSearchingLocation] = useState(false);
     const [showLocationDropdown, setShowLocationDropdown] = useState(false);
 
-    // const isValid =
-    //     (formData.skills?.length || 0) >= 1 &&
-    //     (formData.hourlyRate || 0) > 0 &&
-    //     formData.location !== null;
+    const isValid =
+        (formData.skills?.length || 0) >= 1 &&
+        (formData.hourlyRate || 0) > 0 &&
+        formData.location !== null;
 
     const fetchSkills = useCallback(
         debounce(async (query: string) => {
@@ -64,7 +75,6 @@ const SkillsStep: React.FC = () => {
         }
     };
 
-    // --- Location Logic ---
     const fetchLocations = useCallback(
         debounce(async (query: string) => {
             if (query.length < 3) {
@@ -93,9 +103,9 @@ const SkillsStep: React.FC = () => {
         try {
             const { id } = await selectLocation({ name: loc.name, lat: loc.lat, lon: loc.lon });
             dispatch(setLocation({ ...loc, id }));
-        } catch (error) {
-            console.error("Failed to select location", error);
-            alert("Failed to save location. Please try again.");
+        } catch (error: any) {
+            console.error("Failed to select location payload:", error?.response?.data || error.message);
+            alert(`Failed: ${error?.response?.data?.message || error.message}`);
             setLocationQuery("");
             dispatch(setLocation(null));
         } finally {
@@ -112,7 +122,6 @@ const SkillsStep: React.FC = () => {
                 </div>
 
                 <div className="row g-4">
-                    {/* Skills Section */}
                     <div className="col-12">
                         <label className="form-label fw-bold small">Skills & Expertise</label>
                         <div className="position-relative">
@@ -156,7 +165,25 @@ const SkillsStep: React.FC = () => {
                             )}
                         </div>
 
-                        <div className="d-flex flex-wrap gap-2 mt-2">
+                        {!skillQuery && (
+                            <div className="mt-3">
+                                <span className="text-muted small fw-bold">Popular Skills:</span>
+                                <div className="d-flex flex-wrap gap-2 mt-2">
+                                    {POPULAR_SKILLS.filter(ps => !formData.skills?.some(s => s.name === ps.name)).map(skill => (
+                                        <button
+                                            key={skill.id}
+                                            onClick={() => handleAddSkill(skill)}
+                                            disabled={(formData.skills?.length || 0) >= 10}
+                                            className="btn btn-sm btn-outline-secondary rounded-pill"
+                                        >
+                                            + {skill.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="d-flex flex-wrap gap-2 mt-3">
                             {formData.skills?.map(skill => (
                                 <span
                                     key={skill.name}
@@ -177,7 +204,6 @@ const SkillsStep: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Hourly Rate */}
                     <div className="col-12">
                         <label className="form-label fw-bold small">Hourly Rate</label>
                         <div className="row align-items-center">
@@ -198,7 +224,6 @@ const SkillsStep: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Location */}
                     <div className="col-12">
                         <label className="form-label fw-bold small">Primary Service Area</label>
                         <div className="position-relative">
@@ -228,7 +253,10 @@ const SkillsStep: React.FC = () => {
                                         <button
                                             key={idx}
                                             className="list-group-item list-group-item-action border-0 py-3 small text-start"
-                                            onClick={() => handleSelectLocation(loc)}
+                                            onMouseDown={(e) => {
+                                                e.preventDefault();
+                                                handleSelectLocation(loc);
+                                            }}
                                         >
                                             <i className="bi bi-geo-alt me-2 text-muted"></i>
                                             {loc.name}
@@ -249,7 +277,7 @@ const SkillsStep: React.FC = () => {
                         Back
                     </button>
                     <button
-                        // disabled={!isValid}
+                        disabled={!isValid}
                         onClick={() => dispatch(setCurrentStep(3))}
                         className="btn btn-primary px-5 py-2 fw-bold rounded-pill shadow"
                     >

@@ -12,7 +12,7 @@ export const searchSkills = async (query: string): Promise<Skill[]> => {
         });
         return response.data.data;
     } catch (error) {
-        console.error("Error searching skills:", error);
+        
         return [];
     }
 };
@@ -25,7 +25,7 @@ export const requestSkill = async (skillName: string, description: string = "Req
         });
         return response.data;
     } catch (error: any) {
-        console.error("Error requesting skill:", error);
+        
         return { success: false, message: error.response?.data?.message || "Failed to request skill" };
     }
 };

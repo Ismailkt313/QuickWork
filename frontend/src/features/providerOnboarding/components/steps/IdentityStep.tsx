@@ -2,29 +2,51 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../../../app/store";
 import { updateField, setCurrentStep } from "../../store/onboardingSlice";
+import { api } from "../../../../api"; 
 
 const IdentityStep: React.FC = () => {
     const dispatch = useDispatch();
     const { formData } = useSelector((state: RootState) => state.onboarding);
     const [imagePreview, setImagePreview] = useState<string | null>(formData.profileImage || null);
+    const [isUploading, setIsUploading] = useState(false);
 
     const isValid =
         formData.profileImage &&
         formData.headline.trim().length > 0 &&
         formData.about.trim().length >= 80 &&
         formData.phone.trim().length > 0 &&
-        formData.yearsOfExperience >= 0;
+        formData.yearsOfExperience >= 0 &&
+        !isUploading;
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const base64String = reader.result as string;
-                setImagePreview(base64String);
-                dispatch(updateField({ field: "profileImage", value: base64String }));
-            };
-            reader.readAsDataURL(file);
+        if (!file) return;
+
+        if (file.size > 2 * 1024 * 1024) {
+            alert("File size must be under 2MB");
+            return;
+        }
+
+        setIsUploading(true);
+
+        try {
+            const uploadData = new FormData();
+            uploadData.append("image", file);
+
+            const response = await api.post("/upload/profile-image", uploadData, {
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                }
+            });
+
+            const secureImageUrl = response.data.data.imageUrl;
+            setImagePreview(secureImageUrl);
+            dispatch(updateField({ field: "profileImage", value: secureImageUrl }));
+        } catch (error: any) {
+            console.error("Upload failed", error);
+            alert(error.response?.data?.message || "Failed to upload image securely.");
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -33,7 +55,7 @@ const IdentityStep: React.FC = () => {
     };
 
     const calculateProfileStrength = () => {
-        let strength = 20; // Base strength
+        let strength = 20;
         if (formData.profileImage) strength += 20;
         if (formData.headline.trim()) strength += 20;
         if (formData.about.trim().length >= 80) strength += 20;
@@ -46,7 +68,7 @@ const IdentityStep: React.FC = () => {
             <div className="card border-0 shadow-sm rounded-4 p-4 p-md-5">
                 <h4 className="fw-bold mb-4 text-center">Professional Identity</h4>
 
-                 <div className="mb-4">
+                <div className="mb-4">
                     <div className="d-flex justify-content-between align-items-center mb-2">
                         <span className="text-secondary small fw-bold">Profile Strength</span>
                         <span className="text-primary small fw-bold">{calculateProfileStrength()}%</span>
@@ -61,7 +83,7 @@ const IdentityStep: React.FC = () => {
                 </div>
 
                 <div className="row g-4">
-                     <div className="col-12 text-center mb-3">
+                    <div className="col-12 text-center mb-3">
                         <div className="position-relative d-inline-block">
                             <div
                                 className="rounded-circle bg-light border d-flex align-items-center justify-content-center overflow-hidden shadow-sm"
@@ -91,7 +113,7 @@ const IdentityStep: React.FC = () => {
                         <div className="mt-2 text-secondary small">Click the camera to upload a profile photo</div>
                     </div>
 
-                     <div className="col-12">
+                    <div className="col-12">
                         <label className="form-label fw-bold small">Professional Headline</label>
                         <input
                             type="text"
@@ -103,7 +125,7 @@ const IdentityStep: React.FC = () => {
                         <div className="form-text text-muted small">A short summary of what you do best.</div>
                     </div>
 
-                     <div className="col-12">
+                    <div className="col-12">
                         <label className="form-label fw-bold small">About You</label>
                         <textarea
                             className="form-control bg-light border-0"
@@ -120,7 +142,7 @@ const IdentityStep: React.FC = () => {
                         </div>
                     </div>
 
-                     <div className="col-sm-6">
+                    <div className="col-sm-6">
                         <label className="form-label fw-bold small">Years of Experience</label>
                         <select
                             className="form-select bg-light border-0"
