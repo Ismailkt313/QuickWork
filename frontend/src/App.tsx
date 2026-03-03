@@ -4,17 +4,35 @@ import LoginPage from "./pages/LoginPage"
 import RegisterPage from "./pages/RegisterPage"
 import OtpPage from "./pages/OtpPage"
 import AdminLoginPage from "./pages/AdminLoginPage"
+import GuestGuard from "./components/GuestGuard"
+import AdminGuestGuard from "./components/AdminGuestGuard"
+import AdminAuthGuard from "./components/AdminAuthGuard"
+import AdminLayout from "./admin/components/AdminLayout"
+import AdminDashboard from "./admin/pages/AdminDashboard"
+import UserManagement from "./admin/pages/UserManagement"
+import GoogleCallback from "./pages/GoogleCallback"
+import ForgotPasswordPage from "./pages/ForgotPasswordPage"
+import ResetPasswordPage from "./pages/ResetPasswordPage"
+import BecomeProviderPage from "./pages/BecomeProviderPage"
+import AuthGuard from "./components/AuthGuard"
 
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<RegisterPage />} />
+        <Route path="/login" element={<GuestGuard><LoginPage /></GuestGuard>} />
+        <Route path="/signup" element={<GuestGuard><RegisterPage /></GuestGuard>} />
         <Route path="/verify-otp" element={<OtpPage />} />
-        <Route path="/admin/login" element={<AdminLoginPage />} />
-        <Route path="/admin/dashboard" element={<div>Admin Dashboard (Coming Soon)</div>} />
+        <Route path="/forgot-password" element={<GuestGuard><ForgotPasswordPage /></GuestGuard>} />
+        <Route path="/reset-password" element={<GuestGuard><ResetPasswordPage /></GuestGuard>} />
+        <Route path="/auth/google/callback" element={<GoogleCallback />} />
+        <Route path="/admin/login" element={<AdminGuestGuard><AdminLoginPage /></AdminGuestGuard>} />
+        <Route path="/admin" element={<AdminAuthGuard><AdminLayout /></AdminAuthGuard>}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="users" element={<UserManagement />} />
+        </Route>
+        <Route path="/become-provider" element={<AuthGuard><BecomeProviderPage /></AuthGuard>} />
       </Routes>
     </BrowserRouter>
   )

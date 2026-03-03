@@ -4,10 +4,9 @@ export interface IUser extends Document {
     name: string;
     email: string;
     number?: string;
-    hashedPassword: string;
+    hashedPassword?: string;
     googleId?: string;
-    role: "client" | "admin";
-    isService_provider: boolean;
+    role: "user" | "admin" | "provider";
     isBlocked: boolean;
     createdAt: Date;
 }
@@ -16,17 +15,17 @@ export interface ICreateUserData {
     name: string;
     email: string;
     number?: string;
-    hashedPassword: string;
+    hashedPassword?: string;
     googleId?: string;
-    role: "client" | "admin";
-    isService_provider: boolean;
+    role: "user" | "admin" | "provider";
     isBlocked: boolean;
 }
 
 export interface IOtpEntry extends Document {
     email: string;
     hashedOtp: string;
-    userData: ICreateUserData;
+    type: "registration" | "password-reset";
+    userData?: ICreateUserData;
     otpExpiresAt: Date;
     expiresAt: Date;
 }
@@ -36,7 +35,7 @@ export interface ISendOtpInput {
     email: string;
     password: string;
     confirmPassword: string;
-    role: "user" | "admin";
+    role: "user" | "admin" | "provider";
 }
 
 export interface IVerifyOtpInput {
@@ -63,6 +62,26 @@ export interface IResendOtpResponse {
     message: string;
 }
 
+export interface IForgotPasswordInput {
+    email: string;
+}
+
+export interface IForgotPasswordResponse {
+    success: boolean;
+    message: string;
+}
+
+export interface IResetPasswordInput {
+    email: string;
+    otp: string;
+    newPassword: string;
+}
+
+export interface IResetPasswordResponse {
+    success: boolean;
+    message: string;
+}
+
 export interface ILoginInput {
     email: string;
     password: string;
@@ -70,7 +89,7 @@ export interface ILoginInput {
 
 export interface ITokenPayload {
     userId: string;
-    role: "client" | "admin";
+    role: "user" | "admin" | "provider";
 }
 
 export interface ILoginResponse {
@@ -112,11 +131,17 @@ export interface IRefreshTokenResponse {
     };
 }
 
+export interface ILogoutResponse {
+    success: boolean;
+    message: string;
+}
+
 export interface IOtpRepository {
-    upsert(email: string, hashedOtp: string, userData: ICreateUserData, otpExpiresAt: Date, expiresAt: Date): Promise<void>;
-    findByEmail(email: string): Promise<IOtpEntry | null>;
-    deleteByEmail(email: string): Promise<void>;
-    updateOtp(email: string, hashedOtp: string, otpExpiresAt: Date): Promise<void>;
+    upsert(email: string, hashedOtp: string, type: "registration" | "password-reset", otpExpiresAt: Date, expiresAt: Date, userData?: ICreateUserData): Promise<void>;
+    findByEmailAndType(email: string, type: "registration" | "password-reset"): Promise<IOtpEntry | null>;
+    deleteByEmailAndType(email: string, type: "registration" | "password-reset"): Promise<void>;
+    updateOtp(email: string, hashedOtp: string, type: "registration" | "password-reset", otpExpiresAt: Date): Promise<void>;
+    deleteByRefreshToken(token: string): Promise<void>;
 }
 
 export interface IAuthRepository {
@@ -124,6 +149,7 @@ export interface IAuthRepository {
     findByEmailWithPassword(email: string): Promise<IUser | null>;
     findById(id: string): Promise<IUser | null>;
     createUser(data: ICreateUserData): Promise<IUser>;
+    updatePassword(userId: string, hashedPassword: string): Promise<void>;
 }
 
 export interface IAuthService {
@@ -133,4 +159,7 @@ export interface IAuthService {
     login(input: ILoginInput): Promise<ILoginResponse>;
     adminLogin(input: ILoginInput): Promise<IAdminLoginResponse>;
     refreshToken(token: string): Promise<IRefreshTokenResponse>;
+    logout(token: string): Promise<ILogoutResponse>;
+    forgotPassword(input: IForgotPasswordInput): Promise<IForgotPasswordResponse>;
+    resetPassword(input: IResetPasswordInput): Promise<IResetPasswordResponse>;
 }

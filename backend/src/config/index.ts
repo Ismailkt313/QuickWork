@@ -16,4 +16,6 @@ export const config = {
     NODEMAILER_PASSWORD: process.env.NODEMAILER_PASSWORD,
     OTP_EXPIRY_SECONDS: parseInt(process.env.OTP_EXPIRY_SECONDS || "120", 10),
     OTP_TTL_SECONDS: parseInt(process.env.OTP_TTL_SECONDS || "600", 10),
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || "",
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || "",
 };

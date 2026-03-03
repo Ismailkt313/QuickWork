@@ -19,5 +19,9 @@ export class AuthRepository implements IAuthRepository {
         const user = new UserModel(data);
         return user.save();
     }
+
+    public async updatePassword(userId: string, hashedPassword: string): Promise<void> {
+        await UserModel.findByIdAndUpdate(userId, { hashedPassword });
+    }
 }
 

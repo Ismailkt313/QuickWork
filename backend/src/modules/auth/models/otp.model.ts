@@ -6,7 +6,6 @@ const OtpEntrySchema: Schema<IOtpEntry> = new Schema<IOtpEntry>(
         email: {
             type: String,
             required: true,
-            unique: true,
             lowercase: true,
             trim: true,
         },
@@ -14,13 +13,17 @@ const OtpEntrySchema: Schema<IOtpEntry> = new Schema<IOtpEntry>(
             type: String,
             required: true,
         },
+        type: {
+            type: String,
+            enum: ["registration", "password-reset"],
+            required: true,
+        },
         userData: {
-            name: { type: String, required: true },
-            email: { type: String, required: true },
-            hashedPassword: { type: String, required: true },
-            role: { type: String, required: true },
-            isService_provider: { type: Boolean, required: true },
-            isBlocked: { type: Boolean, default: false, required: true },
+            name: { type: String, required: false },
+            email: { type: String, required: false },
+            hashedPassword: { type: String, required: false },
+            role: { type: String, required: false },
+            isBlocked: { type: Boolean, default: false },
         },
         otpExpiresAt: {
             type: Date,
@@ -36,5 +39,7 @@ const OtpEntrySchema: Schema<IOtpEntry> = new Schema<IOtpEntry>(
         timestamps: false,
     }
 );
+
+OtpEntrySchema.index({ email: 1, type: 1 }, { unique: true });
 
 export const OtpEntryModel = mongoose.model<IOtpEntry>("OtpEntry", OtpEntrySchema);

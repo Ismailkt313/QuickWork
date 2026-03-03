@@ -15,6 +15,11 @@ import {
     IAdminLoginResponse,
     IRefreshTokenResponse,
     ITokenPayload,
+    ILogoutResponse,
+    IForgotPasswordInput,
+    IForgotPasswordResponse,
+    IResetPasswordInput,
+    IResetPasswordResponse,
 } from "../interfaces/auth.interface";
 import { config } from "../../../config";
 import { AppError } from "../../../utils/AppError";
@@ -30,7 +35,10 @@ export class AuthService implements IAuthService {
     private readonly authRepository: IAuthRepository;
     private readonly otpRepository: IOtpRepository;
 
-    constructor(authRepository: IAuthRepository, otpRepository: IOtpRepository) {
+    constructor(
+        authRepository: IAuthRepository,
+        otpRepository: IOtpRepository
+    ) {
         this.authRepository = authRepository;
         this.otpRepository = otpRepository;
     }
@@ -41,8 +49,6 @@ export class AuthService implements IAuthService {
             throw new AppError("Email already exists", 409);
         }
 
-        const isServiceProvider = input.role === "admin";
-
         const hashedPassword = await bcrypt.hash(
             input.password,
             config.BCRYPT_SALT_ROUNDS
@@ -52,17 +58,17 @@ export class AuthService implements IAuthService {
             name: input.name.trim(),
             email: input.email.toLowerCase().trim(),
             hashedPassword,
-            role: "client",
-            isService_provider: isServiceProvider,
+            role: input.role,
             isBlocked: false,
         };
 
         const otp = generateOtp();
+        console.log(otp);
         const hashedOtpValue = await hashOtp(otp);
         const otpExpiresAt = new Date(Date.now() + config.OTP_EXPIRY_SECONDS * 1000);
         const expiresAt = new Date(Date.now() + config.OTP_TTL_SECONDS * 1000);
 
-        await this.otpRepository.upsert(userData.email, hashedOtpValue, userData, otpExpiresAt, expiresAt);
+        await this.otpRepository.upsert(userData.email, hashedOtpValue, "registration", otpExpiresAt, expiresAt, userData);
         await sendOtpEmail(userData.email, otp);
 
         return {
@@ -72,7 +78,7 @@ export class AuthService implements IAuthService {
     }
 
     public async verifyOtp(input: IVerifyOtpInput): Promise<IVerifyOtpResponse> {
-        const otpEntry = await this.otpRepository.findByEmail(input.email.toLowerCase().trim());
+        const otpEntry = await this.otpRepository.findByEmailAndType(input.email.toLowerCase().trim(), "registration");
         if (!otpEntry) {
             throw new AppError("Registration session expired. Please register again", 400);
         }
@@ -86,8 +92,8 @@ export class AuthService implements IAuthService {
             throw new AppError("Invalid OTP", 400);
         }
 
-        await this.authRepository.createUser(otpEntry.userData);
-        await this.otpRepository.deleteByEmail(input.email);
+        await this.authRepository.createUser(otpEntry.userData!);
+        await this.otpRepository.deleteByEmailAndType(input.email, "registration");
 
         return {
             success: true,
@@ -96,16 +102,17 @@ export class AuthService implements IAuthService {
     }
 
     public async resendOtp(input: IResendOtpInput): Promise<IResendOtpResponse> {
-        const otpEntry = await this.otpRepository.findByEmail(input.email.toLowerCase().trim());
+        const otpEntry = await this.otpRepository.findByEmailAndType(input.email.toLowerCase().trim(), "registration");
         if (!otpEntry) {
             throw new AppError("Registration session expired. Please register again", 400);
         }
 
         const otp = generateOtp();
+        console.log(otp);
         const hashedOtpValue = await hashOtp(otp);
         const otpExpiresAt = new Date(Date.now() + config.OTP_EXPIRY_SECONDS * 1000);
 
-        await this.otpRepository.updateOtp(otpEntry.email, hashedOtpValue, otpExpiresAt);
+        await this.otpRepository.updateOtp(otpEntry.email, hashedOtpValue, "registration", otpExpiresAt);
         await sendOtpEmail(otpEntry.email, otp);
 
         return {
@@ -122,6 +129,10 @@ export class AuthService implements IAuthService {
 
         if (user.isBlocked) {
             throw new AppError("Your account has been blocked", 403);
+        }
+
+        if (!user.hashedPassword) {
+            throw new AppError("Invalid credentials", 401);
         }
 
         const isPasswordValid = await bcrypt.compare(input.password, user.hashedPassword);
@@ -196,6 +207,10 @@ export class AuthService implements IAuthService {
             throw genericError;
         }
 
+        if (!user.hashedPassword) {
+            throw genericError;
+        }
+
         const isPasswordValid = await bcrypt.compare(input.password, user.hashedPassword);
         if (!isPasswordValid) {
             throw genericError;
@@ -230,6 +245,75 @@ export class AuthService implements IAuthService {
                     role: user.role,
                 },
             },
+        };
+    }
+    public async logout(token: string): Promise<ILogoutResponse> {
+        try {
+            let varify = verifyRefreshToken(token);
+            if (!varify) {
+                throw new AppError("Invalid or expired refresh token", 401);
+            }
+            await this.otpRepository.deleteByRefreshToken(token);
+        } catch {
+            throw new AppError("Invalid or expired refresh token", 401);
+        }
+
+        return {
+            success: true,
+            message: "Logout successful",
+        };
+    }
+
+    public async forgotPassword(input: IForgotPasswordInput): Promise<IForgotPasswordResponse> {
+        const user = await this.authRepository.findByEmail(input.email.toLowerCase().trim());
+        if (!user) {
+            return {
+                success: true,
+                message: "If an account exists for this email, a reset code has been sent",
+            };
+        }
+
+        const otp = generateOtp();
+        console.log(`Password reset OTP for ${input.email}: ${otp}`);
+        const hashedOtpValue = await hashOtp(otp);
+        const expiresAt = new Date(Date.now() + config.OTP_EXPIRY_SECONDS * 1000);
+
+        await this.otpRepository.upsert(user.email, hashedOtpValue, "password-reset", expiresAt, expiresAt);
+        await sendOtpEmail(user.email, otp);
+
+        return {
+            success: true,
+            message: `Instructions to reset your password have been sent to ${user.email}`,
+        };
+    }
+
+    public async resetPassword(input: IResetPasswordInput): Promise<IResetPasswordResponse> {
+        const resetEntry = await this.otpRepository.findByEmailAndType(input.email.toLowerCase().trim(), "password-reset");
+        if (!resetEntry) {
+            throw new AppError("Reset request expired. Please start over", 400);
+        }
+
+        if (resetEntry.expiresAt < new Date()) {
+            throw new AppError("Reset code has expired", 400);
+        }
+
+        const isValid = await compareOtp(input.otp, resetEntry.hashedOtp);
+        if (!isValid) {
+            throw new AppError("Invalid reset code", 400);
+        }
+
+        const user = await this.authRepository.findByEmail(input.email.toLowerCase().trim());
+        if (!user) {
+            throw new AppError("Something went wrong", 404);
+        }
+
+        const hashedPassword = await bcrypt.hash(input.newPassword, config.BCRYPT_SALT_ROUNDS);
+        await this.authRepository.updatePassword(user._id.toString(), hashedPassword);
+        await this.otpRepository.deleteByEmailAndType(input.email, "password-reset");
+
+        return {
+            success: true,
+            message: "Password has been reset successfully",
         };
     }
 }

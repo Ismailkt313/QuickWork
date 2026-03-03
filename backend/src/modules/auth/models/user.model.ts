@@ -21,8 +21,7 @@ const UserSchema: Schema<IUser> = new Schema<IUser>(
         },
         hashedPassword: {
             type: String,
-            required: [true, "Password is required"],
-            select: false, 
+            select: false,
         },
         googleId: {
             type: String,
@@ -30,12 +29,8 @@ const UserSchema: Schema<IUser> = new Schema<IUser>(
         },
         role: {
             type: String,
-            enum: ["client", "admin"],
-            default: "client",
-        },
-        isService_provider: {
-            type: Boolean,
-            default: false,
+            enum: ["user", "admin", "provider"],
+            default: "user",
         },
         isBlocked: {
             type: Boolean,

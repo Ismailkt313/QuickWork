@@ -2,23 +2,22 @@ import { Request, Response, NextFunction } from "express";
 import { verifyAccessToken } from "../utils/jwt.util";
 import { ITokenPayload } from "../modules/auth/interfaces/auth.interface";
 import { AppError } from "../utils/AppError";
+import { UserModel } from "../modules/auth/models/user.model";
 
 declare global {
     namespace Express {
-        interface Request {
-            user?: ITokenPayload;
-        }
+        interface User extends ITokenPayload { }
     }
 }
 
-export const authMiddleware = (
+export const authMiddleware = async (
     req: Request,
     _res: Response,
     next: NextFunction
-): void => {
+): Promise<void> => {
     try {
         const authHeader = req.headers.authorization;
-
+console.log(authHeader)
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
             throw new AppError("Access denied. No token provided.", 401);
         }
@@ -26,6 +25,15 @@ export const authMiddleware = (
         const token = authHeader.split(" ")[1];
 
         const decoded = verifyAccessToken(token);
+
+        const user = await UserModel.findById(decoded.userId).select("isBlocked");
+        if (!user) {
+            throw new AppError("User not found", 401);
+        }
+        if (user.isBlocked) {
+            throw new AppError("Your account has been blocked", 403);
+        }
+
         req.user = decoded;
 
         next();
@@ -37,3 +45,4 @@ export const authMiddleware = (
         next(new AppError("Invalid or expired token", 401));
     }
 };
+

@@ -3,38 +3,12 @@ import RegisterForm from "../features/auth/components/RegisterForm";
 
 const RegisterPage = () => {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        minHeight: "100vh",
-        backgroundColor: "#f8fafc",
-        fontFamily: "'Inter', system-ui, sans-serif",
-      }}
-    >
-       <AuthNavbar mode="/signup"/>
-
-       <main
-        style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "48px 16px",
-        }}
-      >
-        <RegisterForm mode='/signup'/>
+    <div className="auth-page">
+      <AuthNavbar mode="/signup" />
+      <main className="flex-grow-1 d-flex align-items-center justify-content-center py-5 px-3">
+        <RegisterForm mode="/signup" />
       </main>
-
-       <footer
-        style={{
-          textAlign: "center",
-          padding: "24px 16px",
-          fontSize: "12px",
-          color: "#9ca3af",
-          fontFamily: "'Inter', system-ui, sans-serif",
-        }}
-      >
+      <footer className="text-center py-4 text-secondary" style={{ fontSize: '0.75rem' }}>
         © 2026 QuickWork Marketplace Inc. All rights reserved.
       </footer>
     </div>
