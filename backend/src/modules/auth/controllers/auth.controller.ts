@@ -20,7 +20,7 @@ export class AuthController {
         next: NextFunction
     ): Promise<void> => {
         try {
-            console.log(req.body)
+            
             const dto = SendOtpDto.create(req.body);
             const result = await this.authService.sendOtp(dto);
             res.status(200).json(result);
@@ -123,7 +123,7 @@ export class AuthController {
             const result = await this.authService.logout(refreshToken);
             res.status(200).json(result);
         } catch (error) {
-            console.log(error);
+            
             next(error);
         }
     }

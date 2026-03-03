@@ -19,13 +19,11 @@ export class ServiceRequestService {
         const normalizedName = dto.name.toLowerCase().trim();
         const generatedSlug = generateSlug(normalizedName);
 
-        // Check if skill already exists
         const existingSkill = await this.skillRepository.findByName(normalizedName);
         if (existingSkill) {
             return { success: false, message: 'Skill already exists in the system' };
         }
 
-        // Check for existing pending request with same name
         const existingRequest = await this.serviceRequestRepository.findPendingByName(normalizedName);
         if (existingRequest) {
             return { success: false, message: 'A pending request for this skill already exists' };
@@ -55,53 +53,44 @@ export class ServiceRequestService {
         return { success: true, data: requests };
     }
 
-    async approveRequest(adminId: string, requestId: string): Promise<{ success: boolean; message: string }> {
-        const request = await this.serviceRequestRepository.findById(requestId);
-        if (!request) {
-            return { success: false, message: 'Service request not found' };
+    async approveRequest(
+      adminId: string,
+      requestId: string
+    ): Promise<{ success: boolean; message: string }> {
+
+          const request = await this.serviceRequestRepository.findById(requestId);
+
+      if (!request) {
+        return { success: false, message: "Service request not found" };
+      }
+
+      if (request.status !== "pending") {
+        return { success: false, message: `Request is already ${request.status}` };
+      }
+
+      try {
+         await this.skillRepository.create({
+          name: request.name,
+          slug: request.slug
+        });
+
+      } catch (error: any) {
+         if (error.code === 11000) {
+         } else {
+          throw error;
         }
+      }
 
-        if (request.status !== 'pending') {
-            return { success: false, message: `Request is already ${request.status}` };
-        }
+       await this.serviceRequestRepository.updateStatus(requestId, {
+        status: "approved",
+        reviewedBy: new Types.ObjectId(adminId),
+        reviewedAt: new Date()
+      });
 
-        // Check if skill was created between request time and now
-        const existingSkill = await this.skillRepository.findByName(request.name);
-        if (existingSkill) {
-            // Auto reject if skill now exists
-            await this.serviceRequestRepository.updateStatus(requestId, {
-                status: 'rejected',
-                reviewedBy: new Types.ObjectId(adminId),
-                reviewedAt: new Date(),
-                rejectionReason: 'Skill was created by another process'
-            });
-            return { success: false, message: 'Skill already exists. Request automatically rejected.' };
-        }
-
-        const session = await mongoose.startSession();
-        session.startTransaction();
-
-        try {
-            await this.skillRepository.create({
-                name: request.name,
-                slug: request.slug
-            }, session);
-
-            await this.serviceRequestRepository.updateStatus(requestId, {
-                status: 'approved',
-                reviewedBy: new Types.ObjectId(adminId),
-                reviewedAt: new Date()
-            }, session);
-
-            await session.commitTransaction();
-            session.endSession();
-
-            return { success: true, message: 'Service request approved and skill created successfully' };
-        } catch (error) {
-            await session.abortTransaction();
-            session.endSession();
-            throw error;
-        }
+      return {
+        success: true,
+        message: "Service request approved successfully"
+      };
     }
 
     async rejectRequest(adminId: string, requestId: string, dto: RejectServiceRequestDTO): Promise<{ success: boolean; message: string }> {

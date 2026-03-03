@@ -25,4 +25,14 @@ export class LocationController {
             next(error);
         }
     };
+
+    searchLocations = async (req: Request, res: Response, next: any): Promise<void> => {
+        try {
+            const query = (req.query.search as string) || '';
+            const result = await this.locationService.searchLocations(query);
+            res.status(200).json(result);
+        } catch (error) {
+            next(error);
+        }
+    };
 }

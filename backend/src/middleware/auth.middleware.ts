@@ -17,13 +17,13 @@ export const authMiddleware = async (
 ): Promise<void> => {
     try {
         const authHeader = req.headers.authorization;
-console.log(authHeader)
+
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
+
             throw new AppError("Access denied. No token provided.", 401);
         }
 
         const token = authHeader.split(" ")[1];
-
         const decoded = verifyAccessToken(token);
 
         const user = await UserModel.findById(decoded.userId).select("isBlocked");
@@ -35,9 +35,9 @@ console.log(authHeader)
         }
 
         req.user = decoded;
-
         next();
-    } catch (error) {
+    } catch (error: any) {
+
         if (error instanceof AppError) {
             next(error);
             return;

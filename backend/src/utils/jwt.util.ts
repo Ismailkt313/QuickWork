@@ -17,7 +17,10 @@ export const generateRefreshToken = (payload: ITokenPayload): string => {
 };
 
 export const verifyAccessToken = (token: string): ITokenPayload => {
-    return jwt.verify(token, config.JWT_ACCESS_SECRET) as ITokenPayload;
+    
+    let result = jwt.verify(token, config.JWT_ACCESS_SECRET,{ignoreExpiration:true}) as ITokenPayload;
+    
+    return result;
 };
 
 export const verifyRefreshToken = (token: string): ITokenPayload => {

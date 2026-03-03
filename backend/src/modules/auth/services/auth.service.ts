@@ -63,7 +63,7 @@ export class AuthService implements IAuthService {
         };
 
         const otp = generateOtp();
-        console.log(otp);
+        
         const hashedOtpValue = await hashOtp(otp);
         const otpExpiresAt = new Date(Date.now() + config.OTP_EXPIRY_SECONDS * 1000);
         const expiresAt = new Date(Date.now() + config.OTP_TTL_SECONDS * 1000);
@@ -108,7 +108,7 @@ export class AuthService implements IAuthService {
         }
 
         const otp = generateOtp();
-        console.log(otp);
+        
         const hashedOtpValue = await hashOtp(otp);
         const otpExpiresAt = new Date(Date.now() + config.OTP_EXPIRY_SECONDS * 1000);
 
@@ -274,7 +274,7 @@ export class AuthService implements IAuthService {
         }
 
         const otp = generateOtp();
-        console.log(`Password reset OTP for ${input.email}: ${otp}`);
+        
         const hashedOtpValue = await hashOtp(otp);
         const expiresAt = new Date(Date.now() + config.OTP_EXPIRY_SECONDS * 1000);
 

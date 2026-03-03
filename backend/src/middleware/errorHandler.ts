@@ -9,6 +9,7 @@ export const errorHandler = (
 ): any => {
 
     if (err instanceof AppError) {
+
         res.status(err.statusCode).json({
             success: false,
             message: err.message,
@@ -21,10 +22,11 @@ export const errorHandler = (
             success: false,
             message: "Duplicate field value. This resource already exists.",
         });
-        return 
+        return
     }
 
     if (err.name === "ValidationError") {
+
         res.status(400).json({
             success: false,
             message: err.message,
@@ -32,7 +34,7 @@ export const errorHandler = (
         return
     }
 
-    console.error("Unhandled Error:", err);
+
 
     res.status(500).json({
         success: false,

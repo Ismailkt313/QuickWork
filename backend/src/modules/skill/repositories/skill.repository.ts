@@ -12,6 +12,7 @@ export class SkillRepository {
 
     async create(skillData: Partial<ISkill>, session?: any): Promise<ISkill> {
         const skill = new SkillModel(skillData);
+        
         return await skill.save({ session });
     }
 }

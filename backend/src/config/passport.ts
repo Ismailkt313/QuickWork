@@ -17,13 +17,11 @@ passport.use(
 
                 const email = profile.emails[0].value;
 
-                // Check if user already exists (by googleId or email)
                 let user = await UserModel.findOne({
                     $or: [{ googleId: profile.id }, { email }]
                 });
 
                 if (user) {
-                    // If user exists but doesn't have googleId yet, link it
                     if (!user.googleId) {
                         user.googleId = profile.id;
                         await user.save();

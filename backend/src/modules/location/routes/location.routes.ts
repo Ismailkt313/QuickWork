@@ -5,6 +5,7 @@ import { authMiddleware } from '../../../middleware/auth.middleware';
 export const createLocationRouter = (controller: LocationController): Router => {
     const router = Router();
 
+    router.get('/', controller.searchLocations);
     router.post('/', authMiddleware, controller.saveLocation);
 
     return router;

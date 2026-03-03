@@ -41,7 +41,7 @@ const LocationSchema = new Schema<ILocation>({
 
 LocationSchema.index({ location: '2dsphere' });
 
-LocationSchema.pre('save', function (next) {
+LocationSchema.pre('validate', function (next) {
     if (this.name) {
         this.name = this.name.toLowerCase().trim();
     }
