@@ -4,7 +4,7 @@ import ForgotPasswordForm from "../features/auth/components/ForgotPasswordForm";
 const ForgotPasswordPage = () => {
     return (
         <div className="auth-page">
-            <AuthNavbar mode="/login" />
+            <AuthNavbar mode="/auth/login" />
             <main className="flex-grow-1 d-flex align-items-center justify-content-center py-5 px-3">
                 <ForgotPasswordForm />
             </main>

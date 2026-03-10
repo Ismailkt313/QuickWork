@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
-import { SkillService } from '../services/skill.service';
+import { ISkillService } from '../interfaces/skill.interface';
+ import { ISkillController } from '../interfaces/skill.interface';
 
-export class SkillController {
-    private skillService: SkillService;
+export class SkillController implements ISkillController {
+    private skillService: ISkillService;
 
-    constructor(skillService: SkillService) {
+    constructor(skillService: ISkillService) {
         this.skillService = skillService;
     }
 
@@ -17,4 +18,23 @@ export class SkillController {
             next(error);
         }
     };
+
+    getAllSkills = async (req: Request, res: Response, next: any): Promise<void> => {
+        try {
+            const search = req.query.search as string | undefined;
+            const locationId = req.query.locationId as string | undefined;
+            const result = await this.skillService.getAllSkills(search, locationId);
+            res.status(200).json(result);
+        } catch (error) {
+            next(error);
+        }
+    };
+    getSkills = async (req: Request, res: Response, next: any): Promise<void> => {
+        try {
+            const result = await this.skillService.getSkills();
+            res.status(200).json(result);
+        } catch (error) {
+            next(error);
+        }
+    }
 }

@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import type { RegisterFormProps } from "../types";
 import { sendOtp, login } from "../services/authApi";
 import { useNavigate, Link } from "react-router-dom";
+const apiUrl = import.meta.env.VITE_API_URL
 
 function getPasswordStrength(pw: string): number {
     let s = 0;
@@ -71,8 +72,8 @@ const RegisterForm = ({ mode }: RegisterFormProps) => {
     const [submitted, setSubmitted] = useState(false);
     const navigate = useNavigate();
 
-    const isLogin = mode === "/login";
-    const isSignup = mode === "/signup";
+    const isLogin = mode === "/auth/login";
+    const isSignup = mode === "/auth/signup";
 
     const strength = useMemo(() => getPasswordStrength(password), [password]);
     const fieldErrors = useMemo(
@@ -99,7 +100,7 @@ const RegisterForm = ({ mode }: RegisterFormProps) => {
             setError(null);
             if (isSignup) {
                 await sendOtp({ name: fullName, email, password, confirmPassword });
-                navigate("/verify-otp", { state: { email } });
+                navigate("/auth/verify-otp", { state: { email } });
             } else {
                 const response = await login({ email, password });
                 localStorage.setItem("token", response.data.accessToken);
@@ -107,6 +108,7 @@ const RegisterForm = ({ mode }: RegisterFormProps) => {
                 navigate("/");
             }
         } catch (err: any) {
+            console.error("Authentication error:", err);
             setError(err?.response?.data?.message || "Something went wrong");
         } finally {
             setLoading(false);
@@ -129,8 +131,7 @@ const RegisterForm = ({ mode }: RegisterFormProps) => {
             <button
                 type="button"
                 className="btn auth-btn-google w-100 d-flex align-items-center justify-content-center gap-2"
-                onClick={() => window.location.href = "http://localhost:5000/api/auth/google"}
-            >
+                onClick={() => window.location.href = `${apiUrl}/api/auth/google`}>
                 <svg width="18" height="18" viewBox="0 0 48 48">
                     <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
                     <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
@@ -191,7 +192,7 @@ const RegisterForm = ({ mode }: RegisterFormProps) => {
                     <div className="d-flex align-items-center justify-content-between mb-2">
                         <label htmlFor="password" className="auth-label mb-0">Password</label>
                         {isLogin && (
-                            <Link to="/forgot-password" title="Forgot password" className="auth-link" style={{ fontSize: '0.75rem' }}>Forgot password?</Link>
+                            <Link to="/auth/forgot-password" title="Forgot password" className="auth-link" style={{ fontSize: '0.75rem' }}>Forgot password?</Link>
                         )}
                     </div>
                     <div className="auth-input-group">

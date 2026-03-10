@@ -4,6 +4,7 @@ import { config } from "../config";
 
 export const generateOtp = (): string => {
     const otp = crypto.randomInt(100000, 999999);
+    console.log(otp)
     return otp.toString();
 };
 

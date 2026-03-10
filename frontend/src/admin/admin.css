@@ -950,6 +950,72 @@
     transform: translateY(-1px);
 }
 
+.confirm-modal-icon.approve {
+    background: #f0fdf4;
+    color: #22c55e;
+}
+
+.confirm-modal-icon.reject {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+.confirm-modal-btn.confirm-approve {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
+}
+
+.confirm-modal-btn.confirm-approve:hover {
+    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.35);
+    transform: translateY(-1px);
+}
+
+.confirm-modal-btn.confirm-reject {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.confirm-modal-btn.confirm-reject:hover {
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
+    transform: translateY(-1px);
+}
+
+.reject-reason-textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 0.8125rem;
+    font-family: 'Inter', sans-serif;
+    color: #1e293b;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.15s;
+    margin-bottom: 1rem;
+}
+
+.reject-reason-textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.reject-reason-textarea::placeholder {
+    color: #94a3b8;
+}
+
+.reject-reason-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
 .confirm-modal-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;

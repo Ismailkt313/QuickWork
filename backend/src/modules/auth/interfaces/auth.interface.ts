@@ -1,4 +1,5 @@
 import { Document } from "mongoose";
+import type { UserResponseDTO } from "../dtos/userResponse.dto";
 
 export interface IUser extends Document {
     name: string;
@@ -98,12 +99,7 @@ export interface ILoginResponse {
     data: {
         accessToken: string;
         refreshToken: string;
-        user: {
-            id: string;
-            name: string;
-            email: string;
-            role: string;
-        };
+        user: UserResponseDTO;
     };
 }
 
@@ -113,12 +109,7 @@ export interface IAdminLoginResponse {
     data: {
         accessToken: string;
         refreshToken: string;
-        admin: {
-            id: string;
-            name: string;
-            email: string;
-            role: string;
-        };
+        admin: UserResponseDTO;
     };
 }
 

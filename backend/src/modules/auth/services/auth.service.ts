@@ -30,6 +30,7 @@ import {
 } from "../../../utils/jwt.util";
 import { generateOtp, hashOtp, compareOtp } from "../../../utils/otp.util";
 import { sendOtpEmail } from "../../../utils/email.util";
+import { mapUserToResponseDTO } from "../dtos/userResponse.dto";
 
 export class AuthService implements IAuthService {
     private readonly authRepository: IAuthRepository;
@@ -108,7 +109,7 @@ export class AuthService implements IAuthService {
         }
 
         const otp = generateOtp();
-        
+        console.log(`Generated OTP for ${input.email}: ${otp}`); // Log OTP
         const hashedOtpValue = await hashOtp(otp);
         const otpExpiresAt = new Date(Date.now() + config.OTP_EXPIRY_SECONDS * 1000);
 
@@ -154,12 +155,7 @@ export class AuthService implements IAuthService {
             data: {
                 accessToken,
                 refreshToken,
-                user: {
-                    id: user._id.toString(),
-                    name: user.name,
-                    email: user.email,
-                    role: user.role,
-                },
+                user: mapUserToResponseDTO(user),
             },
         };
     }
@@ -238,12 +234,7 @@ export class AuthService implements IAuthService {
             data: {
                 accessToken,
                 refreshToken,
-                admin: {
-                    id: user._id.toString(),
-                    name: user.name,
-                    email: user.email,
-                    role: user.role,
-                },
+                admin: mapUserToResponseDTO(user),
             },
         };
     }

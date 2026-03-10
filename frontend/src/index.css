@@ -14,8 +14,6 @@ body {
   background-color: #f8fafc;
 }
 
-/* ===== Auth Pages Custom Styles ===== */
-
 .auth-page {
   min-height: 100vh;
   display: flex;
@@ -49,7 +47,6 @@ body {
   margin-top: 0.5rem;
 }
 
-/* Input groups */
 .auth-input-group {
   position: relative;
 }
@@ -111,7 +108,6 @@ body {
   color: #64748b;
 }
 
-/* Primary button */
 .auth-btn-primary {
   height: 48px;
   border-radius: 12px;

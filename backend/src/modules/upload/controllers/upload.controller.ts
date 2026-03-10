@@ -25,4 +25,21 @@ export class UploadController {
             next(error);
         }
     };
+
+    uploadPortfolioImage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            if (!req.file) {
+                throw new AppError('No image file provided', 400);
+            }
+
+            const result = await this.uploadService.uploadPortfolioImage(req.file.buffer, req.file.mimetype);
+
+            res.status(200).json({
+                success: true,
+                data: result
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
 }

@@ -11,7 +11,6 @@ const LocationSchema = new Schema<ILocation>({
     slug: {
         type: String,
         required: true,
-        unique: true
     },
     lat: {
         type: Number,

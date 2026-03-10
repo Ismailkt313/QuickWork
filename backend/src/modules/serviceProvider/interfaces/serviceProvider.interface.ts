@@ -1,4 +1,6 @@
 import { Document, Types } from 'mongoose';
+import { Request, Response, NextFunction } from 'express';
+import { SubmitApplicationDTO } from '../dtos/submitApplication.dto';
 
 export interface ILocation {
     id: string;
@@ -35,4 +37,50 @@ export interface IServiceProvider extends Document {
     submittedAt: Date;
     createdAt: Date;
     updatedAt: Date;
+}
+
+export interface ProviderListItem {
+    id: string;
+    headline: string;
+    profileImage: string;
+    hourlyRate: number;
+    yearsOfExperience: number;
+    location: ILocation;
+}
+
+export interface ProviderFilter {
+    skillId: string;
+    locationId?: string;
+    page: number;
+    limit: number;
+}
+
+export interface ProviderListResult {
+    providers: ProviderListItem[];
+    total: number;
+}
+
+export interface IServiceProviderRepository {
+    findByUserId(userId: string): Promise<IServiceProvider | null>;
+    create(providerData: Partial<IServiceProvider>): Promise<IServiceProvider>;
+    addSkillToProvider(userId: string, skillId: string): Promise<any>;
+    findProviders(filter: ProviderFilter): Promise<ProviderListResult>;
+    findById(id: string): Promise<any>;
+}
+
+export interface IServiceProviderService {
+    submitApplication(userId: string, providerData: SubmitApplicationDTO): Promise<{ success: boolean; data?: any; message?: string }>;
+    getProviders(params: {
+        skillId?: string;
+        locationId?: string;
+        page?: number;
+        limit?: number;
+    }): Promise<{ success: boolean; message?: string; data?: ProviderListResult & { page: number; limit: number } }>;
+    getProviderById(id: string): Promise<{ success: boolean; data?: any; message?: string }>;
+}
+
+export interface IServiceProviderController {
+    submitApplication(req: any, res: any, next: any): Promise<void>;
+    getProviders(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getProviderById(req: Request, res: Response, next: NextFunction): Promise<void>;
 }

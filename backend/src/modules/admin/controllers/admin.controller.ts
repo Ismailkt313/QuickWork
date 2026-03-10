@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { IAdminService, IUserListQuery } from "../interfaces/admin.interface";
+import { IAdminController, IAdminService, IUserListQuery } from "../interfaces/admin.interface";
 
-export class AdminController {
+export class AdminController implements IAdminController {
     private readonly adminService: IAdminService;
 
     constructor(adminService: IAdminService) {
@@ -35,6 +35,54 @@ export class AdminController {
         try {
             const id = req.params.id as string;
             const result = await this.adminService.toggleBlockUser(id);
+            res.status(200).json(result);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    public getPendingProviders = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try {
+            const result = await this.adminService.getPendingProviders();
+            res.status(200).json(result);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    public approveProvider = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try {
+            const id = req.params.id as string;
+            const result = await this.adminService.approveProvider(id);
+            res.status(200).json(result);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    public rejectProvider = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try {
+            const id = req.params.id as string;
+            const { reason } = req.body;
+
+            if (!reason || typeof reason !== 'string' || reason.trim() === '') {
+                res.status(400).json({ success: false, message: "Rejection reason is required" });
+                return;
+            }
+
+            const result = await this.adminService.rejectProvider(id, reason.trim());
             res.status(200).json(result);
         } catch (error) {
             next(error);

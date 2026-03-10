@@ -2,11 +2,11 @@
   "name": "quickwork-backend",
   "version": "1.0.0",
   "description": "QuickWork backend API",
-  "main": "dist/app.js",
+  "main": "dist/server.js",
   "scripts": {
-    "dev": "nodemon --exec ts-node src/app.ts",
+    "dev": "nodemon --exec ts-node src/server.ts",
     "build": "tsc",
-    "start": "node dist/app.js"
+    "start": "node dist/server.js"
   },
   "author": "",
   "license": "ISC",

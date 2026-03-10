@@ -85,7 +85,7 @@ const ResetPasswordForm = () => {
             await resetPassword({ email, otp: otpValue, newPassword });
             setSuccess(true);
             setTimeout(() => {
-                navigate("/login");
+                navigate("/auth/login");
             }, 3000);
         } catch (err: any) {
             setError(err?.response?.data?.message || "Reset failed. Please verify your code and try again.");
@@ -99,7 +99,7 @@ const ResetPasswordForm = () => {
             <div className="auth-card text-center">
                 <h1 className="auth-card-title">Invalid Request</h1>
                 <p className="auth-card-subtitle mb-4">No email address provided for reset.</p>
-                <button onClick={() => navigate("/forgot-password")} className="btn auth-btn-primary w-100">
+                <button onClick={() => navigate("/auth/forgot-password")} className="btn auth-btn-primary w-100">
                     Go Back
                 </button>
             </div>

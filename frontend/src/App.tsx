@@ -1,42 +1,26 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom"
-import LandingPage from "./pages/LandingPage"
-import LoginPage from "./pages/LoginPage"
-import RegisterPage from "./pages/RegisterPage"
-import OtpPage from "./pages/OtpPage"
-import AdminLoginPage from "./pages/AdminLoginPage"
-import GuestGuard from "./components/GuestGuard"
-import AdminGuestGuard from "./components/AdminGuestGuard"
-import AdminAuthGuard from "./components/AdminAuthGuard"
-import AdminLayout from "./admin/components/AdminLayout"
-import AdminDashboard from "./admin/pages/AdminDashboard"
-import UserManagement from "./admin/pages/UserManagement"
-import SkillRequests from "./admin/pages/SkillRequests"
-import GoogleCallback from "./pages/GoogleCallback"
-import ForgotPasswordPage from "./pages/ForgotPasswordPage"
-import ResetPasswordPage from "./pages/ResetPasswordPage"
-import BecomeProviderPage from "./pages/BecomeProviderPage"
-import ProviderSuccessPage from "./features/providerOnboarding/components/ProviderSuccessPage"
-import AuthGuard from "./components/AuthGuard"
+import { BrowserRouter, Routes, Route } from "react-router-dom"
+import Routers from "./app/router/routers"
+
+import AuthRouter from "./app/router/AuthRouter"
+import AdminRouter from "./app/router/AdminRouter"
+import ProviderRouter from "./app/router/ProviderRouter"
+import UserRouter from "./app/router/UserRouter"
 
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<GuestGuard><LoginPage /></GuestGuard>} />
-        <Route path="/signup" element={<GuestGuard><RegisterPage /></GuestGuard>} />
-        <Route path="/verify-otp" element={<OtpPage />} />
-        <Route path="/forgot-password" element={<GuestGuard><ForgotPasswordPage /></GuestGuard>} />
-        <Route path="/reset-password" element={<GuestGuard><ResetPasswordPage /></GuestGuard>} />
-        <Route path="/auth/google/callback" element={<GoogleCallback />} />
-        <Route path="/admin/login" element={<AdminGuestGuard><AdminLoginPage /></AdminGuestGuard>} />
-        <Route path="/admin" element={<AdminAuthGuard><AdminLayout /></AdminAuthGuard>}>
-          <Route index element={<AdminDashboard />} />
-          <Route path="users" element={<UserManagement />} />
-          <Route path="skill-requests" element={<SkillRequests />} />
-        </Route>
-        <Route path="/become-provider" element={<AuthGuard><BecomeProviderPage /></AuthGuard>} />
-        <Route path="/provider/status" element={<AuthGuard><ProviderSuccessPage /></AuthGuard>} />
+
+        <Route path="/" element={<Routers />} />
+
+        <Route path="/auth/*" element={<AuthRouter />} />
+
+        <Route path="/admin/*" element={<AdminRouter />} />
+
+        <Route path="/provider/*" element={<ProviderRouter />} />
+
+        <Route path="/user/*" element={<UserRouter />} />
+
       </Routes>
     </BrowserRouter>
   )

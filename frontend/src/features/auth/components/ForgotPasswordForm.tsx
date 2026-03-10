@@ -22,7 +22,7 @@ const ForgotPasswordForm = () => {
             await forgotPassword({ email });
             setSubmitted(true);
             setTimeout(() => {
-                navigate("/reset-password", { state: { email } });
+                navigate("/auth/reset-password", { state: { email } });
             }, 2000);
         } catch (err: any) {
             setError(err?.response?.data?.message || "Something went wrong. Please try again.");
@@ -94,7 +94,7 @@ const ForgotPasswordForm = () => {
                     <div className="text-center">
                         <button
                             type="button"
-                            onClick={() => navigate("/login")}
+                            onClick={() => navigate("/auth/login")}
                             className="auth-link p-0 border-0 bg-transparent fw-semibold"
                             style={{ fontSize: '0.875rem' }}
                         >

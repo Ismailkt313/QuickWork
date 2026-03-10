@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../../../app/store";
 import {
@@ -12,17 +12,6 @@ import { searchSkills, requestSkill } from "../../../../services/skill.service";
 import { searchLocation, selectLocation } from "../../../../services/location.service";
 import { debounce } from "../../../../utils/debounce";
 
-const POPULAR_SKILLS = [
-    { id: '69a66fce2d21bc43fc0f9daa', name: 'Plumbing' },
-    { id: '69a66fce2d21bc43fc0f9dab', name: 'Electrical Work' },
-    { id: '69a66fce2d21bc43fc0f9dac', name: 'House Cleaning' },
-    { id: '69a66fce2d21bc43fc0f9dad', name: 'Carpentry' },
-    { id: '69a66fce2d21bc43fc0f9dae', name: 'Painting' },
-    { id: '69a66fce2d21bc43fc0f9daf', name: 'AC Repair' },
-    { id: '69a66fce2d21bc43fc0f9db0', name: 'Pest Control' },
-    { id: '69a66fce2d21bc43fc0f9db1', name: 'Landscaping' }
-];
-
 const SkillsStep: React.FC = () => {
     const dispatch = useDispatch();
     const { formData } = useSelector((state: RootState) => state.onboarding);
@@ -30,6 +19,8 @@ const SkillsStep: React.FC = () => {
     const [skillQuery, setSkillQuery] = useState("");
     const [skillResults, setSkillResults] = useState<{ id: string; name: string }[]>([]);
     const [isSearchingSkills, setIsSearchingSkills] = useState(false);
+    const [showSkillDropdown, setShowSkillDropdown] = useState(false);
+    const skillInputRef = useRef<HTMLDivElement>(null);
 
     const [locationQuery, setLocationQuery] = useState(formData.location?.name || "");
     const [locationResults, setLocationResults] = useState<any[]>([]);
@@ -43,44 +34,50 @@ const SkillsStep: React.FC = () => {
 
     const fetchSkills = useCallback(
         debounce(async (query: string) => {
-            if (!query) {
+            if (!query.trim()) {
                 setSkillResults([]);
+                setIsSearchingSkills(false);
                 return;
             }
             setIsSearchingSkills(true);
             const results = await searchSkills(query);
             setSkillResults(results);
             setIsSearchingSkills(false);
-        }, 300),
+        }, 280),
         []
     );
 
     useEffect(() => {
-        fetchSkills(skillQuery);
+        if (skillQuery.trim()) {
+            setIsSearchingSkills(true);
+            fetchSkills(skillQuery);
+        } else {
+            setSkillResults([]);
+            setIsSearchingSkills(false);
+        }
     }, [skillQuery, fetchSkills]);
 
     const handleAddSkill = (skill: { id: string; name: string }) => {
         dispatch(addSkill(skill));
         setSkillQuery("");
         setSkillResults([]);
+        setShowSkillDropdown(false);
     };
 
     const handleRequestSkill = async () => {
-        if (!skillQuery) return;
+        if (!skillQuery.trim()) return;
         const result = await requestSkill(skillQuery);
         if (result.success) {
             dispatch(addSkill({ id: `req_${Date.now()}`, name: skillQuery, isRequested: true }));
             setSkillQuery("");
             setSkillResults([]);
+            setShowSkillDropdown(false);
         }
     };
 
     const fetchLocations = useCallback(
         debounce(async (query: string) => {
-            if (query.length < 3) {
-                setLocationResults([]);
-                return;
-            }
+            if (query.length < 3) { setLocationResults([]); return; }
             setIsSearchingLocation(true);
             const results = await searchLocation(query);
             setLocationResults(results);
@@ -104,14 +101,24 @@ const SkillsStep: React.FC = () => {
             const { id } = await selectLocation({ name: loc.name, lat: loc.lat, lon: loc.lon });
             dispatch(setLocation({ ...loc, id }));
         } catch (error: any) {
-            console.error("Failed to select location payload:", error?.response?.data || error.message);
-            alert(`Failed: ${error?.response?.data?.message || error.message}`);
             setLocationQuery("");
             dispatch(setLocation(null));
         } finally {
             setIsSearchingLocation(false);
         }
     };
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (skillInputRef.current && !skillInputRef.current.contains(e.target as Node)) {
+                setShowSkillDropdown(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const reachedLimit = (formData.skills?.length || 0) >= 10;
 
     return (
         <div className="container py-3 py-md-5" style={{ maxWidth: "680px" }}>
@@ -122,42 +129,111 @@ const SkillsStep: React.FC = () => {
                 </div>
 
                 <div className="row g-4">
+                    {/* ── Skills Input ── */}
                     <div className="col-12">
                         <label className="form-label fw-bold small">Skills & Expertise</label>
-                        <div className="position-relative">
-                            <div className="input-group bg-light rounded-2 overflow-hidden mb-2">
-                                <span className="input-group-text border-0 bg-transparent ps-3">
-                                    <i className="bi bi-search text-muted"></i>
-                                </span>
+
+                        {/* Autocomplete container */}
+                        <div ref={skillInputRef} className="position-relative">
+                            {/* Input row */}
+                            <div
+                                className="d-flex align-items-center gap-2 px-3 rounded-3"
+                                style={{
+                                    border: showSkillDropdown ? "2px solid #3b82f6" : "2px solid #e2e8f0",
+                                    background: reachedLimit ? "#f8fafc" : "#fff",
+                                    transition: "border-color 0.15s",
+                                    minHeight: 44,
+                                }}
+                            >
+                                <i className="bi bi-search text-muted" style={{ fontSize: 14 }} />
                                 <input
                                     type="text"
-                                    className="form-control border-0 bg-transparent ps-0"
-                                    placeholder="Search skills (e.g. Plumbing, Cleaning)"
+                                    style={{
+                                        flex: 1, border: "none", outline: "none", fontSize: 14,
+                                        background: "transparent", padding: "8px 0",
+                                    }}
+                                    placeholder={reachedLimit ? "Maximum 10 skills reached" : "Search skills (e.g. Plumbing, Cleaning…)"}
                                     value={skillQuery}
-                                    onChange={(e) => setSkillQuery(e.target.value)}
-                                    disabled={(formData.skills?.length || 0) >= 10}
+                                    disabled={reachedLimit}
+                                    onChange={e => {
+                                        setSkillQuery(e.target.value);
+                                        if (!showSkillDropdown) setShowSkillDropdown(true);
+                                    }}
+                                    onFocus={() => setShowSkillDropdown(true)}
                                 />
+                                {/* Spinner while fetching */}
+                                {isSearchingSkills && (
+                                    <div className="spinner-border spinner-border-sm text-primary" role="status" />
+                                )}
+                                {/* Clear button */}
+                                {skillQuery && !isSearchingSkills && (
+                                    <button
+                                        type="button"
+                                        onClick={() => { setSkillQuery(""); setSkillResults([]); }}
+                                        style={{ background: "none", border: "none", color: "#94a3b8", fontSize: 16, cursor: "pointer", lineHeight: 1, padding: 0 }}
+                                    >✕</button>
+                                )}
                             </div>
 
-                            {skillQuery && (
-                                <div className="list-group position-absolute w-100 z-3 shadow-sm rounded-3 overflow-hidden border">
-                                    {skillResults.map(skill => (
-                                        <button
-                                            key={skill.id}
-                                            className="list-group-item list-group-item-action border-0 py-2 small"
-                                            onClick={() => handleAddSkill(skill)}
-                                        >
-                                            {skill.name}
-                                        </button>
-                                    ))}
-                                    {!isSearchingSkills && skillResults.length === 0 && (
-                                        <div className="list-group-item border-0 py-3 text-center small bg-white">
-                                            <p className="mb-2 text-muted">No matching skills found</p>
+                            {/* Dropdown */}
+                            {showSkillDropdown && skillQuery.trim() && (
+                                <div
+                                    className="position-absolute w-100 bg-white rounded-3 border shadow"
+                                    style={{ top: "calc(100% + 4px)", zIndex: 50, overflow: "hidden", maxHeight: 280, overflowY: "auto" }}
+                                >
+                                    {isSearchingSkills ? (
+                                        <div className="p-3 text-center text-muted small">
+                                            <div className="spinner-border spinner-border-sm me-2" role="status" />
+                                            Searching skills…
+                                        </div>
+                                    ) : skillResults.length > 0 ? (
+                                        <>
+                                            {skillResults
+                                                .filter(s => !formData.skills?.some(fs => fs.id === s.id))
+                                                .map(skill => (
+                                                    <button
+                                                        key={skill.id}
+                                                        type="button"
+                                                        onMouseDown={e => { e.preventDefault(); handleAddSkill(skill); }}
+                                                        className="d-flex align-items-center gap-2 w-100 text-start border-0 bg-transparent px-3 py-2"
+                                                        style={{ fontSize: 14, transition: "background 0.1s" }}
+                                                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#f0f9ff"; }}
+                                                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                                                    >
+                                                        <span style={{
+                                                            width: 28, height: 28, borderRadius: 6, background: "#eff6ff",
+                                                            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0,
+                                                        }}>🛠️</span>
+                                                        <span style={{ fontWeight: 500, color: "#1e293b", textTransform: "capitalize" }}>{skill.name}</span>
+                                                        <span style={{ marginLeft: "auto", fontSize: 11, color: "#94a3b8" }}>+ Add</span>
+                                                    </button>
+                                                ))
+                                            }
+                                            {/* Request skill option always shown at bottom */}
+                                            <div style={{ borderTop: "1px solid #f1f5f9", padding: "10px 12px" }}>
+                                                <button
+                                                    type="button"
+                                                    onMouseDown={e => { e.preventDefault(); handleRequestSkill(); }}
+                                                    className="d-flex align-items-center gap-2 w-100 text-start border-0 bg-transparent rounded-2 px-2 py-1"
+                                                    style={{ fontSize: 13, color: "#3b82f6" }}
+                                                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "#eff6ff"; }}
+                                                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+                                                >
+                                                    <i className="bi bi-plus-circle" />
+                                                    Request <strong style={{ margin: "0 4px" }}>"{skillQuery}"</strong> as a new skill
+                                                </button>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="p-3 text-center">
+                                            <p className="text-muted small mb-2">No skills found matching <strong>"{skillQuery}"</strong></p>
                                             <button
-                                                className="btn btn-sm btn-outline-primary rounded-pill"
-                                                onClick={handleRequestSkill}
+                                                type="button"
+                                                onMouseDown={e => { e.preventDefault(); handleRequestSkill(); }}
+                                                className="btn btn-sm btn-primary rounded-pill px-3"
                                             >
-                                                Request "{skillQuery}" as a skill
+                                                <i className="bi bi-plus me-1" />
+                                                Request this skill
                                             </button>
                                         </div>
                                     )}
@@ -165,45 +241,34 @@ const SkillsStep: React.FC = () => {
                             )}
                         </div>
 
-                        {!skillQuery && (
-                            <div className="mt-3">
-                                <span className="text-muted small fw-bold">Popular Skills:</span>
-                                <div className="d-flex flex-wrap gap-2 mt-2">
-                                    {POPULAR_SKILLS.filter(ps => !formData.skills?.some(s => s.name === ps.name)).map(skill => (
-                                        <button
-                                            key={skill.id}
-                                            onClick={() => handleAddSkill(skill)}
-                                            disabled={(formData.skills?.length || 0) >= 10}
-                                            className="btn btn-sm btn-outline-secondary rounded-pill"
-                                        >
-                                            + {skill.name}
-                                        </button>
-                                    ))}
-                                </div>
+                        {/* Selected skill badges */}
+                        {(formData.skills?.length || 0) > 0 && (
+                            <div className="d-flex flex-wrap gap-2 mt-3">
+                                {formData.skills?.map(skill => (
+                                    <span
+                                        key={skill.name}
+                                        className={`badge rounded-pill d-flex align-items-center gap-2 py-2 px-3 border ${skill.isRequested
+                                                ? "bg-light text-primary border-primary border-opacity-25"
+                                                : "bg-primary bg-opacity-10 text-primary border-transparent"
+                                            }`}
+                                    >
+                                        {skill.name}
+                                        {skill.isRequested && <i className="bi bi-clock small" title="Pending Approval" />}
+                                        <i
+                                            className="bi bi-x-circle-fill"
+                                            style={{ cursor: "pointer", opacity: 0.6 }}
+                                            onClick={() => dispatch(removeSkill(skill.name))}
+                                        />
+                                    </span>
+                                ))}
                             </div>
                         )}
-
-                        <div className="d-flex flex-wrap gap-2 mt-3">
-                            {formData.skills?.map(skill => (
-                                <span
-                                    key={skill.name}
-                                    className={`badge rounded-pill d-flex align-items-center gap-2 py-2 px-3 border ${skill.isRequested ? 'bg-light text-primary border-primary border-opacity-25' : 'bg-primary bg-opacity-10 text-primary border-transparent'
-                                        }`}
-                                >
-                                    {skill.name}
-                                    {skill.isRequested && <i className="bi bi-clock small" title="Pending Approval"></i>}
-                                    <i
-                                        className="bi bi-x-circle-fill cursor-pointer opacity-50 hover-opacity-100"
-                                        onClick={() => dispatch(removeSkill(skill.name))}
-                                    ></i>
-                                </span>
-                            ))}
-                        </div>
                         <div className="form-text text-muted small mt-2">
-                            {(formData.skills?.length || 0)}/10 skills • Min 1 required
+                            {(formData.skills?.length || 0)}/10 skills selected • Minimum 1 required
                         </div>
                     </div>
 
+                    {/* ── Hourly Rate ── */}
                     <div className="col-12">
                         <label className="form-label fw-bold small">Hourly Rate</label>
                         <div className="row align-items-center">
@@ -224,12 +289,13 @@ const SkillsStep: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* ── Location ── */}
                     <div className="col-12">
                         <label className="form-label fw-bold small">Primary Service Area</label>
                         <div className="position-relative">
                             <div className="input-group bg-light rounded-2 overflow-hidden shadow-sm">
                                 <span className="input-group-text border-0 bg-transparent ps-3">
-                                    <i className="bi bi-geo-alt text-muted"></i>
+                                    <i className="bi bi-geo-alt text-muted" />
                                 </span>
                                 <input
                                     type="text"
@@ -242,7 +308,7 @@ const SkillsStep: React.FC = () => {
                                 />
                                 {isSearchingLocation && (
                                     <span className="input-group-text border-0 bg-transparent">
-                                        <div className="spinner-border spinner-border-sm text-primary" role="status"></div>
+                                        <div className="spinner-border spinner-border-sm text-primary" role="status" />
                                     </span>
                                 )}
                             </div>
@@ -253,12 +319,9 @@ const SkillsStep: React.FC = () => {
                                         <button
                                             key={idx}
                                             className="list-group-item list-group-item-action border-0 py-3 small text-start"
-                                            onMouseDown={(e) => {
-                                                e.preventDefault();
-                                                handleSelectLocation(loc);
-                                            }}
+                                            onMouseDown={(e) => { e.preventDefault(); handleSelectLocation(loc); }}
                                         >
-                                            <i className="bi bi-geo-alt me-2 text-muted"></i>
+                                            <i className="bi bi-geo-alt me-2 text-muted" />
                                             {loc.name}
                                         </button>
                                     ))}
@@ -268,12 +331,13 @@ const SkillsStep: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Navigation */}
                 <div className="d-flex justify-content-between mt-5 pt-4 border-top">
                     <button
                         onClick={() => dispatch(setCurrentStep(1))}
                         className="btn btn-link text-secondary text-decoration-none fw-bold"
                     >
-                        <i className="bi bi-arrow-left me-2"></i>
+                        <i className="bi bi-arrow-left me-2" />
                         Back
                     </button>
                     <button
@@ -282,16 +346,13 @@ const SkillsStep: React.FC = () => {
                         className="btn btn-primary px-5 py-2 fw-bold rounded-pill shadow"
                     >
                         Review & Next
-                        <i className="bi bi-arrow-right ms-2"></i>
+                        <i className="bi bi-arrow-right ms-2" />
                     </button>
                 </div>
             </div>
 
             <style dangerouslySetInnerHTML={{
                 __html: `
-                .cursor-pointer { cursor: pointer; }
-                .hover-opacity-100:hover { opacity: 1 !important; }
-                .list-group-item-action:hover { background-color: #f8f9fa; }
                 input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
                 input[type=number] { -moz-appearance: textfield; }
             `}} />
@@ -300,6 +361,3 @@ const SkillsStep: React.FC = () => {
 };
 
 export default SkillsStep;
-
-
-

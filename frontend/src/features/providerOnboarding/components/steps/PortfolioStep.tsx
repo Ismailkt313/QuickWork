@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../../../app/store";
 import {
@@ -9,15 +9,18 @@ import {
     addPortfolioImage,
     removePortfolioImage
 } from "../../store/onboardingSlice";
+import { api } from "../../../../services/api";
 
 const PortfolioStep: React.FC = () => {
     const dispatch = useDispatch();
     const { formData } = useSelector((state: RootState) => state.onboarding);
 
     const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+    const [uploadingProjects, setUploadingProjects] = useState<{ [key: string]: boolean }>({});
 
     const isValid = formData.portfolio.length >= 1 &&
-        formData.portfolio.every(p => p.title.trim() !== "" && p.images.length >= 1);
+        formData.portfolio.every(p => p.title.trim() !== "" && p.images.length >= 1) &&
+        !Object.values(uploadingProjects).some(v => v);
 
     const handleAddProject = () => {
         dispatch(addPortfolioProject({
@@ -28,20 +31,35 @@ const PortfolioStep: React.FC = () => {
         }));
     };
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, projectId: string) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, projectId: string) => {
         const files = e.target.files;
-        if (!files) return;
+        if (!files || files.length === 0) return;
 
-        Array.from(files).forEach(file => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const base64String = reader.result as string;
-                dispatch(addPortfolioImage({ projectId, image: base64String }));
-            };
-            if (file) {
-                reader.readAsDataURL(file);
+        setUploadingProjects(prev => ({ ...prev, [projectId]: true }));
+
+        try {
+            for (const file of Array.from(files)) {
+                if (file.size > 2 * 1024 * 1024) {
+                    alert(`File "${file.name}" exceeds 2MB limit and was skipped.`);
+                    continue;
+                }
+
+                const uploadData = new FormData();
+                uploadData.append("image", file);
+
+                const response = await api.post("/upload/portfolio-image", uploadData, {
+                    headers: { "Content-Type": "multipart/form-data" }
+                });
+
+                const imageUrl = response.data.data.imageUrl;
+                dispatch(addPortfolioImage({ projectId, image: imageUrl }));
             }
-        });
+        } catch (error: any) {
+            console.error("Portfolio image upload failed", error);
+            alert(error.response?.data?.message || "Failed to upload image.");
+        } finally {
+            setUploadingProjects(prev => ({ ...prev, [projectId]: false }));
+        }
 
         if (fileInputRefs.current[projectId]) {
             fileInputRefs.current[projectId]!.value = "";
@@ -123,8 +141,18 @@ const PortfolioStep: React.FC = () => {
                                     <button
                                         className="btn btn-sm btn-light border d-flex align-items-center gap-2"
                                         onClick={() => fileInputRefs.current[project.id]?.click()}
+                                        disabled={uploadingProjects[project.id]}
                                     >
-                                        <i className="bi bi-image text-primary"></i> Upload Images
+                                        {uploadingProjects[project.id] ? (
+                                            <>
+                                                <span className="spinner-border spinner-border-sm text-primary"></span>
+                                                Uploading...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <i className="bi bi-image text-primary"></i> Upload Images
+                                            </>
+                                        )}
                                     </button>
                                     {project.images.length === 0 && (
                                         <div className="form-text text-danger small mt-1">At least 1 image is required.</div>

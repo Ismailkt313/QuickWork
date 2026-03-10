@@ -10,8 +10,5 @@ const serviceProviderController = new ServiceProviderController(serviceProviderS
 const serviceProviderRouter = createServiceProviderRouter(serviceProviderController);
 
 export {
-    serviceProviderRouter,
-    ServiceProviderRepository,
-    ServiceProviderService,
-    ServiceProviderController
+    serviceProviderRouter
 };

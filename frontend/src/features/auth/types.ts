@@ -1,5 +1,5 @@
 export type RegisterFormProps = {
-    mode: "/login" | "/signup";
+    mode: "/auth/login" | "/auth/signup";
 };
 
 export type sendOtpPayload = {

@@ -9,4 +9,4 @@ const adminController = new AdminController(adminService);
 
 const adminRouter = createAdminRouter(adminController);
 
-export { adminRouter, AdminRepository, AdminService, AdminController };
+export { adminRouter };

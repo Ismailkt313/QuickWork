@@ -48,4 +48,42 @@ export class AdminService implements IAdminService {
             data: { isBlocked: user.isBlocked },
         };
     }
+    
+    public async getPendingProviders(): Promise<IUserListResponse> {
+        const providers = await this.adminRepository.getPendingProviders();
+        return {
+            success: true,
+            message: "Pending providers fetched successfully",
+            data: {
+                users: providers.map((provider) => ({
+                    id: provider._id.toString(),
+                    name: provider.userId.name,
+                    email: provider.userId.email,
+                    role: "provider",
+                    isBlocked: false,
+                    createdAt: provider.createdAt,
+                })),
+                total: providers.length,
+                page: 1,
+                limit: providers.length,
+                totalPages: 1,
+            },
+        };
+    }
+
+    public async approveProvider(providerId: string): Promise<{ success: boolean; message: string }> {
+        await this.adminRepository.approveProvider(providerId);
+        return {
+            success: true,
+            message: "Provider approved successfully",
+        };
+    }
+
+    public async rejectProvider(providerId: string, reason: string): Promise<{ success: boolean; message: string }> {
+        await this.adminRepository.rejectProvider(providerId, reason);
+        return {
+            success: true,
+            message: "Provider rejected successfully",
+        };
+    }
 }

@@ -1,7 +1,8 @@
-import { IServiceProvider } from '../interfaces/serviceProvider.interface';
+import { Types } from 'mongoose';
+import { IServiceProvider, IServiceProviderRepository, ProviderFilter, ProviderListResult } from '../interfaces/serviceProvider.interface';
 import { ServiceProviderModel } from '../models/serviceProvider.model';
 
-export class ServiceProviderRepository {
+export class ServiceProviderRepository implements IServiceProviderRepository {
     async findByUserId(userId: string): Promise<IServiceProvider | null> {
         return await ServiceProviderModel.findOne({ userId });
     }
@@ -9,5 +10,54 @@ export class ServiceProviderRepository {
     async create(providerData: Partial<IServiceProvider>): Promise<IServiceProvider> {
         const provider = new ServiceProviderModel(providerData);
         return await provider.save();
+    }
+
+    async addSkillToProvider(providerId: string, skillId: string) {
+        return ServiceProviderModel.updateOne(
+            { userId: providerId },
+            { $addToSet: { skills: skillId } }
+        );
+    }
+
+    async findProviders(filter: ProviderFilter): Promise<ProviderListResult> {
+        const { skillId, locationId, page, limit } = filter;
+        const skip = (page - 1) * limit;
+
+        const query: Record<string, any> = {
+            skills: new Types.ObjectId(skillId),
+            isActive: true,
+            'verification.status': 'verified',
+        };
+
+        if (locationId) {
+            query['location.id'] = locationId;
+        }
+
+        const [providers, total] = await Promise.all([
+            ServiceProviderModel.find(query)
+                .select('_id headline profileImage hourlyRate yearsOfExperience location')
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            ServiceProviderModel.countDocuments(query),
+        ]);
+
+        return {
+            providers: providers.map((p) => ({
+                id: (p._id as Types.ObjectId).toString(),
+                headline: p.headline,
+                profileImage: p.profileImage,
+                hourlyRate: p.hourlyRate,
+                yearsOfExperience: p.yearsOfExperience,
+                location: p.location,
+            })),
+            total,
+        };
+    }
+
+    async findById(id: string) {
+        return ServiceProviderModel.findById(id)
+            .populate('skills', 'name slug')
+            .lean();
     }
 }

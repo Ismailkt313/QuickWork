@@ -1,4 +1,4 @@
-import { api } from "../api";
+import { Adminapi } from "./adminApi";
 
 export interface ServiceRequest {
     _id: string;
@@ -20,7 +20,7 @@ export interface ServiceRequest {
 
 export const getPendingServiceRequests = async (): Promise<ServiceRequest[]> => {
     try {
-        const response = await api.get("/admin/service-requests");
+        const response = await Adminapi.get("/admin/service-requests");
         return response.data.data;
     } catch (error) {
         
@@ -30,7 +30,7 @@ export const getPendingServiceRequests = async (): Promise<ServiceRequest[]> => 
 
 export const approveServiceRequest = async (id: string, notes?: string): Promise<{ success: boolean; message: string }> => {
     try {
-        const response = await api.patch(`/admin/service-request/${id}/approve`, { notes });
+        const response = await Adminapi.patch(`/admin/service-request/${id}/approve`, { notes });
         return response.data;
     } catch (error: any) {
         
@@ -40,7 +40,7 @@ export const approveServiceRequest = async (id: string, notes?: string): Promise
 
 export const rejectServiceRequest = async (id: string, reason: string): Promise<{ success: boolean; message: string }> => {
     try {
-        const response = await api.patch(`/admin/service-request/${id}/reject`, { reason });
+        const response = await Adminapi.patch(`/admin/service-request/${id}/reject`, { reason });
         return response.data;
     } catch (error: any) {
         

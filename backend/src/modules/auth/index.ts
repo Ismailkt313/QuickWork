@@ -11,4 +11,4 @@ const authController = new AuthController(authService);
 
 const authRouter = createAuthRouter(authController);
 
-export { authRouter, AuthRepository, OtpRepository, AuthService, AuthController };
+export { authRouter };

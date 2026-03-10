@@ -3,6 +3,7 @@ import { AuthController } from "../controllers/auth.controller";
 import passport from "../../../config/passport";
 import { generateAccessToken, generateRefreshToken } from "../../../utils/jwt.util";
 import { IUser, ITokenPayload } from "../interfaces/auth.interface";
+import { config } from "../../../config";
 
 export const createAuthRouter = (authController: AuthController): Router => {
     const router = Router();
@@ -25,11 +26,11 @@ export const createAuthRouter = (authController: AuthController): Router => {
     router.get("/google/callback",
         passport.authenticate("google", {
             session: false,
-            failureRedirect: "http://localhost:5173/login?error=google_auth_failed",
+            failureRedirect: `${config.url}/login?error=google_auth_failed`,
         }),
         (req, res) => {
             if (!req.user) {
-                return res.redirect("http://localhost:5173/login?error=google_auth_failed");
+                return res.redirect(`${config.url}/login?error=google_auth_failed`);
             }
 
             const user = req.user as any as IUser;

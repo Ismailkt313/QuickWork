@@ -1,13 +1,12 @@
-import { LocationRepository } from '../repositories/location.repository';
-import { LocationModel } from '../models/location.model';
 import axios from 'axios';
 import { CreateLocationDTO } from '../dtos/createLocation.dto';
 import { generateSlug } from '../../../utils/slug.util';
+import { ILocationService,ILocationRepository, ILoactionresponse } from '../interfaces/location.interface';
 
-export class LocationService {
-    private locationRepository: LocationRepository;
+export class LocationService implements ILocationService {
+    private locationRepository: ILocationRepository;
 
-    constructor(locationRepository: LocationRepository) {
+    constructor(locationRepository: ILocationRepository) {
         this.locationRepository = locationRepository;
     }
 
@@ -38,9 +37,10 @@ export class LocationService {
     }
 
     async searchLocations(query: string): Promise<{ success: boolean; data: any[] }> {
+        console.log('Searching locations with query:', query);  
         if (!query || query.length < 3) return { success: true, data: [] };
 
-        const localLocations = await LocationModel.find({ name: { $regex: query, $options: 'i' } }).limit(5);
+        const localLocations = await this.locationRepository.searchByName(query);
         if (localLocations.length > 0) {
             return {
                 success: true,
@@ -68,5 +68,17 @@ export class LocationService {
             
             return { success: true, data: [] };
         }
+    }
+    async getAllLocations(): Promise<{ success: boolean; data: ILoactionresponse[] }> {
+        const locations = await this.locationRepository.getAllLocations();
+        return {
+            success: true,
+            data: locations.map(loc => ({
+                id: loc._id.toString(),
+                name: loc.name,
+                lat: loc.lat,
+                lon: loc.lon
+            }))
+        };
     }
 }

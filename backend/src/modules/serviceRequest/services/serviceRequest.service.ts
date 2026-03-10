@@ -1,18 +1,24 @@
 import mongoose, { Types } from 'mongoose';
-import { ServiceRequestRepository } from '../repositories/serviceRequest.repository';
-import { SkillRepository } from '../../skill/repositories/skill.repository';
+import { ISkillRepository } from '../../skill/interfaces/skill.interface';
+import { IServiceProviderRepository } from '../../serviceProvider/interfaces/serviceProvider.interface';
 import { CreateServiceRequestDTO } from '../dtos/createServiceRequest.dto';
 import { RejectServiceRequestDTO } from '../dtos/rejectServiceRequest.dto';
-import { IServiceRequest } from '../interfaces/serviceRequest.interface';
+import { IServiceRequest, IServiceRequestService, IServiceRequestRepository } from '../interfaces/serviceRequest.interface';
 import { generateSlug } from '../../../utils/slug.util';
 
-export class ServiceRequestService {
-    private serviceRequestRepository: ServiceRequestRepository;
-    private skillRepository: SkillRepository;
+export class ServiceRequestService implements IServiceRequestService {
+    private serviceRequestRepository: IServiceRequestRepository;
+    private skillRepository: ISkillRepository;
+    private serviceProviderRepository: IServiceProviderRepository;
 
-    constructor(serviceRequestRepository: ServiceRequestRepository, skillRepository: SkillRepository) {
+    constructor(
+        serviceRequestRepository: IServiceRequestRepository,
+        skillRepository: ISkillRepository,
+        serviceProviderRepository: IServiceProviderRepository
+    ) {
         this.serviceRequestRepository = serviceRequestRepository;
         this.skillRepository = skillRepository;
+        this.serviceProviderRepository = serviceProviderRepository;
     }
 
     async createRequest(userId: string, dto: CreateServiceRequestDTO): Promise<{ success: boolean; message: string; data?: any }> {
@@ -53,44 +59,68 @@ export class ServiceRequestService {
         return { success: true, data: requests };
     }
 
-    async approveRequest(
-      adminId: string,
-      requestId: string
-    ): Promise<{ success: boolean; message: string }> {
+    async approveRequest(adminId: string, requestId: string): Promise<{ success: boolean; message: string }> {
+        const session = await mongoose.startSession();
+        session.startTransaction();
 
-          const request = await this.serviceRequestRepository.findById(requestId);
+        try {
+            const request = await this.serviceRequestRepository.findById(requestId);
 
-      if (!request) {
-        return { success: false, message: "Service request not found" };
-      }
+            if (!request) {
+                await session.abortTransaction();
+                return { success: false, message: 'Service request not found' };
+            }
 
-      if (request.status !== "pending") {
-        return { success: false, message: `Request is already ${request.status}` };
-      }
+            if (request.status !== 'pending') {
+                await session.abortTransaction();
+                return { success: false, message: `Request is already ${request.status}` };
+            }
 
-      try {
-         await this.skillRepository.create({
-          name: request.name,
-          slug: request.slug
-        });
+            let skill = await this.skillRepository.findBySlug(request.slug);
 
-      } catch (error: any) {
-         if (error.code === 11000) {
-         } else {
-          throw error;
+            if (!skill) {
+                try {
+                    skill = await this.skillRepository.create(
+                        { name: request.name, slug: request.slug },
+                        session
+                    );
+                } catch (error: any) {
+                    if (error.code === 11000) {
+                        skill = await this.skillRepository.findBySlug(request.slug);
+                    } else {
+                        throw error;
+                    }
+                }
+            }
+
+            if (!skill) {
+                throw new Error('Failed to find or create skill');
+            }
+
+            await this.serviceProviderRepository.addSkillToProvider(
+                request.requestedBy.toString(),
+                skill._id.toString()
+            );
+
+            await this.serviceRequestRepository.updateStatus(
+                requestId,
+                {
+                    status: 'approved',
+                    reviewedBy: new Types.ObjectId(adminId),
+                    reviewedAt: new Date()
+                },
+                session
+            );
+
+            await session.commitTransaction();
+
+            return { success: true, message: 'Service request approved successfully' };
+        } catch (error) {
+            await session.abortTransaction();
+            throw error;
+        } finally {
+            session.endSession();
         }
-      }
-
-       await this.serviceRequestRepository.updateStatus(requestId, {
-        status: "approved",
-        reviewedBy: new Types.ObjectId(adminId),
-        reviewedAt: new Date()
-      });
-
-      return {
-        success: true,
-        message: "Service request approved successfully"
-      };
     }
 
     async rejectRequest(adminId: string, requestId: string, dto: RejectServiceRequestDTO): Promise<{ success: boolean; message: string }> {

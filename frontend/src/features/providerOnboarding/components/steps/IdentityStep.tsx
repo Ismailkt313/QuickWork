@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../../../app/store";
 import { updateField, setCurrentStep } from "../../store/onboardingSlice";
-import { api } from "../../../../api"; 
+import { api } from "../../../../services/api"; 
 
 const IdentityStep: React.FC = () => {
     const dispatch = useDispatch();

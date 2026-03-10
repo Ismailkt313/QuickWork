@@ -4,7 +4,7 @@ import ResetPasswordForm from "../features/auth/components/ResetPasswordForm";
 const ResetPasswordPage = () => {
     return (
         <div className="auth-page">
-            <AuthNavbar mode="/login" />
+            <AuthNavbar mode="/auth/login" />
             <main className="flex-grow-1 d-flex align-items-center justify-content-center py-5 px-3">
                 <ResetPasswordForm />
             </main>

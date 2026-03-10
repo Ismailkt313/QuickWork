@@ -80,7 +80,7 @@ const OtpForm = () => {
             setLoading(true);
             setError(null);
             await OTP({ email, otp: otpValue });
-            navigate("/login");
+            navigate("/auth/login");
         } catch (err: any) {
             setError(err?.response?.data?.message || "OTP verification failed");
         } finally {

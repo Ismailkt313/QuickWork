@@ -10,8 +10,5 @@ const locationController = new LocationController(locationService);
 const locationRouter = createLocationRouter(locationController);
 
 export {
-    locationRouter,
-    LocationRepository,
-    LocationService,
-    LocationController
+    locationRouter
 };

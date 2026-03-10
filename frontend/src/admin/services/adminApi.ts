@@ -1,4 +1,4 @@
-import { api } from "../../api";
+import { Adminapi } from "../../services/adminApi";
 
 export interface AdminLoginPayload {
     email: string;
@@ -23,7 +23,7 @@ export interface AdminLoginResponse {
 export const adminLogin = async (
     payload: AdminLoginPayload
 ): Promise<AdminLoginResponse> => {
-    const response = await api.post<AdminLoginResponse>(
+    const response = await Adminapi.post<AdminLoginResponse>(
         "/auth/admin/login",
         payload
     );
@@ -65,7 +65,7 @@ const getAdminHeaders = () => ({
 export const getUsers = async (
     params: IUserListParams = {}
 ): Promise<IUserListResponse> => {
-    const response = await api.get<IUserListResponse>("/admin/users", {
+    const response = await Adminapi.get<IUserListResponse>("/admin/users", {
         params,
         headers: getAdminHeaders(),
     });
@@ -75,9 +75,39 @@ export const getUsers = async (
 export const toggleBlockUser = async (
     userId: string
 ): Promise<{ success: boolean; message: string; data: { isBlocked: boolean } }> => {
-    const response = await api.patch(
+    const response = await Adminapi.patch(
         `/admin/users/${userId}/block`,
         {},
+        { headers: getAdminHeaders() }
+    );
+    return response.data;
+};
+
+export const getPendingProviders = async (): Promise<IUserListResponse> => {
+    const response = await Adminapi.get<IUserListResponse>("/admin/providers/pending", {
+        headers: getAdminHeaders(),
+    });
+    return response.data;
+};
+
+export const approveProvider = async (
+    providerId: string
+): Promise<{ success: boolean; message: string }> => {
+    const response = await Adminapi.patch(
+        `/admin/providers/${providerId}/approve`,
+        {},
+        { headers: getAdminHeaders() }
+    );
+    return response.data;
+};
+
+export const rejectProvider = async (
+    providerId: string,
+    reason: string
+): Promise<{ success: boolean; message: string }> => {
+    const response = await Adminapi.patch(
+        `/admin/providers/${providerId}/reject`,
+        { reason },
         { headers: getAdminHeaders() }
     );
     return response.data;

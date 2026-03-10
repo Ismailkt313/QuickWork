@@ -1,18 +1,19 @@
 import { Request, Response } from 'express';
-import { ServiceRequestService } from '../services/serviceRequest.service';
 import { CreateServiceRequestDTO } from '../dtos/createServiceRequest.dto';
 import { RejectServiceRequestDTO } from '../dtos/rejectServiceRequest.dto';
 import { AppError } from '../../../utils/AppError';
+import {IServiceRequestController, IServiceRequestService} from '../interfaces/serviceRequest.interface';
 
-export class ServiceRequestController {
-    private serviceRequestService: ServiceRequestService;
+export class ServiceRequestController implements IServiceRequestController {
+    private serviceRequestService: IServiceRequestService;
 
-    constructor(serviceRequestService: ServiceRequestService) {
+    constructor(serviceRequestService: IServiceRequestService) {
         this.serviceRequestService = serviceRequestService;
     }
 
     createRequest = async (req: Request, res: Response, next: any): Promise<void> => {
         try {
+            console.log('Creating service request with body:', req.body);
             const userId = req.user?.userId;
             if (!userId) {
                 throw new AppError('Unauthorized access', 401);

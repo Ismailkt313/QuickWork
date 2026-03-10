@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 const navItems = [
     { label: "Dashboard", icon: "bi-grid-1x2-fill", path: "/admin" },
     { label: "Users", icon: "bi-people-fill", path: "/admin/users" },
+    { label: "Providers", icon: "bi-person-badge-fill", path: "/admin/providers" },
     { label: "Skill Requests", icon: "bi-star-fill", path: "/admin/skill-requests" },
     { label: "Transactions", icon: "bi-receipt", path: "/admin/transactions" },
     { label: "Reports", icon: "bi-file-earmark-text", path: "/admin/reports" },

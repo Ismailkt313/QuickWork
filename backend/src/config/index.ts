@@ -21,4 +21,5 @@ export const config = {
     CLOUD_NAME: process.env.CLOUD_NAME || "djsdqiifo",
     CLOUD_API_KEY: process.env.CLOUD_API_KEY || "566862334584787",
     CLOUD_API_SECRET: process.env.CLOUD_API_SECRET || "s615f2pEVHgd85nUstroZeXv7vE",
+    url:process.env.URL
 };

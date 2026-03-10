@@ -18,7 +18,7 @@ export const upload = multer({
     storage,
     fileFilter,
     limits: {
-        fileSize: 2 * 1024 * 1024, 
+        fileSize: 2 * 1024 * 1024,
     }
 });
 
@@ -30,6 +30,13 @@ export const createUploadRouter = (controller: UploadController): Router => {
         authMiddleware,
         upload.single('image'),
         controller.uploadProfileImage
+    );
+
+    router.post(
+        '/portfolio-image',
+        authMiddleware,
+        upload.single('image'),
+        controller.uploadPortfolioImage
     );
 
     return router;

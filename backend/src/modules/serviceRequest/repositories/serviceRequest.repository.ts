@@ -1,7 +1,8 @@
 import { IServiceRequest } from '../interfaces/serviceRequest.interface';
 import { ServiceRequestModel } from '../models/serviceRequest.model';
+import { IServiceRequestRepository } from '../interfaces/serviceRequest.interface';
 
-export class ServiceRequestRepository {
+export class ServiceRequestRepository implements IServiceRequestRepository {
     async findPendingByName(name: string): Promise<IServiceRequest | null> {
         return await ServiceRequestModel.findOne({
             name: name.toLowerCase().trim(),
