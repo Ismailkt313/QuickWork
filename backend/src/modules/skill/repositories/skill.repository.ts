@@ -4,6 +4,7 @@ import { SkillModel } from '../models/skill.model';
 import { ServiceProviderModel } from '../../serviceProvider/models/serviceProvider.model';
 
 export class SkillRepository implements ISkillRepository {
+
     async findByName(name: string): Promise<ISkill | null> {
         return await SkillModel.findOne({ name: name.toLowerCase().trim() });
     }
@@ -17,10 +18,12 @@ export class SkillRepository implements ISkillRepository {
         
         return await skill.save({ session });
     }
+
     async skills(filter: any): Promise<ISkill[] | null> {
         const skills = await SkillModel.find(filter).limit(20);
         return skills as ISkill[];
     }
+
     async getServices():Promise<ISkill[]> {
         return SkillModel.find().limit(6) as Promise<ISkill[]>;
     }
@@ -41,6 +44,7 @@ export class SkillRepository implements ISkillRepository {
         const filter = search ? { name: { $regex: search, $options: 'i' } } : {};
         return SkillModel.find(filter).sort({ name: 1 });
     }
+    
     async getSkills(): Promise<ISkill[]> {
         return SkillModel.find().sort({ name: 1 }) as Promise<ISkill[]>;
     }

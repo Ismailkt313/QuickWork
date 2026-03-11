@@ -83,7 +83,6 @@ useEffect(() => {
       onSelectLocation={selectLocation}
       onClearLocation={clearLocation}
     >
-      {/* Page header */}
       <div style={{ background: 'linear-gradient(135deg,#0f172a,#1e3a5f)', padding: '48px 0 40px' }}>
         <div className="container">
           <nav style={{ fontSize: 13, color: '#94a3b8', marginBottom: 16 }}>
@@ -99,7 +98,6 @@ useEffect(() => {
             {selectedLocation ? ` in ${selectedLocation.name}` : ''}
           </p>
 
-          {/* Search bar */}
           <div style={{ marginTop: 24, maxWidth: 520, position: 'relative' }}>
             <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 16, color: '#64748b' }}>🔍</span>
             <input
@@ -121,7 +119,6 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* Filters bar */}
       <div style={{ background: '#fff', borderBottom: '1px solid #f1f5f9', padding: '12px 0', position: 'sticky', top: 64, zIndex: 20 }}>
         <div className="container d-flex align-items-center gap-3 flex-wrap">
           <span style={{ fontSize: 13, color: '#64748b', fontWeight: 500 }}>Filter by:</span>
@@ -150,17 +147,14 @@ useEffect(() => {
         </div>
       </div>
 
-      {/* Main content */}
       <div style={{ background: '#f8fafc', minHeight: '60vh', padding: '40px 0 64px' }}>
         <div className="container">
-          {/* Error */}
           {error && (
             <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', borderRadius: 10, padding: '12px 16px', marginBottom: 24, fontSize: 14 }}>
               ⚠️ {error}
             </div>
           )}
 
-          {/* Skill grid */}
           {loading ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 16 }}>
               {Array.from({ length: 12 }).map((_, i) => (

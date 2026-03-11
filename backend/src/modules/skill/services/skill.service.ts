@@ -32,7 +32,6 @@ export class SkillService implements ISkillService {
 
     async getSkills(): Promise<{ success: boolean; data: ISkill[] }> {
         const skills = await this.skillRepository.getSkills();
-        console.log('Skills fetched in service:', skills);
         return { success: true, data: skills };
     }
 }

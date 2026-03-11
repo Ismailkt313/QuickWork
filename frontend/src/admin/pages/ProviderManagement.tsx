@@ -193,12 +193,10 @@ const ProviderManagement = () => {
                 </div>
             )}
 
-            {/* Breadcrumb */}
             <div className="admin-breadcrumb">
                 Admin <span className="separator">›</span> <span>Providers</span>
             </div>
 
-            {/* Page Header */}
             <div className="admin-page-header">
                 <div>
                     <h1 className="admin-page-title">Provider Management</h1>
@@ -212,7 +210,6 @@ const ProviderManagement = () => {
                 </button>
             </div>
 
-            {/* Stats Row */}
             <div className="admin-stats-row" style={{ marginBottom: "1.5rem" }}>
                 <div className="admin-stat-card">
                     <div className="admin-stat-label">Pending Applications</div>
@@ -223,7 +220,6 @@ const ProviderManagement = () => {
                 </div>
             </div>
 
-            {/* Table */}
             <div className="admin-table-card">
                 {loading ? (
                     <div className="admin-loading">

@@ -17,7 +17,7 @@ export class SkillController implements ISkillController {
         } catch (error) {
             next(error);
         }
-    };
+    }
 
     getAllSkills = async (req: Request, res: Response, next: any): Promise<void> => {
         try {
@@ -28,7 +28,8 @@ export class SkillController implements ISkillController {
         } catch (error) {
             next(error);
         }
-    };
+    }
+
     getSkills = async (req: Request, res: Response, next: any): Promise<void> => {
         try {
             const result = await this.skillService.getSkills();

@@ -8,7 +8,7 @@ import {
     setLocation,
     setCurrentStep
 } from "../../store/onboardingSlice";
-import { searchSkills, requestSkill } from "../../../../services/skill.service";
+import { searchSkills, requestSkill } from "../../../../services/skills.service";
 import { searchLocation, selectLocation } from "../../../../services/location.service";
 import { debounce } from "../../../../utils/debounce";
 
@@ -129,13 +129,10 @@ const SkillsStep: React.FC = () => {
                 </div>
 
                 <div className="row g-4">
-                    {/* ── Skills Input ── */}
                     <div className="col-12">
                         <label className="form-label fw-bold small">Skills & Expertise</label>
 
-                        {/* Autocomplete container */}
                         <div ref={skillInputRef} className="position-relative">
-                            {/* Input row */}
                             <div
                                 className="d-flex align-items-center gap-2 px-3 rounded-3"
                                 style={{
@@ -161,11 +158,9 @@ const SkillsStep: React.FC = () => {
                                     }}
                                     onFocus={() => setShowSkillDropdown(true)}
                                 />
-                                {/* Spinner while fetching */}
                                 {isSearchingSkills && (
                                     <div className="spinner-border spinner-border-sm text-primary" role="status" />
                                 )}
-                                {/* Clear button */}
                                 {skillQuery && !isSearchingSkills && (
                                     <button
                                         type="button"
@@ -175,7 +170,6 @@ const SkillsStep: React.FC = () => {
                                 )}
                             </div>
 
-                            {/* Dropdown */}
                             {showSkillDropdown && skillQuery.trim() && (
                                 <div
                                     className="position-absolute w-100 bg-white rounded-3 border shadow"
@@ -209,7 +203,6 @@ const SkillsStep: React.FC = () => {
                                                     </button>
                                                 ))
                                             }
-                                            {/* Request skill option always shown at bottom */}
                                             <div style={{ borderTop: "1px solid #f1f5f9", padding: "10px 12px" }}>
                                                 <button
                                                     type="button"
@@ -241,7 +234,6 @@ const SkillsStep: React.FC = () => {
                             )}
                         </div>
 
-                        {/* Selected skill badges */}
                         {(formData.skills?.length || 0) > 0 && (
                             <div className="d-flex flex-wrap gap-2 mt-3">
                                 {formData.skills?.map(skill => (
@@ -268,7 +260,6 @@ const SkillsStep: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* ── Hourly Rate ── */}
                     <div className="col-12">
                         <label className="form-label fw-bold small">Hourly Rate</label>
                         <div className="row align-items-center">
@@ -289,7 +280,6 @@ const SkillsStep: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* ── Location ── */}
                     <div className="col-12">
                         <label className="form-label fw-bold small">Primary Service Area</label>
                         <div className="position-relative">
@@ -331,7 +321,6 @@ const SkillsStep: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Navigation */}
                 <div className="d-flex justify-content-between mt-5 pt-4 border-top">
                     <button
                         onClick={() => dispatch(setCurrentStep(1))}

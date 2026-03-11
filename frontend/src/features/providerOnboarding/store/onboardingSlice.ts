@@ -24,7 +24,6 @@ interface OnboardingState {
 const AccessTokenKey = localStorage.getItem("token") || null;
 
 const STORAGE_KEY = `provider_onboarding_state${AccessTokenKey ? `_${AccessTokenKey}` : ""}`;
-console.log("Using storage key:", STORAGE_KEY);
 const loadState = (): OnboardingState => {
     try {
         const serializedState = localStorage.getItem(STORAGE_KEY);
