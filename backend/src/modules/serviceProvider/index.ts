@@ -2,9 +2,11 @@ import { ServiceProviderRepository } from "./repositories/serviceProvider.reposi
 import { ServiceProviderService } from "./services/serviceProvider.service";
 import { ServiceProviderController } from "./controllers/serviceProvider.controller";
 import { createServiceProviderRouter } from "./routes/serviceProvider.routes";
+import { AuthRepository } from "../auth/repositories/auth.repository";
 
 const serviceProviderRepository = new ServiceProviderRepository();
-const serviceProviderService = new ServiceProviderService(serviceProviderRepository);
+const authRepository = new AuthRepository();
+const serviceProviderService = new ServiceProviderService(serviceProviderRepository, authRepository);
 const serviceProviderController = new ServiceProviderController(serviceProviderService);
 
 const serviceProviderRouter = createServiceProviderRouter(serviceProviderController);

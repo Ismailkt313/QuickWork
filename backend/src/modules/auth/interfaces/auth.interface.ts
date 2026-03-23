@@ -1,7 +1,7 @@
 import { Document } from "mongoose";
 import type { UserResponseDTO } from "../dtos/userResponse.dto";
 
-export interface IUser extends Document {
+export interface    IUser extends Document {
     name: string;
     email: string;
     number?: string;
@@ -141,6 +141,7 @@ export interface IAuthRepository {
     findById(id: string): Promise<IUser | null>;
     createUser(data: ICreateUserData): Promise<IUser>;
     updatePassword(userId: string, hashedPassword: string): Promise<void>;
+    updateUserRole(userId: string, role: "user" | "admin" | "provider"): Promise<void>;
 }
 
 export interface IAuthService {

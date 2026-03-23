@@ -23,5 +23,9 @@ export class AuthRepository implements IAuthRepository {
     public async updatePassword(userId: string, hashedPassword: string): Promise<void> {
         await UserModel.findByIdAndUpdate(userId, { hashedPassword });
     }
+
+    public async updateUserRole(userId: string, role: "user" | "admin" | "provider"): Promise<void> {
+        await UserModel.findByIdAndUpdate(userId, { role });
+    }
 }
 

@@ -4,8 +4,6 @@ import { IServiceProvider } from '../interfaces/serviceProvider.interface';
 const LocationSchema = new Schema({
     id: { type: String, required: true },
     name: { type: String, required: true },
-    lat: { type: Number, required: true },
-    lon: { type: Number, required: true },
 }, { _id: false });
 
 const PortfolioItemSchema = new Schema({

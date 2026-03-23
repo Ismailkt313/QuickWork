@@ -1,6 +1,7 @@
 import { Types } from 'mongoose';
 import { IServiceProvider, IServiceProviderRepository, ProviderFilter, ProviderListResult } from '../interfaces/serviceProvider.interface';
 import { ServiceProviderModel } from '../models/serviceProvider.model';
+import { UserModel } from '../../auth/models/user.model';
 
 export class ServiceProviderRepository implements IServiceProviderRepository {
     async findByUserId(userId: string): Promise<IServiceProvider | null> {
@@ -9,6 +10,7 @@ export class ServiceProviderRepository implements IServiceProviderRepository {
 
     async create(providerData: Partial<IServiceProvider>): Promise<IServiceProvider> {
         const provider = new ServiceProviderModel(providerData);
+        await UserModel.findByIdAndUpdate(provider.userId, { role: 'provider' });
         return await provider.save();
     }
 

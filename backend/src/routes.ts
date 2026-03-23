@@ -7,6 +7,7 @@ import { locationRouter } from "./modules/location";
 import { skillRouter } from "./modules/skill";
 import { uploadRouter } from "./modules/upload";
 import { landingRouter } from "./modules/landing";
+import { jobRouter } from "./modules/job";
 
 export const registerdRoutes = (app:Application) => {
     app.use("/api/auth", authRouter);
@@ -18,4 +19,5 @@ export const registerdRoutes = (app:Application) => {
     app.use("/api/skills", skillRouter);
     app.use("/api/upload", uploadRouter);
     app.use("/api/landing", landingRouter);
+    app.use("/api/jobs", jobRouter);
 }

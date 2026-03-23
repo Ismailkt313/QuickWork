@@ -83,5 +83,7 @@ export class AdminRepository implements IAdminRepository {
         provider.verification.rejectionReason = reason;
         provider.isActive = false;
         await provider.save();
+        await UserModel.findByIdAndUpdate(provider.userId, { role: 'user' });
+
     }
 }

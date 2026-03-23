@@ -199,6 +199,7 @@ export class AuthService implements IAuthService {
         const genericError = new AppError("Unauthorized access", 401);
 
         const user = await this.authRepository.findByEmailWithPassword(input.email);
+        console.log("Admin Login Attempt:"); // Log login attempt and role
         if (!user) {
             throw genericError;
         }
@@ -215,7 +216,6 @@ export class AuthService implements IAuthService {
         if (user.isBlocked) {
             throw genericError;
         }
-
         if (user.role !== "admin") {
             throw genericError;
         }

@@ -49,7 +49,7 @@ export class SubmitApplicationDTO {
             errors.push("Valid hourly rate greater than 0 is required");
         }
 
-        if (!data.location || !data.location.id || !data.location.name || !data.location.lat || !data.location.lon) {
+        if (!data.location || !data.location.id || !data.location.name) {
             errors.push("Complete location data is required");
         }
 

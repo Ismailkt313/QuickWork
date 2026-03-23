@@ -26,11 +26,11 @@ export const createAuthRouter = (authController: AuthController): Router => {
     router.get("/google/callback",
         passport.authenticate("google", {
             session: false,
-            failureRedirect: `${config.url}/login?error=google_auth_failed`,
+            failureRedirect: `${config.FRONTEND_URL}/login?error=google_auth_failed`,
         }),
         (req, res) => {
             if (!req.user) {
-                return res.redirect(`${config.url}/login?error=google_auth_failed`);
+                return res.redirect(`${config.FRONTEND_URL}/login?error=google_auth_failed`);
             }
 
             const user = req.user as any as IUser;
@@ -44,7 +44,7 @@ export const createAuthRouter = (authController: AuthController): Router => {
             const refreshToken = generateRefreshToken(tokenPayload);
 
             res.redirect(
-                `http://localhost:5173/auth/google/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`
+                `${config.FRONTEND_URL}/auth/google/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`
             );
         }
     );

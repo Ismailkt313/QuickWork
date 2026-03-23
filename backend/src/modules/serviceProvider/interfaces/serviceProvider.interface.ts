@@ -5,8 +5,6 @@ import { SubmitApplicationDTO } from '../dtos/submitApplication.dto';
 export interface ILocation {
     id: string;
     name: string;
-    lat: number;
-    lon: number;
 }
 
 export interface IPortfolioItem {
@@ -69,7 +67,7 @@ export interface IServiceProviderRepository {
 }
 
 export interface IServiceProviderService {
-    submitApplication(userId: string, providerData: SubmitApplicationDTO): Promise<{ success: boolean; data?: any; message?: string }>;
+    submitApplication(userId: string, providerData: SubmitApplicationDTO): Promise<{ success: boolean; data?: { providerId: string; accessToken: string; refreshToken: string }; message?: string }>;
     getProviders(params: {
         skillId?: string;
         locationId?: string;

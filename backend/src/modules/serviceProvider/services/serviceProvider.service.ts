@@ -2,20 +2,25 @@ import { Types } from 'mongoose';
 import { IServiceProvider, IServiceProviderRepository, IServiceProviderService, ProviderListResult } from '../interfaces/serviceProvider.interface';
 import { SubmitApplicationDTO } from '../dtos/submitApplication.dto';
 import { SkillModel } from '../../skill/models/skill.model';
+import { IAuthRepository } from '../../auth/interfaces/auth.interface';
+import { generateAccessToken, generateRefreshToken } from '../../../utils/jwt.util';
 
 const DEFAULT_LIMIT = 12;
 const MAX_LIMIT = 50;
 
 export class ServiceProviderService implements IServiceProviderService {
     private providerRepository: IServiceProviderRepository;
+    private authRepository: IAuthRepository;
 
-    constructor(providerRepository: IServiceProviderRepository) {
+    constructor(providerRepository: IServiceProviderRepository, authRepository: IAuthRepository) {
         this.providerRepository = providerRepository;
+        this.authRepository = authRepository;
     }
 
     async submitApplication(userId: string, providerData: SubmitApplicationDTO): Promise<{ success: boolean; data?: any; message?: string }> {
         try {
             const existingProvider = await this.providerRepository.findByUserId(userId);
+            console.log("Existing Provider:", existingProvider);``
             if (existingProvider) {
                 return {
                     success: false,
@@ -42,11 +47,23 @@ export class ServiceProviderService implements IServiceProviderService {
 
             const createdProvider = await this.providerRepository.create(newProviderData);
 
+            await this.authRepository.updateUserRole(userId, 'provider');
+
+            const tokenPayload = {
+                userId: userId,
+                role: 'provider' as const
+            };
+
+            const accessToken = generateAccessToken(tokenPayload);
+            const refreshToken = generateRefreshToken(tokenPayload);
+
             return {
                 success: true,
                 message: 'Provider application submitted successfully',
                 data: {
-                    providerId: createdProvider._id
+                    providerId: createdProvider._id.toString(),
+                    accessToken,
+                    refreshToken
                 }
             };
         } catch (error: any) {

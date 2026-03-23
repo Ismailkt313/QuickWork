@@ -17,7 +17,7 @@ export const authMiddleware = async (
 ): Promise<void> => {
     try {
         const authHeader = req.headers.authorization;
-
+        console.log("Authorization Header:", authHeader);
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
 
             throw new AppError("Access denied. No token provided.", 401);

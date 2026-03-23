@@ -59,68 +59,56 @@ export class ServiceRequestService implements IServiceRequestService {
         return { success: true, data: requests };
     }
 
-    async approveRequest(adminId: string, requestId: string): Promise<{ success: boolean; message: string }> {
-        const session = await mongoose.startSession();
-        session.startTransaction();
+    async approveRequest(
+      adminId: string,
+      requestId: string
+    ): Promise<{ success: boolean; message: string }> {
 
+      const request = await this.serviceRequestRepository.findById(requestId);
+      if (!request) {
+        return { success: false, message: 'Service request not found' };
+      }
+
+      if (request.status !== 'pending') {
+        return { success: false, message: `Request is already ${request.status}` };
+      }
+
+      let skill = await this.skillRepository.findBySlug(request.slug);
+
+      if (!skill) {
         try {
-            const request = await this.serviceRequestRepository.findById(requestId);
-
-            if (!request) {
-                await session.abortTransaction();
-                return { success: false, message: 'Service request not found' };
-            }
-
-            if (request.status !== 'pending') {
-                await session.abortTransaction();
-                return { success: false, message: `Request is already ${request.status}` };
-            }
-
-            let skill = await this.skillRepository.findBySlug(request.slug);
-
-            if (!skill) {
-                try {
-                    skill = await this.skillRepository.create(
-                        { name: request.name, slug: request.slug },
-                        session
-                    );
-                } catch (error: any) {
-                    if (error.code === 11000) {
-                        skill = await this.skillRepository.findBySlug(request.slug);
-                    } else {
-                        throw error;
-                    }
-                }
-            }
-
-            if (!skill) {
-                throw new Error('Failed to find or create skill');
-            }
-
-            await this.serviceProviderRepository.addSkillToProvider(
-                request.requestedBy.toString(),
-                skill._id.toString()
-            );
-
-            await this.serviceRequestRepository.updateStatus(
-                requestId,
-                {
-                    status: 'approved',
-                    reviewedBy: new Types.ObjectId(adminId),
-                    reviewedAt: new Date()
-                },
-                session
-            );
-
-            await session.commitTransaction();
-
-            return { success: true, message: 'Service request approved successfully' };
-        } catch (error) {
-            await session.abortTransaction();
+          skill = await this.skillRepository.create({
+            name: request.name,
+            slug: request.slug
+          });
+        } catch (error: any) {
+          if (error.code === 11000) {
+            skill = await this.skillRepository.findBySlug(request.slug);
+          } else {
             throw error;
-        } finally {
-            session.endSession();
+          }
         }
+      }
+
+      if (!skill) {
+        throw new Error('Failed to find or create skill');
+      }
+
+      await this.serviceProviderRepository.addSkillToProvider(
+        request.requestedBy.toString(),
+        skill._id.toString()
+      );
+
+      await this.serviceRequestRepository.updateStatus(requestId, {
+        status: 'approved',
+        reviewedBy: new Types.ObjectId(adminId),
+        reviewedAt: new Date()
+      });
+
+      return {
+        success: true,
+        message: 'Service request approved successfully'
+      };
     }
 
     async rejectRequest(adminId: string, requestId: string, dto: RejectServiceRequestDTO): Promise<{ success: boolean; message: string }> {
