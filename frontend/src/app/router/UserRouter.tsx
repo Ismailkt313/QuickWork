@@ -1,11 +1,11 @@
 import {Route, Routes} from "react-router-dom";
 import { lazy, Suspense } from "react"
-import FallbackScreen from "../../components/FallbackScreen"
+import FallbackScreen from "../../components/ui/FallbackScreen"
 
-const AllServicesPage = lazy(() => import("../../pages/AllServicesPage"))
-const ProvidersPage = lazy(() => import("../../pages/ProvidersPage"))
-const ProviderDetailPage = lazy(() => import("../../pages/ProviderDetailPage"))
-const CreateJobPage = lazy(() => import("../../features/jobs/pages/CreateJobPage"))
+const AllServicesPage = lazy(() => import("../../features/user/serviceProviders/pages/AllServicesPage"))
+const ProvidersPage = lazy(() => import("../../features/user/serviceProviders/pages/ProvidersPage"))
+const ProviderDetailPage = lazy(() => import("../../features/user/serviceProviders/pages/ProviderDetailPage"))
+const CreateJobPage = lazy(() => import("../../features/user/jobs/pages/CreateJobPage"))
 
 const UserRouter = () => {
   return (

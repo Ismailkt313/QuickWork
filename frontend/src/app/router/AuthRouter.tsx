@@ -1,13 +1,13 @@
 import { Routes, Route } from "react-router-dom"
 
-import LoginPage from "../../pages/LoginPage"
-import RegisterPage from "../../pages/RegisterPage"
-import OtpPage from "../../pages/OtpPage"
-import GoogleCallback from "../../pages/GoogleCallback"
-import ForgotPasswordPage from "../../pages/ForgotPasswordPage"
-import ResetPasswordPage from "../../pages/ResetPasswordPage"
+import LoginPage from "../../features/auth/pages/LoginPage"
+import RegisterPage from "../../features/auth/pages/RegisterPage"
+import OtpPage from "../../features/auth/pages/OtpPage"
+import GoogleCallback from "../../features/auth/pages/GoogleCallback"
+import ForgotPasswordPage from "../../features/auth/pages/ForgotPasswordPage"
+import ResetPasswordPage from "../../features/auth/pages/ResetPasswordPage"
 
-import GuestGuard from "../../components/GuestGuard"
+import GuestGuard from "../../guards/GuestGuard"
 
 const AuthRouter = () => {
   return (

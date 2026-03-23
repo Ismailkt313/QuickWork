@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getProviders, type ProviderItem, type PaginationInfo } from '../services/providersService';
+import { getProviders, type ProviderItem, type PaginationInfo } from '../features/user/serviceProviders/services/providersService';
 
 interface UseProvidersParams {
     skillId: string;

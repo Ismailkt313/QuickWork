@@ -1,29 +1,55 @@
 import { Routes, Route } from "react-router-dom"
 import { lazy, Suspense } from "react"
-import FallbackScreen from "../../components/FallbackScreen"
+import FallbackScreen from "../../components/ui/FallbackScreen"
+import ProviderGuard from "../../guards/ProviderGuard"
+import ProviderDashboardLayout from "../../features/provider/layout/ProviderDashboardLayout"
 
-import AuthGuard from "../../components/AuthGuard"
+import AuthGuard from "../../guards/AuthGurad"
 
-const BecomeProviderPage = lazy(() => import("../../pages/BecomeProviderPage"))
-const ProviderSuccessPage = lazy(() => import("../../features/providerOnboarding/components/ProviderSuccessPage"))
+const BecomeProviderPage = lazy(() => import("../../features/provider/pages/BecomeProviderPage"))
+const ProviderSuccessPage = lazy(() => import("../../features/provider/providerOnboarding/components/ProviderSuccessPage"))
+const ProviderDashboardPage = lazy(() => import("../../features/provider/pages/ProviderDashboardPage"))
+const AvailableJobsPage = lazy(() => import("../../features/provider/pages/availableJobe.page"))
+const MessagesPage = lazy(() => import("../../features/provider/pages/MessagesPage"))
+const CompletedJobsPage = lazy(() => import("../../features/provider/pages/CompletedJobsPage"))
+
 const ProviderRouter = () => {
   return (
     <Routes>
-
       <Route path="become-provider" element={
         <Suspense fallback={<FallbackScreen />}>
-        <AuthGuard>
-          <BecomeProviderPage />
+          <AuthGuard>
+            <ProviderGuard>
+              <BecomeProviderPage />
+            </ProviderGuard>
           </AuthGuard>
-          </Suspense>
+        </Suspense>
       } />
 
-      <Route path="status" element={
+      <Route path="success" element={
         <AuthGuard>
-          <ProviderSuccessPage />
+          <Suspense fallback={<FallbackScreen />}>
+            <ProviderGuard>
+              <ProviderSuccessPage />
+            </ProviderGuard>
+          </Suspense>
         </AuthGuard>
       } />
 
+      <Route
+        element={
+          <AuthGuard>
+            <ProviderGuard>
+              <ProviderDashboardLayout />
+            </ProviderGuard>
+          </AuthGuard>
+        }
+      >
+        <Route path="dashboard" element={<ProviderDashboardPage />} />
+        <Route path="available-jobs" element={<AvailableJobsPage />} />
+        <Route path="messages" element={<MessagesPage />} />
+        <Route path="completed-jobs" element={<CompletedJobsPage />} />
+      </Route>
     </Routes>
   )
 }

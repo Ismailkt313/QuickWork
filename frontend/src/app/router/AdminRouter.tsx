@@ -1,15 +1,15 @@
 import { Routes, Route } from "react-router-dom"
 
-import AdminGuestGuard from "../../admin/components/AdminGuestGuard"
-import AdminAuthGuard from "../../admin/components/AdminAuthGuard"
+import AdminGuestGuard from "../../guards/AdminGuestGuard"
+import AdminAuthGuard from "../../guards/AdminAuthGuard"
 
-import AdminLoginPage from "../../admin/pages/AdminLoginPage"
+import AdminLoginPage from "../../features/admin/pages/AdminLoginPage"
 
-import AdminLayout from "../../admin/components/AdminLayout"
-import AdminDashboard from "../../admin/pages/AdminDashboard"
-import UserManagement from "../../admin/pages/UserManagement"
-import SkillRequests from "../../admin/pages/SkillRequests"
-import ProviderManagement from "../../admin/pages/ProviderManagement"
+import AdminLayout from "../../features/admin/components/AdminLayout"
+import AdminDashboard from "../../features/admin/pages/AdminDashboard"
+import UserManagement from "../../features/admin/pages/UserManagement"
+import SkillRequests from "../../features/admin/pages/SkillRequests"
+import ProviderManagement from "../../features/admin/pages/ProviderManagement"
 
 const AdminRouter = () => {
   return (

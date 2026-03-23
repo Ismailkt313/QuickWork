@@ -9,6 +9,7 @@ export const sendOtp = async (data: sendOtpPayload) => {
 
 export const login = async (data: loginPayload) => {
     const response = await api.post('/auth/login', data)
+    console.log("Login API Response:", response.data);
     return response.data
 }
 
