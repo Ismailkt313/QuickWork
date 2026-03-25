@@ -13,9 +13,12 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(passport.initialize());
 
 app.use(cors({
-    origin: 'http://localhost:5173',
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    credentials: true
+  origin: [
+    'http://localhost:5173',
+    'https://quick-work-git-main-ismails-projects-08248cd7.vercel.app/'
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  credentials: true
 }))
 
 
