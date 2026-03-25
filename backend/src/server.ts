@@ -10,7 +10,7 @@ const startServer = async (): Promise<void> => {
             console.log('server connected')
         });
     } catch (error) {
-        console.error('server error occurd')
+        console.error('server error occurd',error)
         process.exit(1);
     }
 };
