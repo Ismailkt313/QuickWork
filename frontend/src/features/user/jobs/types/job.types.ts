@@ -14,7 +14,9 @@ export interface JobFormData {
     description: string;
     category: string;
     experience: string;
-    duration: string;
+    durationType: string;
+    startDate: string;
+    days: string;
     minBudget: string;
     maxBudget: string;
     freelancersNeeded: string;

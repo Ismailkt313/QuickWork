@@ -15,7 +15,12 @@ export interface IJob extends Document {
     applicantsCount: number;
     isUrgent: boolean;
     experience: string;
-    duration: number;
+    durationType: string;
+    schedule: {
+        startDate: Date;
+        endDate: Date;
+    };
+    days?: number;
     freelancersNeeded: number;
     userId: Types.ObjectId;
     status: 'open' | 'assigned' | 'in_progress' | 'completed' | 'cancelled';
@@ -23,19 +28,22 @@ export interface IJob extends Document {
     updatedAt: Date;
 }
 
+export interface IJobPaginationResponse {
+    success: boolean;
+    data: JobResponseDTO[];
+    pagination: {
+        total: number;
+        page: number;
+        limit: number;
+        pages: number;
+    };
+}
+
 export interface IJobService {
     createJob(userId: string, dto: CreateJobDTO): Promise<{ success: boolean; message: string; data?: JobResponseDTO }>;
     getJobsByUser(userId: string): Promise<{ success: boolean; data: JobResponseDTO[] }>;
-    getAllOpenJobs(page?: number, limit?: number, filters?: any): Promise<{ 
-        success: boolean; 
-        data: JobResponseDTO[];
-        pagination: {
-            total: number;
-            page: number;
-            limit: number;
-            pages: number;
-        }
-    }>;
+    availableJobs(page: number, limit: number, filters?: any): Promise<IJobPaginationResponse>;
+    getJobById(id: string): Promise<{ success: boolean; data?: JobResponseDTO; message?: string }>;
 }
 
 export interface IJobRepository {
@@ -49,5 +57,6 @@ export interface IJobRepository {
 export interface IJobController {
     createJob(req: any, res: any, next: any): Promise<void>;
     getUserJobs(req: any, res: any, next: any): Promise<void>;
-    getAllOpenJobs(req: any, res: any, next: any): Promise<void>;
+    availableJobs(req: any, res: any, next: any): Promise<void>;
+    getJobById(req: any, res: any, next: any): Promise<void>;
 }

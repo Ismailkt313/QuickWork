@@ -18,6 +18,7 @@ export class JobController implements IJobController {
             }
             console.log("Create Job Request Body:", req.body);
             const dto = CreateJobDTO.create(req.body);
+            console.log("Validated DTO:", dto);
             const result = await this.jobService.createJob(userId, dto);
 
             if (!result.success) {
@@ -44,28 +45,31 @@ export class JobController implements IJobController {
         }
     };
 
-    getAllOpenJobs = async (req: Request, res: Response, next: any): Promise<void> => {
+    availableJobs = async (req: Request, res: Response, next: any): Promise<void> => {
         try {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
             const skillId = req.query.skillId as string;
             const locationId = req.query.locationId as string;
 
-            const result = await this.jobService.getAllOpenJobs(page, limit, { skillId, locationId });
+            const result = await this.jobService.availableJobs(page, limit, { skillId, locationId });
             res.status(200).json(result);
         } catch (error) {
             next(error);
         }
     };
-
-    getAvailableJobs = async (req: Request, res: Response, next: any): Promise<void> => {
+    
+    getJobById = async (req: Request, res: Response, next: any): Promise<void> => {
         try {
-            const page = parseInt(req.query.page as string) || 1;
-            const limit = parseInt(req.query.limit as string) || 10;
-            const skillId = req.query.skillId as string;
-            const locationId = req.query.locationId as string;
+            const jobId = req.params.jobId as string;
+            if (!jobId) {
+                throw new AppError('Job ID is required', 400);
+            }
 
-            const result = await this.jobService.getAllOpenJobs(page, limit, { skillId, locationId });
+            const result = await this.jobService.getJobById(jobId);
+            if (!result.success) {
+                throw new AppError(result.message || 'Job not found', 404);
+            }
             res.status(200).json(result);
         } catch (error) {
             next(error);

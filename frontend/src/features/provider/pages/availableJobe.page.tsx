@@ -1,14 +1,12 @@
- import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import JobCard, { type Job } from '../components/jobcard';
-import { availableJobs } from '../services/provider.service';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+ import JobCard, { type Job } from '../components/jobcard';
+import { availableJobs, fetchSkills, fetchLocations } from '../services/provider.service';
 import '../pages/style/page.css';
  
 
  
-const LOCATIONS   = ['All Locations', 'Koramangala', 'Indiranagar', 'Whitefield', 'HSR Layout', 'JP Nagar', 'Electronic City'];
-const CATEGORIES  = ['All Categories', 'Cleaning', 'Plumbing', 'Electrical', 'AC Repair', 'Painting', 'Housekeeping'];
-const BUDGET_OPTS = ['Any Budget', '₹0 – ₹1,000', '₹1,000 – ₹5,000', '₹5,000 – ₹15,000', '₹15,000+'];
-const JOB_TYPES   = ['All Types', 'Fixed', 'Hourly'];
+// No hardcoded categories or locations, fetching from backend
 const SORT_OPTS   = [
   { value: 'newest',     label: 'Newest First' },
   { value: 'budget_hi',  label: 'Budget: High → Low' },
@@ -52,10 +50,13 @@ const IconZap     = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="
 );
 
 // ─── Main Page Component ──────────────────────────────────────
-const AvailableJobsPage: React.FC = () => {
+ const AvailableJobsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [loading,      setLoading]      = useState(true);
   const [refreshing,   setRefreshing]   = useState(false);
   const [jobs,         setJobs]         = useState<Job[]>([]);
+  const [locations,    setLocations]    = useState<{_id: string, name: string}[]>([]);
+  const [skills,       setSkills]       = useState<{_id: string, name: string}[]>([]);
   const [searchQuery,  setSearchQuery]  = useState('');
   const [location,     setLocation]     = useState('All Locations');
   const [category,     setCategory]     = useState('All Categories');
@@ -67,14 +68,28 @@ const AvailableJobsPage: React.FC = () => {
   const [pagination,    setPagination]    = useState({ total: 0, page: 1, limit: 10, pages: 1 });
   const JOBS_PER_PAGE = 10;
 
-  const fetchData = useCallback(async (page = 1, locName?: string, skillName?: string) => {
+  useEffect(() => {
+    const loadFilters = async () => {
+      try {
+        const [locs, sks] = await Promise.all([fetchLocations(), fetchSkills()]);
+        setLocations(locs);
+        setSkills(sks);
+      } catch (err) {
+        console.error('Error loading filters:', err);
+      }
+    };
+    loadFilters();
+  }, []);
+
+  const fetchData = useCallback(async (page = 1) => {
     setLoading(true);
     try {
-      // For now, passing names if we don't have IDs easily accessible in this layout
-      // Usually, we'd have a mapping or the dropdowns would have IDs.
-      // Since the request said "location name" and "skill name" should be populated, 
-      // let's assume the filters might need adjustment.
-      const response = await availableJobs(page, JOBS_PER_PAGE, skillName === 'All Categories' ? undefined : skillName, locName === 'All Locations' ? undefined : locName);
+      const response = await availableJobs(
+        page, 
+        JOBS_PER_PAGE, 
+        category === 'All Categories' ? undefined : (skills.find(s => s.name === category)?._id), 
+        location === 'All Locations' ? undefined : (locations.find(l => l.name === location)?._id)
+      );
       if (response.success) {
         setJobs(response.data);
         setPagination(response.pagination);
@@ -82,14 +97,14 @@ const AvailableJobsPage: React.FC = () => {
     } catch (error) {
       console.error('Error fetching jobs:', error);
     } finally {
-      setLoading(true); // Keep loading true for a split second for smooth transition
+      setLoading(true); 
       setTimeout(() => setLoading(false), 300);
       setRefreshing(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchData(currentPage, location !== 'All Locations' ? location : undefined, category !== 'All Categories' ? category : undefined);
+    fetchData(currentPage);
   }, [currentPage, location, category, fetchData]);
 
   const handleRefresh = useCallback(() => {
@@ -136,14 +151,12 @@ const AvailableJobsPage: React.FC = () => {
     }
 
     if (sortBy === 'applicants') result = [...result].sort((a, b) => a.applicants - b.applicants);
-    // Since budget is now a string "₹min – ₹max" coming from backend, sorting locally might be tricky if not parsed.
-    // However, the backend DTO mapper provides a UI ready format.
-    
+     
     return result;
   }, [jobs, searchQuery, sortBy]);
 
    const totalPages    = pagination.pages;
-  const pagedJobs     = filteredJobs; // Pagination is now handled by backend
+  const pagedJobs     = filteredJobs; 
 
   const urgentCount   = jobs.filter((j) => j.isUrgent).length;
   const savedCount    = jobs.filter((j) => j.isSaved).length;
@@ -224,7 +237,8 @@ const AvailableJobsPage: React.FC = () => {
             value={location}
             onChange={(e) => { setLocation(e.target.value); setCurrentPage(1); }}
           >
-            {LOCATIONS.map((l) => <option key={l}>{l}</option>)}
+            <option>All Locations</option>
+            {locations.map((l) => <option key={l._id}>{l.name}</option>)}
           </select>
         </div>
 
@@ -236,7 +250,8 @@ const AvailableJobsPage: React.FC = () => {
             value={category}
             onChange={(e) => { setCategory(e.target.value); setCurrentPage(1); }}
           >
-            {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+            <option>All Categories</option>
+            {skills.map((s) => <option key={s._id}>{s.name}</option>)}
           </select>
         </div>
 
@@ -248,7 +263,7 @@ const AvailableJobsPage: React.FC = () => {
             value={budget}
             onChange={(e) => { setBudget(e.target.value); setCurrentPage(1); }}
           >
-            {BUDGET_OPTS.map((b) => <option key={b}>{b}</option>)}
+            {['Any Budget', '₹0 – ₹1,000', '₹1,000 – ₹5,000', '₹5,000 – ₹15,000', '₹15,000+'].map((b) => <option key={b}>{b}</option>)}
           </select>
         </div>
 
@@ -260,7 +275,7 @@ const AvailableJobsPage: React.FC = () => {
             value={jobType}
             onChange={(e) => { setJobType(e.target.value); setCurrentPage(1); }}
           >
-            {JOB_TYPES.map((t) => <option key={t}>{t}</option>)}
+            {['All Types', 'Fixed', 'Hourly'].map((t) => <option key={t}>{t}</option>)}
           </select>
         </div>
 
@@ -363,7 +378,7 @@ const AvailableJobsPage: React.FC = () => {
               <JobCard
                 job={{ ...job, animationDelay: i * 60 }}
                 onApply={(id) => console.log('Apply:', id)}
-                onViewDetails={(id) => console.log('View:', id)}
+                onViewDetails={(id) => navigate(`/provider/jobs/${id}`)}
                 onSave={(id, saved) => console.log('Save:', id, saved)}
               />
             </div>

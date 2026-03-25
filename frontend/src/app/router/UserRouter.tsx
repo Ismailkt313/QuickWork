@@ -1,5 +1,6 @@
 import {Route, Routes} from "react-router-dom";
 import { lazy, Suspense } from "react"
+import AuthGuard from "../../guards/AuthGurad";
 import FallbackScreen from "../../components/ui/FallbackScreen"
 
 const AllServicesPage = lazy(() => import("../../features/user/serviceProviders/pages/AllServicesPage"))
@@ -27,7 +28,9 @@ const UserRouter = () => {
             } />
           <Route path="create-job" element={
               <Suspense fallback={<FallbackScreen />}>
-                  <CreateJobPage />
+                  <AuthGuard>
+                      <CreateJobPage />
+                  </AuthGuard> 
               </Suspense>
             } />
         </Routes>

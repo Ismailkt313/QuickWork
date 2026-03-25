@@ -1,9 +1,8 @@
-// JobCard.tsx — QuickWork Reusable Job Card
 import React, { useState } from 'react';
+import { FiCalendar } from 'react-icons/fi';
 import './style/jobcard.css';
 
-// ─── Types ────────────────────────────────────────────────────
-export interface Job {
+ export interface Job {
   id: string;
   title: string;
   description: string;
@@ -19,12 +18,15 @@ export interface Job {
   budget: string; 
   jobType: 'Hourly' | 'Fixed';
   applicants: number;
+  startDate: string;
+  endDate: string;
+  durationType: string;
   isUrgent?: boolean;
   isRecommended?: boolean;
   isNew?: boolean;
   isSaved?: boolean;
   isApplied?: boolean;
-  animationDelay?: number;   // ms, for staggered entry
+  animationDelay?: number;   
 }
 
 interface JobCardProps {
@@ -34,8 +36,7 @@ interface JobCardProps {
   onSave?: (id: string, saved: boolean) => void;
 }
 
-// ─── Star Rating Helper ───────────────────────────────────────
-const StarRating: React.FC<{ rating: number; count?: number }> = ({ rating, count }) => (
+ const StarRating: React.FC<{ rating: number; count?: number }> = ({ rating, count }) => (
   <div className="jc-stars" aria-label={`Rating: ${rating} out of 5`}>
     {[1, 2, 3, 4, 5].map((s) => (
       <span key={s} className={`jc-star ${s <= Math.round(rating) ? 'filled' : 'empty'}`}>★</span>
@@ -45,8 +46,7 @@ const StarRating: React.FC<{ rating: number; count?: number }> = ({ rating, coun
   </div>
 );
 
-// ─── Avatar Color Pool ────────────────────────────────────────
-const AVATAR_COLORS = [
+ const AVATAR_COLORS = [
   'linear-gradient(135deg,#6c63ff,#9c55f5)',
   'linear-gradient(135deg,#00d9b8,#0ea5e9)',
   'linear-gradient(135deg,#f97316,#ef4444)',
@@ -58,8 +58,7 @@ const AVATAR_COLORS = [
 const getAvatarColor = (name: string) =>
   AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
 
-// ─── SVG Icons ────────────────────────────────────────────────
-const IconPin = () => (
+ const IconPin = () => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
@@ -103,8 +102,7 @@ const IconSend = () => (
   </svg>
 );
 
-// ─── JobCard Component ────────────────────────────────────────
-const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }) => {
+ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }) => {
   const [saved, setSaved]     = useState(job.isSaved ?? false);
   const [applied, setApplied] = useState(job.isApplied ?? false);
 
@@ -175,6 +173,11 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
             <span className="jc-meta-sep">•</span>
             <span className="jc-posted">
               <IconClock /> {job.postedAt}
+            </span>
+            <span className="jc-meta-sep">•</span>
+            <span className="jc-schedule text-primary fw-bold" style={{ fontSize: '11px' }}>
+              <FiCalendar className="me-1" style={{ verticalAlign: 'middle', marginTop: '-2px' }} />
+              {job.startDate === job.endDate ? job.startDate : `${job.startDate} – ${job.endDate}`}
             </span>
           </div>
         </div>

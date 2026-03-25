@@ -2,6 +2,7 @@ import { IJob, IJobRepository } from '../interfaces/job.interface';
 import { JobModel } from '../models/job.model';
 import { SkillModel } from '../../skill/models/skill.model';
 import { LocationModel } from '../../location/models/location.model';
+import { JobResponseDTO, mapJobToResponseDTO } from '../dtos/jobResponse.dto';
 
 export class JobRepository implements IJobRepository {
     async create(jobData: Partial<IJob>): Promise<IJob> {
@@ -75,5 +76,13 @@ export class JobRepository implements IJobRepository {
             { $set: { status } },
             { new: true }
         );
+    }
+    
+    async getJobById(jobId: string): Promise<{ success: boolean; data?: JobResponseDTO; message?: string }> {
+        const job = await this.findById(jobId);
+        if (!job) {
+            return { success: false, message: 'Job not found' };
+        }
+        return { success: true, data: mapJobToResponseDTO(job) };
     }
 }

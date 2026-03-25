@@ -30,9 +30,26 @@ export const availableJobs = async (page?: number, limit?: number, skillId?: str
         const response = await api.get("/jobs/availablejobs", {
             params: { page, limit, skillId, locationId }
         });
-        console.log(response.data);
         return response.data;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || "Failed to fetch available jobs");
+    }
+};
+
+export const fetchSkills = async () => {
+    try {
+        const response = await api.get("/skills");
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || "Failed to fetch skills");
+    }
+};
+
+export const fetchLocations = async () => {
+    try {
+        const response = await api.get("/locations");
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || "Failed to fetch locations");
     }
 };

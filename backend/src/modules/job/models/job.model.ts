@@ -28,10 +28,16 @@ const JobSchema: Schema = new Schema(
             type: String,
             required: true
         },
-        duration: {
-            type: Number,
+        durationType: {
+            type: String,
+            enum: ['few_hours', 'half_day', 'full_day', 'multi_day'],
             required: true
         },
+        schedule: {
+            startDate: { type: Date, required: true },
+            endDate: { type: Date, required: true }
+        },
+        days: { type: Number },
         freelancersNeeded: {
             type: Number,
             default: 1
@@ -51,6 +57,7 @@ const JobSchema: Schema = new Schema(
 JobSchema.index({ skillId: 1 });
 JobSchema.index({ locationId: 1 });
 JobSchema.index({ status: 1 });
+JobSchema.index({ 'schedule.startDate': 1 });
 JobSchema.index({ createdAt: -1 });
 
 export const JobModel = mongoose.model<IJob>('Job', JobSchema);

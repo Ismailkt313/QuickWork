@@ -7,7 +7,9 @@ export interface CreateJobData {
     locationId: string;
     budget: { min: number; max: number };
     experience: string;
-    duration: number;
+    durationType: string;
+    startDate?: string;
+    days?: number;
     freelancersNeeded: number;
 }
 export class JobRepository {

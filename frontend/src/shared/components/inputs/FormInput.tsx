@@ -6,6 +6,7 @@ interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     icon?: React.ReactNode;
     suffix?: React.ReactNode;
     required?: boolean;
+    helperText?: string;
 }
 
 export const FormInput: React.FC<FormInputProps> = ({
@@ -14,6 +15,7 @@ export const FormInput: React.FC<FormInputProps> = ({
     icon,
     suffix,
     required,
+    helperText,
     className,
     ...props
 }) => {
@@ -39,6 +41,7 @@ export const FormInput: React.FC<FormInputProps> = ({
                     </span>
                 )}
                 {error && <div className="invalid-feedback d-block mt-1">{error}</div>}
+                {!error && helperText && <div className="form-text mt-1 small text-muted">{helperText}</div>}
             </div>
         </div>
     );

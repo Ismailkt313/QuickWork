@@ -9,7 +9,9 @@ import {
     FiDollarSign,
     FiUsers,
     FiMapPin,
-    FiMap
+    FiMap,
+    FiCalendar,
+    FiHash
 } from 'react-icons/fi';
 import { FormInput } from '../../../../shared/components/inputs/FormInput';
 import { FormTextarea } from '../../../../shared/components/inputs/FormTextarea';
@@ -28,7 +30,9 @@ export const CreateJobForm: React.FC = () => {
         description: '',
         category: '',
         experience: 'Intermediate',
-        duration: '',
+        durationType: 'few_hours',
+        startDate: '',
+        days: '',
         minBudget: '',
         maxBudget: '',
         freelancersNeeded: '1',
@@ -59,7 +63,18 @@ export const CreateJobForm: React.FC = () => {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value as string }));
+        
+        setFormData(prev => {
+            const newState = { ...prev, [name]: value as string };
+            
+            // Handle clearing startDate and days when durationType changes
+            if (name === 'durationType' && value !== 'multi_day') {
+                newState.startDate = '';
+                newState.days = '';
+            }
+            
+            return newState;
+        });
 
         if (errors[name as keyof JobFormData]) {
             setErrors(prev => ({ ...prev, [name]: '' }));
@@ -78,7 +93,17 @@ export const CreateJobForm: React.FC = () => {
         if (!formData.category) newErrors.category = 'Please select a service category';
         if (!formData.experience) newErrors.experience = 'Please select required experience level';
 
-        if (!formData.duration || Number(formData.duration) <= 0) newErrors.duration = 'Please enter a valid estimated duration';
+        if (!formData.durationType) {
+            newErrors.durationType = 'Please select estimated duration';
+        }
+        
+        if (!formData.startDate) {
+            newErrors.startDate = 'Start date is required';
+        }
+
+        if (formData.durationType === 'multi_day') {
+            if (!formData.days || Number(formData.days) < 1) newErrors.days = 'Days must be at least 1';
+        }
         
         if (!formData.minBudget || Number(formData.minBudget) <= 0) newErrors.minBudget = 'Enter min budget';
         if (!formData.maxBudget || Number(formData.maxBudget) <= 0) newErrors.maxBudget = 'Enter max budget';
@@ -116,7 +141,9 @@ export const CreateJobForm: React.FC = () => {
                     title: formData.title,
                     description: formData.description,
                     experience: formData.experience,
-                    duration: Number(formData.duration),
+                    durationType: formData.durationType,
+                    startDate: formData.startDate ,
+                    days: formData.durationType === 'multi_day' ? Number(formData.days) : undefined,
                     freelancersNeeded: Number(formData.freelancersNeeded),
                     skillId: selectedCategory._id || selectedCategory.id,
                     locationId: selectedLocation.id,
@@ -147,6 +174,13 @@ export const CreateJobForm: React.FC = () => {
         { value: 'Intermediate', label: 'Intermediate ($$)' },
         { value: 'Expert', label: 'Expert ($$$)' }
     ];
+
+    const durationOptions = [
+  { label: "Few Hours (1–3 hrs)", value: "few_hours" },
+  { label: "Half Day (~4 hrs)", value: "half_day" },
+  { label: "Full Day (8 hrs)", value: "full_day" },
+  { label: "Multiple Days", value: "multi_day" },
+];
 
     const categoryOptions: SelectOption[] = categories.map(c => ({
         value: c.name,
@@ -202,7 +236,7 @@ export const CreateJobForm: React.FC = () => {
 
                     <SectionCard stepNumber={2} title="Requirements">
                         <div className="row g-4">
-                            <div className="col-md-6">
+                            <div className="col-md-4">
                                 <FormSelect
                                     label="Required Experience"
                                     name="experience"
@@ -215,27 +249,95 @@ export const CreateJobForm: React.FC = () => {
                                     icon={<FiAward size={18} />}
                                 />
                             </div>
-                            <div className="col-md-6">
-                                <FormInput
+                            <div className="col-md-4">
+                                <FormSelect
                                     label="Estimated Duration"
-                                    name="duration"
-                                    type="number"
-                                    min="1"
-                                    value={formData.duration}
+                                    name="durationType"
+                                    value={formData.durationType}
                                     onChange={handleChange}
-                                    error={errors.duration}
+                                    error={errors.durationType}
                                     required
-                                    placeholder="e.g. 10"
+                                    options={durationOptions}
+                                    placeholder="Select duration"
                                     icon={<FiClock size={18} />}
-                                    suffix="hours"
+                                 />
+                            </div>
+
+                            <div className="col-md-4">
+                                <FormInput
+                                    label="Start Date"
+                                    name="startDate"
+                                    type="date"
+                                    value={formData.startDate}
+                                    onChange={handleChange}
+                                    error={errors.startDate}
+                                    required
+                                    min={new Date().toISOString().split('T')[0]}
+                                    icon={<FiCalendar size={18} />}
+                                    helperText="Select when the work should begin"
                                 />
                             </div>
+
+                            {formData.durationType === 'multi_day' && (
+                                <div className="col-md-4">
+                                    <FormInput
+                                        label="Number of Days"
+                                        name="days"
+                                        type="number"
+                                        min="1"
+                                        value={formData.days}
+                                        onChange={handleChange}
+                                        error={errors.days}
+                                        required
+                                        placeholder="e.g. 5"
+                                        icon={<FiHash size={18} />}
+                                    />
+                                </div>
+                            )}
+
+                            {formData.startDate && (
+                                <div className="col-12 mt-0">
+                                    <div className="p-2 px-3 rounded-3 bg-light border d-inline-block">
+                                        <small className="text-muted fw-medium">
+                                            <FiCalendar className="me-2" />
+                                            {formData.durationType === 'multi_day' && formData.days && Number(formData.days) > 0 ? (
+                                                <>
+                                                    Ends on: <span className="text-primary fw-bold">
+                                                        {(() => {
+                                                            const date = new Date(formData.startDate);
+                                                            // endDate = startDate + days - 1
+                                                            date.setDate(date.getDate() + (Number(formData.days) - 1));
+                                                            return date.toLocaleDateString('en-US', { 
+                                                                weekday: 'short', 
+                                                                year: 'numeric', 
+                                                                month: 'short', 
+                                                                day: 'numeric' 
+                                                            });
+                                                        })()}
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                 <>
+                                                    Job Date: <span className="text-primary fw-bold">
+                                                        {new Date(formData.startDate).toLocaleDateString('en-US', { 
+                                                            weekday: 'short', 
+                                                            year: 'numeric', 
+                                                            month: 'short', 
+                                                            day: 'numeric' 
+                                                        })}
+                                                    </span>
+                                                </>
+                                            )}
+                                        </small>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </SectionCard>
 
                     <SectionCard stepNumber={3} title="Budget & Hiring">
-                        <div className="row g-4">
-                            <div className="col-md-3">
+                        <div className="row g-4 text-start">
+                            <div className="col-md-4">
                                 <FormInput
                                     label="Min Budget"
                                     name="minBudget"
@@ -249,7 +351,7 @@ export const CreateJobForm: React.FC = () => {
                                     icon={<FiDollarSign size={18} />}
                                 />
                             </div>
-                            <div className="col-md-3">
+                            <div className="col-md-4">
                                 <FormInput
                                     label="Max Budget"
                                     name="maxBudget"
@@ -263,7 +365,7 @@ export const CreateJobForm: React.FC = () => {
                                     icon={<FiDollarSign size={18} />}
                                 />
                             </div>
-                            <div className="col-md-6">
+                            <div className="col-md-4">
                                 <FormInput
                                     label="Freelancers Needed"
                                     name="freelancersNeeded"

@@ -1,5 +1,3 @@
-import { IJob } from '../interfaces/job.interface';
-
 export interface JobResponseDTO {
     id: string;
     title: string;
@@ -14,23 +12,23 @@ export interface JobResponseDTO {
     applicants: number;
     isUrgent: boolean;
     status: string;
+    startDate: string;
+    endDate: string;
+    durationType: string;
     createdAt: Date;
     updatedAt: Date;
 }
 
 export const mapJobToResponseDTO = (job: any): JobResponseDTO => {
-    // Helper to format budget
-    const formatBudget = (budget: { min: number; max: number }) => {
+     const formatBudget = (budget: { min: number; max: number }) => {
         return `₹${budget.min} – ₹${budget.max}`;
     };
 
-    // Helper to get initials
-    const getInitials = (name: string) => {
+     const getInitials = (name: string) => {
         return name ? name.split(' ').map(n => n[0]).join('').toUpperCase() : '??';
     };
 
-    // Helper to format relative time
-    const getRelativeTime = (date: Date) => {
+     const getRelativeTime = (date: Date) => {
         const now = new Date();
         const diff = now.getTime() - date.getTime();
         const hours = Math.floor(diff / (1000 * 60 * 60));
@@ -44,6 +42,14 @@ export const mapJobToResponseDTO = (job: any): JobResponseDTO => {
     const skill = job.skillId || {};
     const location = job.locationId || {};
 
+    const formatDate = (date: Date) => {
+        return date.toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric',
+            year: 'numeric'
+        });
+    };
+
     return {
         id: job._id ? job._id.toString() : job.id,
         title: job.title,
@@ -52,12 +58,15 @@ export const mapJobToResponseDTO = (job: any): JobResponseDTO => {
         clientInitials: getInitials(user.name),
         location: location.name || 'Remote',
         postedAt: getRelativeTime(job.createdAt),
-        skills: skill.name ? [skill.name] : [], // Assuming single skill for now as per current schema
+        skills: skill.name ? [skill.name] : [], 
         budget: formatBudget(job.budget),
         jobType: job.jobType === 'fixed' ? 'Fixed' : 'Hourly',
         applicants: job.applicantsCount || 0,
         isUrgent: job.isUrgent || false,
         status: job.status,
+        startDate: job.schedule ? formatDate(job.schedule.startDate) : '',
+        endDate: job.schedule ? formatDate(job.schedule.endDate) : '',
+        durationType: job.durationType || '',
         createdAt: job.createdAt,
         updatedAt: job.updatedAt,
     };
