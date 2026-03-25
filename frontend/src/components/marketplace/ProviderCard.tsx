@@ -39,7 +39,6 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider }) => {
                         }}
                     />
                 </div>
-
                 <div className="card-body p-3">
                     <h6 className="fw-bold mb-2" style={{ fontSize: 15, color: '#0f172a', lineHeight: 1.3 }}>
                         {provider.headline}

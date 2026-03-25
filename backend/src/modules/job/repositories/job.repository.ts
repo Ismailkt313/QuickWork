@@ -28,8 +28,7 @@ export class JobRepository implements IJobRepository {
                 if (skill) {
                     query.skillId = skill._id;
                 } else {
-                    // No match found for the name, return empty results
-                    return { jobs: [], total: 0 };
+                     return { jobs: [], total: 0 };
                 }
             }
         }
@@ -41,8 +40,7 @@ export class JobRepository implements IJobRepository {
                 if (location) {
                     query.locationId = location._id;
                 } else {
-                    // No match found for the name, return empty results
-                    return { jobs: [], total: 0 };
+                     return { jobs: [], total: 0 };
                 }
             }
         }

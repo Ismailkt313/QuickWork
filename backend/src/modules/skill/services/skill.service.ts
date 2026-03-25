@@ -1,5 +1,4 @@
 import { ISkill } from '../interfaces/skill.interface';
-import { SkillModel } from '../models/skill.model';
 import { ISkillService } from '../interfaces/skill.interface';
 import { ISkillRepository } from '../interfaces/skill.interface';
 

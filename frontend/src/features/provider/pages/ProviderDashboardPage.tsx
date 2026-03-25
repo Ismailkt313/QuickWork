@@ -1,6 +1,5 @@
 import React from 'react';
-import ProviderDashboardLayout from '../layout/ProviderDashboardLayout';
-import ProviderDashboardHeader from '../components/ProviderDashboardHeader';
+ import ProviderDashboardHeader from '../components/ProviderDashboardHeader';
 import ProviderDashboardCards from '../components/ProviderDashboardCards';
 
 const ProviderDashboardPage: React.FC = () => {
