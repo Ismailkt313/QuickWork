@@ -15,7 +15,7 @@ app.use(passport.initialize());
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    'https://quick-work-git-main-ismails-projects-08248cd7.vercel.app/'
+    'https://quick-work-lemon.vercel.app'
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true
