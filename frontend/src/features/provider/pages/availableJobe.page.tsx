@@ -6,7 +6,6 @@ import '../pages/style/page.css';
  
 
  
-// No hardcoded categories or locations, fetching from backend
 const SORT_OPTS   = [
   { value: 'newest',     label: 'Newest First' },
   { value: 'budget_hi',  label: 'Budget: High → Low' },
@@ -49,7 +48,6 @@ const IconZap     = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="
   </div>
 );
 
-// ─── Main Page Component ──────────────────────────────────────
  const AvailableJobsPage: React.FC = () => {
   const navigate = useNavigate();
   const [loading,      setLoading]      = useState(true);
