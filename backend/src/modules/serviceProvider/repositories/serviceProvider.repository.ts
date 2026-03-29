@@ -43,14 +43,14 @@ export class ServiceProviderRepository implements IServiceProviderRepository {
                 .lean(),
             ServiceProviderModel.countDocuments(query),
         ]);
-
+        console.log('providers:', providers);
         return {
             providers: providers.map((p) => ({
                 id: (p._id as Types.ObjectId).toString(),
                 headline: p.headline,
                 profileImage: p.profileImage,
                 hourlyRate: p.hourlyRate,
-                yearsOfExperience: p.yearsOfExperience,
+                yearsOfExperience: p.yearsOfExperience, 
                 location: p.location,
             })),
             total,

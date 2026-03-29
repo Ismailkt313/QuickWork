@@ -102,7 +102,8 @@ const SkillRequests: React.FC = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {requests.map(request => (
+                                        {requests.map(request => (
+                                    console.log(request),
                                     <tr key={request._id} className="border-bottom">
                                         <td className="px-4 py-3">
                                             <div className="d-flex align-items-center">
@@ -120,8 +121,8 @@ const SkillRequests: React.FC = () => {
                                         </td>
                                         <td className="py-3">
                                             <div className="d-flex align-items-center gap-2">
-                                                <div className="bg-light rounded-circle d-flex align-items-center justify-content-center text-secondary fw-bold border" style={{ width: "32px", height: "32px", fontSize: "14px" }}>
-                                                    {request.userId?.firstName?.charAt(0) || "U"}
+                                                <div className="bg-light rounded-circle d-flex align-items-center justify-content-center text-secondary fw-bold border" style={{ width: "52px", height: "32px", fontSize: "14px" }}>
+                                                    {request.requestedBy?.name || "U"}
                                                 </div>
                                                 <div>
                                                     <p className="mb-0 small fw-medium text-dark">{request.userId?.firstName} {request.userId?.lastName}</p>

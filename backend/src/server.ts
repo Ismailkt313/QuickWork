@@ -15,4 +15,4 @@ const startServer = async (): Promise<void> => {
     }
 };
 
-startServer();
+startServer(); 

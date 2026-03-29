@@ -8,6 +8,10 @@ export interface ServiceRequest {
         lastName: string;
         email: string;
     };
+    requestedBy: {
+        _id: string;
+        name: string;
+    };
     name: string;
     description: string;
     status: 'pending' | 'approved' | 'rejected';
