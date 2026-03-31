@@ -24,13 +24,10 @@ const JobSchema: Schema = new Schema(
             type: Boolean,
             default: false
         },
-        experience: {
-            type: String,
-            required: true
-        },
+
         durationType: {
             type: String,
-            enum: ['few_hours', 'half_day', 'full_day', 'multi_day'],
+            enum: ['half_day', 'full_day', 'multi_day'],
             required: true
         },
         schedule: {

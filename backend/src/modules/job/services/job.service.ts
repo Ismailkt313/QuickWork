@@ -30,7 +30,7 @@ export class JobService implements IJobService {
             budget: dto.budget,
             jobType: dto.jobType,
             isUrgent: dto.isUrgent,
-            experience: dto.experience,
+
             durationType: dto.durationType,
             schedule: {
                 startDate: start,

@@ -30,7 +30,7 @@ const UserRouter = () => {
               <Suspense fallback={<FallbackScreen />}>
                   <AuthGuard>
                       <CreateJobPage />
-                  </AuthGuard> 
+                  </AuthGuard>
               </Suspense>
             } />
         </Routes>

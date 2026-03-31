@@ -4,7 +4,7 @@ import {
     FiBriefcase,
     FiAlignLeft,
     FiGrid,
-    FiAward,
+
     FiClock,
     FiDollarSign,
     FiUsers,
@@ -29,8 +29,8 @@ export const CreateJobForm: React.FC = () => {
         title: '',
         description: '',
         category: '',
-        experience: 'Intermediate',
-        durationType: 'few_hours',
+
+        durationType: 'half_day',
         startDate: '',
         days: '',
         minBudget: '',
@@ -91,7 +91,7 @@ export const CreateJobForm: React.FC = () => {
         else if (formData.description.length < 10) newErrors.description = 'Please provide at least 10 characters of description';
 
         if (!formData.category) newErrors.category = 'Please select a service category';
-        if (!formData.experience) newErrors.experience = 'Please select required experience level';
+
 
         if (!formData.durationType) {
             newErrors.durationType = 'Please select estimated duration';
@@ -140,7 +140,7 @@ export const CreateJobForm: React.FC = () => {
                 const result = await jobService.createJob({
                     title: formData.title,
                     description: formData.description,
-                    experience: formData.experience,
+
                     durationType: formData.durationType,
                     startDate: formData.startDate ,
                     days: formData.durationType === 'multi_day' ? Number(formData.days) : undefined,
@@ -169,14 +169,10 @@ export const CreateJobForm: React.FC = () => {
         }
     };
 
-    const experienceOptions: SelectOption[] = [
-        { value: 'Beginner', label: 'Beginner ($)' },
-        { value: 'Intermediate', label: 'Intermediate ($$)' },
-        { value: 'Expert', label: 'Expert ($$$)' }
-    ];
+
 
     const durationOptions = [
-  { label: "Few Hours (1–3 hrs)", value: "few_hours" },
+
   { label: "Half Day (~4 hrs)", value: "half_day" },
   { label: "Full Day (8 hrs)", value: "full_day" },
   { label: "Multiple Days", value: "multi_day" },
@@ -236,19 +232,7 @@ export const CreateJobForm: React.FC = () => {
 
                     <SectionCard stepNumber={2} title="Requirements">
                         <div className="row g-4">
-                            <div className="col-md-4">
-                                <FormSelect
-                                    label="Required Experience"
-                                    name="experience"
-                                    value={formData.experience}
-                                    onChange={handleChange}
-                                    error={errors.experience}
-                                    required
-                                    options={experienceOptions}
-                                    placeholder="Select level"
-                                    icon={<FiAward size={18} />}
-                                />
-                            </div>
+
                             <div className="col-md-4">
                                 <FormSelect
                                     label="Estimated Duration"

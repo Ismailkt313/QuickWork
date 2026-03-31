@@ -15,8 +15,8 @@ const createJobSchema = z.object({
     }),
     jobType: z.enum(['fixed', 'hourly']).default('fixed'),
     isUrgent: z.boolean().optional().default(false),
-    experience: z.string().optional(),
-    durationType: z.enum(['few_hours', 'half_day', 'full_day', 'multi_day']),
+
+    durationType: z.enum(['half_day', 'full_day', 'multi_day']),
     startDate: z.string().min(1, "Start date is required"),
     days: z.number().positive().optional(),
     freelancersNeeded: z.number().positive("Freelancers needed must be a positive number").optional()
@@ -40,7 +40,7 @@ export class CreateJobDTO {
     public readonly budget: { min: number; max: number };
     public readonly jobType: 'fixed' | 'hourly';
     public readonly isUrgent: boolean;
-    public readonly experience: string;
+
     public readonly durationType: string;
     public readonly startDate: string;
     public readonly days?: number;
@@ -54,7 +54,7 @@ export class CreateJobDTO {
         this.budget = data.budget;
         this.jobType = data.jobType || 'fixed';
         this.isUrgent = data.isUrgent || false;
-        this.experience = data.experience || 'Entry';
+
         this.durationType = data.durationType;
         this.startDate = data.startDate;
         this.days = data.days;

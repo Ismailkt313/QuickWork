@@ -14,7 +14,7 @@ export interface IJob extends Document {
     jobType: 'fixed' | 'hourly';
     applicantsCount: number;
     isUrgent: boolean;
-    experience: string;
+
     durationType: string;
     schedule: {
         startDate: Date;

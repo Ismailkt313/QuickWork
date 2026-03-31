@@ -13,7 +13,7 @@ export interface JobFormData {
     title: string;
     description: string;
     category: string;
-    experience: string;
+
     durationType: string;
     startDate: string;
     days: string;

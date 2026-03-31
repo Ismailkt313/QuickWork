@@ -6,7 +6,7 @@ export interface CreateJobData {
     skillId: string;
     locationId: string;
     budget: { min: number; max: number };
-    experience: string;
+
     durationType: string;
     startDate?: string;
     days?: number;

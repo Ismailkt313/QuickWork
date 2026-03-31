@@ -72,10 +72,7 @@ const JobDetailPage: React.FC = () => {
 
           {/* Job Details Grid — Patterned after ajp-stats-row */}
           <div className="d-flex flex-wrap gap-2 mb-4">
-            <div className="ajp-stat-pill" style={{ background: 'var(--qw-bg)', padding: '8px 16px' }}>
-              <span className="me-2" style={{ color: 'var(--qw-muted)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase' }}>Expertise</span>
-              <span className="ajp-stat-num">{job.experienceLevel || 'Intermediate'}</span>
-            </div>
+
             <div className="ajp-stat-pill" style={{ background: 'var(--qw-bg)', padding: '8px 16px' }}>
               <span className="me-2" style={{ color: 'var(--qw-muted)', fontSize: '11px', fontWeight: 600, textTransform: 'uppercase' }}>Type</span>
               <span className="ajp-stat-num">{job.jobType}</span>

@@ -23,7 +23,7 @@ export interface JobDetail {
   startDate: string;
   endDate: string;
   durationType: string;
-  experienceLevel: string;
+
   freelancersNeeded: number;
   myApplication?: {
     status: string;
