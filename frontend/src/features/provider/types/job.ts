@@ -1,4 +1,5 @@
 export interface JobDetail {
+  clientAvatarUrl: string | undefined;
   id: string;
   title: string;
   description: string;
@@ -16,13 +17,15 @@ export interface JobDetail {
     min: number;
     max: number;
   };
-  jobType: 'Fixed' | 'Hourly';
+
   applicants: number;
   isUrgent: boolean;
-  status: 'open' | 'assigned' | 'completed' | 'cancelled';
+  status: 'open' | 'assigned' | 'completed' | 'cancelled' | 'rejected';
   startDate: string;
   endDate: string;
   durationType: string;
+  visibility: 'public' | 'private';
+  hiredProviderId?: string;
 
   freelancersNeeded: number;
   myApplication?: {

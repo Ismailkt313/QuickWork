@@ -11,7 +11,7 @@ export interface IJob extends Document {
         min: number;
         max: number;
     };
-    jobType: 'fixed' | 'hourly';
+
     applicantsCount: number;
     isUrgent: boolean;
 
@@ -22,8 +22,11 @@ export interface IJob extends Document {
     };
     days?: number;
     freelancersNeeded: number;
+    acceptedFreelancers: number;
     userId: Types.ObjectId;
-    status: 'open' | 'assigned' | 'in_progress' | 'completed' | 'cancelled';
+    visibility: 'public' | 'private';
+    hiredProviderId?: Types.ObjectId;
+    status: 'open' | 'partially_assigned' | 'fully_assigned' | 'in_progress' | 'completed' | 'cancelled' | 'rejected';
     createdAt: Date;
     updatedAt: Date;
 }
@@ -42,8 +45,13 @@ export interface IJobPaginationResponse {
 export interface IJobService {
     createJob(userId: string, dto: CreateJobDTO): Promise<{ success: boolean; message: string; data?: JobResponseDTO }>;
     getJobsByUser(userId: string): Promise<{ success: boolean; data: JobResponseDTO[] }>;
-    availableJobs(page: number, limit: number, filters?: any): Promise<IJobPaginationResponse>;
+    availableJobs(page: number, limit: number, filters?: any, userId?: string): Promise<IJobPaginationResponse>;
     getJobById(id: string): Promise<{ success: boolean; data?: JobResponseDTO; message?: string }>;
+    getDirectOffers(userId: string): Promise<{ success: boolean; data: JobResponseDTO[] }>;
+    acceptOffer(jobId: string, userId: string): Promise<{ success: boolean; message: string }>;
+    rejectOffer(jobId: string, userId: string, reason?: string): Promise<{ success: boolean; message: string }>;
+    acceptJob(jobId: string, userId: string): Promise<{ success: boolean; message: string }>;
+    cancelJob(jobId: string, userId: string): Promise<{ success: boolean; message: string }>;
 }
 
 export interface IJobRepository {
@@ -51,7 +59,9 @@ export interface IJobRepository {
     findByUser(userId: string): Promise<IJob[]>;
     findAllOpen(page: number, limit: number, filters: any): Promise<{ jobs: IJob[], total: number }>;
     findById(id: string): Promise<IJob | null>;
+    findByProvider(providerId: string): Promise<IJob[]>;
     updateStatus(id: string, status: string): Promise<IJob | null>;
+    findByConditionAndUpdate(query: any, update: any): Promise<IJob | null>;
 }
 
 export interface IJobController {
@@ -59,4 +69,10 @@ export interface IJobController {
     getUserJobs(req: any, res: any, next: any): Promise<void>;
     availableJobs(req: any, res: any, next: any): Promise<void>;
     getJobById(req: any, res: any, next: any): Promise<void>;
+    getDirectOffers(req: any, res: any, next: any): Promise<void>;
+    acceptOffer(req: any, res: any, next: any): Promise<void>;
+    rejectOffer(req: any, res: any, next: any): Promise<void>;
+    acceptJob(req: any, res: any, next: any): Promise<void>;
+    cancelJob(req: any, res: any, next: any): Promise<void>;
+    getJobAssignments(req: any, res: any, next: any): Promise<void>;
 }

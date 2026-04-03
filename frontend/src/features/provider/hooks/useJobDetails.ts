@@ -13,7 +13,7 @@ export const useJobDetails = (jobId: string | undefined) => {
     const fetchJobDetails = async () => {
       try {
         setLoading(true);
-        const response = await api.get(`/jobs/${jobId}`);
+        const response = await api.get(`/job/${jobId}`);
         setJob(response.data.data);
         setError(null);
       } catch (err: any) {

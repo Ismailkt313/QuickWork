@@ -39,9 +39,9 @@ export class ServiceProviderService implements IServiceProviderService {
                 location: providerData.location,
                 portfolio: providerData.portfolio,
                 verification: {
-                    status: 'pending'
+                    status: 'verified' // Auto-verifying for immediate testing
                 },
-                isActive: false,
+                isActive: true, // Auto-activating for immediate testing
                 submittedAt: new Date()
             };
 
@@ -104,5 +104,29 @@ export class ServiceProviderService implements IServiceProviderService {
             return { success: false, message: 'Provider is not available' };
         }
         return { success: true, data: provider };
+    }
+
+    async getMyProfile(userId: string): Promise<{ success: boolean; data?: any; message?: string }> {
+        const provider = await this.providerRepository.findByUserId(userId);
+        if (!provider) {
+            return { success: false, message: 'Provider profile not found' };
+        }
+        return { success: true, data: provider };
+    }
+
+    async updateProfile(userId: string, data: any): Promise<{ success: boolean; data?: any; message?: string }> {
+        const updateData = { ...data };
+        
+        if (updateData.skills && Array.isArray(updateData.skills)) {
+            updateData.skills = updateData.skills.map((id: string) => new Types.ObjectId(id));
+        }
+
+        const updatedProvider = await this.providerRepository.updateByUserId(userId, updateData);
+        
+        if (!updatedProvider) {
+            return { success: false, message: 'Failed to update profile' };
+        }
+
+        return { success: true, data: updatedProvider, message: 'Profile updated successfully' };
     }
 }

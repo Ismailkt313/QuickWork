@@ -1,84 +1,102 @@
 import React from 'react';
-import { RiMapPinLine, RiTimeLine } from 'react-icons/ri';
+import { 
+  RiFlashlightLine, 
+  RiTimeLine, 
+  RiMapPinLine, 
+  RiShieldCheckLine 
+} from 'react-icons/ri';
 
 interface JobDetailHeaderProps {
   title: string;
-  location: string;
+  isUrgent?: boolean;
+  isNew?: boolean;
   postedAt: string;
-  isUrgent: boolean;
-  isNew: boolean;
+  location: string;
 }
 
 const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({
   title,
-  location,
-  postedAt,
   isUrgent,
   isNew,
+  postedAt,
+  location,
 }) => {
   return (
-    <div className="mb-4">
-      <div className="d-flex align-items-center gap-2 mb-3 flex-wrap">
+    <div className="jdh-root mb-4 pb-2">
+      <div className="d-flex align-items-center gap-2 mb-3">
         {isUrgent && (
-          <span 
-            className="px-3 py-1 rounded-pill" 
-            style={{ 
-              background: 'rgba(255, 107, 107, 0.15)', 
-              color: '#ff6b6b', 
-              fontSize: '11px', 
-              fontWeight: 700,
-              border: '1px solid rgba(255, 107, 107, 0.3)',
-              fontFamily: 'Syne, sans-serif',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px'
-            }}
-          >
-            Urgent
+          <span className="jdh-badge badge-urgent">
+            <RiFlashlightLine size={14} className="me-1" />
+            URGENT HIRE
           </span>
         )}
         {isNew && (
-          <span 
-            className="px-3 py-1 rounded-pill" 
-            style={{ 
-              background: 'rgba(108, 99, 255, 0.15)', 
-              color: '#a09bff', 
-              fontSize: '11px', 
-              fontWeight: 700,
-              border: '1px solid rgba(108, 99, 255, 0.3)',
-              fontFamily: 'Syne, sans-serif',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px'
-            }}
-          >
-            New
+          <span className="jdh-badge badge-new">
+            NEW POST
           </span>
         )}
+        <span className="jdh-badge badge-verified">
+          <RiShieldCheckLine size={14} className="me-1" />
+          VERIFIED JOB
+        </span>
       </div>
-      
-      <h1 
-        className="mb-3" 
-        style={{ 
-          color: 'var(--qw-text)', 
-          fontSize: '32px', 
-          fontWeight: 800,
-          fontFamily: 'Syne, sans-serif',
-          letterSpacing: '-0.8px',
-          lineHeight: '1.1'
-        }}
-      >
-        {title}
-      </h1>
-      
-      <div className="d-flex align-items-center gap-4 flex-wrap" style={{ fontSize: '13.5px', color: 'var(--qw-muted)' }}>
+
+      <h1 className="jdh-title mb-3">{title}</h1>
+
+      <div className="d-flex align-items-center gap-4 text-muted jdh-meta">
         <div className="d-flex align-items-center gap-2">
-          <RiMapPinLine size={16} color="var(--qw-accent)" />
+          <RiTimeLine size={18} className="text-primary-emphasis" />
+          <span>Posted <strong>{postedAt}</strong></span>
+        </div>
+        <div className="d-flex align-items-center gap-2">
+          <RiMapPinLine size={18} className="text-primary-emphasis" />
           <span>{location}</span>
         </div>
-        <div className="d-flex align-items-center gap-2">
-          <RiTimeLine size={16} color="var(--qw-accent)" />
-          <span>Posted {postedAt}</span>
-        </div>
       </div>
+
+      <style>{`
+        .jdh-title {
+          font-family: 'Syne', sans-serif;
+          font-weight: 800;
+          font-size: 36px;
+          color: #0f172a;
+          letter-spacing: -1px;
+          line-height: 1.1;
+        }
+        .jdh-badge {
+          display: inline-flex;
+          align-items: center;
+          padding: 6px 12px;
+          border-radius: 8px;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.5px;
+          text-transform: uppercase;
+        }
+        .badge-urgent {
+          background: linear-gradient(135deg, #ef4444, #dc2626);
+          color: white;
+          box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+        }
+        .badge-new {
+          background: linear-gradient(135deg, #3b82f6, #2563eb);
+          color: white;
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        }
+        .badge-verified {
+          background: rgba(16, 185, 129, 0.1);
+          color: #059669;
+          border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        .jdh-meta {
+          font-size: 14.5px;
+          font-family: 'DM Sans', sans-serif;
+        }
+        @media (max-width: 768px) {
+          .jdh-title { font-size: 28px; }
+          .jdh-meta { flex-direction: column; align-items: flex-start; gap: 12px; }
+        }
+      `}</style>
     </div>
   );
 };

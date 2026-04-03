@@ -1,0 +1,141 @@
+/* VerificationStatus.css — QuickWork Premium Status Banners */
+
+.vs-root {
+  margin-bottom: 24px;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideDownIn 0.5s ease-out;
+}
+
+@keyframes slideDownIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.vs-content {
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  backdrop-filter: blur(10px);
+}
+
+/* ─── Variants ──────────────────────────────────────────────── */
+
+/* Pending Status */
+.vs-root.pending {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.08), rgba(217, 119, 6, 0.12));
+  border-color: rgba(251, 191, 36, 0.2);
+}
+.vs-root.pending .vs-icon-box {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+}
+
+/* Verified Status */
+.vs-root.verified {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(5, 150, 105, 0.12));
+  border-color: rgba(16, 185, 129, 0.2);
+}
+.vs-root.verified .vs-icon-box {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+/* Rejected Status */
+.vs-root.rejected {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(185, 28, 28, 0.12));
+  border-color: rgba(239, 68, 68, 0.2);
+}
+.vs-root.rejected .vs-icon-box {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+/* ─── Elements ──────────────────────────────────────────────── */
+
+.vs-icon-box {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+  box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.2);
+}
+
+.vs-text-group {
+  flex: 1;
+}
+
+.vs-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.5px;
+}
+
+.vs-desc {
+  font-size: 14px;
+  color: var(--qw-muted, #9ca3af);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.vs-rejection-msg {
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: rgba(239, 68, 68, 0.1);
+  border-left: 3px solid #ef4444;
+  border-radius: 4px 10px 10px 4px;
+  font-size: 13.5px;
+  color: #ff8c8c;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.vs-rejection-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.8;
+}
+
+.vs-action-btn {
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.vs-action-btn.rejected {
+  background: #ef4444;
+  color: #fff;
+}
+.vs-action-btn.rejected:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 640px) {
+  .vs-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .vs-action-btn {
+    width: 100%;
+  }
+}

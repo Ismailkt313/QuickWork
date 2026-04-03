@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../../../../app/store";
 import { updateField, setCurrentStep } from "../../../providerOnboarding/store/onboardingSlice";
 import { api } from "../../../../../services/api"; 
+import { toast } from "react-toastify";
 
 const IdentityStep: React.FC = () => {
     const dispatch = useDispatch();
@@ -23,7 +24,7 @@ const IdentityStep: React.FC = () => {
         if (!file) return;
 
         if (file.size > 2 * 1024 * 1024) {
-            alert("File size must be under 2MB");
+            toast.warning("File size must be under 2MB");
             return;
         }
 
@@ -44,7 +45,7 @@ const IdentityStep: React.FC = () => {
             dispatch(updateField({ field: "profileImage", value: secureImageUrl }));
         } catch (error: any) {
             console.error("Upload failed", error);
-            alert(error.response?.data?.message || "Failed to upload image securely.");
+            toast.error(error.response?.data?.message || "Failed to upload image securely.");
         } finally {
             setIsUploading(false);
         }

@@ -18,7 +18,10 @@ export class JobRepository implements IJobRepository {
     }
 
     async findAllOpen(page: number, limit: number, filters: any): Promise<{ jobs: IJob[], total: number }> {
-        const query: any = { status: 'open' };
+        const query: any = { 
+            status: { $in: ['open', 'partially_assigned'] },
+            visibility: 'public' 
+        };
         
         if (filters.skillId) {
             if (filters.skillId.match(/^[0-9a-fA-F]{24}$/)) {
@@ -45,6 +48,23 @@ export class JobRepository implements IJobRepository {
             }
         }
 
+        // Budget Filtering
+        if (filters.minBudget !== undefined && filters.minBudget !== null) {
+            query['budget.max'] = { $gte: Number(filters.minBudget) };
+        }
+        if (filters.maxBudget !== undefined && filters.maxBudget !== null) {
+            query['budget.min'] = { $lte: Number(filters.maxBudget) };
+        }
+
+        // Search Filtering (Title or Description)
+        if (filters.search) {
+            const searchRegex = new RegExp(filters.search, 'i');
+            query.$or = [
+                { title: searchRegex },
+                { description: searchRegex }
+            ];
+        }
+
         const skip = (page - 1) * limit;
         
         const [jobs, total] = await Promise.all([
@@ -65,7 +85,22 @@ export class JobRepository implements IJobRepository {
         return await JobModel.findById(id)
             .populate('skillId', 'name')
             .populate('locationId', 'name')
-            .populate('userId', 'name email');
+            .populate('userId', 'name email')
+            .populate({
+                path: 'hiredProviderId',
+                populate: { path: 'userId', select: 'name email profileImage headline isBlocked' }
+            });
+    }
+
+    async findByProvider(providerId: string): Promise<IJob[]> {
+        return await JobModel.find({ 
+            hiredProviderId: providerId,
+            status: { $in: ['open', 'partially_assigned', 'fully_assigned'] }
+        })
+        .populate('skillId', 'name')
+        .populate('locationId', 'name')
+        .populate('userId', 'name email')
+        .sort({ createdAt: -1 });
     }
 
     async updateStatus(id: string, status: string): Promise<IJob | null> {
@@ -74,6 +109,10 @@ export class JobRepository implements IJobRepository {
             { $set: { status } },
             { new: true }
         );
+    }
+
+    async findByConditionAndUpdate(query: any, update: any): Promise<IJob | null> {
+        return await JobModel.findOneAndUpdate(query, update, { new: true });
     }
     
     async getJobById(jobId: string): Promise<{ success: boolean; data?: JobResponseDTO; message?: string }> {

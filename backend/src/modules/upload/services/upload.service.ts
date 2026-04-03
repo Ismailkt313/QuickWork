@@ -9,6 +9,10 @@ export class UploadService {
         return this.uploadImage(fileBuffer, 'quickwork/portfolio-images');
     }
 
+    async uploadAssignmentProof(fileBuffer: Buffer, mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
+        return this.uploadImage(fileBuffer, 'quickwork/assignment-proofs');
+    }
+
     private uploadImage(fileBuffer: Buffer, folder: string): Promise<{ imageUrl: string, publicId: string }> {
         return new Promise((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(

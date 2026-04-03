@@ -4,8 +4,12 @@ import { ServiceProviderModel } from '../models/serviceProvider.model';
 import { UserModel } from '../../auth/models/user.model';
 
 export class ServiceProviderRepository implements IServiceProviderRepository {
-    async findByUserId(userId: string): Promise<IServiceProvider | null> {
-        return await ServiceProviderModel.findOne({ userId });
+    async findByUserId(userId: string): Promise<any> {
+        const res = await ServiceProviderModel.findOne({ userId })
+            .populate('userId skills', 'name email profileImage')
+            .lean() as any;
+            console.log(res,'here im doing something')
+            return res
     }
 
     async create(providerData: Partial<IServiceProvider>): Promise<IServiceProvider> {
@@ -27,8 +31,9 @@ export class ServiceProviderRepository implements IServiceProviderRepository {
 
         const query: Record<string, any> = {
             skills: new Types.ObjectId(skillId),
-            isActive: true,
-            'verification.status': 'verified',
+            // Relaxing filters for current development phase
+            // isActive: true, 
+            // 'verification.status': 'verified',
         };
 
         if (locationId) {
@@ -57,9 +62,20 @@ export class ServiceProviderRepository implements IServiceProviderRepository {
         };
     }
 
-    async findById(id: string) {
-        return ServiceProviderModel.findById(id)
+    async findById(id: string): Promise<any> {
+        return await ServiceProviderModel.findById(id)
+            .populate('userId', 'name email profileImage')
             .populate('skills', 'name slug')
-            .lean();
+            .lean() as any;
+    }
+
+    async updateByUserId(userId: string, data: any): Promise<any> {
+        return await ServiceProviderModel.findOneAndUpdate(
+            { userId: new Types.ObjectId(userId) },
+            { $set: data },
+            { new: true, runValidators: true }
+        ).populate('userId', 'name email profileImage')
+         .populate('skills', 'name slug')
+         .lean();
     }
 }

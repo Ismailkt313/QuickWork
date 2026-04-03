@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import MainLayout from '../../layout/MainLayout';
 import { getProviderById } from '../services/providersService';
 import { getLandingData, type Location } from '../../landingPage/services/landingService';
+import { DirectHireModal } from '../../jobs/components/DirectHireModal';
 
 interface ProviderDetail {
     _id: string;
@@ -26,6 +27,7 @@ const ProviderDetailPage: React.FC = () => {
     const [error, setError] = useState('');
     const [locations, setLocations] = useState<Location[]>([]);
     const [lightbox, setLightbox] = useState<string | null>(null);
+    const [isHireModalOpen, setIsHireModalOpen] = useState(false);
 
     useEffect(() => {
         getLandingData().then(d => setLocations(d.locations)).catch(() => {});
@@ -124,6 +126,7 @@ const ProviderDetailPage: React.FC = () => {
 
                                 <button
                                     className="btn w-100 mb-2"
+                                    onClick={() => setIsHireModalOpen(true)}
                                     style={{
                                         padding: '12px', borderRadius: 12,
                                         background: 'linear-gradient(135deg,#3b82f6,#2563eb)', border: 'none',
@@ -246,6 +249,14 @@ const ProviderDetailPage: React.FC = () => {
                     </button>
                 </div>
             )}
+
+            <DirectHireModal 
+                isOpen={isHireModalOpen} 
+                onClose={() => setIsHireModalOpen(false)} 
+                providerId={provider._id} 
+                providerName={provider.headline} 
+                providerSkills={provider.skills}
+            />
         </MainLayout>
     );
 };

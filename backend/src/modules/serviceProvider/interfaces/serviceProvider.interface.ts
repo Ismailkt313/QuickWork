@@ -59,11 +59,12 @@ export interface ProviderListResult {
 }
 
 export interface IServiceProviderRepository {
-    findByUserId(userId: string): Promise<IServiceProvider | null>;
+    findByUserId(userId: string): Promise<any>;
     create(providerData: Partial<IServiceProvider>): Promise<IServiceProvider>;
     addSkillToProvider(userId: string, skillId: string): Promise<any>;
     findProviders(filter: ProviderFilter): Promise<ProviderListResult>;
     findById(id: string): Promise<any>;
+    updateByUserId(userId: string, data: any): Promise<any>;
 }
 
 export interface IServiceProviderService {
@@ -75,10 +76,14 @@ export interface IServiceProviderService {
         limit?: number;
     }): Promise<{ success: boolean; message?: string; data?: ProviderListResult & { page: number; limit: number } }>;
     getProviderById(id: string): Promise<{ success: boolean; data?: any; message?: string }>;
+    getMyProfile(userId: string): Promise<{ success: boolean; data?: any; message?: string }>;
+    updateProfile(userId: string, data: any): Promise<{ success: boolean; data?: any; message?: string }>;
 }
 
 export interface IServiceProviderController {
     submitApplication(req: any, res: any, next: any): Promise<void>;
     getProviders(req: Request, res: Response, next: NextFunction): Promise<void>;
     getProviderById(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getMyProfile(req: Request, res: Response, next: NextFunction): Promise<void>;
+    updateProfile(req: Request, res: Response, next: NextFunction): Promise<void>;
 }

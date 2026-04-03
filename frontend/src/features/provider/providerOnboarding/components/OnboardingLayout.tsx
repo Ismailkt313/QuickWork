@@ -6,7 +6,8 @@ import IdentityStep from "./steps/IdentityStep";
 import SkillsStep from "./steps/SkillsStep";
 import PortfolioStep from "./steps/PortfolioStep";
 import ReviewStep from "./steps/ReviewStep";
-import {  useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const OnboardingLayout: React.FC = () => {
     const navigate = useNavigate();
@@ -30,7 +31,7 @@ const OnboardingLayout: React.FC = () => {
                     <div className="text-center py-5">
                         <h3 className="text-muted">Coming Soon: Step {currentStep}</h3>
                         <button
-                            onClick={() => alert("Registration logic will be added in Phase 2")}
+                            onClick={() => toast.info("Registration logic will be added in Phase 2")}
                             className="btn btn-outline-primary mt-3"
                         >
                             Finish Integration

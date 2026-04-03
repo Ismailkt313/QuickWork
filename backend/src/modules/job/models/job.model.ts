@@ -11,14 +11,10 @@ const JobSchema: Schema = new Schema(
             min: { type: Number, required: true },
             max: { type: Number, required: true }
         },
-        jobType: {
-            type: String,
-            enum: ['fixed', 'hourly'],
-            default: 'fixed'
-        },
+
         applicantsCount: {
             type: Number,
-            default: 0
+            default: 1
         },
         isUrgent: {
             type: Boolean,
@@ -39,17 +35,41 @@ const JobSchema: Schema = new Schema(
             type: Number,
             default: 1
         },
+        acceptedFreelancers: {
+            type: Number,
+            default: 0
+        },
         userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+        visibility: { 
+            type: String, 
+            enum: ['public', 'private'], 
+            default: 'public' 
+        },
+        hiredProviderId: { 
+            type: Schema.Types.ObjectId, 
+            ref: 'ServiceProvider' 
+        },
         status: { 
             type: String, 
-            enum: ['open', 'assigned', 'in_progress', 'completed', 'cancelled'], 
+            enum: ['open', 'partially_assigned', 'fully_assigned', 'in_progress', 'completed', 'cancelled', 'rejected'], 
             default: 'open' 
         },
+        rejectionReason: { type: String }
     },
     { 
         timestamps: true 
     }
 );
+
+// Pre-save hook to enforce private job constraints
+JobSchema.pre('save', function(next) {
+    if (this.isModified('visibility') || this.isNew) {
+        if (this.get('visibility') === 'private') {
+            this.set('freelancersNeeded', 1);
+        }
+    }
+    next();
+});
 
 JobSchema.index({ skillId: 1 });
 JobSchema.index({ locationId: 1 });

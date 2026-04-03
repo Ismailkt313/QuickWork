@@ -42,4 +42,26 @@ export class UploadController {
             next(error);
         }
     };
+
+    uploadAssignmentProofs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const files = req.files as Express.Multer.File[];
+            if (!files || files.length === 0) {
+                throw new AppError('No image files provided', 400);
+            }
+
+            const uploadPromises = files.map(file => 
+                this.uploadService.uploadAssignmentProof(file.buffer, file.mimetype)
+            );
+
+            const results = await Promise.all(uploadPromises);
+
+            res.status(200).json({
+                success: true,
+                data: results.map(r => ({ imageUrl: r.imageUrl, publicId: r.publicId }))
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
 }

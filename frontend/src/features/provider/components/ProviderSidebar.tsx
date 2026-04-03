@@ -2,6 +2,7 @@
 // Requires: react-icons, bootstrap (CSS only)
 
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   RiDashboardLine,
   RiBriefcaseLine,
@@ -15,9 +16,11 @@ import {
   RiLogoutBoxLine,
    RiArrowRightSLine,
   RiMapLine,
+  RiInboxArchiveLine,
 } from 'react-icons/ri';
 import { NavLink, Link } from 'react-router-dom';
 import './ProviderSidebar.css';
+import { api } from '../../../services/api';
 
 // ─── Types ────────────────────────────────────────────────────
 interface NavItem {
@@ -36,6 +39,8 @@ interface ProviderSidebarProps {
     role?: string;
     avatarUrl?: string;
     initials?: string;
+    profileImage?: string;
+    headline?: string;
   };
   /** Mobile: whether sidebar is visible */
   showOnMobile?: boolean;
@@ -60,6 +65,14 @@ const PRIMARY_NAV: NavItem[] = [
     href: '/provider/my-jobs',
     badge: 3,
     badgeVariant: 'accent',
+  },
+  {
+    id: 'requests',
+    label: 'Requests',
+    icon: <RiInboxArchiveLine />,
+    href: '/provider/requests',
+    badge: 0,
+    badgeVariant: 'warning',
   },
   {
     id: 'available-jobs',
@@ -112,7 +125,6 @@ const SECONDARY_NAV: NavItem[] = [
   },
 ];
 
-// ─── NavItem Component ────────────────────────────────────────
 const SidebarNavItem: React.FC<{
   item: NavItem;
   onClick?: () => void;
@@ -139,17 +151,42 @@ const SidebarNavItem: React.FC<{
   </NavLink>
 );
 
+
 // ─── Main Sidebar Component ───────────────────────────────────
 const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
-  provider = {
-    name: 'Alex Johnson',
-    role: 'Top Rated Provider',
-    initials: 'AJ',
-  },
+  provider,
   showOnMobile = false,
   onCloseMobile,
   onLogout,
 }) => {
+  console.log(provider,"provider");
+  const [navItems, setNavItems] = React.useState<NavItem[]>(PRIMARY_NAV);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+         const offersRes = await api.get('/job/offers');
+        const pendingCount = (offersRes.data.data || []).filter((r: any) => r.status === 'open').length;
+
+         const assignmentsRes = await api.get('/assignment/my');
+        const activeCount = (assignmentsRes.data.data || []).filter((as: any) => as.workStatus === 'assigned' || as.workStatus === 'in_progress').length;
+
+        setNavItems(prev => prev.map(item => {
+          if (item.id === 'requests') {
+            return { ...item, badge: pendingCount > 0 ? pendingCount : undefined };
+          }
+          if (item.id === 'my-jobs') {
+            return { ...item, badge: activeCount > 0 ? activeCount : undefined };
+          }
+          return item;
+        }));
+      } catch (error) {
+        console.error('Failed to fetch nav counts:', error);
+      }
+    };
+    fetchCounts();
+  }, []);
   // Close on Escape key
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -209,7 +246,7 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
         <nav className="qw-nav-scroll" aria-label="Main navigation">
 
           <p className="qw-nav-label">Overview</p>
-          {PRIMARY_NAV.map((item) => (
+          {navItems.map((item) => (
             <SidebarNavItem
               key={item.id}
               item={item}
@@ -232,47 +269,60 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
         {/* ── Fixed Bottom ── */}
         <div className="qw-sidebar-bottom">
           {/* Profile card */}
-          <Link
-            to="/provider/profile"
-            className="qw-profile-card"
-            onClick={handleNavClick}
-            aria-label={`View profile of ${provider.name}`}
-          >
-            <div className="qw-avatar-wrap">
-              {provider.avatarUrl ? (
-                <img
-                  src={provider.avatarUrl}
-                  alt={provider.name}
-                  className="qw-avatar"
-                  style={{ borderRadius: 10 }}
-                />
-              ) : (
-                <div className="qw-avatar" aria-hidden="true">
-                  {provider.initials ?? provider.name.slice(0, 2).toUpperCase()}
-                </div>
-              )}
-              <span className="qw-avatar-status" aria-label="Online" />
+          {!provider ? (
+            <div className="qw-profile-card loading">
+              <div className="qw-avatar-wrap">
+                <div className="qw-avatar skeleton" />
+              </div>
+              <div className="qw-profile-info">
+                <div className="qw-profile-name skeleton-text" />
+                <div className="qw-profile-role skeleton-text small" />
+              </div>
             </div>
-            <div className="qw-profile-info">
-              <div className="qw-profile-name">{provider.name}</div>
-              {provider.role && (
-                <div className="qw-profile-role">{provider.role}</div>
-              )}
-            </div>
-            <span className="qw-profile-chevron" aria-hidden="true">
-              <RiArrowRightSLine />
-            </span>
-          </Link>
+          ) : (
+            <Link
+              to="/provider/profile"
+              className="qw-profile-card"
+              onClick={handleNavClick}
+              aria-label={`View profile of ${provider.name}`}
+            >
+              <div className="qw-avatar-wrap">
+                {provider.avatarUrl || provider.profileImage ? (
+                  <img
+                    src={provider.avatarUrl || provider.profileImage}
+                    alt={provider.name}
+                    className="qw-avatar"
+                    style={{ borderRadius: 10 }}
+                  />
+                ) : (
+                  <div className="qw-avatar" aria-hidden="true">
+                    {provider.initials || (provider.name ? provider.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : '??')}
+                  </div>
+                )}
+                <span className="qw-avatar-status" aria-label="Online" />
+              </div>
+              <div className="qw-profile-info">
+                <div className="qw-profile-name text-truncate" style={{ maxWidth: '120px' }}>{provider.name || 'Provider'}</div>
+                {(provider.role || provider.headline) && (
+                  <div className="qw-profile-role text-truncate" style={{ maxWidth: '120px' }}>{provider.role || provider.headline || 'Top Rated'}</div>
+                )}
+              </div>
+              <span className="qw-profile-chevron" aria-hidden="true">
+                <RiArrowRightSLine />
+              </span>
+            </Link>
+          )}
+
 
           {/* Logout */}
           <button
             className="qw-logout-btn"
-            onClick={onLogout}
+            onClick={()=>navigate('/')}
             type="button"
-            aria-label="Log out"
+            aria-label="Switch to client"
           >
             <RiLogoutBoxLine aria-hidden="true" />
-            Log out
+            Switch to client
           </button>
         </div>
       </aside>

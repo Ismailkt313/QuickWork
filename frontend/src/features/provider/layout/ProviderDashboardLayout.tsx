@@ -1,8 +1,9 @@
-import React, { useState, useCallback, Suspense } from 'react';
+import React, { useState, useCallback, Suspense, useEffect } from 'react';
 import { RiMenuLine, RiMapLine, RiBellLine } from 'react-icons/ri';
 import { Outlet } from 'react-router-dom';
 import ProviderSidebar from '../components/ProviderSidebar';
 import FallbackScreen from '../../../components/ui/FallbackScreen';
+import { getMyProfile } from '../services/provider.service';
 import '../components/ProviderSidebar.css';  
  interface ProviderDashboardLayoutProps {
    activePath?: string;
@@ -11,16 +12,40 @@ import '../components/ProviderSidebar.css';
     role?: string;
     avatarUrl?: string;
     initials?: string;
+    profileImage?: string;
+    headline?: string;
   };
    onLogout?: () => void;
    onNavigate?: (href: string) => void;
 }
 
  const ProviderDashboardLayout: React.FC<ProviderDashboardLayoutProps> = ({
-  provider,
+  provider: initialProvider,
   onLogout,
 }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [provider, setProvider] = useState<ProviderDashboardLayoutProps['provider']>(initialProvider);
+
+  useEffect(() => {
+    if (!initialProvider) {
+      const fetchProfile = async () => {
+        try {
+          const response = await getMyProfile();
+          if (response.success) {
+            setProvider(response.data);
+          } else {
+            setProvider({ name: 'Provider', initials: 'P' });
+          }
+        } catch (error) {
+          console.error("Failed to fetch provider profile:", error);
+          setProvider({ name: 'Provider', initials: 'P' });
+        } finally {
+          // fetchProfile completed
+        }
+      };
+      fetchProfile();
+    }
+  }, [initialProvider]);
 
   const openMobile  = useCallback(() => setMobileOpen(true),  []);
   const closeMobile = useCallback(() => setMobileOpen(false), []);

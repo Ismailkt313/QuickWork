@@ -25,10 +25,18 @@ export const submitProviderApplication = async (data: ProviderApplicationPayload
     }
 };
 
-export const availableJobs = async (page?: number, limit?: number, skillId?: string, locationId?: string) => {
+export const availableJobs = async (
+    page?: number, 
+    limit?: number, 
+    skillId?: string, 
+    locationId?: string,
+    minBudget?: number,
+    maxBudget?: number,
+    search?: string
+) => {
     try {
-        const response = await api.get("/jobs/availablejobs", {
-            params: { page, limit, skillId, locationId }
+        const response = await api.get("/job/availablejobs", {
+            params: { page, limit, skillId, locationId, minBudget, maxBudget, search }
         });
         return response.data;
     } catch (error: any) {
@@ -47,9 +55,127 @@ export const fetchSkills = async () => {
 
 export const fetchLocations = async () => {
     try {
-        const response = await api.get("/locations");
+        const response = await api.get("/locations/all");
         return response.data;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || "Failed to fetch locations");
     }
 };
+
+export const acceptJob = async (jobId: string) => {
+    try {
+        const response = await api.post(`/job/${jobId}/accept`);
+        if (!response.data.success) {
+            throw new Error(response.data.message || "Failed to accept job");
+        }
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || error.message || "Failed to accept job");
+    }
+};
+
+export const acceptOffer = async (jobId: string) => {
+    try {
+        const response = await api.put(`/job/offers/${jobId}/accept`);
+        if (!response.data.success) {
+            throw new Error(response.data.message || "Failed to accept offer");
+        }
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || error.message || "Failed to accept offer");
+    }
+};
+
+export const rejectOffer = async (jobId: string) => {
+    try {
+        const response = await api.put(`/job/offers/${jobId}/reject`);
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || "Failed to reject offer");
+    }
+};
+
+export const getAssignments = async () => {
+    try {
+        const response = await api.get("/assignment/my");
+    
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || "Failed to fetch assignments");
+    }
+};
+
+export const getAssignmentById = async (id: string) => {
+    try {
+        const response = await api.get(`/assignment/${id}`);
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || "Failed to fetch assignment details");
+    }
+};
+
+export const updateAssignmentStatus = async (id: string, status: string) => {
+    try {
+        const response = await api.patch(`/assignment/${id}/status`, { status });
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || "Failed to update status");
+    }
+};
+
+export const submitAssignmentProof = async (id: string, data: { images: string[], description: string }) => {
+    try {
+        const response = await api.post(`/assignment/${id}/proof`, data);
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || "Failed to submit proof");
+    }
+};
+
+export const getMyProfile = async (): Promise<{ success: boolean; data?: any; message?: string }> => {
+    try {
+        console.log("Fetching profile...");
+        const response = await api.get("/provider/profile");
+        console.log(response.data,"response.data");
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || "Failed to fetch profile");
+    }
+};
+
+export const updateProviderProfile = async (data: any): Promise<{ success: boolean; data?: any; message?: string }> => {
+    try {
+        const response = await api.patch("/provider/profile", data);
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || "Failed to update profile");
+    }
+};
+
+export const uploadImage = async (file: File, type: 'profile' | 'portfolio'): Promise<{ success: boolean; data: { imageUrl: string; publicId: string } }> => {
+    try {
+        const formData = new FormData();
+        formData.append('image', file);
+        const endpoint = type === 'profile' ? '/upload/profile-image' : '/upload/portfolio-image';
+        const response = await api.post(endpoint, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || "Image upload failed");
+    }
+};
+
+export const uploadMultipleImages = async (files: FileList | File[]): Promise<{ success: boolean; data: { imageUrl: string; publicId: string }[] }> => {
+    try {
+        const formData = new FormData();
+        Array.from(files).forEach(file => formData.append('images', file));
+        const response = await api.post('/upload/assignment-proof', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || "Multi-image upload failed");
+    }
+};
+

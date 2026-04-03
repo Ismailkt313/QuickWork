@@ -11,11 +11,13 @@ export interface CreateJobData {
     startDate?: string;
     days?: number;
     freelancersNeeded: number;
+    visibility?: 'public' | 'private';
+    hiredProviderId?: string;
 }
 export class JobRepository {
     static async createJob(jobData: CreateJobData): Promise<{ success: boolean; message: string; data?: any }> {
         try {
-            const response = await apiClient.post('/jobs', jobData);
+            const response = await apiClient.post('/job', jobData);
             return response.data;
         } catch (error: any) {
             return {

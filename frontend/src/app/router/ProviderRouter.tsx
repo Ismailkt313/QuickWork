@@ -13,6 +13,10 @@ const AvailableJobsPage = lazy(() => import("../../features/provider/pages/avail
 const MessagesPage = lazy(() => import("../../features/provider/pages/MessagesPage"))
 const CompletedJobsPage = lazy(() => import("../../features/provider/pages/CompletedJobsPage"))
 const JobDetailPage = lazy(() => import("../../features/provider/pages/JobDetailPage"))
+const RequestsPage = lazy(() => import("../../features/provider/pages/RequestsPage"))
+const MyJobsPage = lazy(() => import("../../features/provider/pages/MyJobs.page"))
+const AssignmentDetailPage = lazy(() => import("../../features/provider/pages/AssignmentDetailPage"))
+const ProviderProfilePage = lazy(() => import("../../features/provider/pages/ProviderProfilePage"))
 
 const ProviderRouter = () => {
   return (
@@ -51,6 +55,10 @@ const ProviderRouter = () => {
         <Route path="jobs/:jobId" element={<JobDetailPage />} />
         <Route path="messages" element={<MessagesPage />} />
         <Route path="completed-jobs" element={<CompletedJobsPage />} />
+        <Route path="requests" element={<RequestsPage />} />
+        <Route path="my-jobs" element={<MyJobsPage />} />
+        <Route path="assignment/:assignmentId" element={<AssignmentDetailPage />} />
+        <Route path="profile" element={<ProviderProfilePage />} />
       </Route>
     </Routes>
   )

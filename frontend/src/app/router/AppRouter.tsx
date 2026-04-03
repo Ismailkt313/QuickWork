@@ -21,6 +21,8 @@ import UserManagement from "../../features/admin/pages/UserManagement"
 import SkillRequests from "../../features/admin/pages/SkillRequests"
 
 import ProviderSuccessPage from "../../features/provider/providerOnboarding/components/ProviderSuccessPage"
+import UserRouter from "./UserRouter"
+import ProviderRouter from "./ProviderRouter"
 
 const AppRouter = () => {
   return (
@@ -68,11 +70,9 @@ const AppRouter = () => {
             <AdminLayout />
           </AdminAuthGuard>
         }>
-
           <Route index element={<AdminDashboard />} />
           <Route path="users" element={<UserManagement />} />
           <Route path="skill-requests" element={<SkillRequests />} />
-
         </Route>
 
         <Route path="/provider/become-provider" element={
@@ -84,6 +84,18 @@ const AppRouter = () => {
         <Route path="/provider/status" element={
           <AuthGuard>
             <ProviderSuccessPage />
+          </AuthGuard>
+        } />
+
+        <Route path="/user/*" element={
+          <AuthGuard>
+            <UserRouter />
+          </AuthGuard>
+        } />
+
+        <Route path="/provider/*" element={
+          <AuthGuard>
+            <ProviderRouter />
           </AuthGuard>
         } />
 

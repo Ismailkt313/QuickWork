@@ -1,5 +1,11 @@
 import React from 'react';
-import { RiCalendarLine, RiMapPinLine, RiTimeLine } from 'react-icons/ri';
+import { 
+  RiCalendarLine, 
+  RiMapPinLine, 
+  RiTimeLine, 
+  RiMessage3Line, 
+  RiHeartLine
+} from 'react-icons/ri';
 
 interface JobActionPanelProps {
   budget: string;
@@ -27,36 +33,38 @@ const JobActionPanel: React.FC<JobActionPanelProps> = ({
 
   return (
     <div
-      className="card border-0 rounded-4 shadow-lg h-100"
+      className="card border-0 rounded-4 shadow-sm h-100 overflow-hidden"
       style={{
-        backgroundColor: 'var(--qw-bg, #2b2d2f)',
-        border: '1px solid var(--qw-border, rgba(255,255,255,0.07))',
+        backgroundColor: '#fff',
+        border: '1px solid #f1f5f9',
         position: 'sticky',
         top: '2rem'
       }}
     >
       <div className="card-body p-4 d-flex flex-column gap-4">
-        <div>
+        {/* Budget Section */}
+        <div className="p-4 rounded-4" style={{ background: 'linear-gradient(135deg, #f8fafc, #f1f5f9)', border: '1px solid #e2e8f0' }}>
           <label
             className="d-block mb-1"
             style={{
-              fontSize: '11px',
-              fontWeight: 700,
+              fontSize: '10px',
+              fontWeight: 800,
               textTransform: 'uppercase',
-              letterSpacing: '0.8px',
+              letterSpacing: '1px',
               fontFamily: 'Syne, sans-serif',
-              color: 'var(--qw-muted)'
+              color: '#64748b'
             }}
           >
-            Job Budget
+            Estimated Budget
           </label>
           <div className="d-flex align-items-center gap-2">
             <h2
-              className="mb-0 fw-bold text-black"
+              className="mb-0 fw-bold"
               style={{
                 fontFamily: 'Syne, sans-serif',
-                fontSize: '28px',
-                letterSpacing: '-0.5px',
+                fontSize: '32px',
+                letterSpacing: '-1px',
+                color: '#0f172a'
               }}
             >
               {budget}
@@ -64,161 +72,131 @@ const JobActionPanel: React.FC<JobActionPanelProps> = ({
           </div>
         </div>
 
+        {/* Property Grid */}
         <div className="d-flex flex-column gap-3">
-          <div className="d-flex align-items-center gap-3">
-            <div
-              className="p-2-5 rounded-3 d-flex align-items-center justify-content-center"
-              style={{
-                backgroundColor: 'rgba(108, 99, 255, 0.1)',
-                border: '1px solid rgba(108, 99, 255, 0.15)',
-                width: 40,
-                height: 40
-              }}
-            >
-              <RiTimeLine size={20} style={{ color: '#a09bff' }} />
+          {[
+            { icon: <RiTimeLine size={20} />, label: 'Duration', value: duration, color: '#3b82f6' },
+            { icon: <RiMapPinLine size={20} />, label: 'Location', value: location, color: '#10b981' },
+            { icon: <RiCalendarLine size={20} />, label: 'Start Date', value: startDate, color: '#f59e0b' }
+          ].map((item, idx) => (
+            <div key={idx} className="d-flex align-items-center gap-3 p-2 rounded-3 hover-bg">
+              <div
+                className="rounded-3 d-flex align-items-center justify-content-center"
+                style={{
+                  backgroundColor: `${item.color}10`,
+                  width: 42,
+                  height: 42,
+                  color: item.color,
+                  border: `1px solid ${item.color}20`
+                }}
+              >
+                {item.icon}
+              </div>
+              <div>
+                <label className="d-block" style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>{item.label}</label>
+                <span className="fw-bold" style={{ fontSize: '14px', color: '#334155' }}>{item.value}</span>
+              </div>
             </div>
-            <div>
-              <label className="d-block" style={{ fontSize: '11px', fontWeight: 600, color: 'var(--qw-muted)' }}>Duration</label>
-              <span className="fw-semibold text-black" style={{ fontSize: '13.5px', fontFamily: 'DM Sans, sans-serif' }}>{duration}</span>
-            </div>
-          </div>
-
-          <div className="d-flex align-items-center gap-3">
-            <div
-              className="p-2-5 rounded-3 d-flex align-items-center justify-content-center"
-              style={{
-                backgroundColor: 'rgba(108, 99, 255, 0.1)',
-                border: '1px solid rgba(108, 99, 255, 0.15)',
-                width: 40,
-                height: 40
-              }}
-            >
-
-              
-              <RiMapPinLine size={20} style={{ color: '#a09bff' }} />
-            </div>
-            <div>
-              <label className="d-block" style={{ fontSize: '11px', fontWeight: 600, color: 'var(--qw-muted)' }}>Location</label>
-              <span className="fw-semibold " style={{ fontSize: '13.5px', fontFamily: 'DM Sans, sans-serif',color:'black' }}>{location}</span>
-            </div>
-          </div>
-
-          <div className="d-flex align-items-center gap-3">
-            <div
-              className="p-2-5 rounded-3 d-flex align-items-center justify-content-center"
-              style={{
-                backgroundColor: 'rgba(108, 99, 255, 0.1)',
-                border: '1px solid rgba(108, 99, 255, 0.15)',
-                width: 40,
-                height: 40
-              }}
-            >
-              <RiCalendarLine size={20} style={{ color: '#a09bff' }} />
-            </div>
-            <div>
-              <label className="d-block" style={{ fontSize: '11px', fontWeight: 600, color: 'var(--qw-muted)' }}>Start Date</label>
-              <span className="fw-semibold text-black" style={{ fontSize: '13.5px', fontFamily: 'DM Sans, sans-serif' }}>{startDate}</span>
-            </div>
-          </div>
+          ))}
         </div>
 
+        {/* Action Buttons */}
         <div className="d-flex flex-column gap-2 mt-2">
           <button
             className={`btn btn-primary w-100 py-3 rounded-3 fw-bold shadow-sm ${isDisabled ? 'disabled' : ''}`}
             onClick={onAccept}
             disabled={isDisabled}
             style={{
-              backgroundColor: isApplied ? '#00d9b8' : 'var(--qw-accent, #6c63ff)',
+              background: isApplied ? '#10b981' : 'linear-gradient(135deg, #3b82f6, #2563eb)',
               border: 'none',
-              fontSize: '14px',
+              fontSize: '15px',
               fontFamily: 'DM Sans, sans-serif',
-              transition: 'all 0.2s ease',
-              boxShadow: '0 4px 12px rgba(108, 99, 255, 0.25)'
+              transition: 'all 0.3s ease',
+              boxShadow: isApplied ? 'none' : '0 10px 20px -5px rgba(37, 99, 235, 0.3)'
             }}
           >
-            {isApplied ? 'Already Applied' : isAssigned ? 'Job Assigned' : 'Accept Job'}
+            {isApplied ? 'Accepted' : isAssigned ? 'Already Assigned' : 'Accept this job'}
           </button>
 
           <button
-            className="btn btn-outline-secondary w-100 py-3 rounded-3 fw-bold"
+            className="btn btn-outline-light w-100 py-3 rounded-3 fw-bold d-flex align-items-center justify-content-center gap-2"
             onClick={onMessage}
             style={{
-              border: '1px solid var(--qw-border, rgba(255,255,255,0.1))',
-              color: 'var(--qw-text, #e8eaf0)',
-              fontSize: '14px',
-              fontFamily: 'DM Sans, sans-serif',
-              backgroundColor: 'rgba(255,255,255,0.03)'
+              border: '1.5px solid #e2e8f0',
+              color: '#475569',
+              fontSize: '15px',
+              backgroundColor: '#fff'
             }}
           >
+            <RiMessage3Line size={20} />
             Message Client
           </button>
 
           <button
-            className="btn btn-link w-100 text-decoration-none fw-semibold"
-            style={{ fontSize: '12px', fontFamily: 'DM Sans, sans-serif', color: 'var(--qw-muted)' }}
+            className="btn btn-link w-100 text-decoration-none fw-bold d-flex align-items-center justify-content-center gap-1"
+            style={{ fontSize: '13px', color: '#94a3b8' }}
           >
-            Save for Later
+            <RiHeartLine size={16} />
+            Save job for later
           </button>
         </div>
 
         {isApplied && (
           <div
-            className="alert border-0 rounded-4 mb-0 py-2-5 d-flex align-items-center gap-2"
+            className="alert border-0 rounded-4 mb-0 py-3 d-flex align-items-center gap-3"
             style={{
-              fontSize: '12.5px',
-              backgroundColor: 'rgba(0, 217, 184, 0.1)',
-              color: '#00d9b8',
-              fontFamily: 'DM Sans, sans-serif'
+              fontSize: '13px',
+              backgroundColor: '#f0fdf4',
+              color: '#166534',
+              border: '1px solid #dcfce7',
+              fontWeight: 600
             }}
           >
-            <div style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#00d9b8' }}></div>
-            Interest sent successfully
+            <div className="bg-success rounded-circle" style={{ width: 8, height: 8 }}></div>
+            You've expressed interest in this job
           </div>
         )}
       </div>
 
       <style>{`
+        .hover-bg:hover { background-color: #f8fafc; cursor: default; }
         @media (max-width: 991px) {
-          .action-panel-container { height: auto !important; }
-          .card.border-0.rounded-4.shadow-lg.h-100 {
+          .card.border-0.rounded-4.shadow-sm.h-100 {
             position: fixed !important;
             bottom: 0 !important;
             left: 0 !important;
             right: 0 !important;
             z-index: 1050 !important;
-            border-radius: 20px 20px 0 0 !important;
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.3) !important;
+            border-radius: 24px 24px 0 0 !important;
+            box-shadow: 0 -20px 40px rgba(0,0,0,0.08) !important;
             top: auto !important;
-            border-left: none !important;
-            border-right: none !important;
-            border-bottom: none !important;
-            background: rgba(43, 45, 47, 0.95) !important;
-            backdrop-filter: blur(10px);
+            border: none !important;
+            background: rgba(255, 255, 255, 0.95) !important;
+            backdrop-filter: blur(16px);
           }
           .card-body.p-4 {
-            padding: 1rem !important;
+            padding: 1.25rem !important;
             flex-direction: row !important;
             align-items: center !important;
             justify-content: space-between !important;
-            gap: 12px !important;
+            gap: 16px !important;
           }
-          .card-body > div:first-child,
-          .card-body > div:nth-child(2),
-          .card-body > div:last-child {
+          .card-body > div:nth-child(1),
+          .card-body > div:nth-child(2) {
             display: none !important;
           }
           .card-body > .mt-2 {
             margin-top: 0 !important;
             flex-direction: row !important;
-            gap: 8px !important;
+            gap: 12px !important;
             flex: 1 !important;
           }
           .card-body > .mt-2 button {
-            padding-top: 0.75rem !important;
-            padding-bottom: 0.75rem !important;
-            font-size: 13px !important;
+            padding: 1rem !important;
+            font-size: 14px !important;
           }
-          .card-body > .mt-2 button:last-child {
+          .card-body > .mt-2 button:nth-child(2),
+          .card-body > .mt-2 button:nth-child(3) {
             display: none !important;
           }
         }

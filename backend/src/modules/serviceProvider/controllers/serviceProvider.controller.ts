@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { IServiceProviderController, IServiceProviderService } from '../interfaces/serviceProvider.interface';
 import { SubmitApplicationDTO } from '../dtos/submitApplication.dto';
 import { AppError } from '../../../utils/AppError';
+import { mapProviderToResponseDTO } from '../dtos/providerResponse.dto';
+import { UpdateProviderDTO } from '../dtos/updateProvider.dto';
 
 export class ServiceProviderController implements IServiceProviderController {
     private serviceProviderService: IServiceProviderService;
@@ -42,7 +44,7 @@ export class ServiceProviderController implements IServiceProviderController {
                 page: Number(page),
                 limit: Number(limit),
             });
-            console.log(result)
+            
             if (!result.success) {
                 res.status(400).json(result);
                 return;
@@ -52,7 +54,7 @@ export class ServiceProviderController implements IServiceProviderController {
 
             res.status(200).json({
                 success: true,
-                providers,
+                data: providers,
                 pagination: {
                     page: pg,
                     limit: lm,
@@ -77,9 +79,62 @@ export class ServiceProviderController implements IServiceProviderController {
                 return;
             }
 
-            res.status(200).json({ success: true, data: result.data });
+            res.status(200).json({ 
+                success: true, 
+                data: result.data ? mapProviderToResponseDTO(result.data) : null 
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getMyProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const userId = (req as any).user?.userId;
+            if (!userId) {
+                res.status(401).json({ success: false, message: 'Unauthorized access' });
+                return;
+            }
+
+            const result = await this.serviceProviderService.getMyProfile(userId);
+            if (!result.success) {
+                res.status(404).json(result);
+                return;
+            }
+
+            res.status(200).json({ 
+                success: true, 
+                data: result.data ? mapProviderToResponseDTO(result.data) : null 
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    updateProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const userId = (req as any).user?.userId;
+            if (!userId) {
+                res.status(401).json({ success: false, message: 'Unauthorized access' });
+                return;
+            }
+
+            const updateData = UpdateProviderDTO.create(req.body);
+            const result = await this.serviceProviderService.updateProfile(userId, updateData);
+
+            if (!result.success) {
+                res.status(400).json(result);
+                return;
+            }
+
+            res.status(200).json({
+                success: true,
+                message: result.message,
+                data: result.data ? mapProviderToResponseDTO(result.data) : null
+            });
         } catch (error) {
             next(error);
         }
     };
 }
+

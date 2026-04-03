@@ -13,13 +13,23 @@ const createJobSchema = z.object({
         message: "Maximum budget must be greater than or equal to minimum budget",
         path: ["max"]
     }),
-    jobType: z.enum(['fixed', 'hourly']).default('fixed'),
+
     isUrgent: z.boolean().optional().default(false),
 
     durationType: z.enum(['half_day', 'full_day', 'multi_day']),
     startDate: z.string().min(1, "Start date is required"),
     days: z.number().positive().optional(),
-    freelancersNeeded: z.number().positive("Freelancers needed must be a positive number").optional()
+    freelancersNeeded: z.number().positive("Freelancers needed must be a positive number").optional(),
+    visibility: z.enum(['public', 'private']).default('public'),
+    hiredProviderId: z.string().length(24, "Invalid provider ID format").optional()
+}).refine(data => {
+    if (data.visibility === 'private') {
+        return data.freelancersNeeded === 1 || data.freelancersNeeded === undefined;
+    }
+    return true;
+}, {
+    message: "Private jobs can only have 1 freelancer",
+    path: ["freelancersNeeded"]
 }).refine(data => {
     if (data.durationType === 'multi_day') {
         return !!data.days && data.days >= 1;
@@ -38,13 +48,15 @@ export class CreateJobDTO {
     public readonly skillId: string;
     public readonly locationId: string;
     public readonly budget: { min: number; max: number };
-    public readonly jobType: 'fixed' | 'hourly';
+
     public readonly isUrgent: boolean;
 
     public readonly durationType: string;
     public readonly startDate: string;
     public readonly days?: number;
     public readonly freelancersNeeded: number;
+    public readonly visibility: 'public' | 'private';
+    public readonly hiredProviderId?: string;
 
     private constructor(data: CreateJobInput) {
         this.title = data.title;
@@ -52,13 +64,15 @@ export class CreateJobDTO {
         this.skillId = data.skillId;
         this.locationId = data.locationId;
         this.budget = data.budget;
-        this.jobType = data.jobType || 'fixed';
+
         this.isUrgent = data.isUrgent || false;
 
         this.durationType = data.durationType;
         this.startDate = data.startDate;
         this.days = data.days;
         this.freelancersNeeded = data.freelancersNeeded || 1;
+        this.visibility = data.visibility || 'public';
+        this.hiredProviderId = data.hiredProviderId;
     }
 
     public static create(data: any): CreateJobDTO {

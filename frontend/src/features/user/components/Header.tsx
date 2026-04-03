@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUserCircle } from "react-icons/fa";
+import { jwtDecode } from 'jwt-decode';
 import LocationModal from '../landingPage/components/LocationModal';
+import { CreateJobModal } from '../jobs/components/CreateJobModal';
 import type { Location } from '../landingPage/services/landingService';
 
 interface HeaderProps {
@@ -20,8 +22,24 @@ const Header: React.FC<HeaderProps> = ({
   const navigate = useNavigate();
   const [navOpen, setNavOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [isJobModalOpen, setIsJobModalOpen] = useState(false);
   const token = localStorage.getItem('token');
   const [profileOpen, setProfileOpen] = useState(false);
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+
+  useEffect(() => {
+    if (token) {
+      try {
+        const decoded: any = jwtDecode(token);
+        setUser({
+          name: decoded.name || 'User',
+          email: decoded.email || '',
+        });
+      } catch (error) {
+        console.error('Failed to decode token:', error);
+      }
+    }
+  }, [token]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -40,7 +58,7 @@ const Header: React.FC<HeaderProps> = ({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      if (!target.closest('.navbar') && !target.closest('.profile-dropdown')) {
+      if (!target.closest('.navbar') && !target.closest('.profile-dropdown-container')) {
         setProfileOpen(false);
       }
     };
@@ -50,6 +68,8 @@ const Header: React.FC<HeaderProps> = ({
       document.removeEventListener('click', handleClickOutside);
     };
   }, []);
+
+  const userInitials = user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U';
 
   return (
     <>
@@ -61,7 +81,7 @@ const Header: React.FC<HeaderProps> = ({
         minHeight: 64,
       }}>
         <div className="container">
-           <a className="navbar-brand d-flex align-items-center gap-2 text-decoration-none" href="/">
+          <a className="navbar-brand d-flex align-items-center gap-2 text-decoration-none" href="/">
             <div style={{
               width: 36, height: 36, borderRadius: 10,
               background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
@@ -78,24 +98,42 @@ const Header: React.FC<HeaderProps> = ({
           </button>
 
           <div className={`collapse navbar-collapse${navOpen ? ' show' : ''}`}>
-             <ul className="navbar-nav mx-auto gap-1">
-              {[['Browse Services', '/user/services'], ['How it Works', '/#how-it-works'], ['Create Job', '/user/create-job']].map(([label, href]) => (
-                <li className="nav-item" key={label}>
+            <ul className="navbar-nav mx-auto gap-1">
+              {[
+                { label: 'Browse Services', href: '/user/services' },
+                { label: 'How it Works', href: '/#how-it-works' },
+              ].map((item) => (
+                <li className="nav-item" key={item.label}>
                   <a
-                    href={href}
+                    href={item.href}
                     className="nav-link px-3"
                     style={{ fontSize: 14, fontWeight: 500, color: '#475569', borderRadius: 8, transition: 'all 0.15s' }}
                     onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#1e293b'; (e.currentTarget as HTMLAnchorElement).style.background = '#f1f5f9'; }}
                     onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#475569'; (e.currentTarget as HTMLAnchorElement).style.background = 'transparent'; }}
                   >
-                    {label}
+                    {item.label}
                   </a>
                 </li>
               ))}
+              <li className="nav-item">
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (!token) navigate('/auth/login');
+                    else setIsJobModalOpen(true);
+                  }}
+                  className="nav-link px-3 border-0 bg-transparent w-100 text-start"
+                  style={{ fontSize: 14, fontWeight: 500, color: '#475569', borderRadius: 8, transition: 'all 0.15s' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#1e293b'; (e.currentTarget as HTMLButtonElement).style.background = '#f1f5f9'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#475569'; (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+                >
+                  Create Job
+                </button>
+              </li>
             </ul>
 
-             <div className="d-flex align-items-center gap-2 mt-3 mt-lg-0">
-               <button
+            <div className="d-flex align-items-center gap-2 mt-3 mt-lg-0">
+              <button
                 onClick={() => setModalOpen(true)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
@@ -113,72 +151,113 @@ const Header: React.FC<HeaderProps> = ({
                   {selectedLocation?.name ?? 'Choose Location'}
                 </span>
               </button>
-                
+
               {token ? (
-                <div style={{ position: "relative" }}>
+                <div style={{ position: "relative" }} className="profile-dropdown-container">
                   <button
                     onClick={() => setProfileOpen(!profileOpen)}
                     style={{
                       background: "none",
                       border: "none",
                       cursor: "pointer",
-                      fontSize: "26px"
+                      fontSize: "26px",
+                      display: 'flex',
+                      alignItems: 'center',
+                      color: "#475569"
                     }}
-                  >             
+                    aria-label="User menu"
+                  >
                     <FaUserCircle />
-              
                   </button>
-                  {profileOpen && (                    
-                    <div                      
-      style={{
-        position: "absolute",
-        right: 0,
-        top: 40,
-        width: 160,
-        background: "#fff",
-        border: "1px solid #e2e8f0",
-        borderRadius: 10,
-        boxShadow: "0 6px 20px rgba(0,0,0,0.1)",
-        overflow: "hidden",
-        zIndex: 1000
-      }}
-    >
-      <div
-        onClick={() => navigate("/profile")}
-        style={{ padding: "10px 14px", cursor: "pointer", fontSize: 14 }}
-      >
-        Profile
-      </div>
+                  {profileOpen && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        right: 0,
+                        top: 45,
+                        width: 220,
+                        background: "#fff",
+                        border: "1px solid #e2e8f0",
+                        borderRadius: 12,
+                        boxShadow: "0 10px 25px rgba(0,0,0,0.12)",
+                        overflow: "hidden",
+                        zIndex: 1000
+                      }}
+                    >
+                      {/* Dropdown Header: Identity Section */}
+                      <div
+                        onClick={() => { navigate("/user/profile"); setProfileOpen(false); }}
+                        style={{
+                          padding: "16px",
+                          cursor: "pointer",
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                          borderBottom: '1px solid #f1f5f9',
+                          transition: 'background 0.15s'
+                        }}
+                        className="dropdown-identity-header"
+                        onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
+                        onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                      >
+                        <div style={{
+                          width: 38, height: 38, borderRadius: '50%',
+                          background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: '#fff', fontSize: 13, fontWeight: 700, flexShrink: 0
+                        }}>
+                          {userInitials}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                          <span style={{
+                            fontSize: 14, fontWeight: 700, color: '#0f172a',
+                            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+                          }}>
+                            {user?.name || 'QuickWork User'}
+                          </span>
+                          <span style={{ fontSize: 11, color: '#64748b' }}>View Profile</span>
+                        </div>
+                      </div>
 
-      <div
-        onClick={() => navigate("/my-jobs")}
-        style={{ padding: "10px 14px", cursor: "pointer", fontSize: 14 }}
-      >
-        My Jobs
-      </div>
+                      <div style={{ padding: "6px 0" }}>
+                        <div
+                          onClick={() => { navigate("/user/jobs"); setProfileOpen(false); }}
+                          style={{ padding: "10px 16px", cursor: "pointer", fontSize: 14, fontWeight: 500, color: '#475569' }}
+                          onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#0f172a'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#475569'; }}
+                        >
+                          My Jobs
+                        </div>
 
-      <div
-        onClick={() => navigate("/messages")}
-        style={{ padding: "10px 14px", cursor: "pointer", fontSize: 14 }}
-      >
-        Messages
-      </div>
+                        <div
+                          onClick={() => { navigate("/user/messages"); setProfileOpen(false); }}
+                          style={{ padding: "10px 16px", cursor: "pointer", fontSize: 14, fontWeight: 500, color: '#475569' }}
+                          onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#0f172a'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#475569'; }}
+                        >
+                          Messages
+                        </div>
 
-      <div
-        onClick={handleLogout}
-        style={{
-          padding: "10px 14px",
-          cursor: "pointer",
-          fontSize: 14,
-          color: "#ef4444",
-          borderTop: "1px solid #f1f5f9"
-        }}
-      >
-        Logout
-      </div>
-    </div>
-  )}
-      </div>
+                        <div
+                          onClick={handleLogout}
+                          style={{
+                            padding: "10px 16px",
+                            cursor: "pointer",
+                            fontSize: 14,
+                            fontWeight: 600,
+                            color: "#ef4444",
+                            borderTop: "1px solid #f1f5f9",
+                            marginTop: 4
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = '#fef2f2'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                          Logout
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <>
                   <button
@@ -214,6 +293,10 @@ const Header: React.FC<HeaderProps> = ({
         selectedLocationId={selectedLocation?._id}
         onSelect={handleSelect}
         onClose={() => setModalOpen(false)}
+      />
+      <CreateJobModal
+        isOpen={isJobModalOpen}
+        onClose={() => setIsJobModalOpen(false)}
       />
     </>
   );

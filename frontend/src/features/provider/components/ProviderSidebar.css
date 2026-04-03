@@ -4,22 +4,22 @@
 
 /* ─── CSS Variables ──────────────────────────────────────────── */
 :root {
-  --qw-bg:           #f7f8fa;
+  --qw-bg:           #f8fafc;
   --qw-surface:      #ffffff;
-  --qw-surface-2:    #f1f3f6;
-  --qw-border:       rgba(0,0,0,0.06);
-  --qw-text:         #1f2937;
-  --qw-muted:        #6b7280;
-  --qw-accent:       #6c63ff;
-  --qw-accent-glow:  rgba(108, 99, 255, 0.18);
-  --qw-accent-2:     #00d9b8;
-  --qw-danger:       #ff6b6b;
-  --qw-warning:      #ffd166;
-  --qw-sidebar-w:    260px;
-  --qw-radius:       12px;
-  --qw-transition:   0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  --qw-surface-2:    #f1f5f9;
+  --qw-border:       rgba(15, 23, 42, 0.08);
+  --qw-text:         #0f172a;
+  --qw-muted:        #64748b;
+  --qw-accent:       #6366f1;
+  --qw-accent-glow:  rgba(99, 102, 241, 0.15);
+  --qw-accent-2:     #10b981;
+  --qw-danger:       #ef4444;
+  --qw-warning:      #f59e0b;
+  --qw-sidebar-w:    280px;
+  --qw-radius:       16px;
+  --qw-transition:   0.25s cubic-bezier(0.4, 0, 0.2, 1);
   --qw-font-display: 'Syne', sans-serif;
-  --qw-font-body:    'DM Sans', sans-serif;
+  --qw-font-body:    'Inter', sans-serif;
 }
 
   .qw-sidebar {
@@ -420,16 +420,55 @@
 .qw-layout {
   display: flex;
   min-height: 100vh;
-  background: var(--qw-surface);
+  background: var(--qw-bg);
   font-family: var(--qw-font-body);
 }
 
 .qw-main-content {
   margin-left: var(--qw-sidebar-w);
   flex: 1;
-  padding: 32px;
+  padding: 0;
   transition: margin var(--qw-transition);
   color: var(--qw-text);
+  overflow-x: hidden;
+}
+
+/* ─── Skeleton Loading ────────────────────────────────────────── */
+.qw-profile-card.loading {
+  cursor: default;
+  pointer-events: none;
+}
+.qw-profile-card.loading:hover {
+  background: var(--qw-surface-2);
+  border-color: var(--qw-border);
+}
+
+.skeleton {
+  background: #e2e8f0;
+  background: linear-gradient(110deg, #ececf1 8%, #f5f5f7 18%, #ececf1 33%);
+  background-size: 200% 100%;
+  animation: 1.5s shine linear infinite;
+}
+
+.skeleton-text {
+  height: 12px;
+  width: 80%;
+  margin-bottom: 6px;
+  border-radius: 4px;
+  background: #e2e8f0;
+  background: linear-gradient(110deg, #ececf1 8%, #f5f5f7 18%, #ececf1 33%);
+  background-size: 200% 100%;
+  animation: 1.5s shine linear infinite;
+}
+.skeleton-text.small {
+  width: 50%;
+  height: 8px;
+}
+
+@keyframes shine {
+  to {
+    background-position-x: -200%;
+  }
 }
 
 /* ─── Responsive ─────────────────────────────────────────────── */

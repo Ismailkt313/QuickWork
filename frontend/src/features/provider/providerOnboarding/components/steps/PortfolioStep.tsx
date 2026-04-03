@@ -10,6 +10,7 @@ import {
     removePortfolioImage
 } from "../../../providerOnboarding/store/onboardingSlice";
 import { api } from "../../../../../services/api";
+import { toast } from "react-toastify";
 
 const PortfolioStep: React.FC = () => {
     const dispatch = useDispatch();
@@ -40,7 +41,7 @@ const PortfolioStep: React.FC = () => {
         try {
             for (const file of Array.from(files)) {
                 if (file.size > 2 * 1024 * 1024) {
-                    alert(`File "${file.name}" exceeds 2MB limit and was skipped.`);
+                    toast.warning(`File "${file.name}" exceeds 2MB limit and was skipped.`);
                     continue;
                 }
 
@@ -56,7 +57,7 @@ const PortfolioStep: React.FC = () => {
             }
         } catch (error: any) {
             console.error("Portfolio image upload failed", error);
-            alert(error.response?.data?.message || "Failed to upload image.");
+            toast.error(error.response?.data?.message || "Failed to upload image.");
         } finally {
             setUploadingProjects(prev => ({ ...prev, [projectId]: false }));
         }

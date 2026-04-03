@@ -5,6 +5,7 @@ import {
     rejectServiceRequest
 } from "../services/adminServiceRequest.service";
 import type { ServiceRequest } from "../services/adminServiceRequest.service";
+import { toast } from "react-toastify";
 
 const SkillRequests: React.FC = () => {
     const [requests, setRequests] = useState<ServiceRequest[]>([]);
@@ -36,8 +37,9 @@ const SkillRequests: React.FC = () => {
         try {
             await approveServiceRequest(id);
             setRequests(prev => prev.filter(r => r._id !== id));
+            toast.success(`Skill "${skillName}" approved successfully!`);
         } catch (error: any) {
-            alert(error.message || "Failed to approve skill");
+            toast.error(error.message || "Failed to approve skill");
         } finally {
             setActionLoadingId(null);
         }
@@ -52,8 +54,9 @@ const SkillRequests: React.FC = () => {
             setRequests(prev => prev.filter(r => r._id !== selectedRejectId));
             setSelectedRejectId(null);
             setRejectionReason("");
+            toast.success("Skill request rejected.");
         } catch (error: any) {
-            alert(error.message || "Failed to reject skill");
+            toast.error(error.message || "Failed to reject skill");
         } finally {
             setActionLoadingId(null);
         }

@@ -8,6 +8,7 @@ import {
     resetOnboarding
 } from "../../../providerOnboarding/store/onboardingSlice";
 import { submitProviderApplication } from "../../../../provider/services/provider.service";
+import { toast } from "react-toastify";
 
 const ReviewStep: React.FC = () => {
     const dispatch = useDispatch();
@@ -58,9 +59,10 @@ const ReviewStep: React.FC = () => {
             } else {
                 dispatch(resetOnboarding());
                 navigate("/provider/status");
+                toast.success("Application submitted successfully!");
             }
         } catch (error: any) {
-            alert(error.message || "Failed to submit application");
+            toast.error(error.message || "Failed to submit application");
         } finally {
             setIsSubmitting(false);
         }

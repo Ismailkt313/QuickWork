@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { FiCalendar } from 'react-icons/fi';
 import './style/jobcard.css';
 
- export interface Job {
+export interface Job {
   id: string;
   title: string;
   description: string;
@@ -13,20 +13,22 @@ import './style/jobcard.css';
   clientRating?: number;
   clientReviewCount?: number;
   location: string;
-  postedAt: string; 
+  postedAt: string;
   skills: string[];
-  budget: string; 
-  jobType: 'Hourly' | 'Fixed';
+  budget: string;
+
   applicants: number;
   startDate: string;
   endDate: string;
   durationType: string;
+  visibility: 'public' | 'private';
+  hiredProviderId?: string;
   isUrgent?: boolean;
   isRecommended?: boolean;
   isNew?: boolean;
   isSaved?: boolean;
   isApplied?: boolean;
-  animationDelay?: number;   
+  animationDelay?: number;
 }
 
 interface JobCardProps {
@@ -36,7 +38,7 @@ interface JobCardProps {
   onSave?: (id: string, saved: boolean) => void;
 }
 
- const StarRating: React.FC<{ rating: number; count?: number }> = ({ rating, count }) => (
+const StarRating: React.FC<{ rating: number; count?: number }> = ({ rating, count }) => (
   <div className="jc-stars" aria-label={`Rating: ${rating} out of 5`}>
     {[1, 2, 3, 4, 5].map((s) => (
       <span key={s} className={`jc-star ${s <= Math.round(rating) ? 'filled' : 'empty'}`}>★</span>
@@ -46,7 +48,7 @@ interface JobCardProps {
   </div>
 );
 
- const AVATAR_COLORS = [
+const AVATAR_COLORS = [
   'linear-gradient(135deg,#6c63ff,#9c55f5)',
   'linear-gradient(135deg,#00d9b8,#0ea5e9)',
   'linear-gradient(135deg,#f97316,#ef4444)',
@@ -58,53 +60,51 @@ interface JobCardProps {
 const getAvatarColor = (name: string) =>
   AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
 
- const IconPin = () => (
+const IconPin = () => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+    <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" />
   </svg>
 );
 const IconClock = () => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+    <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
   </svg>
 );
-const IconUsers = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-    stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
-    <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
-  </svg>
-);
+
 const IconWallet = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/>
+    <rect x="1" y="4" width="22" height="16" rx="2" /><path d="M1 10h22" />
   </svg>
 );
 const IconBookmark = ({ filled }: { filled: boolean }) => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill={filled ? '#ffd166' : 'none'}
     stroke={filled ? '#ffd166' : 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
+    <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
   </svg>
 );
 const IconCheck = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12"/>
+    <polyline points="20 6 9 17 4 12" />
   </svg>
 );
 const IconSend = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+    <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
   </svg>
 );
 
- const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }) => {
-  const [saved, setSaved]     = useState(job.isSaved ?? false);
+const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }) => {
+  const [saved, setSaved] = useState(job.isSaved ?? false);
   const [applied, setApplied] = useState(job.isApplied ?? false);
+
+  React.useEffect(() => {
+    setApplied(job.isApplied ?? false);
+  }, [job.isApplied]);
 
   const handleSave = () => {
     const next = !saved;
@@ -119,7 +119,7 @@ const IconSend = () => (
   };
 
   const visibleSkills = job.skills.slice(0, 4);
-  const extraSkills   = job.skills.length - visibleSkills.length;
+  const extraSkills = job.skills.length - visibleSkills.length;
 
   const avatarBg = job.clientAvatarColor ?? getAvatarColor(job.clientName);
 
@@ -184,12 +184,20 @@ const IconSend = () => (
       </div>
 
       {/* Description */}
-      <p className="jc-description">{job.description}</p>
+      <p className="jc-client-name">{job.description}</p>
 
       {/* Skills */}
       <div className="jc-skills" aria-label="Required skills">
         {visibleSkills.map((skill) => (
-          <span key={skill} className="jc-skill-tag">{skill}</span>
+          <span key={skill} className="jc-skill-tag" style={{
+            backgroundColor: 'rgba(108, 99, 255, 0.08)',
+            border: '1px solid rgba(108, 99, 255, 0.15)',
+            color: '#a09bff',
+            fontSize: '12px',
+            fontWeight: 600,
+            fontFamily: 'DM Sans, sans-serif'
+          }}
+          >{skill}</span>
         ))}
         {extraSkills > 0 && (
           <span className="jc-skill-more">+{extraSkills} more</span>
@@ -203,14 +211,10 @@ const IconSend = () => (
           <span className="jc-info-label">Budget:</span>
           <span className="jc-info-val budget">{job.budget}</span>
         </div>
-        <div className="jc-info-item">
-          <span className="jc-info-icon"><IconUsers /></span>
-          <span className="jc-info-val">{job.applicants}</span>
-          <span className="jc-info-label">applicants</span>
+        <div className="jc-info-item ms-auto">
+          <span className="jc-info-val applicants-count">{job.applicants}</span>
+          <span className="jc-info-label"> applicants</span>
         </div>
-        <span className={`jc-type-pill ${job.jobType === 'Hourly' ? 'jc-type-hourly' : 'jc-type-fixed'}`}>
-          {job.jobType}
-        </span>
       </div>
 
       {/* Actions */}
@@ -236,12 +240,12 @@ const IconSend = () => (
           className={`jc-apply-btn${applied ? ' applied' : ''}`}
           onClick={handleApply}
           disabled={applied}
-          aria-label={applied ? 'Already applied' : `Apply to ${job.title}`}
+          aria-label={applied ? 'Already accepted' : `Accept ${job.title}`}
         >
           {applied ? (
-            <><IconCheck /> Applied</>
+            <><IconCheck /> Accepted Job</>
           ) : (
-            <><IconSend /> Apply Now</>
+            <><IconSend /> Accept Now</>
           )}
         </button>
       </div>
