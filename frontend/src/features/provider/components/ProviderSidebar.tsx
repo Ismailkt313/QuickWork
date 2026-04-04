@@ -156,8 +156,7 @@ const SidebarNavItem: React.FC<{
 const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
   provider,
   showOnMobile = false,
-  onCloseMobile,
-  onLogout,
+  onCloseMobile
 }) => {
   console.log(provider,"provider");
   const [navItems, setNavItems] = React.useState<NavItem[]>(PRIMARY_NAV);
