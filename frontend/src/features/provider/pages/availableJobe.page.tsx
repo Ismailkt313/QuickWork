@@ -234,7 +234,7 @@ const AvailableJobsPage: React.FC = () => {
   const pagedJobs = filteredJobs;
 
   const urgentCount = jobs.filter((j) => j.isUrgent).length;
-  const savedCount = jobs.filter((j) => j.isSaved).length;
+  // const savedCount = jobs.filter((j) => j.isSaved).length;
 
   return (
     <div className="ajp-root">
