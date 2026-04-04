@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  RiDashboardLine,
   RiBriefcaseLine,
   RiUser3Line,
   RiShieldFlashLine,
