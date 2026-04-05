@@ -11,6 +11,7 @@ const ProviderDetailPage = lazy(() => import("../../features/user/serviceProvide
 // Dashboard Pages (With Sidebar)
 const UserJobsPage = lazy(() => import("../../features/user/pages/UserJobs.page"))
 const UserJobDetailPage = lazy(() => import("../../features/user/pages/UserJobDetailPage"))
+const UserProfilePage = lazy(() => import("../../features/user/pages/UserProfilePage"))
 
 const UserRouter = () => {
     return (
@@ -25,22 +26,8 @@ const UserRouter = () => {
                 <Route element={<UserDashboardLayout />}>
                     <Route path="jobs" element={<UserJobsPage />} />
                     <Route path="jobs/:jobId" element={<UserJobDetailPage />} />
-                    
-                    <Route path="profile" element={
-                         /* Placeholder for Profile */
-                        <div className="container py-5">
-                            <h2 className="fw-bold h3 mb-4">My Profile</h2>
-                            <p className="text-muted">Profile settings and personal information management.</p>
-                        </div>
-                    } />
-
-                    <Route path="security" element={
-                         /* Placeholder for Security */
-                        <div className="container py-5">
-                            <h2 className="fw-bold h3 mb-4">Security Settings</h2>
-                            <p className="text-muted">Manage your password and security configurations.</p>
-                        </div>
-                    } />
+                    <Route path="profile" element={<UserProfilePage />} />
+                    <Route path="security" element={<UserProfilePage />} />
 
                     <Route path="saved" element={
                          /* Placeholder for Saved Providers */

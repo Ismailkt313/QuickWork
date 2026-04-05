@@ -27,5 +27,9 @@ export class AuthRepository implements IAuthRepository {
     public async updateUserRole(userId: string, role: "user" | "admin" | "provider"): Promise<void> {
         await UserModel.findByIdAndUpdate(userId, { role });
     }
+
+    public async updateUser(userId: string, data: Partial<IUser>): Promise<IUser | null> {
+        return UserModel.findByIdAndUpdate(userId, data, { new: true });
+    }
 }
 

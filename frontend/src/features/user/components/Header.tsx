@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUserCircle } from "react-icons/fa";
 import { jwtDecode } from 'jwt-decode';
+import { api } from '../../../services/api';
 import LocationModal from '../landingPage/components/LocationModal';
 import { CreateJobModal } from '../jobs/components/CreateJobModal';
 import type { Location } from '../landingPage/services/landingService';
@@ -29,15 +30,30 @@ const Header: React.FC<HeaderProps> = ({
 
   useEffect(() => {
     if (token) {
-      try {
-        const decoded: any = jwtDecode(token);
-        setUser({
-          name: decoded.name || 'User',
-          email: decoded.email || '',
-        });
-      } catch (error) {
-        console.error('Failed to decode token:', error);
-      }
+      const fetchProfile = async () => {
+        try {
+          const response = await api.get('/auth/me');
+          const result = response.data;
+          if (result && result.data) {
+            setUser({
+              name: result.data.name,
+              email: result.data.email,
+            });
+          }
+        } catch (error) {
+          console.error('Failed to fetch profile:', error);
+          try {
+            const decoded: any = jwtDecode(token);
+            setUser({
+              name: decoded.name || 'User',
+              email: decoded.email || '',
+            });
+          } catch (e) {
+            console.error('Failed to decode token:', e);
+          }
+        }
+      };
+      fetchProfile();
     }
   }, [token]);
 

@@ -20,6 +20,8 @@ import {
     IForgotPasswordResponse,
     IResetPasswordInput,
     IResetPasswordResponse,
+    IUpdateProfileInput,
+    IChangePasswordInput,
 } from "../interfaces/auth.interface";
 import { config } from "../../../config";
 import { AppError } from "../../../utils/AppError";
@@ -30,7 +32,7 @@ import {
 } from "../../../utils/jwt.util";
 import { generateOtp, hashOtp, compareOtp } from "../../../utils/otp.util";
 import { sendOtpEmail } from "../../../utils/email.util";
-import { mapUserToResponseDTO } from "../dtos/userResponse.dto";
+import { mapUserToResponseDTO, UserResponseDTO } from "../dtos/userResponse.dto";
 
 export class AuthService implements IAuthService {
     private readonly authRepository: IAuthRepository;
@@ -306,5 +308,41 @@ export class AuthService implements IAuthService {
             success: true,
             message: "Password has been reset successfully",
         };
+    }
+
+    public async getProfile(userId: string): Promise<UserResponseDTO> {
+        const user = await this.authRepository.findById(userId);
+        if (!user) {
+            throw new AppError("User not found", 404);
+        }
+
+        if (user.isBlocked) {
+            throw new AppError("Your account has been blocked", 403);
+        }
+
+        return mapUserToResponseDTO(user);
+    }
+
+    public async updateProfile(userId: string, data: IUpdateProfileInput): Promise<UserResponseDTO> {
+        const user = await this.authRepository.updateUser(userId, data as any);
+        if (!user) {
+            throw new AppError("User not found", 404);
+        }
+        return mapUserToResponseDTO(user);
+    }
+
+    public async changePassword(userId: string, data: IChangePasswordInput): Promise<void> {
+        const user = await this.authRepository.findByEmailWithPassword((await this.authRepository.findById(userId))?.email!);
+        if (!user || !user.hashedPassword) {
+            throw new AppError("User not found", 404);
+        }
+        console.log('data for change password',data)
+        const isPasswordValid = await bcrypt.compare(data.currentPassword, user.hashedPassword);
+        if (!isPasswordValid) {
+            throw new AppError("Invalid current password", 400);
+        }
+
+        const hashedNewPassword = await bcrypt.hash(data.newPassword, config.BCRYPT_SALT_ROUNDS);
+        await this.authRepository.updatePassword(userId, hashedNewPassword);
     }
 }

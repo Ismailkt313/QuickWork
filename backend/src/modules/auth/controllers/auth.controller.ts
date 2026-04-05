@@ -155,4 +155,59 @@ export class AuthController {
             next(error);
         }
     };
+
+    public getProfile = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try {
+            const userId = (req.user as any).userId;
+            const result = await this.authService.getProfile(userId);
+            res.status(200).json({
+                success: true,
+                message: "Profile fetched successfully",
+                data: result
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    public updateProfile = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try {
+            const userId = (req.user as any).userId;
+            const { name, number } = req.body;
+            const result = await this.authService.updateProfile(userId, { name, number });
+            res.status(200).json({
+                success: true,
+                message: "Profile updated successfully",
+                data: result
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    public changePassword = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try {
+            const userId = (req.user as any).userId;
+            const { currentPassword, newPassword } = req.body;
+            await this.authService.changePassword(userId, { currentPassword, newPassword });
+            res.status(200).json({
+                success: true,
+                message: "Password changed successfully"
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
 }

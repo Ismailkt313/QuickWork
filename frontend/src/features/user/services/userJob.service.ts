@@ -58,3 +58,12 @@ export const getJobAssignments = async (jobId: string) => {
         throw new Error(error.response?.data?.message || 'Failed to fetch assignments');
     }
 };
+
+export const userProfile = async () => {
+    try {
+        const response = await api.get('/user/profile');
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || 'Failed to fetch profile');
+    }
+};

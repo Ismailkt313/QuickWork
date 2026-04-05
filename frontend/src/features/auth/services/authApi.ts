@@ -37,3 +37,18 @@ export const resetPassword = async (data: any) => {
     const response = await api.post('/auth/reset-password', data)
     return response.data
 }
+
+export const updateProfile = async (data: { name?: string; number?: string }) => {
+    const response = await api.patch('/auth/profile', data)
+    return response.data
+}
+
+export const changePassword = async (data: any) => {
+    const response = await api.post('/auth/change-password', data)
+    return response.data
+}
+
+export const getMe = async () => {
+    const response = await api.get('/auth/me')
+    return response.data
+}

@@ -3,6 +3,7 @@ import UserSidebar from '../components/UserSidebar';
 import { RiMenuLine, RiMapPin2Line } from 'react-icons/ri';
 import { useNavigate, Outlet } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+import { api } from '../../../services/api';
 import '../../provider/components/ProviderSidebar.css';
 
 const UserDashboardLayout: React.FC = () => {
@@ -13,15 +14,31 @@ const UserDashboardLayout: React.FC = () => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      try {
-        const decoded: any = jwtDecode(token);
-        setUser({
-          name: decoded.name || 'User',
-          email: decoded.email || '',
-        });
-      } catch (error) {
-        console.error('Failed to decode token:', error);
-      }
+      const fetchProfile = async () => {
+        try {
+          const response = await api.get('/auth/me');
+          const result = response.data;
+          if (result.success) {
+            setUser({
+              name: result.data.name,
+              email: result.data.email,
+            });
+          }
+        } catch (error) {
+          console.error('Failed to fetch profile:', error);
+          // Fallback to token decoded name if profile fetch fails
+          try {
+            const decoded: any = jwtDecode(token);
+            setUser({
+              name: decoded.name || 'User',
+              email: decoded.email || '',
+            });
+          } catch (e) {
+            console.error('Failed to decode token:', e);
+          }
+        }
+      };
+      fetchProfile();
     }
   }, []);
 
@@ -49,6 +66,7 @@ const UserDashboardLayout: React.FC = () => {
 
       {/* Sidebar Navigation */}
       <UserSidebar
+      
         showOnMobile={showMobileSidebar}
         onCloseMobile={() => setShowMobileSidebar(false)}
         onLogout={handleLogout}

@@ -4,6 +4,7 @@ import passport from "../../../config/passport";
 import { generateAccessToken, generateRefreshToken } from "../../../utils/jwt.util";
 import { IUser, ITokenPayload } from "../interfaces/auth.interface";
 import { config } from "../../../config";
+import { authMiddleware } from "../../../middleware/auth.middleware";
 
 export const createAuthRouter = (authController: AuthController): Router => {
     const router = Router();
@@ -17,6 +18,9 @@ export const createAuthRouter = (authController: AuthController): Router => {
     router.post('/logout', authController.logout);
     router.post("/forgot-password", authController.forgotPassword);
     router.post("/reset-password", authController.resetPassword);
+    router.get("/me", authMiddleware, authController.getProfile);
+    router.patch("/profile", authMiddleware, authController.updateProfile);
+    router.post("/change-password", authMiddleware, authController.changePassword);
 
     router.get("/google", passport.authenticate("google", {
         scope: ["profile", "email"],

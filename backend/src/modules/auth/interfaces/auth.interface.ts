@@ -122,6 +122,16 @@ export interface IRefreshTokenResponse {
     };
 }
 
+export interface IChangePasswordInput {
+    currentPassword: string;
+    newPassword: string;
+}
+
+export interface IUpdateProfileInput {
+    name?: string;
+    number?: string;
+}
+
 export interface ILogoutResponse {
     success: boolean;
     message: string;
@@ -142,6 +152,7 @@ export interface IAuthRepository {
     createUser(data: ICreateUserData): Promise<IUser>;
     updatePassword(userId: string, hashedPassword: string): Promise<void>;
     updateUserRole(userId: string, role: "user" | "admin" | "provider"): Promise<void>;
+    updateUser(userId: string, data: Partial<IUser>): Promise<IUser | null>;
 }
 
 export interface IAuthService {
@@ -154,4 +165,7 @@ export interface IAuthService {
     logout(token: string): Promise<ILogoutResponse>;
     forgotPassword(input: IForgotPasswordInput): Promise<IForgotPasswordResponse>;
     resetPassword(input: IResetPasswordInput): Promise<IResetPasswordResponse>;
+    getProfile(userId: string): Promise<UserResponseDTO>;
+    updateProfile(userId: string, data: IUpdateProfileInput): Promise<UserResponseDTO>;
+    changePassword(userId: string, data: IChangePasswordInput): Promise<void>;
 }
