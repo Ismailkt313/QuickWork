@@ -21,18 +21,18 @@ export const setupSocket = (io: Server) => {
     })
 
     io.on("connection", (socket: Socket) => {
-        console.log("a user connected", socket.id);
         const userId = socket.data.user.userId || socket.data.user.id;
-        console.log("socket user data:", socket.data.user);
-        console.log("user id", userId);
+        console.log(`[Socket] User connected: ${socket.id} (UserId: ${userId})`);
+        
         socket.join(userId);
+        console.log(`[Socket] User joined room: ${userId}`);
         socket.on('sendMessage', async (data: { receiverId: string, message: string }) => {
             const { receiverId, message } = data;
             if (!message.trim() || !receiverId) {
                 return;
             }
             const senderId = socket.data.user.userId || socket.data.user.id;
-            console.log("message sent", data);
+            console.log(`[Socket] sendMessage from ${senderId} to ${receiverId}`);
 
             const messageData: IMessage = {
                 sender: senderId,
@@ -45,14 +45,16 @@ export const setupSocket = (io: Server) => {
 
             try {
                 const savedMessage = await messageService.createMessage(messageData);
+                console.log(`[Socket] Message saved. ConvId: ${savedMessage.conversationId}`);
                 io.to(receiverId).emit('receiveMessage', savedMessage);
                 io.to(senderId).emit('receiveMessage', savedMessage);
+                console.log(`[Socket] Message emitted to rooms: ${receiverId} and ${senderId}`);
             } catch (error) {
-                console.error("Error saving message:", error);
+                console.error("[Socket] Error saving message:", error);
             }
         })
-        socket.on('disconnect', () => {
-            console.log("user disconnected", socket.id);
+        socket.on('disconnect', (reason) => {
+            console.log(`[Socket] User disconnected: ${socket.id} (Reason: ${reason})`);
         })
     })
 } 

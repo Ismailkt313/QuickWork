@@ -87,6 +87,14 @@ const MessagesPage = () => {
     useEffect(() => {
         if (!socket) return;
         const handleNewConversationMessage = (newMessage: any) => {
+            // Update selectedConversationId if it matches the placeholder for this sender
+            if (
+                selectedConversationId?.startsWith("new-") && 
+                selectedConversationId === `new-${newMessage.sender}`
+            ) {
+                setSelectedConversationId(newMessage.conversationId);
+            }
+
             setConversations(prev => {
                 const convExists = prev.some(c => c.id === newMessage.conversationId);
                 
@@ -97,7 +105,11 @@ const MessagesPage = () => {
                 }
 
                 return prev.map(conv => {
-                    if (conv.id === newMessage.conversationId || (conv.isPlaceholder && conv.participants.some((p: any) => p._id === newMessage.sender))) {
+                    const isMyPlaceholder = 
+                        conv.isPlaceholder && 
+                        conv.participants.some((p: any) => p._id === newMessage.sender);
+
+                    if (conv.id === newMessage.conversationId || isMyPlaceholder) {
                         return {
                             ...conv,
                             id: newMessage.conversationId, // Update placeholder ID with real ID

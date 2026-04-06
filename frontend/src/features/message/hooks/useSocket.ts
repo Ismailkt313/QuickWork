@@ -1,22 +1,28 @@
-import {io,Socket} from "socket.io-client";
-import { useEffect, useRef } from "react";
+import {io, Socket} from "socket.io-client";
+import { useEffect, useState } from "react";
 
 export const useSocket = (token: string) => {
-    const socketRef = useRef<Socket | null>(null);
+    const [socket, setSocket] = useState<Socket | null>(null);
     
     useEffect(() => {
-        socketRef.current = io("http://localhost:5000", {
+        if (!token) return;
+
+        const newSocket = io("http://localhost:5000", {
             auth: {
                 token
             }
         });
-        socketRef.current.on("connect", () => {
+        
+        newSocket.on("connect", () => {
             console.log("Connected to socket server");
         });
+
+        setSocket(newSocket);
+
         return () => {
-            socketRef.current?.disconnect();
+            newSocket.disconnect();
         };
     }, [token]);
     
-    return socketRef.current;
+    return socket;
 }

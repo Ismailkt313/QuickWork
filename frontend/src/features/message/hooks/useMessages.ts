@@ -58,11 +58,11 @@ export const useMessages = (socket: any, activeConversationId: string | null) =>
     }
   }, [activeConversationId]);
 
-  const sendMessage = (receiverId: string, message: string) => {
-    if (socket) {
+  const sendMessage = useCallback((receiverId: string | null, message: string) => {
+    if (socket && receiverId && message.trim()) {
       socket.emit("sendMessage", { receiverId, message });
     }
-  };
+  }, [socket]);
 
   return { messages, setMessages, sendMessage, loadMessages, loading };
 };
