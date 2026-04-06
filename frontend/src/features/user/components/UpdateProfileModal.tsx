@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { updateProfile } from '../../auth/services/authApi';
 import { toast } from 'react-hot-toast';
-import { RiCloseLine, RiSaveLine, RiUser3Line, RiPhoneLine } from 'react-icons/ri';
+import {   RiSaveLine, RiUser3Line, RiPhoneLine } from 'react-icons/ri';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
