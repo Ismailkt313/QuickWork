@@ -62,7 +62,9 @@ const JobDetailPage: React.FC = () => {
   };
 
   const handleMessage = () => {
-    navigate(`/provider/messages?clientId=${job?.clientName}`);
+    if (job) {
+      navigate(`/provider/messages?userId=${job.clientId}&name=${encodeURIComponent(job.clientName)}`);
+    }
   };
 
   if (loading) {

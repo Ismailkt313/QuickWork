@@ -2,6 +2,7 @@ import { formatBudget, formatDate, getInitials, getRelativeTime } from "../../..
 
 export interface JobResponseDTO {
     id: string;
+    clientId: string;
     title: string;
     description: string;
     clientName: string;
@@ -43,6 +44,7 @@ export const mapJobToResponseDTO = (job: any): JobResponseDTO => {
 
     return {
         id: job._id ? job._id.toString() : job.id,
+        clientId: user._id ? user._id.toString() : user.id,
         title: job.title,
         description: job.description,
         clientName: user.name || 'Anonymous',

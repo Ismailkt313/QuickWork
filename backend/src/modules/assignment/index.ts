@@ -15,5 +15,5 @@ const assignmentRouter = createAssignmentRouter(assignmentController);
 
 export {
     assignmentRouter,
-    assignmentService // Exported for other modules to use
+    assignmentService
 };

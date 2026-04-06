@@ -1,13 +1,29 @@
 import app from './app'
 import mongoose from 'mongoose'
 import { config } from './config'
+import http from "http";
+import { Server } from "socket.io";
+import { setupSocket } from './chat/socket';
+
 
 const startServer = async (): Promise<void> => {
     try {
         await mongoose.connect(config.MONGO_URI);
         console.log('databse connected')
-        app.listen(config.PORT, () => {
-            console.log('server connected')
+        const httpServer = http.createServer(app);
+        const io = new Server(httpServer,{
+            cors:{
+                origin: [
+          "http://localhost:5173",
+          "https://quick-work-lemon.vercel.app"
+        ],
+                credentials:true,
+                methods:["GET","POST"],
+            }
+        });
+        setupSocket(io);
+        httpServer.listen(config.PORT, () => {
+            console.log(`server connected on port ${config.PORT}`)
         });
     } catch (error) {
         console.error('server error occurd',error)

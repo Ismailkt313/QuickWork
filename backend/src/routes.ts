@@ -9,6 +9,7 @@ import { uploadRouter } from "./modules/upload";
 import { landingRouter } from "./modules/landing";
 import { jobRouter } from "./modules/job";
 import { assignmentRouter } from "./modules/assignment";
+import messageRouter from "./modules/message";
 
 export const registerdRoutes = (app:Application) => {
     app.use("/api/auth", authRouter);
@@ -22,4 +23,5 @@ export const registerdRoutes = (app:Application) => {
     app.use("/api/landing", landingRouter);
     app.use("/api/job", jobRouter);
     app.use("/api/assignment", assignmentRouter); 
+    app.use("/api/messages", messageRouter);
 }

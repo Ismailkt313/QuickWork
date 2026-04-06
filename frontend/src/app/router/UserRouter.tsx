@@ -12,6 +12,7 @@ const ProviderDetailPage = lazy(() => import("../../features/user/serviceProvide
 const UserJobsPage = lazy(() => import("../../features/user/pages/UserJobs.page"))
 const UserJobDetailPage = lazy(() => import("../../features/user/pages/UserJobDetailPage"))
 const UserProfilePage = lazy(() => import("../../features/user/pages/UserProfilePage"))
+const MessagesPage = lazy(() => import("../../features/message/pages/messagePage"))
 
 const UserRouter = () => {
     return (
@@ -28,7 +29,7 @@ const UserRouter = () => {
                     <Route path="jobs/:jobId" element={<UserJobDetailPage />} />
                     <Route path="profile" element={<UserProfilePage />} />
                     <Route path="security" element={<UserProfilePage />} />
-
+                    <Route path="messages" element={<MessagesPage />} />
                     <Route path="saved" element={
                          /* Placeholder for Saved Providers */
                         <div className="container py-5">

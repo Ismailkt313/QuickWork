@@ -54,7 +54,7 @@ export class ServiceProviderController implements IServiceProviderController {
 
             res.status(200).json({
                 success: true,
-                data: providers,
+                providers: providers,
                 pagination: {
                     page: pg,
                     limit: lm,

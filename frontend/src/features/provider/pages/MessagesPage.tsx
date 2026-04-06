@@ -1,12 +1,182 @@
-import React from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useSocket } from '../../message/hooks/useSocket';
+import { useMessages } from '../../message/hooks/useMessages';
+import { ChatWindow } from '../../message/components/chatwindow';
+import { getMe } from '../../auth/services/authApi';
+import { getConversations } from '../../message/api/message.api';
+import { useSearchParams } from 'react-router-dom';
+import { Sidebar } from '../../message/components/Sidebar';
 
 const MessagesPage: React.FC = () => {
+  const [user, setUser] = useState<any>(null);
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [loadingConversations, setLoadingConversations] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchParams] = useSearchParams();
+
+  const targetUserId = searchParams.get("userId");
+  const targetUserName = searchParams.get("name");
+
+  const token = localStorage.getItem("token");
+  const socket = useSocket(token!);
+  const { messages, sendMessage, loadMessages, loading: loadingMessages } = useMessages(socket, selectedConversationId);
+
+  const fetchUser = useCallback(async () => {
+    try {
+      const response = await getMe();
+      if (response.success) {
+        setUser(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch user:", error);
+    }
+  }, []);
+
+  const fetchConversations = useCallback(async () => {
+    setLoadingConversations(true);
+    try {
+      const response = await getConversations();
+      if (response.success) {
+        setConversations(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch conversations:", error);
+    } finally {
+      setLoadingConversations(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUser();
+    fetchConversations();
+  }, [fetchUser, fetchConversations]);
+
+  // Normalize user ID — getMe() returns .id, conversations use ._id
+  const currentUserId = user?.id || user?._id || "";
+
+  // Handle auto-selection from query params
+  useEffect(() => {
+    if (!loadingConversations && targetUserId && currentUserId) {
+      const existingConv = conversations.find(conv => 
+        conv.participants.some((p: any) => p._id === targetUserId)
+      );
+
+      if (existingConv) {
+        setSelectedConversationId(existingConv.id);
+      } else if (targetUserName) {
+        const placeholderId = `new-${targetUserId}`;
+        const placeholderConv = {
+          id: placeholderId,
+          participants: [
+            { _id: currentUserId, name: user.name },
+            { _id: targetUserId, name: targetUserName }
+          ],
+          lastMessage: "Start a new conversation",
+          lastMessageAt: new Date(),
+          isPlaceholder: true
+        };
+        setConversations(prev => [placeholderConv, ...prev]);
+        setSelectedConversationId(placeholderId);
+      }
+    }
+  }, [loadingConversations, targetUserId, targetUserName, currentUserId]);
+
+  // Handle real-time updates for conversation list
+  useEffect(() => {
+    if (!socket) return;
+    const handleNewConversationMessage = (newMessage: any) => {
+      setConversations(prev => {
+        const convExists = prev.some(c => c.id === newMessage.conversationId);
+        
+        if (!convExists && newMessage.conversationId) {
+          fetchConversations();
+          return prev;
+        }
+
+        return prev.map(conv => {
+          if (conv.id === newMessage.conversationId || (conv.isPlaceholder && conv.participants.some((p: any) => p._id === newMessage.sender))) {
+            return {
+              ...conv,
+              id: newMessage.conversationId, 
+              isPlaceholder: false,
+              lastMessage: newMessage.message,
+              lastMessageAt: new Date(),
+            };
+          }
+          return conv;
+        });
+      });
+    };
+    socket.on("receiveMessage", handleNewConversationMessage);
+    return () => {
+      socket.off("receiveMessage", handleNewConversationMessage);
+    };
+  }, [socket, fetchConversations]);
+
+  useEffect(() => {
+    if (selectedConversationId && !selectedConversationId.startsWith('new-')) {
+      loadMessages(selectedConversationId);
+    }
+  }, [selectedConversationId, loadMessages]);
+
+  const activeConversation = conversations.find(c => c.id === selectedConversationId);
+  
+  const getRecipientDetails = (conversation: any) => {
+    if (!currentUserId || !conversation) return { name: "System", id: null };
+    const recipient = conversation.participants.find((p: any) => p._id !== currentUserId);
+    return {
+      name: recipient?.name || "User",
+      id: recipient?._id || null
+    };
+  };
+
+  const recipient = getRecipientDetails(activeConversation);
+
+  const filteredConversations = conversations.filter(c => {
+    const otherParticipant = c.participants.find((p: any) => p._id !== currentUserId);
+    return otherParticipant?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  if (!user) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '500px' }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading Profile...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-4">
-      <h2 className="fw-bold mb-4">Messages</h2>
-      <div className="card border-0 shadow-sm">
-        <div className="card-body p-5 text-center text-secondary">
-          <p className="mb-0">Your conversations with clients will appear here.</p>
+    <div className="container-fluid py-4 h-100" style={{ minHeight: 'calc(100vh - 100px)' }}>
+      <div className="mb-4">
+        <h1 className="h3 fw-bold text-dark mb-1">Provider Messages</h1>
+        <p className="text-secondary small">Manage conversations with your clients</p>
+      </div>
+
+      <div className="row g-4" style={{ height: 'calc(100vh - 220px)' }}>
+        <div className="col-12 col-md-4 col-lg-3 h-100">
+          <Sidebar 
+            conversations={filteredConversations}
+            activeConversationId={selectedConversationId}
+            onSelect={setSelectedConversationId}
+            loading={loadingConversations}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            getRecipientDetails={getRecipientDetails}
+          />
+        </div>
+
+        <div className="col-12 col-md-8 col-lg-9 h-100">
+          <ChatWindow
+            messages={selectedConversationId?.startsWith('new-') ? [] : messages}
+            loading={loadingMessages}
+            sendMessage={sendMessage}
+            receiverId={recipient.id}
+            currentUserId={currentUserId}
+            recipientName={recipient.name}
+          />
         </div>
       </div>
     </div>

@@ -7,6 +7,7 @@ import { DirectHireModal } from '../../jobs/components/DirectHireModal';
 
 interface ProviderDetail {
     _id: string;
+    userId: string;
     headline: string;
     about: string;
     profileImage: string;
@@ -140,6 +141,7 @@ const ProviderDetailPage: React.FC = () => {
                                 </button>
                                 <button
                                     className="btn w-100"
+                                    onClick={() => navigate(`/user/messages?userId=${provider.userId}&name=${encodeURIComponent(provider.headline)}`)}
                                     style={{
                                         padding: '12px', borderRadius: 12,
                                         background: '#fff', border: '1.5px solid #e2e8f0',

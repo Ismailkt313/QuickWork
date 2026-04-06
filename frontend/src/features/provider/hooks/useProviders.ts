@@ -18,8 +18,8 @@ export const useProviders = ({ skillId, locationId, sort }: UseProvidersParams) 
         setLoading(true);
         try {
             const data = await getProviders({ skillId, locationId, page, sort });
-            setProviders(data.providers);
-            setPagination(data.pagination);
+            setProviders(data.providers || []);
+            setPagination(data.pagination || null);
         } catch {
             setProviders([]);
             setPagination(null);

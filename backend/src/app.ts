@@ -4,6 +4,7 @@ import passport from "./config/passport";
 import { registerdRoutes } from "./routes";
 import { errorHandler } from "./middleware/errorHandler";
 
+
 const app: Application = express();
 
 const allowedOrigins = [

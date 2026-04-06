@@ -1,6 +1,7 @@
 export interface JobDetail {
-  clientAvatarUrl: string | undefined;
   id: string;
+  clientId: string;
+  clientAvatarUrl: string | undefined;
   title: string;
   description: string;
   clientName: string;
