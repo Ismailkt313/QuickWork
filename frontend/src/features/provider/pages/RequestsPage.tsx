@@ -132,13 +132,13 @@ const RequestsPage: React.FC = () => {
     const filteredRequests = requests.filter(req => {
         if (filter === 'all') return true;
         if (filter === 'pending') return req.status === 'open';
-        if (filter === 'accepted') return req.status === 'assigned';
+        if (filter === 'accepted') return req.status === 'fully_assigned';
         if (filter === 'rejected') return req.status === 'cancelled' || req.status === 'rejected';
         return true;
     });
 
     const pendingCount = requests.filter(r => r.status === 'open').length;
-    const acceptedCount = requests.filter(r => r.status === 'assigned').length;
+    const acceptedCount = requests.filter(r => r.status === 'fully_assigned').length;
 
     return (
         <div className="container-fluid py-4 px-lg-5" style={{ backgroundColor: '#f8fafc', minHeight: '100vh' }}>

@@ -22,7 +22,7 @@ export const RequestCard: React.FC<RequestCardProps> = ({
   isActionLoading 
 }) => {
   const isPending = request.status === 'open';
-  const isAccepted = request.status === 'assigned';
+  const isAccepted = request.status === 'fully_assigned';
   const isRejected = request.status === 'cancelled' || request.status === 'rejected';
 
   return (
