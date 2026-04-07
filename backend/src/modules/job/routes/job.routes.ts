@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { authMiddleware } from '../../../middleware/auth.middleware';
 import { authorizeRoles } from '../../../middleware/role.middleware';
-import { ROLES } from '../../admin/interfaces/admin.interface';
+import { ROLES } from '../../../constants/roles';
 import { IJobController } from '../interfaces/job.interface';
 
 export const createJobRouter = (controller: IJobController): Router => {

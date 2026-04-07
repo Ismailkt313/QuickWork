@@ -78,4 +78,7 @@ export class ServiceProviderRepository implements IServiceProviderRepository {
          .populate('skills', 'name slug')
          .lean();
     }
+    async deleteByUserId(userId: string): Promise<void> {
+        await ServiceProviderModel.deleteOne({ userId: new Types.ObjectId(userId) });
+    }
 }

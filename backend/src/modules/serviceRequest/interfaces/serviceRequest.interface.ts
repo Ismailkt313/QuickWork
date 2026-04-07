@@ -1,6 +1,7 @@
 import { Document, Types } from "mongoose";
 import { CreateServiceRequestDTO } from '../dtos/createServiceRequest.dto';
 import { RejectServiceRequestDTO } from "../dtos/rejectServiceRequest.dto";
+import { SKILL_STATUS } from "../../../constants/skill";
 
 
 export interface IServiceRequest extends Document {
@@ -8,7 +9,7 @@ export interface IServiceRequest extends Document {
     slug: string;
     description: string;
     requestedBy: Types.ObjectId;
-    status: 'pending' | 'approved' | 'rejected';
+    status: SKILL_STATUS;
     reviewedBy?: Types.ObjectId;
     reviewedAt?: Date;
     rejectionReason?: string;

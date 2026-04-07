@@ -14,7 +14,7 @@ const startServer = async (): Promise<void> => {
         const io = new Server(httpServer,{
             cors:{
                 origin: [
-          "http://localhost:5173",
+          config.FRONTEND_URL,
           "https://quick-work-lemon.vercel.app"
         ],
                 credentials:true,

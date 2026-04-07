@@ -11,11 +11,20 @@ const IdentityStep: React.FC = () => {
     const [imagePreview, setImagePreview] = useState<string | null>(formData.profileImage || null);
     const [isUploading, setIsUploading] = useState(false);
 
+    const isValidPhone = (phone: string) => {
+        const cleaned = phone.trim();
+
+        return (
+            /^[6-9]\d{9}$/.test(cleaned) &&   
+            !/^0+$/.test(cleaned)        
+        );
+    };
+
     const isValid =
         formData.profileImage &&
         formData.headline.trim().length > 0 &&
         formData.about.trim().length >= 80 &&
-        formData.phone.trim().length > 0 &&
+        isValidPhone(formData.phone) &&
         formData.yearsOfExperience >= 0 &&
         !isUploading;
 
@@ -165,11 +174,15 @@ const IdentityStep: React.FC = () => {
                                 <i className="bi bi-telephone text-muted"></i>
                             </span>
                             <input
-                                type="text"
+                                type="tel"
                                 className="form-control border-0 bg-transparent ps-0"
                                 placeholder="10-digit number"
                                 value={formData.phone}
-                                onChange={(e) => handleInputChange("phone", e.target.value)}
+                                maxLength={10}
+                                onChange={(e) => {
+                                    const value = e.target.value.replace(/\D/g, ""); 
+                                    handleInputChange("phone", value);
+                                }}
                             />
                         </div>
                     </div>

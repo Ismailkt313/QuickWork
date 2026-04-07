@@ -1,15 +1,16 @@
 import { AppError } from "../../../utils/AppError";
+import { MESSAGE_TYPE } from "../../../constants/message";
 
 export class CreateMessageDto {
     public readonly receiverId: string;
     public readonly message: string;
-    public readonly messageType?: string;
+    public readonly messageType: MESSAGE_TYPE;
     public readonly conversationId?: string;
 
     private constructor(data: any) {
         this.receiverId = data.receiverId;
         this.message = data.message;
-        this.messageType = data.messageType || "text";
+        this.messageType = data.messageType || MESSAGE_TYPE.TEXT;
         this.conversationId = data.conversationId || "";
     }
 

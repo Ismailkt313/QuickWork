@@ -1,4 +1,5 @@
 import { IAssignment, IAssignmentRepository, IAssignmentService } from '../interfaces/assignment.interface';
+import { ASSIGNMENT_STATUS, WORK_STATUS } from '../../../constants/assignment';
 
 export class AssignmentService implements IAssignmentService {
     private assignmentRepository: IAssignmentRepository;
@@ -11,8 +12,8 @@ export class AssignmentService implements IAssignmentService {
 
         const query = {
             freelancerId,
-            workStatus: { $in: ['assigned', 'in_progress'] },
-            'invite.status': { $ne: 'rejected' },
+            workStatus: { $in: [WORK_STATUS.ASSIGNED, WORK_STATUS.IN_PROGRESS] },
+            'invite.status': { $ne: ASSIGNMENT_STATUS.REJECTED },
             'schedule.startDate': { $lt: endDate },
             'schedule.endDate': { $gt: startDate }
         };
@@ -28,13 +29,13 @@ export class AssignmentService implements IAssignmentService {
     async getAssignmentsByProvider(providerId: string): Promise<IAssignment[]> {
         return await this.assignmentRepository.find({
             freelancerId: providerId,
-            'invite.status': 'accepted',
-            workStatus: { $in: ['assigned', 'in_progress', 'completed'] }
+            'invite.status': ASSIGNMENT_STATUS.ACCEPTED,
+            workStatus: { $in: [WORK_STATUS.ASSIGNED, WORK_STATUS.IN_PROGRESS, WORK_STATUS.COMPLETED] }
         });
     }
 
     async cancelAssignmentsByJob(jobId: string): Promise<void> {
-        await this.assignmentRepository.updateByJobId(jobId, { workStatus: 'cancelled' });
+        await this.assignmentRepository.updateByJobId(jobId, { workStatus: WORK_STATUS.CANCELLED });
     }
 
     async getAssignmentById(id: string): Promise<IAssignment | null> {
@@ -42,14 +43,14 @@ export class AssignmentService implements IAssignmentService {
     }
 
     async getAssignmentsByJobId(jobId: string): Promise<IAssignment[]> {
-        return await this.assignmentRepository.find({ jobId, 'invite.status': 'accepted' });
+        return await this.assignmentRepository.find({ jobId, 'invite.status': ASSIGNMENT_STATUS.ACCEPTED });
     }
 
-    async updateStatus(id: string, status: string): Promise<IAssignment | null> {
+    async updateStatus(id: string, status: WORK_STATUS): Promise<IAssignment | null> {
         const updateData: any = { workStatus: status };
-        if (status === 'in_progress') {
+        if (status === WORK_STATUS.IN_PROGRESS) {
             updateData.startedAt = new Date();
-        } else if (status === 'completed') {
+        } else if (status === WORK_STATUS.COMPLETED) {
             updateData.completedAt = new Date();
         }
         return await this.assignmentRepository.update(id, updateData);
@@ -59,7 +60,7 @@ export class AssignmentService implements IAssignmentService {
         return await this.assignmentRepository.update(id, {
             proof: proofData.images,
             proofDescription: proofData.description,
-            workStatus: 'completed',
+            workStatus: WORK_STATUS.COMPLETED,
             completedAt: new Date()
         });
     }
@@ -67,8 +68,8 @@ export class AssignmentService implements IAssignmentService {
     async getAssignmentCountByJob(jobId: string): Promise<number> {
         return await this.assignmentRepository.count({
             jobId,
-            workStatus: { $ne: 'cancelled' },
-            'invite.status': 'accepted'
+            workStatus: { $ne: WORK_STATUS.CANCELLED },
+            'invite.status': ASSIGNMENT_STATUS.ACCEPTED
         });
     }
 }

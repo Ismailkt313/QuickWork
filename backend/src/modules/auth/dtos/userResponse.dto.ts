@@ -1,11 +1,12 @@
 import { IUser } from "../interfaces/auth.interface";
+import { ROLES } from "../../../constants/roles";
 
 export interface UserResponseDTO {
     id: string;
     name: string;
     email: string;
     number?: string;
-    role: "user" | "admin" | "provider";
+    role: ROLES;
     isBlocked: boolean;
     createdAt: Date;
 }

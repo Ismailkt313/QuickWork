@@ -10,8 +10,11 @@ export const useMessages = (socket: any, activeConversationId: string | null) =>
     if (!socket) return;
 
     const handleNewMessage = (newMessage: any) => {
-      // Check if message belongs to active conversation
-      if (newMessage.conversationId !== activeConversationId) return;
+      // Check if message belongs to active conversation or matches a placeholder
+      const matchesPlaceholder = activeConversationId?.startsWith("new-") && 
+        (String(activeConversationId) === `new-${newMessage.sender}` || String(activeConversationId) === `new-${newMessage.receiver}`);
+        
+      if (newMessage.conversationId !== activeConversationId && !matchesPlaceholder) return;
 
       // Map API response field 'id' to '_id' if needed for consistency with Message type
       const normalizedMessage: Message = {
@@ -19,6 +22,7 @@ export const useMessages = (socket: any, activeConversationId: string | null) =>
         sender: newMessage.sender,
         receiver: newMessage.receiver,
         message: newMessage.message,
+        messageType: newMessage.messageType || "text", 
         createdAt: newMessage.createdAt,
       };
       setMessages(prev => [...prev, normalizedMessage]);
@@ -32,7 +36,6 @@ export const useMessages = (socket: any, activeConversationId: string | null) =>
   }, [socket, activeConversationId]);
 
   const loadMessages = useCallback(async (conversationId: string) => {
-    setMessages([]); // Clear previous messages immediately
     setLoading(true);
     try {
       const response = await fetchMessagesApi(conversationId);
@@ -53,9 +56,7 @@ export const useMessages = (socket: any, activeConversationId: string | null) =>
 
   // Cleanup: clear messages when activeConversationId changes
   useEffect(() => {
-    if (!activeConversationId) {
-      setMessages([]);
-    }
+    setMessages([]);
   }, [activeConversationId]);
 
   const sendMessage = useCallback((receiverId: string | null, message: string) => {

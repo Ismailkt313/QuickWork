@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { IMessageController, IMessageService } from "../interface/message.interface";
 import { CreateMessageDto, ConversationIdDto, MessageIdDto } from "../dto/message.request.dto";
+import { MESSAGE_TYPE } from "../../../constants/message";
 
 export class MessageController implements IMessageController {
     private messageService: IMessageService;
@@ -23,7 +24,7 @@ export class MessageController implements IMessageController {
                 sender: senderId,
                 receiver: dto.receiverId,
                 message: dto.message,
-                messageType: dto.messageType || "text",
+                messageType: dto.messageType || MESSAGE_TYPE.TEXT,
                 conversationId: dto.conversationId || "",
                 isRead: false
             });

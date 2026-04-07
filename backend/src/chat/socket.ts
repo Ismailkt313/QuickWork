@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { config } from "../config";
 import { messageService } from "../modules/message";
 import { IMessage } from "../modules/message/interface/message.interface";
+import { MESSAGE_TYPE } from "../constants/message";
 
 export const setupSocket = (io: Server) => {
     io.use((socket: Socket, next) => {
@@ -39,7 +40,7 @@ export const setupSocket = (io: Server) => {
                 receiver: receiverId,
                 message: message,
                 conversationId: "",
-                messageType: "text",
+                messageType: MESSAGE_TYPE.TEXT,
                 isRead: false
             };
 

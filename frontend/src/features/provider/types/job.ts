@@ -1,3 +1,7 @@
+import { JOB_STATUS } from "../../../constants/jobStatus";
+import { JOB_VISIBILITY } from "../../../constants/jobVisibility";
+import { JOB_DURATION_TYPE } from "../../../constants/jobDuration";
+
 export interface JobDetail {
   id: string;
   clientId: string;
@@ -21,11 +25,11 @@ export interface JobDetail {
 
   applicants: number;
   isUrgent: boolean;
-  status: 'open' | 'assigned' | 'completed' | 'cancelled' | 'rejected';
+  status: JOB_STATUS;
   startDate: string;
   endDate: string;
-  durationType: string;
-  visibility: 'public' | 'private';
+  durationType: JOB_DURATION_TYPE;
+  visibility: JOB_VISIBILITY;
   hiredProviderId?: string;
 
   freelancersNeeded: number;

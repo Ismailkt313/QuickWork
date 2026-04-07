@@ -1,4 +1,5 @@
 import { Schema, model } from "mongoose";
+import { MESSAGE_TYPE } from "../../../constants/message";
 
 const messageSchema = new Schema({
     conversationId: {
@@ -19,8 +20,8 @@ const messageSchema = new Schema({
     },
     messageType: {
         type: String,
-        enum: ["text", "image", "video", "file"],
-        default: "text"
+        enum: Object.values(MESSAGE_TYPE),
+        default: MESSAGE_TYPE.TEXT
     },
     isRead: {
         type: Boolean,

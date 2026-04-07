@@ -1,4 +1,5 @@
 import { IAuthRepository, IUser, ICreateUserData } from "../interfaces/auth.interface";
+import { ROLES } from "../../../constants/roles";
 import { UserModel } from "../models/user.model";
 
 export class AuthRepository implements IAuthRepository {
@@ -24,7 +25,7 @@ export class AuthRepository implements IAuthRepository {
         await UserModel.findByIdAndUpdate(userId, { hashedPassword });
     }
 
-    public async updateUserRole(userId: string, role: "user" | "admin" | "provider"): Promise<void> {
+    public async updateUserRole(userId: string, role: ROLES): Promise<void> {
         await UserModel.findByIdAndUpdate(userId, { role });
     }
 

@@ -14,6 +14,7 @@ import '../components/ProviderSidebar.css';
     initials?: string;
     profileImage?: string;
     headline?: string;
+    verificationStatus?: string;
   };
    onLogout?: () => void;
    onNavigate?: (href: string) => void;
@@ -127,6 +128,23 @@ import '../components/ProviderSidebar.css';
         aria-label="Main content"
         tabIndex={-1}
       >
+        {provider?.verificationStatus === 'pending' && (
+          <div 
+            className="alert alert-warning border-0 mb-4 mx-3 mx-lg-5 mt-4 d-flex align-items-center gap-3 shadow-sm rounded-4"
+            style={{ background: '#fffbeb', borderLeft: '4px solid #f59e0b !important' }}
+            role="alert"
+          >
+            <div className="bg-white p-2 rounded-3 shadow-sm text-warning">
+              <RiBellLine size={20} />
+            </div>
+            <div>
+              <h4 className="fw-bold mb-0 small" style={{ color: '#92400e' }}>Profile under verification</h4>
+              <p className="mb-0 text-amber-800 small" style={{ opacity: 0.8 }}>
+                Your application is being reviewed by our admin team. You can explore the dashboard, but job interactions are restricted until approval.
+              </p>
+            </div>
+          </div>
+        )}
         <Suspense fallback={<FallbackScreen />}>
           <Outlet />
         </Suspense>

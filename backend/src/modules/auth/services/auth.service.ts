@@ -23,6 +23,8 @@ import {
     IUpdateProfileInput,
     IChangePasswordInput,
 } from "../interfaces/auth.interface";
+import { ROLES } from "../../../constants/roles";
+import { OTP_TYPE } from "../../../constants/otp";
 import { config } from "../../../config";
 import { AppError } from "../../../utils/AppError";
 import {
@@ -71,7 +73,7 @@ export class AuthService implements IAuthService {
         const otpExpiresAt = new Date(Date.now() + config.OTP_EXPIRY_SECONDS * 1000);
         const expiresAt = new Date(Date.now() + config.OTP_TTL_SECONDS * 1000);
 
-        await this.otpRepository.upsert(userData.email, hashedOtpValue, "registration", otpExpiresAt, expiresAt, userData);
+        await this.otpRepository.upsert(userData.email, hashedOtpValue, OTP_TYPE.REGISTRATION, otpExpiresAt, expiresAt, userData);
         await sendOtpEmail(userData.email, otp);
 
         return {
@@ -81,7 +83,7 @@ export class AuthService implements IAuthService {
     }
 
     public async verifyOtp(input: IVerifyOtpInput): Promise<IVerifyOtpResponse> {
-        const otpEntry = await this.otpRepository.findByEmailAndType(input.email.toLowerCase().trim(), "registration");
+        const otpEntry = await this.otpRepository.findByEmailAndType(input.email.toLowerCase().trim(), OTP_TYPE.REGISTRATION);
         if (!otpEntry) {
             throw new AppError("Registration session expired. Please register again", 400);
         }
@@ -96,7 +98,7 @@ export class AuthService implements IAuthService {
         }
 
         await this.authRepository.createUser(otpEntry.userData!);
-        await this.otpRepository.deleteByEmailAndType(input.email, "registration");
+        await this.otpRepository.deleteByEmailAndType(input.email, OTP_TYPE.REGISTRATION);
 
         return {
             success: true,
@@ -105,7 +107,7 @@ export class AuthService implements IAuthService {
     }
 
     public async resendOtp(input: IResendOtpInput): Promise<IResendOtpResponse> {
-        const otpEntry = await this.otpRepository.findByEmailAndType(input.email.toLowerCase().trim(), "registration");
+        const otpEntry = await this.otpRepository.findByEmailAndType(input.email.toLowerCase().trim(), OTP_TYPE.REGISTRATION);
         if (!otpEntry) {
             throw new AppError("Registration session expired. Please register again", 400);
         }
@@ -115,7 +117,7 @@ export class AuthService implements IAuthService {
         const hashedOtpValue = await hashOtp(otp);
         const otpExpiresAt = new Date(Date.now() + config.OTP_EXPIRY_SECONDS * 1000);
 
-        await this.otpRepository.updateOtp(otpEntry.email, hashedOtpValue, "registration", otpExpiresAt);
+        await this.otpRepository.updateOtp(otpEntry.email, hashedOtpValue, OTP_TYPE.REGISTRATION, otpExpiresAt);
         await sendOtpEmail(otpEntry.email, otp);
 
         return {
@@ -218,7 +220,7 @@ export class AuthService implements IAuthService {
         if (user.isBlocked) {
             throw genericError;
         }
-        if (user.role !== "admin") {
+        if (user.role !== ROLES.ADMIN) {
             throw genericError;
         }
 
@@ -271,7 +273,7 @@ export class AuthService implements IAuthService {
         const hashedOtpValue = await hashOtp(otp);
         const expiresAt = new Date(Date.now() + config.OTP_EXPIRY_SECONDS * 1000);
 
-        await this.otpRepository.upsert(user.email, hashedOtpValue, "password-reset", expiresAt, expiresAt);
+        await this.otpRepository.upsert(user.email, hashedOtpValue, OTP_TYPE.PASSWORD_RESET, expiresAt, expiresAt);
         await sendOtpEmail(user.email, otp);
 
         return {
@@ -281,7 +283,7 @@ export class AuthService implements IAuthService {
     }
 
     public async resetPassword(input: IResetPasswordInput): Promise<IResetPasswordResponse> {
-        const resetEntry = await this.otpRepository.findByEmailAndType(input.email.toLowerCase().trim(), "password-reset");
+        const resetEntry = await this.otpRepository.findByEmailAndType(input.email.toLowerCase().trim(), OTP_TYPE.PASSWORD_RESET);
         if (!resetEntry) {
             throw new AppError("Reset request expired. Please start over", 400);
         }
@@ -302,7 +304,7 @@ export class AuthService implements IAuthService {
 
         const hashedPassword = await bcrypt.hash(input.newPassword, config.BCRYPT_SALT_ROUNDS);
         await this.authRepository.updatePassword(user._id.toString(), hashedPassword);
-        await this.otpRepository.deleteByEmailAndType(input.email, "password-reset");
+        await this.otpRepository.deleteByEmailAndType(input.email, OTP_TYPE.PASSWORD_RESET);
 
         return {
             success: true,

@@ -1,5 +1,7 @@
 import { Document } from "mongoose";
 import type { UserResponseDTO } from "../dtos/userResponse.dto";
+import { ROLES } from "../../../constants/roles";
+import { OTP_TYPE } from "../../../constants/otp";
 
 export interface    IUser extends Document {
     name: string;
@@ -7,7 +9,7 @@ export interface    IUser extends Document {
     number?: string;
     hashedPassword?: string;
     googleId?: string;
-    role: "user" | "admin" | "provider";
+    role: ROLES;
     isBlocked: boolean;
     createdAt: Date;
 }
@@ -18,14 +20,14 @@ export interface ICreateUserData {
     number?: string;
     hashedPassword?: string;
     googleId?: string;
-    role: "user" | "admin" | "provider";
+    role: ROLES;
     isBlocked: boolean;
 }
 
 export interface IOtpEntry extends Document {
     email: string;
     hashedOtp: string;
-    type: "registration" | "password-reset";
+    type: OTP_TYPE;
     userData?: ICreateUserData;
     otpExpiresAt: Date;
     expiresAt: Date;
@@ -36,7 +38,7 @@ export interface ISendOtpInput {
     email: string;
     password: string;
     confirmPassword: string;
-    role: "user" | "admin" | "provider";
+    role: ROLES;
 }
 
 export interface IVerifyOtpInput {
@@ -90,7 +92,7 @@ export interface ILoginInput {
 
 export interface ITokenPayload {
     userId: string;
-    role: "user" | "admin" | "provider";
+    role: ROLES;
 }
 
 export interface ILoginResponse {
@@ -138,10 +140,10 @@ export interface ILogoutResponse {
 }
 
 export interface IOtpRepository {
-    upsert(email: string, hashedOtp: string, type: "registration" | "password-reset", otpExpiresAt: Date, expiresAt: Date, userData?: ICreateUserData): Promise<void>;
-    findByEmailAndType(email: string, type: "registration" | "password-reset"): Promise<IOtpEntry | null>;
-    deleteByEmailAndType(email: string, type: "registration" | "password-reset"): Promise<void>;
-    updateOtp(email: string, hashedOtp: string, type: "registration" | "password-reset", otpExpiresAt: Date): Promise<void>;
+    upsert(email: string, hashedOtp: string, type: OTP_TYPE, otpExpiresAt: Date, expiresAt: Date, userData?: ICreateUserData): Promise<void>;
+    findByEmailAndType(email: string, type: OTP_TYPE): Promise<IOtpEntry | null>;
+    deleteByEmailAndType(email: string, type: OTP_TYPE): Promise<void>;
+    updateOtp(email: string, hashedOtp: string, type: OTP_TYPE, otpExpiresAt: Date): Promise<void>;
     deleteByRefreshToken(token: string): Promise<void>;
 }
 
@@ -151,7 +153,7 @@ export interface IAuthRepository {
     findById(id: string): Promise<IUser | null>;
     createUser(data: ICreateUserData): Promise<IUser>;
     updatePassword(userId: string, hashedPassword: string): Promise<void>;
-    updateUserRole(userId: string, role: "user" | "admin" | "provider"): Promise<void>;
+    updateUserRole(userId: string, role: ROLES): Promise<void>;
     updateUser(userId: string, data: Partial<IUser>): Promise<IUser | null>;
 }
 

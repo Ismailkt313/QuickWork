@@ -1,11 +1,12 @@
 import { Request, Response } from "express";
 import { ConversationResponseDTO, MessageResponseDTO } from "../dto/message.response.dto";
+import { MESSAGE_TYPE } from "../../../constants/message";
 export interface IMessage {
     conversationId: string;
     sender: string;
     receiver: string;
     message: string;
-    messageType: string;
+    messageType: MESSAGE_TYPE;
     isRead: boolean;
 }
 
@@ -22,7 +23,7 @@ export interface IMessageResponse {
     sender: string;
     receiver: string;
     message: string;
-    messageType: string;
+    messageType: MESSAGE_TYPE;
     isRead: boolean;
     createdAt: Date;
     updatedAt: Date;

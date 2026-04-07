@@ -4,6 +4,7 @@ import ProviderDashboardCards from '../components/ProviderDashboardCards';
 import VerificationStatus from '../components/VerificationStatus';
 import { getMyProfile } from '../services/provider.service';
 import './style/DashboardPage.css';
+import { VERIFICATION_STATUS } from '../../../constants/verification';
 
 const ProviderDashboardPage: React.FC = () => {
   const [profile, setProfile] = useState<any>(null);
@@ -43,7 +44,7 @@ const ProviderDashboardPage: React.FC = () => {
     );
   }
 
-  const verification = profile?.verification || { status: 'pending' };
+  const verification = profile?.verificationStatus || { status: VERIFICATION_STATUS.PENDING };
 
   return (
     <div className="dashboard-shell">

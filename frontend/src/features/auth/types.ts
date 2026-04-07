@@ -1,3 +1,5 @@
+import { ROLES } from "../../constants/roles";
+
 export type RegisterFormProps = {
     mode: "/auth/login" | "/auth/signup";
 };
@@ -7,7 +9,7 @@ export type sendOtpPayload = {
     email: string,
     password: string,
     confirmPassword: string,
-    role?: "user" | "admin"
+    role?: ROLES
 }
 
 export type resendOtpPayload = {

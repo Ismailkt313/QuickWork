@@ -1,6 +1,7 @@
 import { Document, Types } from 'mongoose';
 import { Request, Response, NextFunction } from 'express';
 import { SubmitApplicationDTO } from '../dtos/submitApplication.dto';
+import { VERIFICATION_STATUS } from '../../../constants/verification';
 
 export interface ILocation {
     id: string;
@@ -14,7 +15,7 @@ export interface IPortfolioItem {
 }
 
 export interface IVerification {
-    status: 'pending' | 'verified' | 'rejected';
+    status: VERIFICATION_STATUS;
     verifiedBy?: Types.ObjectId;
     verifiedAt?: Date;
     rejectionReason?: string;
@@ -65,6 +66,7 @@ export interface IServiceProviderRepository {
     findProviders(filter: ProviderFilter): Promise<ProviderListResult>;
     findById(id: string): Promise<any>;
     updateByUserId(userId: string, data: any): Promise<any>;
+    deleteByUserId(userId: string): Promise<void>;
 }
 
 export interface IServiceProviderService {
@@ -78,6 +80,7 @@ export interface IServiceProviderService {
     getProviderById(id: string): Promise<{ success: boolean; data?: any; message?: string }>;
     getMyProfile(userId: string): Promise<{ success: boolean; data?: any; message?: string }>;
     updateProfile(userId: string, data: any): Promise<{ success: boolean; data?: any; message?: string }>;
+    resetApplication(userId: string): Promise<{ success: boolean; message: string }>;
 }
 
 export interface IServiceProviderController {
@@ -86,4 +89,5 @@ export interface IServiceProviderController {
     getProviderById(req: Request, res: Response, next: NextFunction): Promise<void>;
     getMyProfile(req: Request, res: Response, next: NextFunction): Promise<void>;
     updateProfile(req: Request, res: Response, next: NextFunction): Promise<void>;
+    resetApplication(req: Request, res: Response, next: NextFunction): Promise<void>;
 }

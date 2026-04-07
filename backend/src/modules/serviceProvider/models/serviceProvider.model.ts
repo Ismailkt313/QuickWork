@@ -1,5 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import { IServiceProvider } from '../interfaces/serviceProvider.interface';
+import { VERIFICATION_STATUS } from '../../../constants/verification';
 
 const LocationSchema = new Schema({
     id: { type: String, required: true },
@@ -15,8 +16,8 @@ const PortfolioItemSchema = new Schema({
 const VerificationSchema = new Schema({
     status: {
         type: String,
-        enum: ['pending', 'verified', 'rejected'],
-        default: 'pending'
+        enum: Object.values(VERIFICATION_STATUS),
+        default: VERIFICATION_STATUS.PENDING
     },
     verifiedBy: { type: Schema.Types.ObjectId, ref: 'User' },
     verifiedAt: { type: Date },
@@ -39,7 +40,7 @@ const ServiceProviderSchema = new Schema<IServiceProvider>({
             'At least one portfolio item is required'
         ]
     },
-    verification: { type: VerificationSchema, default: () => ({ status: 'pending' }) },
+    verification: { type: VerificationSchema, default: () => ({ status: VERIFICATION_STATUS.PENDING }) },
     isActive: { type: Boolean, default: false },
     submittedAt: { type: Date, default: Date.now }
 }, {

@@ -1,5 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import { IServiceRequest } from '../interfaces/serviceRequest.interface';
+import { SKILL_STATUS } from '../../../constants/skill';
 
 const ServiceRequestSchema = new Schema<IServiceRequest>({
     name: {
@@ -24,8 +25,8 @@ const ServiceRequestSchema = new Schema<IServiceRequest>({
     },
     status: {
         type: String,
-        enum: ['pending', 'approved', 'rejected'],
-        default: 'pending',
+        enum: Object.values(SKILL_STATUS),
+        default: SKILL_STATUS.PENDING,
         index: true
     },
     reviewedBy: {

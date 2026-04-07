@@ -10,6 +10,7 @@ export const createServiceProviderRouter = (serviceProviderController: IServiceP
     router.get('/profile', authMiddleware, serviceProviderController.getMyProfile);
     router.patch('/profile', authMiddleware, serviceProviderController.updateProfile);
     router.get('/:id', serviceProviderController.getProviderById);
+    router.post('/reset', authMiddleware, serviceProviderController.resetApplication);
 
     return router;
 };

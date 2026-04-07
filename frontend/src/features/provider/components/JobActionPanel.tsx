@@ -1,9 +1,9 @@
 import React from 'react';
-import { 
-  RiCalendarLine, 
-  RiMapPinLine, 
-  RiTimeLine, 
-  RiMessage3Line, 
+import {
+  RiCalendarLine,
+  RiMapPinLine,
+  RiTimeLine,
+  RiMessage3Line,
   RiHeartLine
 } from 'react-icons/ri';
 
@@ -195,7 +195,6 @@ const JobActionPanel: React.FC<JobActionPanelProps> = ({
             padding: 1rem !important;
             font-size: 14px !important;
           }
-          .card-body > .mt-2 button:nth-child(2),
           .card-body > .mt-2 button:nth-child(3) {
             display: none !important;
           }

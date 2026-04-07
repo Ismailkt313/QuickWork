@@ -1,3 +1,5 @@
+import { JOB_DURATION_TYPE } from "../../../../constants/jobDuration";
+
 export interface ServiceCategory {
     _id: string;
     id: string;
@@ -14,7 +16,7 @@ export interface JobFormData {
     description: string;
     category: string;
 
-    durationType: string;
+    durationType: JOB_DURATION_TYPE;
     startDate: string;
     days: string;
     minBudget: string;

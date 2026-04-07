@@ -6,7 +6,8 @@ import {
   RiMoneyDollarCircleLine, 
   RiVerifiedBadgeFill,
   RiAddLine,
-  RiBriefcaseLine
+  RiBriefcaseLine,
+  RiAddCircleLine
 } from 'react-icons/ri';
 import { getMyProfile, fetchSkills, fetchLocations } from '../services/provider.service';
 import FallbackScreen from '../../../components/ui/FallbackScreen';
@@ -14,6 +15,7 @@ import { toast } from 'react-toastify';
 import EditProfileModal from '../components/EditProfileModal';
 import EditSkillsModal from '../components/EditSkillsModal';
 import EditPortfolioModal from '../components/EditPortfolioModal';
+import RequestSkillModal from '../components/RequestSkillModal';
 import './ProviderProfilePage.css';
 
 const ProviderProfilePage: React.FC = () => {
@@ -26,6 +28,7 @@ const ProviderProfilePage: React.FC = () => {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showEditSkills, setShowEditSkills] = useState(false);
   const [showEditPortfolio, setShowEditPortfolio] = useState(false);
+  const [showRequestSkill, setShowRequestSkill] = useState(false);
   const [editingPortfolioItem, setEditingPortfolioItem] = useState<any>(null);
 
   const loadData = async () => {
@@ -209,6 +212,14 @@ const ProviderProfilePage: React.FC = () => {
               ))}
               {profile.skills.length === 0 && <p className="text-muted small">No skills added yet.</p>}
             </div>
+            <div className="mt-4 pt-3 border-top">
+              <button 
+                className="btn btn-link p-0 text-primary small text-decoration-none d-flex align-items-center gap-2 fw-600"
+                onClick={() => setShowRequestSkill(true)}
+              >
+                <RiAddCircleLine size={18} /> Request New Skill
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -241,6 +252,13 @@ const ProviderProfilePage: React.FC = () => {
           onSuccess={loadData}
           portfolio={profile.portfolio}
           itemToEdit={editingPortfolioItem}
+        />
+      )}
+
+      {showRequestSkill && (
+        <RequestSkillModal 
+          isOpen={showRequestSkill}
+          onClose={() => setShowRequestSkill(false)}
         />
       )}
     </div>

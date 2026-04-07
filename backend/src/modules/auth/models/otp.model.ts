@@ -1,5 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import { IOtpEntry } from "../interfaces/auth.interface";
+import { OTP_TYPE } from "../../../constants/otp";
+import { ROLES } from "../../../constants/roles";
 
 const OtpEntrySchema: Schema<IOtpEntry> = new Schema<IOtpEntry>(
     {
@@ -15,14 +17,14 @@ const OtpEntrySchema: Schema<IOtpEntry> = new Schema<IOtpEntry>(
         },
         type: {
             type: String,
-            enum: ["registration", "password-reset"],
+            enum: Object.values(OTP_TYPE),
             required: true,
         },
         userData: {
             name: { type: String, required: false },
             email: { type: String, required: false },
             hashedPassword: { type: String, required: false },
-            role: { type: String, required: false },
+            role: { type: String, enum: Object.values(ROLES), required: false },
             isBlocked: { type: Boolean, default: false },
         },
         otpExpiresAt: {

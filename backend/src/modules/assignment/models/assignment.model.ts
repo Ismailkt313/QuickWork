@@ -1,18 +1,19 @@
 import mongoose, { Schema } from 'mongoose';
 import { IAssignment } from '../interfaces/assignment.interface';
+import { ASSIGNMENT_STATUS, WORK_STATUS, ASSIGNMENT_TYPE } from '../../../constants/assignment';
 
 const AssignmentSchema: Schema = new Schema(
     {
         jobId: { type: Schema.Types.ObjectId, ref: 'Job', required: true },
         freelancerId: { type: Schema.Types.ObjectId, ref: 'ServiceProvider', required: true },
-        type: { type: String, enum: ['open', 'direct'], required: true },
+        type: { type: String, enum: Object.values(ASSIGNMENT_TYPE), required: true },
         invite: {
-            status: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' },
+            status: { type: String, enum: Object.values(ASSIGNMENT_STATUS), default: ASSIGNMENT_STATUS.PENDING },
             invitedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
             invitedAt: { type: Date, default: Date.now },
             respondedAt: { type: Date }
         },
-        workStatus: { type: String, enum: ['assigned', 'in_progress', 'completed', 'cancelled'], default: 'assigned' },
+        workStatus: { type: String, enum: Object.values(WORK_STATUS), default: WORK_STATUS.ASSIGNED },
         schedule: {
             startDate: { type: Date, required: true },
             endDate: { type: Date, required: true }

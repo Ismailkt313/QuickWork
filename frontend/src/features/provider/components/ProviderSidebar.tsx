@@ -21,6 +21,8 @@ import {
 import { NavLink, Link } from 'react-router-dom';
 import './ProviderSidebar.css';
 import { api } from '../../../services/api';
+import { JOB_STATUS } from '../../../constants/jobStatus';
+import { WORK_STATUS } from '../../../constants/assignment';
 
 // ─── Types ────────────────────────────────────────────────────
 interface NavItem {
@@ -166,10 +168,10 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
     const fetchCounts = async () => {
       try {
          const offersRes = await api.get('/job/offers');
-        const pendingCount = (offersRes.data.data || []).filter((r: any) => r.status === 'open').length;
+        const pendingCount = (offersRes.data.data || []).filter((r: any) => r.status === JOB_STATUS.OPEN).length;
 
          const assignmentsRes = await api.get('/assignment/my');
-        const activeCount = (assignmentsRes.data.data || []).filter((as: any) => as.workStatus === 'assigned' || as.workStatus === 'in_progress').length;
+        const activeCount = (assignmentsRes.data.data || []).filter((as: any) => as.workStatus === WORK_STATUS.ASSIGNED || as.workStatus === WORK_STATUS.IN_PROGRESS).length;
 
         setNavItems(prev => prev.map(item => {
           if (item.id === 'requests') {

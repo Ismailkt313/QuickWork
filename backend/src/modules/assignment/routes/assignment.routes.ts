@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { IAssignmentController } from '../interfaces/assignment.interface';
 import { authMiddleware } from '../../../middleware/auth.middleware';
 import { authorizeRoles } from '../../../middleware/role.middleware';
-import { ROLES } from '../../admin/interfaces/admin.interface';
+import { ROLES } from '../../../constants/roles';
 
 export function createAssignmentRouter(controller: IAssignmentController): Router {
   const router = Router();

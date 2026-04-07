@@ -1,6 +1,9 @@
 import { Document, Types } from 'mongoose';
 import { CreateJobDTO } from '../dtos/createJob.dto';
 import { JobResponseDTO } from '../dtos/jobResponse.dto';
+import { JOB_STATUS } from '../../../constants/jobStatus';
+import { JOB_VISIBILITY } from '../../../constants/jobVisibility';
+import { JOB_DURATION_TYPE } from '../../../constants/jobDuration';
 
 export interface IJob extends Document {
     title: string;
@@ -15,7 +18,7 @@ export interface IJob extends Document {
     applicantsCount: number;
     isUrgent: boolean;
 
-    durationType: string;
+    durationType: JOB_DURATION_TYPE;
     schedule: {
         startDate: Date;
         endDate: Date;
@@ -24,9 +27,9 @@ export interface IJob extends Document {
     freelancersNeeded: number;
     acceptedFreelancers: number;
     userId: Types.ObjectId;
-    visibility: 'public' | 'private';
+    visibility: JOB_VISIBILITY;
     hiredProviderId?: Types.ObjectId;
-    status: 'open' | 'partially_assigned' | 'fully_assigned' | 'in_progress' | 'completed' | 'cancelled' | 'rejected';
+    status: JOB_STATUS;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -60,7 +63,7 @@ export interface IJobRepository {
     findAllOpen(page: number, limit: number, filters: any): Promise<{ jobs: IJob[], total: number }>;
     findById(id: string): Promise<IJob | null>;
     findByProvider(providerId: string): Promise<IJob[]>;
-    updateStatus(id: string, status: string): Promise<IJob | null>;
+    updateStatus(id: string, status: JOB_STATUS): Promise<IJob | null>;
     findByConditionAndUpdate(query: any, update: any): Promise<IJob | null>;
 }
 

@@ -2,6 +2,7 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { config } from "./index";
 import { UserModel } from "../modules/auth/models/user.model";
+import { ROLES } from "../constants/roles";
 
 passport.use(
     new GoogleStrategy({
@@ -38,7 +39,7 @@ passport.use(
                     email,
                     name: profile.displayName,
                     googleId: profile.id,
-                    role: "user",
+                    role: ROLES.USER,
                     isService_provider: false,
                     isBlocked: false,
                 });

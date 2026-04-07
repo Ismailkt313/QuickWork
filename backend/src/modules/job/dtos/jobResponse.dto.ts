@@ -42,13 +42,16 @@ export const mapJobToResponseDTO = (job: any): JobResponseDTO => {
         };
     }
 
+    const clientId = user._id ? user._id.toString() : (typeof user === 'string' ? user : (user.id ? user.id.toString() : ""));
+    const clientName = user.name || 'Anonymous';
+
     return {
         id: job._id ? job._id.toString() : job.id,
-        clientId: user._id ? user._id.toString() : user.id,
+        clientId,
         title: job.title,
         description: job.description,
-        clientName: user.name || 'Anonymous',
-        clientInitials: getInitials(user.name),
+        clientName,
+        clientInitials: getInitials(clientName),
         location: location.name || 'Remote',
         postedAt: getRelativeTime(job.createdAt),
         skills: skill.name ? [skill.name] : [], 

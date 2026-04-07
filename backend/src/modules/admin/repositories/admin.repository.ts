@@ -4,6 +4,8 @@ import { UserModel } from "../../auth/models/user.model";
 import { AppError } from "../../../utils/AppError";
 import { ServiceProviderModel } from "../../serviceProvider/models/serviceProvider.model";
 import { IServiceProviderWithUser } from "../interfaces/admin.interface";
+import { ROLES } from "../../../constants/roles";
+import { VERIFICATION_STATUS } from "../../../constants/verification";
 
 export class AdminRepository implements IAdminRepository {
 
@@ -46,7 +48,7 @@ export class AdminRepository implements IAdminRepository {
         return user;
     }
     public async getPendingProviders(): Promise<IServiceProviderWithUser[]> {
-        return ServiceProviderModel.find({ 'verification.status': 'pending' })
+        return ServiceProviderModel.find({ 'verification.status': VERIFICATION_STATUS.PENDING })
             .populate('userId', 'name email')
             .lean<IServiceProviderWithUser[]>();
     }
@@ -57,16 +59,16 @@ export class AdminRepository implements IAdminRepository {
             throw new AppError("Service provider not found", 404);
         }
 
-        if (provider.verification.status === 'verified') {
+        if (provider.verification.status === VERIFICATION_STATUS.VERIFIED) {
             throw new AppError("Provider is already approved", 400);
         }
 
-        provider.verification.status = 'verified';
+        provider.verification.status = VERIFICATION_STATUS.VERIFIED;
         provider.verification.verifiedAt = new Date();
         provider.isActive = true;
         await provider.save();
 
-        await UserModel.findByIdAndUpdate(provider.userId, { role: 'provider' });
+        await UserModel.findByIdAndUpdate(provider.userId, { role: ROLES.PROVIDER });
     }
 
     public async rejectProvider(providerId: string, reason: string): Promise<void> {
@@ -75,15 +77,15 @@ export class AdminRepository implements IAdminRepository {
             throw new AppError("Service provider not found", 404);
         }
 
-        if (provider.verification.status === 'rejected') {
+        if (provider.verification.status === VERIFICATION_STATUS.REJECTED) {
             throw new AppError("Provider is already rejected", 400);
         }
 
-        provider.verification.status = 'rejected';
+        provider.verification.status = VERIFICATION_STATUS.REJECTED;
         provider.verification.rejectionReason = reason;
         provider.isActive = false;
         await provider.save();
-        await UserModel.findByIdAndUpdate(provider.userId, { role: 'user' });
+        await UserModel.findByIdAndUpdate(provider.userId, { role: ROLES.USER });
 
     }
 }

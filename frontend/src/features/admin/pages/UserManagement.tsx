@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { getUsers, toggleBlockUser } from "../services/adminApi";
 import type { IUserListItem } from "../services/adminApi";
+import { ROLES } from "../../../constants/roles";
 
 interface ToastItem {
     id: number;
@@ -115,15 +116,15 @@ const UserManagement = () => {
         });
     };
 
-    const getRoleBadgeClass = (role: string) => {
-        if (role === "provider") return "provider";
-        if (role === "admin") return "admin";
+    const getRoleBadgeClass = (role: ROLES) => {
+        if (role === ROLES.PROVIDER) return "provider";
+        if (role === ROLES.ADMIN) return "admin";
         return "user";
     };
 
-    const getRoleLabel = (role: string) => {
-        if (role === "provider") return "Provider";
-        return role === "admin" ? "Admin" : "User";
+    const getRoleLabel = (role: ROLES) => {
+        if (role === ROLES.PROVIDER) return "Provider";
+        return role === ROLES.ADMIN ? "Admin" : "User";
     };
 
     const activeCount = users ? users.filter((u) => !u.isBlocked).length : 0;

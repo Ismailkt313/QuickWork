@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useSocket } from '../../message/hooks/useSocket';
 import { useMessages } from '../../message/hooks/useMessages';
 import { ChatWindow } from '../../message/components/chatwindow';
@@ -14,6 +14,7 @@ const MessagesPage: React.FC = () => {
   const [loadingConversations, setLoadingConversations] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchParams] = useSearchParams();
+  const [placeholderAdded, setPlaceholderAdded] = useState(false);
 
   const targetUserId = searchParams.get("userId");
   const targetUserName = searchParams.get("name");
@@ -22,11 +23,19 @@ const MessagesPage: React.FC = () => {
   const socket = useSocket(token!);
   const { messages, sendMessage, loadMessages, loading: loadingMessages } = useMessages(socket, selectedConversationId);
 
+  // Use refs to avoid stale closures in socket handlers
+  const selectedConvIdRef = useRef(selectedConversationId);
+  const currentUserIdRef = useRef("");
+
+  useEffect(() => {
+    selectedConvIdRef.current = selectedConversationId;
+  }, [selectedConversationId]);
+
   const fetchUser = useCallback(async () => {
     try {
       const response = await getMe();
       if (response.success) {
-        setUser(response.data);
+        setUser(response.data.data || response.data);
       }
     } catch (error) {
       console.error("Failed to fetch user:", error);
@@ -38,7 +47,30 @@ const MessagesPage: React.FC = () => {
     try {
       const response = await getConversations();
       if (response.success) {
-        setConversations(response.data);
+        setConversations(prev => {
+          // Normalize existing conversations for merging
+          const serverConvs = response.data || [];
+          
+          // Re-incorporate any placeholders currently in use
+          const placeholders = prev.filter(c => c.isPlaceholder);
+          const merged = [...serverConvs];
+
+          placeholders.forEach(ph => {
+            const phTargetId = ph.participants.find(
+              (p: any) => String(p._id || p.id) !== String(currentUserIdRef.current)
+            )?._id;
+
+            const alreadyExists = serverConvs.some((sc: any) =>
+              sc.participants.some((p: any) => String(p._id || p.id) === String(phTargetId))
+            );
+
+            if (!alreadyExists) {
+              merged.unshift(ph);
+            }
+          });
+
+          return merged;
+        });
       }
     } catch (error) {
       console.error("Failed to fetch conversations:", error);
@@ -55,71 +87,103 @@ const MessagesPage: React.FC = () => {
   // Normalize user ID — getMe() returns .id, conversations use ._id
   const currentUserId = user?.id || user?._id || "";
 
-  // Handle auto-selection from query params
   useEffect(() => {
-    if (!loadingConversations && targetUserId && currentUserId) {
-      const existingConv = conversations.find(conv => 
-        conv.participants.some((p: any) => p._id === targetUserId)
-      );
-
-      if (existingConv) {
-        setSelectedConversationId(existingConv.id);
-      } else if (targetUserName) {
-        const placeholderId = `new-${targetUserId}`;
-        const placeholderConv = {
-          id: placeholderId,
-          participants: [
-            { _id: currentUserId, name: user.name },
-            { _id: targetUserId, name: targetUserName }
-          ],
-          lastMessage: "Start a new conversation",
-          lastMessageAt: new Date(),
-          isPlaceholder: true
-        };
-        setConversations(prev => [placeholderConv, ...prev]);
-        setSelectedConversationId(placeholderId);
-      }
+    currentUserIdRef.current = currentUserId;
+    if (currentUserId) {
+        console.log("DEBUG: currentUserId resolved as:", currentUserId);
     }
-  }, [loadingConversations, targetUserId, targetUserName, currentUserId]);
+  }, [currentUserId]);
+
+  // Handle auto-selection from query params (run when user and conversations are ready)
+  useEffect(() => {
+    if (placeholderAdded || !currentUserId || loadingConversations || !targetUserId) return;
+
+    console.log("DEBUG CHECK: targetUserId:", targetUserId, "currentUserId:", currentUserId);
+
+    const stringTargetId = String(targetUserId).trim();
+    const stringCurrentId = String(currentUserId).trim();
+
+    // Check for self-messaging for debugging purposes
+    if (stringTargetId === stringCurrentId) {
+        console.warn("DEBUG: Provider is attempting to message themselves!");
+    }
+
+    const existingConv = conversations.find(conv =>
+      conv.participants.some((p: any) => String(p._id || p.id).trim() === stringTargetId)
+    );
+
+    if (existingConv) {
+      setSelectedConversationId(existingConv.id);
+      setPlaceholderAdded(true);
+    } else if (targetUserName) {
+      const placeholderId = `new-${stringTargetId}`;
+      const placeholderConv = {
+        id: placeholderId,
+        participants: [
+          { _id: stringCurrentId, name: user?.name || "Provider" },
+          { _id: stringTargetId, name: targetUserName }
+        ],
+        lastMessage: "Start a new conversation",
+        lastMessageAt: new Date(),
+        isPlaceholder: true
+      };
+      setConversations(prev => {
+        if (prev.some(c => c.id === placeholderId)) return prev;
+        return [placeholderConv, ...prev];
+      });
+      setSelectedConversationId(placeholderId);
+      setPlaceholderAdded(true);
+    }
+  }, [loadingConversations, targetUserId, targetUserName, currentUserId, placeholderAdded, conversations]);
 
   // Handle real-time updates for conversation list
   useEffect(() => {
     if (!socket) return;
+
     const handleNewConversationMessage = (newMessage: any) => {
-      // Update selectedConversationId if it matches the placeholder for this sender
-      if (
-        selectedConversationId?.startsWith("new-") && 
-        selectedConversationId === `new-${newMessage.sender}`
-      ) {
-        setSelectedConversationId(newMessage.conversationId);
+      const currentSelectedId = selectedConvIdRef.current;
+      const myUserId = currentUserIdRef.current;
+
+      // Transition placeholder to real conversation ID upon receipt of first message
+      if (currentSelectedId?.startsWith("new-")) {
+        const placeholderTargetId = currentSelectedId.replace("new-", "");
+        const involvesTarget =
+          String(newMessage.sender) === String(placeholderTargetId) ||
+          String(newMessage.receiver) === String(placeholderTargetId);
+
+        if (involvesTarget && newMessage.conversationId) {
+          setSelectedConversationId(newMessage.conversationId);
+        }
       }
 
       setConversations(prev => {
         const convExists = prev.some(c => c.id === newMessage.conversationId);
-        
-        if (!convExists && newMessage.conversationId) {
-          fetchConversations();
-          return prev;
+
+        const updated = prev.map(conv => {
+            // Check if this update belongs to our active placeholder
+            const phTargetId = conv.participants.find((p: any) => String(p._id || p.id) !== String(myUserId))?._id;
+            const involvesThisParticipant = String(newMessage.sender) === String(phTargetId) || String(newMessage.receiver) === String(phTargetId);
+
+            if (conv.id === newMessage.conversationId || (conv.isPlaceholder && involvesThisParticipant)) {
+                return {
+                    ...conv,
+                    id: newMessage.conversationId,
+                    isPlaceholder: false,
+                    lastMessage: newMessage.message,
+                    lastMessageAt: new Date(),
+                };
+            }
+            return conv;
+        });
+
+        if (!convExists && !prev.some(c => c.isPlaceholder && String(c.id).includes(String(newMessage.sender)))) {
+            fetchConversations();
         }
 
-        return prev.map(conv => {
-          const isMyPlaceholder = 
-            conv.isPlaceholder && 
-            conv.participants.some((p: any) => p._id === newMessage.sender);
-
-          if (conv.id === newMessage.conversationId || isMyPlaceholder) {
-            return {
-              ...conv,
-              id: newMessage.conversationId, 
-              isPlaceholder: false,
-              lastMessage: newMessage.message,
-              lastMessageAt: new Date(),
-            };
-          }
-          return conv;
-        });
+        return updated;
       });
     };
+
     socket.on("receiveMessage", handleNewConversationMessage);
     return () => {
       socket.off("receiveMessage", handleNewConversationMessage);
@@ -132,22 +196,34 @@ const MessagesPage: React.FC = () => {
     }
   }, [selectedConversationId, loadMessages]);
 
-  const activeConversation = conversations.find(c => c.id === selectedConversationId);
-  
+  const activeConversation = conversations.find(c => String(c.id) === String(selectedConversationId));
+
   const getRecipientDetails = (conversation: any) => {
-    if (!currentUserId || !conversation) return { name: "System", id: null };
-    const recipient = conversation.participants.find((p: any) => p._id !== currentUserId);
+    if (!currentUserId || !conversation || !conversation.participants) {
+      return { name: "System", id: null };
+    }
+
+    const normalizedCurrentId = String(currentUserId).trim();
+
+    const recipient = conversation.participants.find((p: any) =>
+      String(p._id || p.id).trim() !== normalizedCurrentId
+    );
+     
+    // Fallback: if we can't find another participant (self-messaging or data error), use the first one
+    const actualRecipient = recipient || conversation.participants[0];
+
     return {
-      name: recipient?.name || "User",
-      id: recipient?._id || null
+      name: actualRecipient?.name || "User",
+      id: actualRecipient?._id || actualRecipient?.id || null
     };
   };
 
   const recipient = getRecipientDetails(activeConversation);
 
   const filteredConversations = conversations.filter(c => {
-    const otherParticipant = c.participants.find((p: any) => p._id !== currentUserId);
-    return otherParticipant?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+    if (!c.participants) return false;
+    const recipientInfo = getRecipientDetails(c);
+    return recipientInfo.name.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   if (!user) {
@@ -169,7 +245,7 @@ const MessagesPage: React.FC = () => {
 
       <div className="row g-4" style={{ height: 'calc(100vh - 220px)' }}>
         <div className="col-12 col-md-4 col-lg-3 h-100">
-          <Sidebar 
+          <Sidebar
             conversations={filteredConversations}
             activeConversationId={selectedConversationId}
             onSelect={setSelectedConversationId}
@@ -182,7 +258,7 @@ const MessagesPage: React.FC = () => {
 
         <div className="col-12 col-md-8 col-lg-9 h-100">
           <ChatWindow
-            messages={selectedConversationId?.startsWith('new-') ? [] : messages}
+            messages={messages}
             loading={loadingMessages}
             sendMessage={sendMessage}
             receiverId={recipient.id}

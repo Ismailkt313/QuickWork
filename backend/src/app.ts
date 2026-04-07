@@ -3,13 +3,13 @@ import cors from "cors";
 import passport from "./config/passport";
 import { registerdRoutes } from "./routes";
 import { errorHandler } from "./middleware/errorHandler";
-
+import { config } from "./config/index";
 
 const app: Application = express();
 
 const allowedOrigins = [
-  "http://localhost:5173",
-  "https://quick-work-lemon.vercel.app"
+  config.FRONTEND_URL,
+  config.VERCEL_URL
 ];
 
 app.use(cors({

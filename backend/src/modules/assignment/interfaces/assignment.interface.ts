@@ -1,16 +1,17 @@
 import { Document, Types } from 'mongoose';
+import { ASSIGNMENT_STATUS, WORK_STATUS, ASSIGNMENT_TYPE } from '../../../constants/assignment';
 
 export interface IAssignment extends Document {
     jobId: Types.ObjectId;
     freelancerId: Types.ObjectId;
-    type: 'open' | 'direct';
+    type: ASSIGNMENT_TYPE;
     invite: {
-        status: 'pending' | 'accepted' | 'rejected';
+        status: ASSIGNMENT_STATUS;
         invitedBy: Types.ObjectId;
         invitedAt: Date;
         respondedAt?: Date;
     };
-    workStatus: 'assigned' | 'in_progress' | 'completed' | 'cancelled';
+    workStatus: WORK_STATUS;
     schedule: {
         startDate: Date;
         endDate: Date;
@@ -43,7 +44,7 @@ export interface IAssignmentService {
     cancelAssignmentsByJob(jobId: string): Promise<void>;
     getAssignmentById(id: string): Promise<IAssignment | null>;
     getAssignmentsByJobId(jobId: string): Promise<IAssignment[]>;
-    updateStatus(id: string, status: string): Promise<IAssignment | null>;
+    updateStatus(id: string, status: WORK_STATUS): Promise<IAssignment | null>;
     submitProof(id: string, proofData: { images: string[], description: string }): Promise<IAssignment | null>;
     getAssignmentCountByJob(jobId: string): Promise<number>;
 }

@@ -49,10 +49,10 @@ const PRIMARY_NAV: NavItem[] = [
 
 const SECONDARY_NAV: NavItem[] = [
   {
-    id: 'profile',
-    label: 'Profile',
+    id: 'messages',
+    label: 'Messages',
     icon: <RiUser3Line />,
-    href: '/user/profile',
+    href: '/user/messages',
   },
   {
     id: 'security',

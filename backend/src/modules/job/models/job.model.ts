@@ -1,5 +1,8 @@
 import mongoose, { Schema } from 'mongoose';
 import { IJob } from '../interfaces/job.interface';
+import { JOB_STATUS } from '../../../constants/jobStatus';
+import { JOB_VISIBILITY } from '../../../constants/jobVisibility';
+import { JOB_DURATION_TYPE } from '../../../constants/jobDuration';
 
 const JobSchema: Schema = new Schema(
     {
@@ -23,7 +26,7 @@ const JobSchema: Schema = new Schema(
 
         durationType: {
             type: String,
-            enum: ['half_day', 'full_day', 'multi_day'],
+            enum: Object.values(JOB_DURATION_TYPE),
             required: true
         },
         schedule: {
@@ -42,8 +45,8 @@ const JobSchema: Schema = new Schema(
         userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
         visibility: { 
             type: String, 
-            enum: ['public', 'private'], 
-            default: 'public' 
+            enum: Object.values(JOB_VISIBILITY), 
+            default: JOB_VISIBILITY.PUBLIC 
         },
         hiredProviderId: { 
             type: Schema.Types.ObjectId, 
@@ -51,8 +54,8 @@ const JobSchema: Schema = new Schema(
         },
         status: { 
             type: String, 
-            enum: ['open', 'partially_assigned', 'fully_assigned', 'in_progress', 'completed', 'cancelled', 'rejected'], 
-            default: 'open' 
+            enum: Object.values(JOB_STATUS), 
+            default: JOB_STATUS.OPEN 
         },
         rejectionReason: { type: String }
     },
@@ -64,7 +67,7 @@ const JobSchema: Schema = new Schema(
 // Pre-save hook to enforce private job constraints
 JobSchema.pre('save', function(next) {
     if (this.isModified('visibility') || this.isNew) {
-        if (this.get('visibility') === 'private') {
+        if (this.get('visibility') === JOB_VISIBILITY.PRIVATE) {
             this.set('freelancersNeeded', 1);
         }
     }

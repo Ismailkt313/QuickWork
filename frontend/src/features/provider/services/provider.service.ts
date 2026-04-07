@@ -179,3 +179,12 @@ export const uploadMultipleImages = async (files: FileList | File[]): Promise<{ 
     }
 };
 
+export const resetProviderApplication = async (): Promise<{ success: boolean; message: string }> => {
+    try {
+        const response = await api.post("/provider/reset");
+        return response.data;
+    } catch (error: any) {
+        throw new Error(error.response?.data?.message || "Failed to reset application");
+    }
+};
+

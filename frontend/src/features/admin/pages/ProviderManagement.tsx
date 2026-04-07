@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { getPendingProviders, approveProvider, rejectProvider } from "../services/adminApi";
 import type { IUserListItem } from "../services/adminApi";
+import "../admin.css";
 
 interface ToastItem {
     id: number;
@@ -73,6 +74,7 @@ const ProviderManagement = () => {
     const executeApprove = async () => {
         setModal((prev) => ({ ...prev, loading: true }));
         try {
+            
             await approveProvider(modal.providerId);
             setProviders((prev) => prev.filter((p) => p.id !== modal.providerId));
             showToast("success", `Provider ${modal.providerName} has been approved successfully.`);

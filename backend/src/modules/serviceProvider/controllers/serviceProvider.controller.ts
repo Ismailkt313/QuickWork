@@ -136,5 +136,25 @@ export class ServiceProviderController implements IServiceProviderController {
             next(error);
         }
     };
+
+    resetApplication = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const userId = (req as any).user?.userId;
+            if (!userId) {
+                res.status(401).json({ success: false, message: 'Unauthorized access' });
+                return;
+            }
+
+            const result = await this.serviceProviderService.resetApplication(userId);
+            if (!result.success) {
+                res.status(400).json(result);
+                return;
+            }
+
+            res.status(200).json(result);
+        } catch (error) {
+            next(error);
+        }
+    };
 }
 

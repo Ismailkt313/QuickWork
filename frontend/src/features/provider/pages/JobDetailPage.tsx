@@ -10,7 +10,8 @@ import ActionErrorModal from '../components/ActionErrorModal';
 import { RiMapPinUserLine, RiMapPinRangeLine } from 'react-icons/ri';
 import { toast } from 'react-toastify';
 import { useProviderLocation } from '../hooks/useProviderLocation';
-import { acceptJob } from '../services/provider.service';
+import { acceptJob, getMyProfile } from '../services/provider.service';
+import VerificationPendingModal from '../components/VerificationPendingModal';
 
 const JobDetailPage: React.FC = () => {
   const { jobId } = useParams() as { jobId: string };
@@ -23,14 +24,34 @@ const JobDetailPage: React.FC = () => {
       title: '',
       message: ''
   });
+  const [verificationStatus, setVerificationStatus] = React.useState<string>('pending');
+  const [isPendingModalOpen, setIsPendingModalOpen] = React.useState(false);
 
   const providerLocation = useProviderLocation();
+
+  React.useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const response = await getMyProfile();
+        if (response.success && response.data) {
+          setVerificationStatus(response.data.verificationStatus || 'pending');
+        }
+      } catch (err) {
+        console.error('Error fetching profile status:', err);
+      }
+    };
+    fetchStatus();
+  }, []);
 
   const handleBack = () => {
     navigate('/provider/available-jobs');
   };
 
   const handleAccept = () => {
+    if (verificationStatus === 'pending') {
+      setIsPendingModalOpen(true);
+      return;
+    }
     // Logic: If job location is different from provider location, show modal
     if (job && job.location !== providerLocation) {
       setIsLocationModalOpen(true);
@@ -195,6 +216,11 @@ const JobDetailPage: React.FC = () => {
             label: 'View My Schedule',
             onClick: () => navigate('/provider/my-jobs')
         } : undefined}
+      />
+
+      <VerificationPendingModal 
+        isOpen={isPendingModalOpen}
+        onClose={() => setIsPendingModalOpen(false)}
       />
 
       <style>{`

@@ -1,7 +1,7 @@
 import { Router } from 'express';
  import { authMiddleware } from '../../../middleware/auth.middleware';
 import { authorizeRoles } from '../../../middleware/role.middleware';
-import { ROLES } from '../../admin/interfaces/admin.interface';
+import { ROLES } from '../../../constants/roles';
 import { IServiceRequestController } from '../interfaces/serviceRequest.interface';
 
 export const createServiceRequestRouter = (controller: IServiceRequestController): Router => {

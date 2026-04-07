@@ -2,9 +2,10 @@ import React from 'react';
 import { FiCheckCircle, FiClock, FiAlertCircle, FiChevronRight } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import './style/VerificationStatus.css';
+import { VERIFICATION_STATUS } from '../../../constants/verification';
 
 interface VerificationStatusProps {
-  status: 'pending' | 'verified' | 'rejected';
+  status: VERIFICATION_STATUS;
   rejectionReason?: string;
   onRefresh?: () => void;
 }
@@ -14,7 +15,7 @@ const VerificationStatus: React.FC<VerificationStatusProps> = ({ status, rejecti
 
   const renderContent = () => {
     switch (status) {
-      case 'verified':
+      case VERIFICATION_STATUS.VERIFIED:
         return (
           <div className="vs-root verified">
             <div className="vs-content">
@@ -31,7 +32,7 @@ const VerificationStatus: React.FC<VerificationStatusProps> = ({ status, rejecti
           </div>
         );
 
-      case 'pending':
+      case VERIFICATION_STATUS.PENDING:
         return (
           <div className="vs-root pending">
             <div className="vs-content">
@@ -51,7 +52,7 @@ const VerificationStatus: React.FC<VerificationStatusProps> = ({ status, rejecti
           </div>
         );
 
-      case 'rejected':
+      case VERIFICATION_STATUS.REJECTED:
         return (
           <div className="vs-root rejected">
             <div className="vs-content">

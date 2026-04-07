@@ -1,4 +1,5 @@
 import axios from "axios";
+import { ROLES } from "../../../constants/roles";
 const apiUrl = import.meta.env.VITE_API_URL
 console.log(apiUrl, 'API URL is here')
 
@@ -28,7 +29,7 @@ export interface IUserListItem {
   firstName?: string;
   lastName?: string;
   email?: string;
-  role: string;
+  role: ROLES;
   isBlocked: boolean;
   createdAt: string;
 }
@@ -42,7 +43,9 @@ export const getPendingProviders = () => {
 };
 
 export const approveProvider = (id: string) => {
-  return Adminapi.patch(`/admin/provider/${id}/approve`);
+  const response = Adminapi.patch(`/admin/provider/${id}/approve`);
+  console.log(response, 'response is here')
+  return response;
 };
 
 export const rejectProvider = (id: string, reason?: string) => {

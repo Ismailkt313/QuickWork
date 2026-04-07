@@ -15,6 +15,7 @@ export interface ProviderResponseDTO {
     portfolio: IPortfolioItem[];
     isActive: boolean;
     verificationStatus: string;
+    rejectionReason?: string;
 }
 
 export const mapProviderToResponseDTO = (provider: any): ProviderResponseDTO => {
@@ -37,6 +38,7 @@ export const mapProviderToResponseDTO = (provider: any): ProviderResponseDTO => 
         location: provider.location,
         portfolio: provider.portfolio,
         isActive: provider.isActive,
-        verificationStatus: provider.verification?.status || 'pending'
+        verificationStatus: provider.verification?.status || 'pending',
+        rejectionReason: provider.verification?.rejectionReason || ''
     };
 };

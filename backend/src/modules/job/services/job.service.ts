@@ -4,6 +4,10 @@ import { JobResponseDTO, mapJobToResponseDTO } from '../dtos/jobResponse.dto';
 import { Types } from 'mongoose';
 import { IServiceProviderRepository } from '../../serviceProvider/interfaces/serviceProvider.interface';
 import { IAssignmentService } from '../../assignment/interfaces/assignment.interface';
+import { JOB_STATUS } from '../../../constants/jobStatus';
+import { ASSIGNMENT_STATUS, WORK_STATUS, ASSIGNMENT_TYPE } from '../../../constants/assignment';
+import { JOB_DURATION_TYPE } from '../../../constants/jobDuration';
+import { JOB_VISIBILITY } from '../../../constants/jobVisibility';
 
 export class JobService implements IJobService {
     private jobRepository: IJobRepository;
@@ -52,9 +56,9 @@ export class JobService implements IJobService {
             days: dto.days,
             freelancersNeeded: isPrivate ? 1 : freelancersNeeded,
             acceptedFreelancers: 0,
-            visibility: isPrivate ? 'private' : dto.visibility,
+            visibility: isPrivate ? JOB_VISIBILITY.PRIVATE : dto.visibility,
             hiredProviderId: isPrivate ? new Types.ObjectId(dto.hiredProviderId) as any : undefined,
-            status: 'open',
+            status: JOB_STATUS.OPEN,
             applicantsCount: 0
         });
 
@@ -147,12 +151,16 @@ export class JobService implements IJobService {
             return { success: false, message: 'Provider profile not found' };
         }
 
+        if (provider.verification?.status !== 'verified') {
+            return { success: false, message: 'Profile under verification by admin' };
+        }
+
         const job = await this.jobRepository.findById(jobId);
         if (!job || job.visibility !== 'public') {
             return { success: false, message: 'Job not found or unavailable' };
         }
 
-        if (['fully_assigned', 'completed', 'cancelled', 'rejected'].includes(job.status)) {
+        if ([JOB_STATUS.FULLY_ASSIGNED, JOB_STATUS.COMPLETED, JOB_STATUS.CANCELLED, JOB_STATUS.REJECTED].includes(job.status)) {
             return { success: false, message: 'Job is no longer open for acceptance' };
         }
 
@@ -176,7 +184,7 @@ export class JobService implements IJobService {
         const updatedJob = await this.jobRepository.findByConditionAndUpdate(
             {
                 _id: job._id,
-                status: { $in: ['open', 'partially_assigned'] },
+                status: { $in: [JOB_STATUS.OPEN, JOB_STATUS.PARTIALLY_ASSIGNED] },
                 acceptedFreelancers: { $lt: job.freelancersNeeded }
             },
             {
@@ -193,23 +201,23 @@ export class JobService implements IJobService {
         await this.assignmentService.createAssignment({
             jobId: updatedJob._id as any,
             freelancerId: provider._id as any,
-            type: 'open',
+            type: ASSIGNMENT_TYPE.OPEN,
             invite: {
-                status: 'accepted',
+                status: ASSIGNMENT_STATUS.ACCEPTED,
                 invitedBy: updatedJob.userId as any,
                 invitedAt: updatedJob.createdAt,
                 respondedAt: new Date()
             },
-            workStatus: 'assigned',
+            workStatus: WORK_STATUS.ASSIGNED,
             schedule: updatedJob.schedule,
             isOutOfDistrict,
             assignedAt: new Date()
         });
 
         if (updatedJob.acceptedFreelancers >= updatedJob.freelancersNeeded) {
-            await this.jobRepository.updateStatus(jobId, 'fully_assigned');
-        } else if (updatedJob.status === 'open') {
-            await this.jobRepository.updateStatus(jobId, 'partially_assigned');
+            await this.jobRepository.updateStatus(jobId, JOB_STATUS.FULLY_ASSIGNED);
+        } else if (updatedJob.status === JOB_STATUS.OPEN) {
+            await this.jobRepository.updateStatus(jobId, JOB_STATUS.PARTIALLY_ASSIGNED);
         }
 
         return { success: true, message: 'Job accepted successfully' };
@@ -219,6 +227,10 @@ export class JobService implements IJobService {
         const provider = await this.serviceProviderRepository.findByUserId(userId);
         if (!provider) {
             return { success: false, message: 'Provider profile not found' };
+        }
+
+        if (provider.verification?.status !== 'verified') {
+            return { success: false, message: 'Profile under verification by admin' };
         }
 
         const job = await this.jobRepository.findById(jobId);
@@ -246,12 +258,12 @@ export class JobService implements IJobService {
         const updatedJob = await this.jobRepository.findByConditionAndUpdate(
             {
                 _id: jobId,
-                status: 'open',
+                status: JOB_STATUS.OPEN,
                 hiredProviderId: provider._id
             },
             {
                 $set: {
-                    status: 'fully_assigned',
+                    status: JOB_STATUS.FULLY_ASSIGNED,
                     acceptedFreelancers: 1
                 }
             }
@@ -264,14 +276,14 @@ export class JobService implements IJobService {
         await this.assignmentService.createAssignment({
             jobId: updatedJob._id as any,
             freelancerId: provider._id as any,
-            type: 'direct',
+            type: ASSIGNMENT_TYPE.DIRECT,
             invite: {
-                status: 'accepted',
+                status: ASSIGNMENT_STATUS.ACCEPTED,
                 invitedBy: updatedJob.userId as any,
                 invitedAt: updatedJob.createdAt,
                 respondedAt: new Date()
             },
-            workStatus: 'assigned',
+            workStatus: WORK_STATUS.ASSIGNED,
             schedule: updatedJob.schedule,
             isOutOfDistrict,
             assignedAt: new Date()
@@ -293,7 +305,7 @@ export class JobService implements IJobService {
 
         await this.jobRepository.findByConditionAndUpdate(
             { _id: jobId },
-            { $set: { status: 'rejected', rejectionReason: reason || 'Provider declined the offer' } }
+            { $set: { status: JOB_STATUS.REJECTED, rejectionReason: reason || 'Provider declined the offer' } }
         );
 
         return { success: true, message: 'Offer rejected successfully' };
@@ -310,15 +322,15 @@ export class JobService implements IJobService {
             return { success: false, message: 'Unauthorized to cancel this job' };
         }
 
-        if (['completed', 'cancelled', 'rejected'].includes(job.status)) {
+        if ([JOB_STATUS.COMPLETED, JOB_STATUS.CANCELLED, JOB_STATUS.REJECTED].includes(job.status)) {
             return { success: false, message: `Cannot cancel a job that is already ${job.status}` };
         }
 
         // Update Job status
-        await this.jobRepository.updateStatus(jobId, 'cancelled');
+        await this.jobRepository.updateStatus(jobId, JOB_STATUS.CANCELLED);
 
         // Cancel any related assignments
-        if (job.status === 'fully_assigned' || job.status === 'partially_assigned' || job.status === 'in_progress') {
+        if (job.status === JOB_STATUS.FULLY_ASSIGNED || job.status === JOB_STATUS.PARTIALLY_ASSIGNED || job.status === JOB_STATUS.IN_PROGRESS) {
             await this.assignmentService.cancelAssignmentsByJob(jobId);
         }
 

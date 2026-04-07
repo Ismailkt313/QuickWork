@@ -1,4 +1,5 @@
 import { Adminapi } from "./adminApi";
+import { SKILL_STATUS } from "../../../constants/skill";
 
 export interface ServiceRequest {
     _id: string;
@@ -14,7 +15,7 @@ export interface ServiceRequest {
     };
     name: string;
     description: string;
-    status: 'pending' | 'approved' | 'rejected';
+    status: SKILL_STATUS;
     type: 'skill_addition' | 'other';
     priority: 'low' | 'medium' | 'high';
     adminNotes?: string;

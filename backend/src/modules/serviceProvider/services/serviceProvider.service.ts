@@ -4,6 +4,8 @@ import { SubmitApplicationDTO } from '../dtos/submitApplication.dto';
 import { SkillModel } from '../../skill/models/skill.model';
 import { IAuthRepository } from '../../auth/interfaces/auth.interface';
 import { generateAccessToken, generateRefreshToken } from '../../../utils/jwt.util';
+import { ROLES } from '../../../constants/roles';
+import { VERIFICATION_STATUS } from '../../../constants/verification';
 
 const DEFAULT_LIMIT = 12;
 const MAX_LIMIT = 50;
@@ -39,19 +41,19 @@ export class ServiceProviderService implements IServiceProviderService {
                 location: providerData.location,
                 portfolio: providerData.portfolio,
                 verification: {
-                    status: 'verified' // Auto-verifying for immediate testing
+                    status: VERIFICATION_STATUS.PENDING 
                 },
-                isActive: true, // Auto-activating for immediate testing
+                isActive: false, 
                 submittedAt: new Date()
             };
 
             const createdProvider = await this.providerRepository.create(newProviderData);
 
-            await this.authRepository.updateUserRole(userId, 'provider');
+            await this.authRepository.updateUserRole(userId, ROLES.PROVIDER);
 
             const tokenPayload = {
                 userId: userId,
-                role: 'provider' as const
+                role: ROLES.PROVIDER
             };
 
             const accessToken = generateAccessToken(tokenPayload);
@@ -100,7 +102,7 @@ export class ServiceProviderService implements IServiceProviderService {
         if (!provider) {
             return { success: false, message: 'Provider not found' };
         }
-        if (!provider.isActive || provider.verification?.status !== 'verified') {
+        if (!provider.isActive || provider.verification?.status !== VERIFICATION_STATUS.VERIFIED) {
             return { success: false, message: 'Provider is not available' };
         }
         return { success: true, data: provider };
@@ -128,5 +130,19 @@ export class ServiceProviderService implements IServiceProviderService {
         }
 
         return { success: true, data: updatedProvider, message: 'Profile updated successfully' };
+    }
+
+    async resetApplication(userId: string): Promise<{ success: boolean; message: string }> {
+        const provider = await this.providerRepository.findByUserId(userId);
+        if (!provider) {
+            return { success: false, message: 'Provider profile not found' };
+        }
+
+        if (provider.verification.status !== VERIFICATION_STATUS.REJECTED) {
+            return { success: false, message: 'Only rejected applications can be reset' };
+        }
+
+        await this.providerRepository.deleteByUserId(userId);
+        return { success: true, message: 'Application reset successfully' };
     }
 }

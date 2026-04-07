@@ -5,10 +5,11 @@ import UniversalActionModal from '../components/UniversalActionModal';
 import ActionErrorModal from '../components/ActionErrorModal';
 import AcceptConfirmationModal from '../components/AcceptConfirmationModal';
 import { RiMapPinUserLine, RiMapPinRangeLine } from 'react-icons/ri';
-import { availableJobs, fetchSkills, fetchLocations, acceptJob } from '../services/provider.service';
+import { availableJobs, fetchSkills, fetchLocations, acceptJob, getMyProfile } from '../services/provider.service';
 import { toast } from 'react-toastify';
 import '../pages/style/page.css';
 import { useProviderLocation } from '../hooks/useProviderLocation';
+import VerificationPendingModal from '../components/VerificationPendingModal';
 
 
 
@@ -85,6 +86,8 @@ const AvailableJobsPage: React.FC = () => {
     message: ''
   });
   const [pendingJobId, setPendingJobId] = useState<string | null>(null);
+  const [verificationStatus, setVerificationStatus] = useState<string>('pending');
+  const [isPendingModalOpen, setIsPendingModalOpen] = useState(false);
 
   const providerLocation = useProviderLocation();
 
@@ -100,6 +103,18 @@ const AvailableJobsPage: React.FC = () => {
       }
     };
     loadFilters();
+
+    const fetchStatus = async () => {
+      try {
+        const response = await getMyProfile();
+        if (response.success && response.data) {
+          setVerificationStatus(response.data.verificationStatus || 'pending');
+        }
+      } catch (err) {
+        console.error('Error fetching profile status:', err);
+      }
+    };
+    fetchStatus();
   }, []);
 
   const parseBudgetRange = (label: string): { min?: number, max?: number } => {
@@ -151,6 +166,10 @@ const AvailableJobsPage: React.FC = () => {
   }, [fetchData, currentPage]);
 
   const handleApply = (jobId: string) => {
+    if (verificationStatus === 'pending') {
+      setIsPendingModalOpen(true);
+      return;
+    }
     setPendingJobId(jobId);
     setIsConfirmModalOpen(true);
   };
@@ -540,6 +559,11 @@ const AvailableJobsPage: React.FC = () => {
         onConfirm={handleConfirmApply}
         jobTitle={jobs.find(j => j.id === pendingJobId)?.title}
         isActionLoading={isAccepting}
+      />
+
+      <VerificationPendingModal 
+        isOpen={isPendingModalOpen}
+        onClose={() => setIsPendingModalOpen(false)}
       />
     </div>
   );

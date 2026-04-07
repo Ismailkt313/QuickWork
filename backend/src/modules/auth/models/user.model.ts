@@ -1,5 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import { IUser } from "../interfaces/auth.interface";
+import { ROLES } from "../../../constants/roles";
 
 const UserSchema: Schema<IUser> = new Schema<IUser>(
     {
@@ -29,8 +30,8 @@ const UserSchema: Schema<IUser> = new Schema<IUser>(
         },
         role: {
             type: String,
-            enum: ["user", "admin", "provider"],
-            default: "user",
+            enum: Object.values(ROLES),
+            default: ROLES.USER,
         },
         isBlocked: {
             type: Boolean,

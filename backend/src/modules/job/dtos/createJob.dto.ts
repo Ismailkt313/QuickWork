@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { AppError } from '../../../utils/AppError';
+import { JOB_DURATION_TYPE } from '../../../constants/jobDuration';
+import { JOB_VISIBILITY } from '../../../constants/jobVisibility';
 
 const createJobSchema = z.object({
     title: z.string().min(5, "Title must be at least 5 characters long").max(100, "Title is too long"),
@@ -16,14 +18,14 @@ const createJobSchema = z.object({
 
     isUrgent: z.boolean().optional().default(false),
 
-    durationType: z.enum(['half_day', 'full_day', 'multi_day']),
+    durationType: z.nativeEnum(JOB_DURATION_TYPE),
     startDate: z.string().min(1, "Start date is required"),
     days: z.number().positive().optional(),
     freelancersNeeded: z.number().positive("Freelancers needed must be a positive number").optional(),
-    visibility: z.enum(['public', 'private']).default('public'),
+    visibility: z.nativeEnum(JOB_VISIBILITY).default(JOB_VISIBILITY.PUBLIC),
     hiredProviderId: z.string().length(24, "Invalid provider ID format").optional()
 }).refine(data => {
-    if (data.visibility === 'private') {
+    if (data.visibility === JOB_VISIBILITY.PRIVATE) {
         return data.freelancersNeeded === 1 || data.freelancersNeeded === undefined;
     }
     return true;
@@ -31,7 +33,7 @@ const createJobSchema = z.object({
     message: "Private jobs can only have 1 freelancer",
     path: ["freelancersNeeded"]
 }).refine(data => {
-    if (data.durationType === 'multi_day') {
+    if (data.durationType === JOB_DURATION_TYPE.MULTI_DAY) {
         return !!data.days && data.days >= 1;
     }
     return true;
@@ -51,11 +53,11 @@ export class CreateJobDTO {
 
     public readonly isUrgent: boolean;
 
-    public readonly durationType: string;
+    public readonly durationType: JOB_DURATION_TYPE;
     public readonly startDate: string;
     public readonly days?: number;
     public readonly freelancersNeeded: number;
-    public readonly visibility: 'public' | 'private';
+    public readonly visibility: JOB_VISIBILITY;
     public readonly hiredProviderId?: string;
 
     private constructor(data: CreateJobInput) {
@@ -71,7 +73,7 @@ export class CreateJobDTO {
         this.startDate = data.startDate;
         this.days = data.days;
         this.freelancersNeeded = data.freelancersNeeded || 1;
-        this.visibility = data.visibility || 'public';
+        this.visibility = data.visibility || JOB_VISIBILITY.PUBLIC;
         this.hiredProviderId = data.hiredProviderId;
     }
 

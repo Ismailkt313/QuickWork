@@ -1,13 +1,11 @@
 import { IUser } from "../../auth/interfaces/auth.interface";
 import { Request, Response, NextFunction } from "express";
 import { Types } from "mongoose";
+import { ROLES } from "../../../constants/roles";
+import { VERIFICATION_STATUS } from "../../../constants/verification";
 
 
-export enum ROLES {
-    ADMIN = "admin",
-    USER = "user",
-    PROVIDER = "provider"
-}
+
 
 export interface IUserListQuery {
     page: number;
@@ -19,7 +17,7 @@ export interface IUserListItem {
     id: string;
     name: string;
     email: string;
-    role: string;
+    role: ROLES;
     isBlocked: boolean;
     createdAt: Date;
 }
@@ -44,7 +42,7 @@ export interface IServiceProviderWithUser {
     email: string
   }
   verification: {
-    status: string
+    status: VERIFICATION_STATUS
   }
   createdAt: Date
 }

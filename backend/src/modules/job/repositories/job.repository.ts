@@ -1,4 +1,5 @@
 import { IJob, IJobRepository } from '../interfaces/job.interface';
+import { JOB_STATUS } from '../../../constants/jobStatus';
 import { JobModel } from '../models/job.model';
 import { SkillModel } from '../../skill/models/skill.model';
 import { LocationModel } from '../../location/models/location.model';
@@ -19,7 +20,7 @@ export class JobRepository implements IJobRepository {
 
     async findAllOpen(page: number, limit: number, filters: any): Promise<{ jobs: IJob[], total: number }> {
         const query: any = { 
-            status: { $in: ['open', 'partially_assigned'] },
+            status: { $in: [JOB_STATUS.OPEN, JOB_STATUS.PARTIALLY_ASSIGNED] },
             visibility: 'public' 
         };
         
@@ -95,7 +96,7 @@ export class JobRepository implements IJobRepository {
     async findByProvider(providerId: string): Promise<IJob[]> {
         return await JobModel.find({ 
             hiredProviderId: providerId,
-            status: { $in: ['open', 'partially_assigned', 'fully_assigned'] }
+            status: { $in: [JOB_STATUS.OPEN, JOB_STATUS.PARTIALLY_ASSIGNED, JOB_STATUS.FULLY_ASSIGNED] }
         })
         .populate('skillId', 'name')
         .populate('locationId', 'name')
@@ -103,7 +104,7 @@ export class JobRepository implements IJobRepository {
         .sort({ createdAt: -1 });
     }
 
-    async updateStatus(id: string, status: string): Promise<IJob | null> {
+    async updateStatus(id: string, status: JOB_STATUS): Promise<IJob | null> {
         return await JobModel.findByIdAndUpdate(
             id,
             { $set: { status } },

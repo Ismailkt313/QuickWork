@@ -5,6 +5,7 @@ import { CreateServiceRequestDTO } from '../dtos/createServiceRequest.dto';
 import { RejectServiceRequestDTO } from '../dtos/rejectServiceRequest.dto';
 import { IServiceRequest, IServiceRequestService, IServiceRequestRepository } from '../interfaces/serviceRequest.interface';
 import { generateSlug } from '../../../utils/slug.util';
+import { SKILL_STATUS } from '../../../constants/skill';
 
 export class ServiceRequestService implements IServiceRequestService {
     private serviceRequestRepository: IServiceRequestRepository;
@@ -69,7 +70,7 @@ export class ServiceRequestService implements IServiceRequestService {
         return { success: false, message: 'Service request not found' };
       }
 
-      if (request.status !== 'pending') {
+      if (request.status !== SKILL_STATUS.PENDING) {
         return { success: false, message: `Request is already ${request.status}` };
       }
 
@@ -100,7 +101,7 @@ export class ServiceRequestService implements IServiceRequestService {
       );
 
       await this.serviceRequestRepository.updateStatus(requestId, {
-        status: 'approved',
+        status: SKILL_STATUS.APPROVED,
         reviewedBy: new Types.ObjectId(adminId),
         reviewedAt: new Date()
       });
@@ -117,12 +118,12 @@ export class ServiceRequestService implements IServiceRequestService {
             return { success: false, message: 'Service request not found' };
         }
 
-        if (request.status !== 'pending') {
+        if (request.status !== SKILL_STATUS.PENDING) {
             return { success: false, message: `Request is already ${request.status}` };
         }
 
         await this.serviceRequestRepository.updateStatus(requestId, {
-            status: 'rejected',
+            status: SKILL_STATUS.REJECTED,
             reviewedBy: new Types.ObjectId(adminId),
             reviewedAt: new Date(),
             rejectionReason: dto.rejectionReason

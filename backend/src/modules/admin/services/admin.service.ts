@@ -4,6 +4,7 @@ import {
     IUserListQuery,
     IUserListResponse,
 } from "../interfaces/admin.interface";
+import { ROLES } from "../../../constants/roles";
 
 export class AdminService implements IAdminService {
     private readonly adminRepository: IAdminRepository;
@@ -59,7 +60,7 @@ export class AdminService implements IAdminService {
                     id: provider._id.toString(),
                     name: provider.userId.name,
                     email: provider.userId.email,
-                    role: "provider",
+                    role: ROLES.PROVIDER,
                     isBlocked: false,
                     createdAt: provider.createdAt,
                 })),

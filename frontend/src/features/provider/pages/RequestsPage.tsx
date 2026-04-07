@@ -13,8 +13,9 @@ import { RequestCard } from '../components/RequestCard';
 import UniversalActionModal from '../components/UniversalActionModal';
 import ActionErrorModal from '../components/ActionErrorModal';
 import { RiMapPinUserLine, RiMapPinRangeLine } from 'react-icons/ri';
-import { acceptOffer, rejectOffer } from '../services/provider.service';
+import { acceptOffer, rejectOffer, getMyProfile } from '../services/provider.service';
 import AcceptConfirmationModal from '../components/AcceptConfirmationModal';
+import VerificationPendingModal from '../components/VerificationPendingModal';
 import { api } from '../../../services/api';
 import type { JobDetail } from '../types/job';
 import { useProviderLocation } from '../hooks/useProviderLocation';
@@ -34,6 +35,8 @@ const RequestsPage: React.FC = () => {
         message: ''
     });
     const [pendingJobId, setPendingJobId] = useState<string | null>(null);
+    const [verificationStatus, setVerificationStatus] = useState<string>('pending');
+    const [isPendingModalOpen, setIsPendingModalOpen] = useState(false);
 
     const providerLocation = useProviderLocation();
     const navigate = useNavigate();
@@ -54,9 +57,25 @@ const RequestsPage: React.FC = () => {
 
     useEffect(() => {
         fetchRequests();
+
+        const fetchStatus = async () => {
+            try {
+                const response = await getMyProfile();
+                if (response.success && response.data) {
+                    setVerificationStatus(response.data.verificationStatus || 'pending');
+                }
+            } catch (err) {
+                console.error('Error fetching profile status:', err);
+            }
+        };
+        fetchStatus();
     }, []);
 
     const handleAccept = async (jobId: string) => {
+        if (verificationStatus === 'pending') {
+            setIsPendingModalOpen(true);
+            return;
+        }
         setPendingJobId(jobId);
         setIsConfirmModalOpen(true);
     };
@@ -256,6 +275,11 @@ const RequestsPage: React.FC = () => {
                 onConfirm={handleConfirmAfterSelection}
                 jobTitle={requests.find(r => r.id === pendingJobId)?.title}
                 isActionLoading={!!(pendingJobId && actionLoading === pendingJobId)}
+            />
+
+            <VerificationPendingModal 
+                isOpen={isPendingModalOpen}
+                onClose={() => setIsPendingModalOpen(false)}
             />
 
             <style>{`

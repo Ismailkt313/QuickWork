@@ -1,4 +1,5 @@
 import { api } from "../../../services/api";
+import { SKILL_STATUS } from "../../../constants/skill";
 
 export interface SkillResult {
   id: string;
@@ -14,7 +15,7 @@ export interface SkillRequestResponse {
     name?: string;
     slug?: string;
     description?: string;
-    status?: "pending" | "approved" | "rejected";
+    status?: SKILL_STATUS;
     createdAt?: string;
   };
 }
