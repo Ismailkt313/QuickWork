@@ -49,7 +49,7 @@ export interface IJobService {
     createJob(userId: string, dto: CreateJobDTO): Promise<{ success: boolean; message: string; data?: JobResponseDTO }>;
     getJobsByUser(userId: string): Promise<{ success: boolean; data: JobResponseDTO[] }>;
     availableJobs(page: number, limit: number, filters?: any, userId?: string): Promise<IJobPaginationResponse>;
-    getJobById(id: string): Promise<{ success: boolean; data?: JobResponseDTO; message?: string }>;
+    getJobById(id: string, userId?: string): Promise<{ success: boolean; data?: JobResponseDTO; message?: string }>;
     getDirectOffers(userId: string): Promise<{ success: boolean; data: JobResponseDTO[] }>;
     acceptOffer(jobId: string, userId: string): Promise<{ success: boolean; message: string }>;
     rejectOffer(jobId: string, userId: string, reason?: string): Promise<{ success: boolean; message: string }>;

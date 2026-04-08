@@ -88,4 +88,22 @@ export class AdminRepository implements IAdminRepository {
         await UserModel.findByIdAndUpdate(provider.userId, { role: ROLES.USER });
 
     }
+
+    public async getProviderDetails(providerId: string): Promise<any> {
+        const provider = await ServiceProviderModel.findById(providerId)
+            .populate('userId', 'name email phone')
+            .populate('skills', 'name')
+            .populate('location', 'name')
+            .lean();
+
+        if (!provider) {
+            throw new AppError("Service provider not found", 404);
+        }
+
+        return provider;
+    }
+
+    public async getUserById(userId: string): Promise<IUser | null> {
+        return UserModel.findById(userId);
+    }
 }

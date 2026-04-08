@@ -78,7 +78,8 @@ export class JobController implements IJobController {
                 throw new AppError('Job ID is required', 400);
             }
 
-            const result = await this.jobService.getJobById(jobId);
+            const userId = req.user?.userId;
+            const result = await this.jobService.getJobById(jobId, userId);
             if (!result.success) {
                 throw new AppError(result.message || 'Job not found', 404);
             }

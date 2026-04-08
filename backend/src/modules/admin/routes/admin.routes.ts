@@ -12,6 +12,8 @@ export const createAdminRouter = (adminController: IAdminController): Router => 
     router.get("/providers/pending", authMiddleware, authorizeRoles(ROLES.ADMIN), adminController.getPendingProviders);
     router.patch("/provider/:id/approve", authMiddleware, authorizeRoles(ROLES.ADMIN), adminController.approveProvider);
     router.patch("/provider/:id/reject", authMiddleware, authorizeRoles(ROLES.ADMIN), adminController.rejectProvider);
+    router.get("/provider/:id", authMiddleware, authorizeRoles(ROLES.ADMIN), adminController.getProviderDetails);
+    router.get("/user/:id", authMiddleware, authorizeRoles(ROLES.ADMIN), adminController.getUserById);
 
     return router;
 };

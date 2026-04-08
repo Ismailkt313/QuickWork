@@ -244,7 +244,7 @@ export class AuthService implements IAuthService {
     }
     public async logout(token: string): Promise<ILogoutResponse> {
         try {
-            let varify = verifyRefreshToken(token);
+            const varify = verifyRefreshToken(token);
             if (!varify) {
                 throw new AppError("Invalid or expired refresh token", 401);
             }

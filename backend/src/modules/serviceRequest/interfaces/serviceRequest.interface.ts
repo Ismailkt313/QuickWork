@@ -13,6 +13,7 @@ export interface IServiceRequest extends Document {
     reviewedBy?: Types.ObjectId;
     reviewedAt?: Date;
     rejectionReason?: string;
+    adminNotes?: string;
     createdAt: Date;
 }
 

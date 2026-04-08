@@ -88,4 +88,31 @@ export class AdminController implements IAdminController {
             next(error);
         }
     };
+    public getProviderDetails = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try {
+            const id = req.params.id as string;
+            const result = await this.adminService.getProviderDetails(id);
+            res.status(200).json(result);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    public getUserById = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try {
+            const id = req.params.id as string;
+            const result = await this.adminService.getUserById(id);
+            res.status(200).json(result);
+        } catch (error) {
+            next(error);
+        }
+    };
 }

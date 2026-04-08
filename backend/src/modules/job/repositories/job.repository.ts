@@ -1,4 +1,5 @@
 import { IJob, IJobRepository } from '../interfaces/job.interface';
+import mongoose, { Types } from 'mongoose';
 import { JOB_STATUS } from '../../../constants/jobStatus';
 import { JobModel } from '../models/job.model';
 import { SkillModel } from '../../skill/models/skill.model';
@@ -19,32 +20,34 @@ export class JobRepository implements IJobRepository {
     }
 
     async findAllOpen(page: number, limit: number, filters: any): Promise<{ jobs: IJob[], total: number }> {
-        const query: any = { 
+        const query: any = {
             status: { $in: [JOB_STATUS.OPEN, JOB_STATUS.PARTIALLY_ASSIGNED] },
-            visibility: 'public' 
+            visibility: 'public'
         };
-        
+
+        console.log("Incoming filters in repository:", filters);
+
         if (filters.skillId) {
-            if (filters.skillId.match(/^[0-9a-fA-F]{24}$/)) {
-                query.skillId = filters.skillId;
+            if (mongoose.Types.ObjectId.isValid(filters.skillId)) {
+                query.skillId = new mongoose.Types.ObjectId(filters.skillId);
             } else {
                 const skill = await SkillModel.findOne({ name: new RegExp(`^${filters.skillId}$`, 'i') });
                 if (skill) {
                     query.skillId = skill._id;
                 } else {
-                     return { jobs: [], total: 0 };
+                    return { jobs: [], total: 0 };
                 }
             }
         }
         if (filters.locationId) {
-            if (filters.locationId.match(/^[0-9a-fA-F]{24}$/)) {
-                query.locationId = filters.locationId;
+            if (mongoose.Types.ObjectId.isValid(filters.locationId)) {
+                query.locationId = new mongoose.Types.ObjectId(filters.locationId);
             } else {
                 const location = await LocationModel.findOne({ name: new RegExp(`^${filters.locationId}$`, 'i') });
                 if (location) {
                     query.locationId = location._id;
                 } else {
-                     return { jobs: [], total: 0 };
+                    return { jobs: [], total: 0 };
                 }
             }
         }
@@ -66,8 +69,10 @@ export class JobRepository implements IJobRepository {
             ];
         }
 
+        console.log("Final MongoDB Query:", JSON.stringify(query, null, 2));
+
         const skip = (page - 1) * limit;
-        
+
         const [jobs, total] = await Promise.all([
             JobModel.find(query)
                 .populate('skillId', 'name')
@@ -94,14 +99,14 @@ export class JobRepository implements IJobRepository {
     }
 
     async findByProvider(providerId: string): Promise<IJob[]> {
-        return await JobModel.find({ 
+        return await JobModel.find({
             hiredProviderId: providerId,
             status: { $in: [JOB_STATUS.OPEN, JOB_STATUS.PARTIALLY_ASSIGNED, JOB_STATUS.FULLY_ASSIGNED] }
         })
-        .populate('skillId', 'name')
-        .populate('locationId', 'name')
-        .populate('userId', 'name email')
-        .sort({ createdAt: -1 });
+            .populate('skillId', 'name')
+            .populate('locationId', 'name')
+            .populate('userId', 'name email')
+            .sort({ createdAt: -1 });
     }
 
     async updateStatus(id: string, status: JOB_STATUS): Promise<IJob | null> {
@@ -115,7 +120,7 @@ export class JobRepository implements IJobRepository {
     async findByConditionAndUpdate(query: any, update: any): Promise<IJob | null> {
         return await JobModel.findOneAndUpdate(query, update, { new: true });
     }
-    
+
     async getJobById(jobId: string): Promise<{ success: boolean; data?: JobResponseDTO; message?: string }> {
         const job = await this.findById(jobId);
         if (!job) {

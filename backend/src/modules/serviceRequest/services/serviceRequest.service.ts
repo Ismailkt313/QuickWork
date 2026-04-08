@@ -74,6 +74,7 @@ export class ServiceRequestService implements IServiceRequestService {
         return { success: false, message: `Request is already ${request.status}` };
       }
 
+      // 1. Ensure the skill exists in the global Skill directory
       let skill = await this.skillRepository.findBySlug(request.slug);
 
       if (!skill) {
@@ -82,10 +83,12 @@ export class ServiceRequestService implements IServiceRequestService {
             name: request.name,
             slug: request.slug
           });
+          console.log(`Created new global skill: ${request.name}`);
         } catch (error: any) {
           if (error.code === 11000) {
             skill = await this.skillRepository.findBySlug(request.slug);
           } else {
+            console.error('Failed to create skill during approval:', error);
             throw error;
           }
         }
@@ -95,16 +98,38 @@ export class ServiceRequestService implements IServiceRequestService {
         throw new Error('Failed to find or create skill');
       }
 
-      await this.serviceProviderRepository.addSkillToProvider(
-        request.requestedBy.toString(),
+      // 2. Add the skill to the specific provider who requested it
+      // Note: request.requestedBy is the User ID. addSkillToProvider finds the provider by userId.
+      const userId = request.requestedBy.toString();
+      const updateResult = await this.serviceProviderRepository.addSkillToProvider(
+        userId,
         skill._id.toString()
       );
 
+      if (updateResult.matchedCount === 0) {
+        console.warn(`Skill approved but provider profile not found for user ${userId}`);
+        // We still approve the global skill, but notify admin that provider wasn't updated
+        await this.serviceRequestRepository.updateStatus(requestId, {
+          status: SKILL_STATUS.APPROVED,
+          reviewedBy: new Types.ObjectId(adminId),
+          reviewedAt: new Date(),
+          adminNotes: 'Skill approved but provider profile was not found to auto-assign.'
+        });
+
+        return {
+          success: true,
+          message: 'Skill approved globally, but requesting provider profile was not found.'
+        };
+      }
+
+      // 3. Mark the request as Approved
       await this.serviceRequestRepository.updateStatus(requestId, {
         status: SKILL_STATUS.APPROVED,
         reviewedBy: new Types.ObjectId(adminId),
         reviewedAt: new Date()
       });
+
+      console.log(`Successfully approved skill request ${requestId} for user ${userId}`);
 
       return {
         success: true,

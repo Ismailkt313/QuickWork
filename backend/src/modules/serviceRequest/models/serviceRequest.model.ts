@@ -39,6 +39,9 @@ const ServiceRequestSchema = new Schema<IServiceRequest>({
     rejectionReason: {
         type: String
     },
+    adminNotes: {
+        type: String
+    },
     createdAt: {
         type: Date,
         default: Date.now

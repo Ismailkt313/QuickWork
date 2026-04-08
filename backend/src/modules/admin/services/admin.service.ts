@@ -87,4 +87,23 @@ export class AdminService implements IAdminService {
             message: "Provider rejected successfully",
         };
     }
+
+    public async getProviderDetails(providerId: string): Promise<{ success: boolean; data: any }> {
+        const provider = await this.adminRepository.getProviderDetails(providerId);
+        return {
+            success: true,
+            data: provider,
+        };
+    }
+
+    public async getUserById(userId: string): Promise<{ success: boolean; data: any }> {
+        const user = await this.adminRepository.getUserById(userId);
+        if (!user) {
+            throw new Error("User not found");
+        }
+        return {
+            success: true,
+            data: user,
+        };
+    }
 }

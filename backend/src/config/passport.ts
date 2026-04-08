@@ -18,7 +18,7 @@ passport.use(
 
                 const email = profile.emails[0].value;
 
-                let user = await UserModel.findOne({
+                const user = await UserModel.findOne({
                     $or: [{ googleId: profile.id }, { email }]
                 });
 

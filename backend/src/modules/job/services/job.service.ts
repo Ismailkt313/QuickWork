@@ -8,6 +8,7 @@ import { JOB_STATUS } from '../../../constants/jobStatus';
 import { ASSIGNMENT_STATUS, WORK_STATUS, ASSIGNMENT_TYPE } from '../../../constants/assignment';
 import { JOB_DURATION_TYPE } from '../../../constants/jobDuration';
 import { JOB_VISIBILITY } from '../../../constants/jobVisibility';
+import { MIN_JOB_WAGE } from '../../../constants/job';
 
 export class JobService implements IJobService {
     private jobRepository: IJobRepository;
@@ -25,6 +26,23 @@ export class JobService implements IJobService {
     }
 
     async createJob(userId: string, dto: CreateJobDTO): Promise<{ success: boolean; message: string; data?: JobResponseDTO }> {
+        // Validation Checks
+        if (!dto.budget || dto.budget.min === undefined || dto.budget.max === undefined) {
+            throw new Error("Budget information is required");
+        }
+
+        if (dto.budget.min < MIN_JOB_WAGE) {
+            throw new Error(`Minimum budget must be at least ₹${MIN_JOB_WAGE}`);
+        }
+
+        if (dto.budget.max < dto.budget.min) {
+            throw new Error("Maximum budget must be greater than or equal to minimum budget");
+        }
+
+        if (dto.budget.min <= 0 || dto.budget.max <= 0) {
+            throw new Error("Budget values must be greater than zero");
+        }
+
         let endDate: Date;
         const start = new Date(dto.startDate);
 
@@ -88,7 +106,7 @@ export class JobService implements IJobService {
     async availableJobs(page: number = 1, limit: number = 10, filters: any = {}, userId?: string): Promise<import('../interfaces/job.interface').IJobPaginationResponse> {
         const { jobs, total } = await this.jobRepository.findAllOpen(page, limit, filters);
 
-        let assignedJobIds = new Set<string>();
+        const assignedJobIds = new Set<string>();
         if (userId) {
             const provider = await this.serviceProviderRepository.findByUserId(userId);
             if (provider) {
@@ -124,12 +142,30 @@ export class JobService implements IJobService {
         };
     }
 
-    async getJobById(jobId: string): Promise<{ success: boolean; data?: JobResponseDTO; message?: string }> {
+    async getJobById(jobId: string, userId?: string): Promise<{ success: boolean; data?: JobResponseDTO; message?: string }> {
         const job = await this.jobRepository.findById(jobId);
         if (!job) {
             return { success: false, message: 'Job not found' };
         }
-        return { success: true, data: mapJobToResponseDTO(job) };
+
+        const dto = mapJobToResponseDTO(job);
+        
+        // 1. Get real applicants count from assignments
+        dto.applicants = await this.assignmentService.getAssignmentCountByJob(jobId);
+
+        // 2. Check if the current user has already accepted this job
+        if (userId) {
+            const provider = await this.serviceProviderRepository.findByUserId(userId);
+            if (provider) {
+                const assignments = await this.assignmentService.getAssignmentsByProvider(provider._id.toString());
+                dto.isApplied = assignments.some(a => {
+                    const id = a.jobId && (a.jobId as any)._id ? (a.jobId as any)._id.toString() : a.jobId?.toString();
+                    return id === jobId;
+                });
+            }
+        }
+
+        return { success: true, data: dto };
     }
 
     async getDirectOffers(userId: string): Promise<{ success: boolean; data: JobResponseDTO[] }> {
