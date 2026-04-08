@@ -22,6 +22,7 @@ import { CategoryRepository } from '../../../../services/repositories/CategoryRe
 import { LocationRepository } from '../../../../services/repositories/LocationRepository';
 import { jobService } from '../services/job.service';
 import type { JobFormData, ServiceCategory, Location } from '../types/job.types';
+import { MIN_JOB_WAGE } from '../constants/jobConstants';
 
 interface CreateJobModalProps {
     isOpen: boolean;
@@ -111,9 +112,12 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
             newErrors.days = 'Days must be at least 1';
         }
         
-        if (!formData.minBudget || Number(formData.minBudget) <= 0) newErrors.minBudget = 'Enter min budget';
-        if (!formData.maxBudget || Number(formData.maxBudget) <= 0) newErrors.maxBudget = 'Enter max budget';
-        if (Number(formData.maxBudget) < Number(formData.minBudget)) {
+        if (!formData.minBudget || Number(formData.minBudget) < MIN_JOB_WAGE) {
+            newErrors.minBudget = `Min budget must be at least ₹${MIN_JOB_WAGE}`;
+        }
+        if (!formData.maxBudget || Number(formData.maxBudget) <= 0) {
+            newErrors.maxBudget = 'Enter max budget';
+        } else if (Number(formData.maxBudget) < Number(formData.minBudget)) {
             newErrors.maxBudget = 'Max must be >= Min';
         }
 

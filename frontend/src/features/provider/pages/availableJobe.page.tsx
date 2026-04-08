@@ -5,11 +5,10 @@ import UniversalActionModal from '../components/UniversalActionModal';
 import ActionErrorModal from '../components/ActionErrorModal';
 import AcceptConfirmationModal from '../components/AcceptConfirmationModal';
 import { RiMapPinUserLine, RiMapPinRangeLine } from 'react-icons/ri';
-import { availableJobs, fetchSkills, fetchLocations, acceptJob, getMyProfile } from '../services/provider.service';
+import { availableJobs, fetchSkills, fetchLocations, acceptJob } from '../services/provider.service';
 import { toast } from 'react-toastify';
 import '../pages/style/page.css';
 import { useProviderLocation } from '../hooks/useProviderLocation';
-import VerificationPendingModal from '../components/VerificationPendingModal';
 
 
 
@@ -67,8 +66,8 @@ const AvailableJobsPage: React.FC = () => {
     id: Key | null | undefined; _id: string, name: string
   }[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [location, setLocation] = useState('All Locations');
-  const [category, setCategory] = useState('All Categories');
+  const [selectedLocation, setSelectedLocation] = useState(''); // Stores _id
+  const [selectedCategory, setSelectedCategory] = useState(''); // Stores _id
   const [budget, setBudget] = useState('Any Budget');
 
   const [sortBy, setSortBy] = useState('newest');
@@ -86,8 +85,6 @@ const AvailableJobsPage: React.FC = () => {
     message: ''
   });
   const [pendingJobId, setPendingJobId] = useState<string | null>(null);
-  const [verificationStatus, setVerificationStatus] = useState<string>('pending');
-  const [isPendingModalOpen, setIsPendingModalOpen] = useState(false);
 
   const providerLocation = useProviderLocation();
 
@@ -103,18 +100,6 @@ const AvailableJobsPage: React.FC = () => {
       }
     };
     loadFilters();
-
-    const fetchStatus = async () => {
-      try {
-        const response = await getMyProfile();
-        if (response.success && response.data) {
-          setVerificationStatus(response.data.verificationStatus || 'pending');
-        }
-      } catch (err) {
-        console.error('Error fetching profile status:', err);
-      }
-    };
-    fetchStatus();
   }, []);
 
   const parseBudgetRange = (label: string): { min?: number, max?: number } => {
@@ -133,8 +118,8 @@ const AvailableJobsPage: React.FC = () => {
       const response = await availableJobs(
         page,
         JOBS_PER_PAGE,
-        category === 'All Categories' ? undefined : (skills.find(s => s.name === category)?._id),
-        location === 'All Locations' ? undefined : (locations.find(l => l.name === location)?._id),
+        selectedCategory || undefined,
+        selectedLocation || undefined,
         budgetRange.min,
         budgetRange.max,
         searchQuery || undefined
@@ -149,12 +134,12 @@ const AvailableJobsPage: React.FC = () => {
       setTimeout(() => setLoading(false), 300);
       setRefreshing(false);
     }
-  }, [category, location, budget, searchQuery, skills, locations]);
+  }, [selectedCategory, selectedLocation, budget, searchQuery, skills, locations]);
 
   useEffect(() => {
     fetchData(1);
     setCurrentPage(1);
-  }, [location, category, budget, searchQuery]);
+  }, [selectedLocation, selectedCategory, budget, searchQuery, fetchData]);
 
   useEffect(() => {
     fetchData(currentPage);
@@ -166,10 +151,6 @@ const AvailableJobsPage: React.FC = () => {
   }, [fetchData, currentPage]);
 
   const handleApply = (jobId: string) => {
-    if (verificationStatus === 'pending') {
-      setIsPendingModalOpen(true);
-      return;
-    }
     setPendingJobId(jobId);
     setIsConfirmModalOpen(true);
   };
@@ -212,21 +193,27 @@ const AvailableJobsPage: React.FC = () => {
 
   const activeChips = useMemo(() => {
     const chips: { key: string; label: string }[] = [];
-    if (location !== 'All Locations') chips.push({ key: 'location', label: location });
-    if (category !== 'All Categories') chips.push({ key: 'category', label: category });
+    if (selectedLocation) {
+      const loc = locations.find(l => l._id === selectedLocation);
+      if (loc) chips.push({ key: 'location', label: loc.name });
+    }
+    if (selectedCategory) {
+      const skill = skills.find(s => s._id === selectedCategory);
+      if (skill) chips.push({ key: 'category', label: skill.name });
+    }
     if (budget !== 'Any Budget') chips.push({ key: 'budget', label: budget });
     return chips;
-  }, [location, category, budget]);
+  }, [selectedLocation, selectedCategory, budget, locations, skills]);
 
   const removeChip = (key: string) => {
-    if (key === 'location') setLocation('All Locations');
-    if (key === 'category') setCategory('All Categories');
+    if (key === 'location') setSelectedLocation('');
+    if (key === 'category') setSelectedCategory('');
     if (key === 'budget') setBudget('Any Budget');
   };
 
   const clearAllFilters = () => {
-    setLocation('All Locations');
-    setCategory('All Categories');
+    setSelectedLocation('');
+    setSelectedCategory('');
     setBudget('Any Budget');
     setSearchQuery('');
     setCurrentPage(1);
@@ -319,11 +306,11 @@ const AvailableJobsPage: React.FC = () => {
             <select
               id="filter-location"
               className="ajp-filter-select"
-              value={location}
-              onChange={(e) => { setLocation(e.target.value); setCurrentPage(1); }}
+              value={selectedLocation}
+              onChange={(e) => { setSelectedLocation(e.target.value); setCurrentPage(1); }}
             >
-              <option>All Locations</option>
-              {locations.map((l) => <option key={l._id}>{l.name}</option>)}
+              <option value="">All Locations</option>
+              {locations.map((l) => <option key={l._id} value={l._id}>{l.name}</option>)}
             </select>
           </div>
 
@@ -332,11 +319,16 @@ const AvailableJobsPage: React.FC = () => {
             <select
               id="filter-category"
               className="ajp-filter-select"
-              value={category}
-              onChange={(e) => { setCategory(e.target.value); setCurrentPage(1); }}
+              value={selectedCategory}
+              onChange={
+                (e) => {
+                  setSelectedCategory(e.target.value);
+                  setCurrentPage(1);
+                }}
             >
-              <option>All Categories</option>
-              {skills.map((s) => <option key={s._id}>{s.name}</option>)}
+
+              <option value="">All Categories</option>
+              {skills.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
             </select>
           </div>
 
@@ -559,11 +551,6 @@ const AvailableJobsPage: React.FC = () => {
         onConfirm={handleConfirmApply}
         jobTitle={jobs.find(j => j.id === pendingJobId)?.title}
         isActionLoading={isAccepting}
-      />
-
-      <VerificationPendingModal 
-        isOpen={isPendingModalOpen}
-        onClose={() => setIsPendingModalOpen(false)}
       />
     </div>
   );

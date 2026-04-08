@@ -62,3 +62,11 @@ export const getUsers = (params?: { page?: number; limit?: number; search?: stri
 export const toggleBlockUser = (userId: string) => {
   return Adminapi.patch(`/admin/users/${userId}/block`);
 };
+
+export const getProviderById = (providerId: string) => {
+  return Adminapi.get(`/admin/provider/${providerId}`);
+};
+
+export const getUserById = (userId: string) => {
+  return Adminapi.get(`/admin/user/${userId}`);
+};

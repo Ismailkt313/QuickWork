@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { getUsers, toggleBlockUser } from "../services/adminApi";
+import { getUsers, toggleBlockUser, getUserById } from "../services/adminApi";
 import type { IUserListItem } from "../services/adminApi";
+import UserDetailModal from "../components/UserDetailModal";
 import { ROLES } from "../../../constants/roles";
 
 interface ToastItem {
@@ -36,6 +37,10 @@ const UserManagement = () => {
         isBlocked: false,
         loading: false,
     });
+
+    const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [detailModalOpen, setDetailModalOpen] = useState(false);
+    const [fetchingDetail, setFetchingDetail] = useState(false);
 
     const showToast = (type: "success" | "error", message: string) => {
         const id = Date.now();
@@ -89,6 +94,12 @@ const UserManagement = () => {
         try {
             await toggleBlockUser(confirmState.userId);
             await fetchUsers();
+            
+            // Sync with modal if open
+            if (selectedUser && (selectedUser._id === confirmState.userId || selectedUser.id === confirmState.userId)) {
+                setSelectedUser((prev: any) => ({ ...prev, isBlocked: !prev.isBlocked }));
+            }
+
             showToast("success", `User ${confirmState.userName} has been ${action} successfully.`);
         } catch (error: any) {
             const msg = error?.response?.data?.message || `Failed to ${confirmState.isBlocked ? "unblock" : "block"} user.`;
@@ -114,6 +125,24 @@ const UserManagement = () => {
             day: "2-digit",
             year: "numeric",
         });
+    };
+
+    const handleViewUser = async (id: string) => {
+        if (fetchingDetail) return;
+        setFetchingDetail(true);
+        try {
+            const res = await getUserById(id);
+            if (res.data && res.data.success) {
+                setSelectedUser(res.data.data);
+                setDetailModalOpen(true);
+            } else {
+                showToast("error", "Failed to fetch user details.");
+            }
+        } catch (error: any) {
+            showToast("error", error?.response?.data?.message || "Error fetching details.");
+        } finally {
+            setFetchingDetail(false);
+        }
     };
 
     const getRoleBadgeClass = (role: ROLES) => {
@@ -281,6 +310,7 @@ const UserManagement = () => {
                                     <th>Joined Date</th>
                                     <th>Trust Score</th>
                                     <th>Actions</th>
+                                    <th>Profile</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -317,12 +347,25 @@ const UserManagement = () => {
                                                 </div>
                                             </td>
                                             <td>
+                                                <div style={{ display: "flex", gap: "0.5rem" }}>
+                                                    <button
+                                                        className={`btn-action-block ${user.isBlocked ? "unblock" : "block"}`}
+                                                        onClick={() => openBlockConfirm(user.id, user.name, user.isBlocked)}
+                                                    >
+                                                        {user.isBlocked ? "UNBLOCK" : "BLOCK"}
+                                                    </button>
+                                                </div>
+
+                                            </td>
+                                            <td>
                                                 <button
-                                                    className={`btn-action-block ${user.isBlocked ? "unblock" : "block"}`}
-                                                    onClick={() => openBlockConfirm(user.id, user.name, user.isBlocked)}
-                                                >
-                                                    {user.isBlocked ? "UNBLOCK" : "BLOCK"}
-                                                </button>
+                                                        className="btn-action-block unblock"
+                                                        onClick={() => handleViewUser(user.id)}
+                                                        disabled={fetchingDetail}
+                                                        style={{ textTransform: "uppercase", background: "#f8fafc", color: "#334155", borderColor: "#e2e8f0" }}
+                                                    >
+                                                        {fetchingDetail && selectedUser?.id === user.id ? "..." : "DETAILS"}
+                                                    </button>
                                             </td>
                                         </tr>
                                     );
@@ -339,6 +382,18 @@ const UserManagement = () => {
                     </>
                 )}
             </div>
+
+            {detailModalOpen && selectedUser && (
+                <UserDetailModal
+                    user={selectedUser}
+                    onClose={() => setDetailModalOpen(false)}
+                    onToggleBlock={(id) => {
+                        const isBlocked = selectedUser.isBlocked;
+                        openBlockConfirm(id, selectedUser.name, isBlocked);
+                        return Promise.resolve();
+                    }}
+                />
+            )}
 
             <div className="admin-stats-row">
                 <div className="admin-stat-card">

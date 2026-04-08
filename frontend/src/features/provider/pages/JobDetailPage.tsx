@@ -167,7 +167,7 @@ const JobDetailPage: React.FC = () => {
             duration={job.durationType.replace('_', ' ')}
             location={job.location}
             startDate={job.startDate}
-            isApplied={!!job.myApplication}
+            isApplied={job.isApplied || !!job.myApplication}
             isAssigned={job.status === 'fully_assigned'}
             onAccept={handleAccept}
             onMessage={handleMessage}

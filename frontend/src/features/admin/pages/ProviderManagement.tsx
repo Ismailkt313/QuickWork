@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { getPendingProviders, approveProvider, rejectProvider } from "../services/adminApi";
+import { getPendingProviders, approveProvider, rejectProvider, getProviderById } from "../services/adminApi";
 import type { IUserListItem } from "../services/adminApi";
+import ProviderProfileModal from "../components/ProviderProfileModal";
 import "../admin.css";
 
 interface ToastItem {
@@ -30,6 +31,10 @@ const ProviderManagement = () => {
         providerName: "",
         loading: false,
     });
+
+    const [selectedProvider, setSelectedProvider] = useState<any>(null);
+    const [detailModalOpen, setDetailModalOpen] = useState(false);
+    const [fetchingDetail, setFetchingDetail] = useState(false);
 
     const showToast = (type: "success" | "error", message: string) => {
         const id = Date.now();
@@ -109,6 +114,24 @@ const ProviderManagement = () => {
             day: "2-digit",
             year: "numeric",
         });
+    };
+
+    const handleViewProfile = async (id: string) => {
+        if (fetchingDetail) return;
+        setFetchingDetail(true);
+        try {
+            const res = await getProviderById(id);
+            if (res.data && res.data.success) {
+                setSelectedProvider(res.data.data);
+                setDetailModalOpen(true);
+            } else {
+                showToast("error", "Failed to fetch provider details.");
+            }
+        } catch (error: any) {
+            showToast("error", error?.response?.data?.message || "Error fetching details.");
+        } finally {
+            setFetchingDetail(false);
+        }
     };
 
     return (
@@ -242,6 +265,7 @@ const ProviderManagement = () => {
                                 <th>Applied Date</th>
                                 <th>Status</th>
                                 <th>Actions</th>
+                                <th>Profile</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -278,12 +302,29 @@ const ProviderManagement = () => {
                                             </button>
                                         </div>
                                     </td>
+                                    <td>
+                                        <button
+                                            className="btn-action-block unblock"
+                                            onClick={() => handleViewProfile(provider.id)}
+                                            disabled={fetchingDetail}
+                                            style={{ textTransform: "uppercase", background: "#f8fafc", color: "#334155", borderColor: "#e2e8f0" }}
+                                        >
+                                            {fetchingDetail && selectedProvider?._id === provider.id ? "Fetching..." : "VIEW PROFILE"}
+                                        </button>
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 )}
             </div>
+
+            {detailModalOpen && selectedProvider && (
+                <ProviderProfileModal 
+                    provider={selectedProvider} 
+                    onClose={() => setDetailModalOpen(false)} 
+                />
+            )}
 
             <style dangerouslySetInnerHTML={{
                 __html: `

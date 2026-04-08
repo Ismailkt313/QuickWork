@@ -15,3 +15,21 @@ api.interceptors.request.use((config) => {
 
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && [401, 403].includes(error.response.status)) {
+      const errorType = error.response.status === 403 ? 'blocked' : 'session_expired';
+      
+      // Clear all auth-related data
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("user");
+      
+      // Force reload to login page with specific error type
+      window.location.href = `/auth/login?error=${errorType}`;
+    }
+    return Promise.reject(error);
+  }
+);

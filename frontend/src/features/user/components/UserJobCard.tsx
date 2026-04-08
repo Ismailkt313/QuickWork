@@ -75,7 +75,7 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView }) => {
                   <RiEyeLine size={18} /> View Details
                 </button>
               </li>
-              {(job.status === 'open' || job.status === 'partially_assigned') && (
+              {(job.status === 'open' || job.status === 'partially_assigned' || job.status === 'fully_assigned' || job.status === 'in_progress') && (
                 <li>
                   <button className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 rounded-3 text-danger" onClick={() => onCancel?.(job.id)}>
                     <RiCloseCircleLine size={18} /> Cancel Job

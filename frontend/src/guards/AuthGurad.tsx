@@ -10,7 +10,7 @@ interface AuthGuardProps {
  const AuthGuard = ({ children, redirectTo = "/auth/login" }: AuthGuardProps) => {
   const token = localStorage.getItem("token");
   if (!token) {
-    return <Navigate to={redirectTo} replace />;
+    return <Navigate to={redirectTo} replace state={{ fromRestricted: true }} />;
   }
   return <>{children}</>;
 };

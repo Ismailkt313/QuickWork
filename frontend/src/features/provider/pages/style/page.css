@@ -18,7 +18,8 @@
 .ajp-container {
   max-width: 1240px;
   margin: 0 auto;
-  padding: 40px 40px 0; /* Horizontal padding for desktop breathing room */
+  padding: 40px 40px 0;
+  /* Horizontal padding for desktop breathing room */
   box-sizing: border-box;
 }
 
@@ -148,8 +149,15 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .ajp-filter-group {
@@ -320,14 +328,15 @@
 @media (max-width: 992px) {
   .ajp-main-content {
     margin-left: 0;
-    padding-top: 80px; /* Aligned with mobile header height */
+    padding-top: 80px;
+    /* Aligned with mobile header height */
   }
 
   .ajp-grid {
     grid-template-columns: 1fr;
     gap: 16px;
   }
-  
+
   .ajp-filter-panel {
     grid-template-columns: 1fr 1fr;
   }

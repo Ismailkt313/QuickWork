@@ -1,217 +1,295 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
     getPendingServiceRequests,
     approveServiceRequest,
     rejectServiceRequest
 } from "../services/adminServiceRequest.service";
 import type { ServiceRequest } from "../services/adminServiceRequest.service";
-import { toast } from "react-toastify";
+import "../admin.css";
+
+interface ToastItem {
+    id: number;
+    type: "success" | "error";
+    message: string;
+}
+
+type ModalMode = "approve" | "reject" | null;
+
+interface ModalState {
+    mode: ModalMode;
+    requestId: string;
+    requestName: string;
+    loading: boolean;
+}
 
 const SkillRequests: React.FC = () => {
     const [requests, setRequests] = useState<ServiceRequest[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+    const [toasts, setToasts] = useState<ToastItem[]>([]);
     const [rejectionReason, setRejectionReason] = useState("");
-    const [selectedRejectId, setSelectedRejectId] = useState<string | null>(null);
 
-    const fetchRequests = async () => {
+    const [modal, setModal] = useState<ModalState>({
+        mode: null,
+        requestId: "",
+        requestName: "",
+        loading: false,
+    });
+
+    const showToast = (type: "success" | "error", message: string) => {
+        const id = Date.now();
+        setToasts((prev) => [...prev, { id, type, message }]);
+        setTimeout(() => {
+            setToasts((prev) => prev.filter((t) => t.id !== id));
+        }, 4000);
+    };
+
+    const removeToast = (id: number) => {
+        setToasts((prev) => prev.filter((t) => t.id !== id));
+    };
+
+    const fetchRequests = useCallback(async () => {
         setIsLoading(true);
         try {
             const data = await getPendingServiceRequests();
-            setRequests(data);
+            setRequests(data || []);
         } catch (error) {
             console.error("Failed to fetch skills", error);
+            showToast("error", "Failed to load pending skill requests.");
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         fetchRequests();
-    }, []);
+    }, [fetchRequests]);
 
-    const handleApprove = async (id: string, skillName: string) => {
-        if (!window.confirm(`Are you sure you want to approve "${skillName}"? This will add it to the global skills list.`)) return;
+    const openModal = (mode: ModalMode, requestId: string, requestName: string) => {
+        setModal({ mode, requestId, requestName, loading: false });
+        setRejectionReason("");
+    };
 
-        setActionLoadingId(id);
+    const closeModal = () => {
+        if (modal.loading) return;
+        setModal({ mode: null, requestId: "", requestName: "", loading: false });
+        setRejectionReason("");
+    };
+
+    const handleApprove = async () => {
+        setModal((prev) => ({ ...prev, loading: true }));
         try {
-            await approveServiceRequest(id);
-            setRequests(prev => prev.filter(r => r._id !== id));
-            toast.success(`Skill "${skillName}" approved successfully!`);
+            const result = await approveServiceRequest(modal.requestId);
+            if (result.success) {
+                setRequests((prev) => prev.filter((r) => r._id !== modal.requestId));
+                showToast("success", result.message || `Skill "${modal.requestName}" approved successfully!`);
+            } else {
+                showToast("error", result.message || "Failed to approve skill.");
+            }
         } catch (error: any) {
-            toast.error(error.message || "Failed to approve skill");
+            showToast("error", error.message || "Failed to approve skill.");
         } finally {
-            setActionLoadingId(null);
+            setModal({ mode: null, requestId: "", requestName: "", loading: false });
         }
     };
 
     const handleReject = async () => {
-        if (!selectedRejectId || !rejectionReason.trim()) return;
-
-        setActionLoadingId(selectedRejectId);
+        if (!rejectionReason.trim()) return;
+        setModal((prev) => ({ ...prev, loading: true }));
         try {
-            await rejectServiceRequest(selectedRejectId, rejectionReason);
-            setRequests(prev => prev.filter(r => r._id !== selectedRejectId));
-            setSelectedRejectId(null);
-            setRejectionReason("");
-            toast.success("Skill request rejected.");
+            await rejectServiceRequest(modal.requestId, rejectionReason.trim());
+            setRequests((prev) => prev.filter((r) => r._id !== modal.requestId));
+            showToast("success", `Skill "${modal.requestName}" has been rejected.`);
         } catch (error: any) {
-            toast.error(error.message || "Failed to reject skill");
+            showToast("error", error.message || "Failed to reject skill.");
         } finally {
-            setActionLoadingId(null);
+            setModal({ mode: null, requestId: "", requestName: "", loading: false });
+            setRejectionReason("");
         }
     };
 
+    const formatDate = (dateStr: string) => {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+        });
+    };
+
     return (
-        <div className="container-fluid py-4" style={{ maxWidth: "1200px" }}>
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h3 className="fw-bold mb-1">Global Skill Requests</h3>
-                    <p className="text-secondary small mb-0">Review new skill requests submitted by Service Providers.</p>
+        <div className="admin-page-container">
+            {/* Toast Notifications */}
+            {toasts.length > 0 && (
+                <div className="toast-container">
+                    {toasts.map((toast) => (
+                        <div key={toast.id} className={`toast-item ${toast.type}`}>
+                            <i className={`bi ${toast.type === "success" ? "bi-check-circle-fill" : "bi-exclamation-circle-fill"} toast-icon`}></i>
+                            <span className="toast-message">{toast.message}</span>
+                            <button className="toast-close" onClick={() => removeToast(toast.id)}>
+                                <i className="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    ))}
                 </div>
-                <button
-                    className="btn btn-outline-primary btn-sm rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-2"
-                    onClick={fetchRequests}
-                    disabled={isLoading}
-                >
-                    <i className={`bi bi-arrow-clockwise ${isLoading ? 'spin' : ''}`}></i>
+            )}
+
+            {/* Approve Modal */}
+            {modal.mode === "approve" && (
+                <div className="confirm-modal-overlay" onClick={closeModal}>
+                    <div className="confirm-modal-card" onClick={(e) => e.stopPropagation()}>
+                        <div className="confirm-modal-icon approve">
+                            <i className="bi bi-check-circle-fill"></i>
+                        </div>
+                        <div className="confirm-modal-title">Approve Skill Request</div>
+                        <div className="confirm-modal-message">
+                            Are you sure you want to approve <strong className="text-dark">"{modal.requestName}"</strong>?
+                            This skill will be added to the global directory and automatically assigned to the requesting provider's profile.
+                        </div>
+                        <div className="confirm-modal-actions">
+                            <button className="confirm-modal-btn cancel" onClick={closeModal} disabled={modal.loading}>
+                                Cancel
+                            </button>
+                            <button className="confirm-modal-btn confirm-approve" onClick={handleApprove} disabled={modal.loading}>
+                                {modal.loading ? "Processing..." : "Yes, Approve Skill"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Reject Modal */}
+            {modal.mode === "reject" && (
+                <div className="confirm-modal-overlay" onClick={closeModal}>
+                    <div className="confirm-modal-card" onClick={(e) => e.stopPropagation()}>
+                        <div className="confirm-modal-icon reject">
+                            <i className="bi bi-x-circle-fill"></i>
+                        </div>
+                        <div className="confirm-modal-title">Reject Skill Request</div>
+                        <div className="confirm-modal-message">
+                            Provide a reason for rejecting the skill request for <strong className="text-dark">"{modal.requestName}"</strong>.
+                        </div>
+                        <label className="reject-reason-label">Reason for Rejection (Visible to Provider)</label>
+                        <textarea
+                            className="reject-reason-textarea"
+                            placeholder="E.g. Skill already exists under a similar name, or is not applicable..."
+                            value={rejectionReason}
+                            onChange={(e) => setRejectionReason(e.target.value)}
+                            disabled={modal.loading}
+                        />
+                        <div className="confirm-modal-actions">
+                            <button className="confirm-modal-btn cancel" onClick={closeModal} disabled={modal.loading}>
+                                Cancel
+                            </button>
+                            <button 
+                                className="confirm-modal-btn confirm-reject" 
+                                onClick={handleReject} 
+                                disabled={modal.loading || !rejectionReason.trim()}
+                            >
+                                {modal.loading ? "Processing..." : "Confirm Rejection"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className="admin-breadcrumb">
+                Admin <span className="separator">›</span> <span>Skill Requests</span>
+            </div>
+
+            <div className="admin-page-header">
+                <div>
+                    <h1 className="admin-page-title">Global Skill Requests</h1>
+                    <p className="admin-page-subtitle">
+                        Review and approve new skill suggestions submitted by Service Providers during onboarding or profile updates.
+                    </p>
+                </div>
+                <button className="btn-invite" onClick={fetchRequests} disabled={isLoading}>
+                    <i className={`bi bi-arrow-clockwise ${isLoading ? "spin" : ""}`}></i>
                     Refresh List
                 </button>
             </div>
 
-            <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
-                {isLoading && requests.length === 0 ? (
-                    <div className="text-center py-5">
+            <div className="admin-table-card">
+                {isLoading ? (
+                    <div className="admin-loading">
                         <div className="spinner-border text-primary" role="status"></div>
-                        <p className="mt-3 text-muted">Loading pending requests...</p>
+                        <p className="mt-3">Loading pending requests...</p>
                     </div>
                 ) : requests.length === 0 ? (
-                    <div className="text-center py-5">
-                        <div className="bg-light rounded-circle d-inline-flex align-items-center justify-content-center p-4 mb-3" style={{ width: "80px", height: "80px" }}>
-                            <i className="bi bi-inbox fs-1 text-secondary"></i>
-                        </div>
-                        <h5 className="fw-bold">No Pending Requests</h5>
-                        <p className="text-secondary small">All provider-submitted skill requests have been reviewed.</p>
+                    <div className="admin-empty">
+                        <i className="bi bi-inbox d-block"></i>
+                        <div>No pending skill requests</div>
+                        <p className="small text-muted mt-2">All submitted skill requests have been processed.</p>
                     </div>
                 ) : (
-                    <div className="table-responsive">
-                        <table className="table table-hover align-middle mb-0">
-                            <thead className="table-light">
-                                <tr>
-                                    <th className="py-3 px-4 text-secondary small fw-bold">REQUESTED SKILL</th>
-                                    <th className="py-3 text-secondary small fw-bold">REQUESTED BY</th>
-                                    <th className="py-3 text-secondary small fw-bold">DATE</th>
-                                    <th className="py-3 text-secondary small fw-bold text-end pe-4">ACTIONS</th>
+                    <table className="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Requested Skill</th>
+                                <th>Requested By</th>
+                                <th>Date Submitted</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {requests.map((request) => (
+                                <tr key={request._id}>
+                                    <td>
+                                        <div className="d-flex align-items-center gap-3">
+                                            <div className="bg-primary bg-opacity-10 text-primary rounded-3 d-flex align-items-center justify-content-center" style={{ width: "40px", height: "40px" }}>
+                                                <i className="bi bi-briefcase fw-bold"></i>
+                                            </div>
+                                            <div>
+                                                <span className="user-name">{request.name}</span>
+                                                <span className="badge bg-warning text-dark bg-opacity-25 rounded-pill border border-warning border-opacity-50 small mt-1" style={{ fontSize: '10px' }}>PENDING REVIEW</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div className="d-flex align-items-center gap-2">
+                                            <div 
+                                                className="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center text-primary fw-bold" 
+                                                style={{ width: "32px", height: "32px", fontSize: "12px" }}
+                                            >
+                                                {request.requestedBy?.name?.[0]?.toUpperCase() || "P"}
+                                            </div>
+                                            <div className="d-flex flex-column">
+                                                <span className="small fw-bold text-dark">{request.requestedBy?.name || "Unknown"}</span>
+                                                <span className="user-email" style={{ fontSize: "11px" }}>{request.requestedBy?.email}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span className="text-secondary small">{formatDate(request.createdAt)}</span>
+                                    </td>
+                                    <td>
+                                        <div className="d-flex gap-2">
+                                            <button
+                                                className="btn-action-block unblock"
+                                                onClick={() => openModal("approve", request._id, request.name)}
+                                            >
+                                                APPROVE
+                                            </button>
+                                            <button
+                                                className="btn-action-block block"
+                                                onClick={() => openModal("reject", request._id, request.name)}
+                                            >
+                                                REJECT
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                        {requests.map(request => (
-                                    console.log(request),
-                                    <tr key={request._id} className="border-bottom">
-                                        <td className="px-4 py-3">
-                                            <div className="d-flex align-items-center">
-                                                <div
-                                                    className="bg-primary bg-opacity-10 text-primary rounded d-flex align-items-center justify-content-center me-3"
-                                                    style={{ width: "40px", height: "40px" }}
-                                                >
-                                                    <i className="bi bi-briefcase fw-bold fs-5"></i>
-                                                </div>
-                                                <div>
-                                                    <h6 className="mb-0 fw-bold">{request.name}</h6>
-                                                    <span className="badge bg-warning text-dark bg-opacity-25 rounded-pill border border-warning border-opacity-50 small mt-1">Pending Review</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="py-3">
-                                            <div className="d-flex align-items-center gap-2">
-                                                <div className="bg-light rounded-circle d-flex align-items-center justify-content-center text-secondary fw-bold border" style={{ width: "52px", height: "32px", fontSize: "14px" }}>
-                                                    {request.requestedBy?.name || "U"}
-                                                </div>
-                                                <div>
-                                                    <p className="mb-0 small fw-medium text-dark">{request.userId?.firstName} {request.userId?.lastName}</p>
-                                                    <p className="mb-0 file-text text-muted" style={{ fontSize: "12px" }}>{request.userId?.email}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="py-3 text-secondary small">
-                                            {new Date(request.createdAt).toLocaleDateString("en-IN", {
-                                                day: 'numeric', month: 'short', year: 'numeric'
-                                            })}
-                                        </td>
-                                        <td className="py-3 px-4 text-end">
-                                            {actionLoadingId === request._id ? (
-                                                <div className="spinner-border spinner-border-sm text-primary" role="status"></div>
-                                            ) : (
-                                                <div className="d-flex justify-content-end gap-2">
-                                                    <button
-                                                        className="btn btn-sm btn-outline-danger fw-bold rounded-pill px-3"
-                                                        onClick={() => setSelectedRejectId(request._id)}
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#rejectModal"
-                                                    >
-                                                        Reject
-                                                    </button>
-                                                    <button
-                                                        className="btn btn-sm btn-primary fw-bold rounded-pill px-3"
-                                                        onClick={() => handleApprove(request._id, request.name)}
-                                                    >
-                                                        Approve
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                            ))}
+                        </tbody>
+                    </table>
                 )}
-            </div>
-
-            <div className="modal fade" id="rejectModal" tabIndex={-1} aria-hidden="true">
-                <div className="modal-dialog modal-dialog-centered">
-                    <div className="modal-content rounded-4 border-0 shadow">
-                        <div className="modal-header border-bottom-0 pb-0">
-                            <h5 className="modal-title fw-bold">Reject Skill Request</h5>
-                            <button type="button" className="btn-close" data-bs-dismiss="modal" onClick={() => setSelectedRejectId(null)}></button>
-                        </div>
-                        <div className="modal-body">
-                            <label className="form-label fw-bold small text-secondary">Reason for Rejection (Visible to Provider)</label>
-                            <textarea
-                                className="form-control bg-light border-0"
-                                rows={3}
-                                placeholder="E.g. Skill name is too generic, please be specific."
-                                value={rejectionReason}
-                                onChange={(e) => setRejectionReason(e.target.value)}
-                            ></textarea>
-                        </div>
-                        <div className="modal-footer border-top-0 pt-0">
-                            <button
-                                type="button"
-                                className="btn btn-light rounded-pill px-4 fw-bold"
-                                data-bs-dismiss="modal"
-                                onClick={() => setSelectedRejectId(null)}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="button"
-                                className="btn btn-danger rounded-pill px-4 fw-bold"
-                                data-bs-dismiss="modal"
-                                onClick={handleReject}
-                                disabled={!rejectionReason.trim()}
-                            >
-                                Confirm Rejection
-                            </button>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <style dangerouslySetInnerHTML={{
                 __html: `
                 .spin { animation: spin 1s linear infinite; }
                 @keyframes spin { 100% { transform: rotate(360deg); } }
+                .text-dark { color: #1e293b !important; }
             `}} />
         </div>
     );

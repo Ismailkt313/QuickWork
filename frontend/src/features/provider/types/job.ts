@@ -31,6 +31,7 @@ export interface JobDetail {
   durationType: JOB_DURATION_TYPE;
   visibility: JOB_VISIBILITY;
   hiredProviderId?: string;
+  isApplied?: boolean;
 
   freelancersNeeded: number;
   myApplication?: {

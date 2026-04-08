@@ -20,6 +20,7 @@ import type { SelectOption } from '../../../../shared/components/inputs/FormSele
 import { LocationRepository } from '../../../../services/repositories/LocationRepository';
 import { jobService } from '../services/job.service';
 import type { JobFormData, Location } from '../types/job.types';
+import { MIN_JOB_WAGE } from '../constants/jobConstants';
 
 interface DirectHireModalProps {
     isOpen: boolean;
@@ -103,9 +104,14 @@ export const DirectHireModal: React.FC<DirectHireModalProps> = ({
         if (formData.durationType === 'multi_day' && (!formData.days || Number(formData.days) < 1)) {
             newErrors.days = 'Days required';
         }
-        if (!formData.minBudget || Number(formData.minBudget) <= 0) newErrors.minBudget = 'Enter min budget';
-        if (!formData.maxBudget || Number(formData.maxBudget) <= 0) newErrors.maxBudget = 'Enter max budget';
-        if (Number(formData.maxBudget) < Number(formData.minBudget)) newErrors.maxBudget = 'Max >= Min';
+        if (!formData.minBudget || Number(formData.minBudget) < MIN_JOB_WAGE) {
+            newErrors.minBudget = `Min budget must be ₹${MIN_JOB_WAGE}`;
+        }
+        if (!formData.maxBudget || Number(formData.maxBudget) <= 0) {
+            newErrors.maxBudget = 'Enter max budget';
+        } else if (Number(formData.maxBudget) < Number(formData.minBudget)) {
+            newErrors.maxBudget = 'Max must be >= Min';
+        }
         if (!formData.location) newErrors.location = 'Location required';
 
         setErrors(newErrors);
