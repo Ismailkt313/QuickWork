@@ -102,8 +102,7 @@ export const ChatWindow = ({
         )}
       </div>
 
-      {/* Chat Footer / Input */}
-      <div className="p-3 bg-white border-top">
+       <div className="p-3 bg-white border-top">
         <MessageInput 
           onSend={(text) => sendMessage(receiverId, text)} 
           disabled={loading}

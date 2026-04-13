@@ -57,7 +57,7 @@ export class CreateJobDTO {
     public readonly startDate: string;
     public readonly days?: number;
     public readonly freelancersNeeded: number;
-    public readonly visibility: JOB_VISIBILITY;
+    public readonly visibility?: JOB_VISIBILITY;
     public readonly hiredProviderId?: string;
 
     private constructor(data: CreateJobInput) {
