@@ -13,11 +13,13 @@ import { useProviderLocation } from '../hooks/useProviderLocation';
 import { acceptJob, getMyProfile } from '../services/provider.service';
 import VerificationPendingModal from '../components/VerificationPendingModal';
 import { ClientProfileModal } from '../components/ClientProfileModal';
+import Map from '../components/map';
 
 const JobDetailPage: React.FC = () => {
   const { jobId } = useParams() as { jobId: string };
   const navigate = useNavigate();
   const { job, loading, error } = useJobDetails(jobId);
+  console.log(job)
   const [isLocationModalOpen, setIsLocationModalOpen] = React.useState(false);
   const [isAccepting, setIsAccepting] = React.useState(false);
   const [actionError, setActionError] = React.useState<{isOpen: boolean, title: string, message: string}>({
@@ -54,8 +56,7 @@ const JobDetailPage: React.FC = () => {
       setIsPendingModalOpen(true);
       return;
     }
-    // Logic: If job location is different from provider location, show modal
-    if (job && job.location !== providerLocation) {
+     if (job && job.location?.districtName !== providerLocation) {
       setIsLocationModalOpen(true);
     } else {
       processAccept();
@@ -138,6 +139,16 @@ const JobDetailPage: React.FC = () => {
             isNew={isNew}
           />
 
+          {job.location?.lat && job.location?.lng && (
+            <div className="mb-5 rounded-4 overflow-hidden border shadow-sm">
+                <Map 
+                  lat={job.location.lat} 
+                  lng={job.location.lng} 
+                  address={job.location.address} 
+                />
+            </div>
+          )}
+
           {/* Quick Stats Grid */}
           <div className="d-flex flex-wrap gap-3 mb-5">
             <div className="d-flex align-items-center gap-2 px-3 py-2 bg-white rounded-3 border border-f1f5f9 shadow-sm">
@@ -165,6 +176,8 @@ const JobDetailPage: React.FC = () => {
           />
         </div>
 
+        {/* <Map/> */}
+
         <div className="col-12 col-xl-4">
           <JobActionPanel
             budget={job.budget}
@@ -179,7 +192,6 @@ const JobDetailPage: React.FC = () => {
           />
         </div>
       </div>
-
       {job && (
         <UniversalActionModal
           isOpen={isLocationModalOpen}
@@ -205,7 +217,7 @@ const JobDetailPage: React.FC = () => {
                           <RiMapPinRangeLine size={14} />
                           Job Zone
                       </div>
-                      <div className="fw-bold text-primary small">{job.location}</div>
+                      <div className="fw-bold text-primary small">{job.location?.address || 'Remote'}</div>
                   </div>
               </div>
           </div>
@@ -220,8 +232,9 @@ const JobDetailPage: React.FC = () => {
         primaryAction={actionError.title === 'Schedule Conflict' ? {
             label: 'View My Schedule',
             onClick: () => navigate('/provider/my-jobs')
-        } : undefined}
-      />
+          } : undefined}
+          />
+          {/* {console.log('location nte sadhanam',job.location.coordinates.coordinates[1])} */}
 
       <VerificationPendingModal 
         isOpen={isPendingModalOpen}
@@ -277,3 +290,12 @@ const JobDetailSkeleton: React.FC = () => (
 );
 
 export default JobDetailPage; 
+
+
+// const lat = job.location.coordinates.coordinates[1];
+// const lng = job.location.coordinates.coordinates[0];
+// <JobLocationMap
+//   lat={lat}
+//   lng={lng}
+//   address={job.location.address}
+// />

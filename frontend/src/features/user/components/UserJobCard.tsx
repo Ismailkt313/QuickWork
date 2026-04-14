@@ -99,7 +99,7 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView }) => {
         <div className="qw-info-grid mb-4">
           <div className="qw-info-item">
             <RiMapPinLine className="qw-info-icon" />
-            <span>{job.location || 'Anywhere'}</span>
+            <span>{job.location?.address || 'Remote'}</span>
           </div>
           <div className="qw-info-item">
             <RiCalendarLine className="qw-info-icon" />

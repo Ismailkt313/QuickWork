@@ -2,6 +2,14 @@ import React, { useState } from 'react';
 import { FiCalendar } from 'react-icons/fi';
 import './style/jobcard.css';
 
+export interface JobLocation {
+  address: string;
+  lat: number;
+  lng: number;
+  districtId: string;
+  districtName?: string;
+}
+
 export interface Job {
   id: string;
   title: string;
@@ -12,7 +20,7 @@ export interface Job {
   clientAvatarColor?: string;
   clientRating?: number;
   clientReviewCount?: number;
-  location: string;
+  location: JobLocation | null;
   postedAt: string;
   skills: string[];
   budget: string;
@@ -168,7 +176,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
             )}
             <span className="jc-meta-sep">•</span>
             <span className="jc-location">
-              <IconPin /> {job.location}
+              <IconPin /> {job.location?.address || 'Remote'}
             </span>
             <span className="jc-meta-sep">•</span>
             <span className="jc-posted">

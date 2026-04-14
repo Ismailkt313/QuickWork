@@ -77,7 +77,7 @@ export const RequestCard: React.FC<RequestCardProps> = ({
               <RiMapPinLine className="text-muted" size={16} />
               <div>
                 <div style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Location</div>
-                <div style={{ fontSize: '13px', fontWeight: 600, color: '#475569' }}>{request.location}</div>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: '#475569' }}>{request.location?.address || 'Remote'}</div>
               </div>
             </div>
           </div>

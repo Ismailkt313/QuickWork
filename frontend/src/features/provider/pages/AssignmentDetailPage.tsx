@@ -154,7 +154,7 @@ const AssignmentDetailPage: React.FC = () => {
                         <div className="d-flex flex-wrap gap-4 mb-5">
                             <div className="d-flex align-items-center gap-2 text-muted">
                                 <div className="p-2 bg-light rounded-3 text-primary"><RiMapPinLine size={20} /></div>
-                                <span className="fw-bold">{job.location}</span>
+                                <span className="fw-bold">{job.location?.address || 'Remote'}</span>
                             </div>
                             <div className="d-flex align-items-center gap-2 text-muted">
                                 <div className="p-2 bg-light rounded-3 text-success"><RiMoneyDollarCircleLine size={20} /></div>

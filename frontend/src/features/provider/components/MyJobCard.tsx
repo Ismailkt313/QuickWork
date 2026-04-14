@@ -16,7 +16,13 @@ interface MyJobCardProps {
       title: string;
       description: string;
       clientName: string;
-      location: string;
+      location: {
+        address: string;
+        lat: number;
+        lng: number;
+        districtId: string;
+        districtName?: string;
+      } | null;
       budget: string;
     } | null;
     workStatus: 'assigned' | 'in_progress' | 'completed';
@@ -120,7 +126,7 @@ const MyJobCard: React.FC<MyJobCardProps> = ({ assignment, onViewDetails }) => {
               <RiUser3Line /> {job.clientName}
             </span>
             <span className="d-flex align-items-center gap-1">
-              <RiMapPinLine /> {job.location}
+              <RiMapPinLine /> {job.location?.address || 'Remote'}
             </span>
           </div>
         </div>

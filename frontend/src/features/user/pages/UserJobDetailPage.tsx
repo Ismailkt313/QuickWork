@@ -104,7 +104,7 @@ const UserJobDetailPage: React.FC = () => {
                 <div className="row g-4 border-top pt-4">
                     <div className="col-6 col-md-3">
                         <div className="text-muted text-uppercase fw-bold mb-1" style={{ fontSize: '11px', letterSpacing: '0.5px' }}><RiMapPinLine className="me-1"/> Location</div>
-                        <div className="fw-semibold text-dark fs-6">{job.location}</div>
+                        <div className="fw-semibold text-dark fs-6">{job.location?.address || 'Remote'}</div>
                     </div>
                     <div className="col-6 col-md-3">
                         <div className="text-muted text-uppercase fw-bold mb-1" style={{ fontSize: '11px', letterSpacing: '0.5px' }}><RiMoneyDollarCircleLine className="me-1"/> Budget</div>

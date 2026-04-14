@@ -7,10 +7,18 @@ import {
   RiHeartLine
 } from 'react-icons/ri';
 
+interface JobLocation {
+  address: string;
+  lat: number;
+  lng: number;
+  districtId: string;
+  districtName?: string;
+}
+
 interface JobActionPanelProps {
   budget: string;
   duration: string;
-  location: string;
+  location: JobLocation | null;
   startDate: string;
   isApplied: boolean;
   isAssigned: boolean;
@@ -78,7 +86,7 @@ const JobActionPanel: React.FC<JobActionPanelProps> = ({
         <div className="d-flex flex-column gap-3">
           {[
             { icon: <RiTimeLine size={20} />, label: 'Duration', value: duration, color: '#3b82f6' },
-            { icon: <RiMapPinLine size={20} />, label: 'Location', value: location, color: '#10b981' },
+            { icon: <RiMapPinLine size={20} />, label: 'Location', value: location?.address || 'Remote', color: '#10b981' },
             { icon: <RiCalendarLine size={20} />, label: 'Start Date', value: startDate, color: '#f59e0b' },
             { icon: <RiMessage3Line size={20} />, label: 'WhatsApp / Contact', value: contactNumber || 'Not Provided', color: '#16a34a' }
           ].map((item, idx) => (

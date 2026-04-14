@@ -86,7 +86,7 @@ const RequestsPage: React.FC = () => {
         if (!jobId) return;
 
         const job = requests.find(r => r.id === jobId);
-        if (job && job.location !== providerLocation) {
+        if (job && job.location?.districtName !== providerLocation) {
             setIsLocationModalOpen(true);
         } else {
             confirmAccept(jobId);
@@ -249,7 +249,7 @@ const RequestsPage: React.FC = () => {
                                 <RiMapPinRangeLine size={14} />
                                 Job Zone
                             </div>
-                            <div className="fw-bold text-primary small">{requests.find(r => r.id === pendingJobId)?.location || ''}</div>
+                            <div className="fw-bold text-primary small">{requests.find(r => r.id === pendingJobId)?.location?.address || 'Remote'}</div>
                         </div>
                     </div>
                 </div>

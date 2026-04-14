@@ -6,12 +6,20 @@ import {
   RiShieldCheckLine 
 } from 'react-icons/ri';
 
+interface JobLocation {
+  address: string;
+  lat: number;
+  lng: number;
+  districtId: string;
+  districtName?: string;
+}
+
 interface JobDetailHeaderProps {
   title: string;
   isUrgent?: boolean;
   isNew?: boolean;
   postedAt: string;
-  location: string;
+  location: JobLocation | null;
   additionalDetails?: string;
 }
 
@@ -53,7 +61,7 @@ const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({
         <div className="d-flex align-items-center gap-2">
           <RiMapPinLine size={18} className="text-primary-emphasis" />
           <div className="d-flex flex-column">
-              <span>{location}</span>
+              <span>{location?.address || 'Remote'}</span>
               {additionalDetails && (
                   <span className="small text-muted" style={{ fontSize: '12px' }}>
                       <RiFlashlightLine size={12} className="me-1" style={{ verticalAlign: 'middle' }} />

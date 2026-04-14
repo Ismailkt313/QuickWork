@@ -165,7 +165,7 @@ useEffect(() => {
     if (!jobId) return;
 
     const job = jobs.find(j => j.id === jobId);
-    if (job && job.location !== providerLocation) {
+    if (job && job.location?.districtName !== providerLocation) {
       setIsLocationModalOpen(true);
     } else {
       confirmApply(jobId);
@@ -553,9 +553,9 @@ const displayedJobs = jobs;
             <div className="p-3 bg-primary-subtle rounded-4 border border-primary-subtle">
               <div className="d-flex align-items-center gap-2 mb-2 text-primary small fw-bold text-uppercase">
                 <RiMapPinRangeLine size={14} />
-                Job Zone
+                 Job Zone
               </div>
-              <div className="fw-bold text-primary small">{jobs.find(j => j.id === pendingJobId)?.location || ''}</div>
+              <div className="fw-bold text-primary small">{jobs.find(j => j.id === pendingJobId)?.location?.address || 'Remote'}</div>
             </div>
           </div>
         </div>

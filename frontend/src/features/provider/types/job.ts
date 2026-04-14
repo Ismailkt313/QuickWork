@@ -2,6 +2,14 @@ import { JOB_STATUS } from "../../../constants/jobStatus";
 import { JOB_VISIBILITY } from "../../../constants/jobVisibility";
 import { JOB_DURATION_TYPE } from "../../../constants/jobDuration";
 
+export interface JobLocation {
+  address: string;
+  lat: number;
+  lng: number;
+  districtId: string;
+  districtName?: string;
+}
+
 export interface JobDetail {
   id: string;
   clientId: string;
@@ -13,7 +21,7 @@ export interface JobDetail {
   clientRating?: number;
   clientReviewsCount?: number;
   isClientVerified?: boolean;
-  location: string;
+  location: JobLocation | null;
   additionalDetails?: string;
   clientEmail?: string;
   clientNumber?: string;
