@@ -36,16 +36,21 @@ import { generateOtp, hashOtp, compareOtp } from "../../../utils/otp.util";
 import { sendOtpEmail } from "../../../utils/email.util";
 import { mapUserToResponseDTO, UserResponseDTO } from "../dtos/userResponse.dto";
 
+import { UploadService } from "../../upload/services/upload.service";
+
 export class AuthService implements IAuthService {
     private readonly authRepository: IAuthRepository;
     private readonly otpRepository: IOtpRepository;
+    private readonly uploadService: UploadService;
 
     constructor(
         authRepository: IAuthRepository,
-        otpRepository: IOtpRepository
+        otpRepository: IOtpRepository,
+        uploadService: UploadService
     ) {
         this.authRepository = authRepository;
         this.otpRepository = otpRepository;
+        this.uploadService = uploadService;
     }
 
     public async sendOtp(input: ISendOtpInput): Promise<ISendOtpResponse> {
@@ -326,6 +331,21 @@ export class AuthService implements IAuthService {
     }
 
     public async updateProfile(userId: string, data: IUpdateProfileInput): Promise<UserResponseDTO> {
+        const currentUser = await this.authRepository.findById(userId);
+        if (!currentUser) {
+            throw new AppError("User not found", 404);
+        }
+
+        // Handle profile image cleanup if a new one is provided
+        if (data.profileImage && currentUser.profileImage?.public_id && currentUser.profileImage.public_id !== data.profileImage.public_id) {
+            try {
+                await this.uploadService.deleteImage(currentUser.profileImage.public_id);
+            } catch (error) {
+                console.error('Failed to delete old profile image:', error);
+                // We don't throw here to avoid failing the profile update just because cleanup failed
+            }
+        }
+
         const user = await this.authRepository.updateUser(userId, data as any);
         if (!user) {
             throw new AppError("User not found", 404);

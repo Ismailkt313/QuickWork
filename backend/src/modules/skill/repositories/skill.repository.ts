@@ -48,4 +48,11 @@ export class SkillRepository implements ISkillRepository {
     async getSkills(): Promise<ISkill[]> {
         return SkillModel.find().sort({ name: 1 }) as Promise<ISkill[]>;
     }
+    async getMySkill(userId: any): Promise<ISkill[]>{
+        const result = await ServiceProviderModel.findOne({ userId }).populate("skills") as any
+        if (!result) {
+            return []
+        }
+        return result.skills as ISkill[]
+    }
 }

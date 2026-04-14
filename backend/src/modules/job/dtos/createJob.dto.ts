@@ -4,41 +4,64 @@ import { JOB_DURATION_TYPE } from '../../../constants/jobDuration';
 import { JOB_VISIBILITY } from '../../../constants/jobVisibility';
 
 const createJobSchema = z.object({
-    title: z.string().min(5, "Title must be at least 5 characters long").max(100, "Title is too long"),
-    description: z.string().min(10, "Description must be at least 10 characters long").max(1000, "Description is too long"),
-    skillId: z.string().length(24, "Invalid skill ID format"),
-    locationId: z.string().length(24, "Invalid location ID format"),
+    title: z.string().min(5).max(100),
+    description: z.string().min(10).max(1000),
+    contactNumber: z.string().min(10).max(15),
+    skillId: z.string().length(24),
+
+    location: z.object({
+        district: z.string().length(24),
+        districtName: z.string().min(1),
+        address: z.string().min(3),
+        additionalDetails: z.string().optional(),
+        coordinates: z.object({
+            type: z.literal("Point"),
+            coordinates: z.array(z.number())
+                .length(2)
+                .refine(([lng, lat]) => 
+                    lng >= -180 && lng <= 180 && lat >= -90 && lat <= 90,
+                    { message: "Invalid coordinate range" }
+                )
+        })
+    }),
+
     budget: z.object({
-        min: z.number().positive("Minimum budget must be a positive number"),
-        max: z.number().positive("Maximum budget must be a positive number")
+        min: z.number().positive(),
+        max: z.number().positive()
     }).refine(data => data.max >= data.min, {
-        message: "Maximum budget must be greater than or equal to minimum budget",
+        message: "Max must be >= min",
         path: ["max"]
     }),
 
     isUrgent: z.boolean().optional().default(false),
 
     durationType: z.nativeEnum(JOB_DURATION_TYPE),
-    startDate: z.string().min(1, "Start date is required"),
+    startDate: z.string().min(1),
     days: z.number().positive().optional(),
-    freelancersNeeded: z.number().positive("Freelancers needed must be a positive number").optional(),
+
+    freelancersNeeded: z.number().positive().optional(),
+
     visibility: z.nativeEnum(JOB_VISIBILITY).default(JOB_VISIBILITY.PUBLIC),
-    hiredProviderId: z.string().length(24, "Invalid provider ID format").optional()
-}).refine(data => {
+    hiredProviderId: z.string().length(24).optional()
+})
+
+.refine(data => {
     if (data.visibility === JOB_VISIBILITY.PRIVATE) {
         return data.freelancersNeeded === 1 || data.freelancersNeeded === undefined;
     }
     return true;
 }, {
-    message: "Private jobs can only have 1 freelancer",
+    message: "Private jobs must have only 1 freelancer",
     path: ["freelancersNeeded"]
-}).refine(data => {
+})
+
+.refine(data => {
     if (data.durationType === JOB_DURATION_TYPE.MULTI_DAY) {
         return !!data.days && data.days >= 1;
     }
     return true;
 }, {
-    message: "Number of days is required for multi-day jobs",
+    message: "Days required for multi-day jobs",
     path: ["days"]
 });
 
@@ -47,43 +70,62 @@ export type CreateJobInput = z.infer<typeof createJobSchema>;
 export class CreateJobDTO {
     public readonly title: string;
     public readonly description: string;
+    public readonly contactNumber: string;
     public readonly skillId: string;
-    public readonly locationId: string;
+
+    public readonly location: {
+        district: string;
+        districtName: string;
+        address: string;
+        additionalDetails?: string;
+        coordinates: {
+            type: "Point";
+            coordinates: [number, number];
+        };
+    };
+
     public readonly budget: { min: number; max: number };
-
     public readonly isUrgent: boolean;
-
     public readonly durationType: JOB_DURATION_TYPE;
     public readonly startDate: string;
     public readonly days?: number;
     public readonly freelancersNeeded: number;
-    public readonly visibility?: JOB_VISIBILITY;
+    public readonly visibility: JOB_VISIBILITY;
     public readonly hiredProviderId?: string;
 
     private constructor(data: CreateJobInput) {
         this.title = data.title;
         this.description = data.description;
+        this.contactNumber = data.contactNumber;
         this.skillId = data.skillId;
-        this.locationId = data.locationId;
+        this.location = {
+            district: data.location.district,
+            districtName: data.location.districtName,
+            address: data.location.address,
+            additionalDetails: data.location.additionalDetails,
+            coordinates: {
+                type: data.location.coordinates.type,
+                coordinates: data.location.coordinates.coordinates as [number, number]
+            }
+        };
         this.budget = data.budget;
 
-        this.isUrgent = data.isUrgent || false;
+        this.isUrgent = data.isUrgent ?? false;
 
         this.durationType = data.durationType;
         this.startDate = data.startDate;
         this.days = data.days;
-        this.freelancersNeeded = data.freelancersNeeded || 1;
-        this.visibility = data.visibility || JOB_VISIBILITY.PUBLIC;
+
+        this.freelancersNeeded = data.freelancersNeeded ?? 1;
+        this.visibility = data.visibility ?? JOB_VISIBILITY.PUBLIC;
         this.hiredProviderId = data.hiredProviderId;
     }
 
     public static create(data: any): CreateJobDTO {
         const result = createJobSchema.safeParse(data);
-        
+
         if (!result.success) {
-            const zodError = result.error as z.ZodError<any>;
-            const errors = zodError.issues.map((err: any) => err.message).join('. ');
-            console.error("Validation errors:", errors);
+            const errors = result.error.issues.map(err => err.message).join(". ");
             throw new AppError(errors, 400);
         }
 

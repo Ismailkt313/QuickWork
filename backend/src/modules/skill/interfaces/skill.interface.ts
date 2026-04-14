@@ -1,4 +1,5 @@
 import { Document } from "mongoose";
+import { Request, Response, NextFunction } from 'express'
 
 export interface ISkill extends Document {
     name: string;
@@ -14,16 +15,19 @@ export interface ISkillRepository {
     getServices():Promise<ISkill[]>;
     getAllSkills(search?: string, locationId?: string): Promise<ISkill[]>;
     getSkills(): Promise<ISkill[]>;
+    getMySkill(userId:string):Promise<ISkill[]>
 }
 
 export interface ISkillService {
     searchSkills(query:string): Promise<{ success: boolean; data?: ISkill[] }>;
     getAllSkills(search?: string, locationId?: string): Promise<{ success: boolean; data: ISkill[] }>;
     getSkills(): Promise<{ success: boolean; data: ISkill[] }>;
+    getMySkills(userId:any):Promise<{success:boolean, data:ISkill[]}>
 }
 export interface ISkillController {
     searchSkills(req: any, res: any, next: any): Promise<void>;
     getAllSkills(req: any, res: any, next: any): Promise<void>;
     getSkills(req: any, res: any, next: any): Promise<void>;
+    myskills(req: Request, res: Response, next: NextFunction): Promise<void>;
 }
 

@@ -17,9 +17,7 @@ export class JobController implements IJobController {
             if (!userId) {
                 throw new AppError('Unauthorized access', 401);
             }
-            console.log("Create Job Request Body:", req.body);
             const dto = CreateJobDTO.create(req.body);
-            console.log("Validated DTO:", dto);
             const result = await this.jobService.createJob(userId, dto);
 
             if (!result.success) {
@@ -59,12 +57,15 @@ export class JobController implements IJobController {
             const search = req.query.search as string;
             const userId = req.user?.userId;
 
+            
+            console.log('enthelum request indonn nokka',req.query)
             const result = await this.jobService.availableJobs(
                 page, 
                 limit, 
                 { skillId, locationId, minBudget, maxBudget, search }, 
                 userId
             );
+            console.log('ivida job kittiyath kaanam',result)
             res.status(200).json(result);
         } catch (error) {
             next(error);

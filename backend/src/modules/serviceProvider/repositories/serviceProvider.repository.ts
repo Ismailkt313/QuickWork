@@ -8,7 +8,6 @@ export class ServiceProviderRepository implements IServiceProviderRepository {
         const res = await ServiceProviderModel.findOne({ userId })
             .populate('userId skills', 'name email profileImage')
             .lean() as any;
-            console.log(res,'here im doing something')
             return res
     }
 

@@ -8,8 +8,35 @@ const JobSchema: Schema = new Schema(
     {
         title: { type: String, required: true },
         description: { type: String, required: true },
+        contactNumber: { type: String, required: true },
         skillId: { type: Schema.Types.ObjectId, ref: 'Skill', required: true },
-        locationId: { type: Schema.Types.ObjectId, ref: 'Location', required: true },
+        location: {
+    district: {
+        type: Schema.Types.ObjectId,
+        ref: 'Location',
+        required: true
+    },
+    address: {
+        type: String,
+        required: true
+    },
+    additionalDetails: {
+        type: String,
+        required: false
+    },
+    coordinates: {
+        type: {
+            type: String,
+            enum: ["Point"],
+            required: true,
+            default: "Point"
+        },
+        coordinates: {
+            type: [Number],
+            required: true
+        }
+    }
+        },
         budget: {
             min: { type: Number, required: true },
             max: { type: Number, required: true }
@@ -73,9 +100,8 @@ JobSchema.pre('save', function(next) {
     }
     next();
 });
-
+JobSchema.index({ "location.coordinates": "2dsphere" });
 JobSchema.index({ skillId: 1 });
-JobSchema.index({ locationId: 1 });
 JobSchema.index({ status: 1 });
 JobSchema.index({ 'schedule.startDate': 1 });
 JobSchema.index({ createdAt: -1 });

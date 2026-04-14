@@ -1,4 +1,5 @@
 import { IJobRepository, IJobService } from '../interfaces/job.interface';
+import { ILocationRepository } from '../../location/interfaces/location.interface';
 import { CreateJobDTO } from '../dtos/createJob.dto';
 import { JobResponseDTO, mapJobToResponseDTO } from '../dtos/jobResponse.dto';
 import { Types } from 'mongoose';
@@ -14,19 +15,36 @@ export class JobService implements IJobService {
     private jobRepository: IJobRepository;
     private serviceProviderRepository: IServiceProviderRepository;
     private assignmentService: IAssignmentService;
+    private locationRepository: ILocationRepository;
 
     constructor(
         jobRepository: IJobRepository,
         serviceProviderRepository: IServiceProviderRepository,
-        assignmentService: IAssignmentService
+        assignmentService: IAssignmentService,
+        locationRepository: ILocationRepository
     ) {
         this.jobRepository = jobRepository;
         this.serviceProviderRepository = serviceProviderRepository;
         this.assignmentService = assignmentService;
+        this.locationRepository = locationRepository;
     }
 
     async createJob(userId: string, dto: CreateJobDTO): Promise<{ success: boolean; message: string; data?: JobResponseDTO }> {
         // Validation Checks
+        const district = await this.locationRepository.findById(dto.location.district);
+        if (!district) {
+            throw new Error("Invalid district selected");
+        }
+
+        // Strict District Matching (Zero Inconsistent Data States)
+        const placeDistrict = dto.location.districtName.toLowerCase();
+        const chosenDistrictName = district.name.toLowerCase();
+        const formattedAddress = dto.location.address.toLowerCase();
+
+        if (placeDistrict !== chosenDistrictName && !formattedAddress.includes(chosenDistrictName)) {
+            throw new Error(`Selected location does not belong to the ${district.name} district`);
+        }
+
         if (!dto.budget || dto.budget.min === undefined || dto.budget.max === undefined) {
             throw new Error("Budget information is required");
         }
@@ -61,8 +79,17 @@ export class JobService implements IJobService {
         const newJob = await this.jobRepository.create({
             title: dto.title,
             description: dto.description,
+            contactNumber: dto.contactNumber,
             skillId: new Types.ObjectId(dto.skillId) as any,
-            locationId: new Types.ObjectId(dto.locationId) as any,
+            location: {
+                district: new Types.ObjectId(dto.location.district),
+                address: dto.location.address,
+                additionalDetails:dto.location.additionalDetails ? dto.location.additionalDetails : 'additional detail not provided',
+                coordinates: {
+                    type: "Point",
+                    coordinates: dto.location.coordinates.coordinates
+                }
+            },
             userId: new Types.ObjectId(userId) as any,
             budget: dto.budget,
             isUrgent: dto.isUrgent,
@@ -104,21 +131,22 @@ export class JobService implements IJobService {
     }
 
     async availableJobs(page: number = 1, limit: number = 10, filters: any = {}, userId?: string): Promise<import('../interfaces/job.interface').IJobPaginationResponse> {
-        const { jobs, total } = await this.jobRepository.findAllOpen(page, limit, filters);
-
+        
+        
         const assignedJobIds = new Set<string>();
-        if (userId) {
-            const provider = await this.serviceProviderRepository.findByUserId(userId);
+            const provider = await this.serviceProviderRepository.findByUserId(userId as string);
             if (provider) {
-                // We use assignmentService but to avoid circular deps if needed we could query repo, 
-                // but we already injected assignmentService in constructor!
                 const providerAssignments = await this.assignmentService.getAssignmentsByProvider(provider._id.toString());
                 providerAssignments.forEach(a => {
                     const id = a.jobId && (a.jobId as any)._id ? (a.jobId as any)._id.toString() : a.jobId?.toString();
                     if (id) assignedJobIds.add(id);
                 });
             }
-        }
+            const skills:string[] = await provider.skills.map((a: any) => a._id.toString())
+            const { jobs, total } = await this.jobRepository.findAllOpen(page, limit, filters, skills);
+        console.log('servicil enthelum undo',jobs)
+
+
 
         const mappedJobs = await Promise.all(jobs.map(async j => {
             const dto = mapJobToResponseDTO(j);
@@ -150,10 +178,8 @@ export class JobService implements IJobService {
 
         const dto = mapJobToResponseDTO(job);
         
-        // 1. Get real applicants count from assignments
         dto.applicants = await this.assignmentService.getAssignmentCountByJob(jobId);
 
-        // 2. Check if the current user has already accepted this job
         if (userId) {
             const provider = await this.serviceProviderRepository.findByUserId(userId);
             if (provider) {
@@ -232,7 +258,7 @@ export class JobService implements IJobService {
             return { success: false, message: 'Job is already fully assigned' };
         }
 
-        const isOutOfDistrict = provider.location?.id?.toString() !== updatedJob.locationId?.toString();
+        const isOutOfDistrict = provider.location?.id?.toString() !== updatedJob.location?.district?._id?.toString();
 
         await this.assignmentService.createAssignment({
             jobId: updatedJob._id as any,
@@ -289,7 +315,7 @@ export class JobService implements IJobService {
             return { success: false, message: 'You have another job overlapping with this schedule' };
         }
 
-        const isOutOfDistrict = provider.location?.id?.toString() !== job.locationId?.toString();
+        const isOutOfDistrict = provider.location?.id?.toString() !== job.location?.district?._id?.toString();
 
         const updatedJob = await this.jobRepository.findByConditionAndUpdate(
             {

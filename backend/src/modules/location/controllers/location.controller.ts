@@ -11,7 +11,6 @@ export class LocationController implements ILocationController {
     getAllLocations = async (req: Request, res: Response, next: any): Promise<void> => {
         try {
             const result = await this.locationService.getAllLocations();
-            console.log('hey da')
             res.status(200).json(result);
         } catch (error) {
             next(error);

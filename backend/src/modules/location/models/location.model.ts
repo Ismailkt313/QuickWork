@@ -7,6 +7,20 @@ const LocationSchema = new Schema<ILocation>({
         required: true,
         unique: true
     },
+    center: {
+        type: {
+            type: String,
+            enum: ["Point"],
+            required: true,
+            default: "Point"
+        },
+        coordinates: {
+            type: [Number],
+            required: true
+        }
+    }
 });
+
+LocationSchema.index({ center: "2dsphere" });
 
 export const LocationModel = mongoose.model<ILocation>('Location', LocationSchema);

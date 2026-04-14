@@ -8,6 +8,9 @@ export interface JobResponseDTO {
     clientName: string;
     clientInitials: string;
     location: string;
+    additionalDetails?: string;
+    clientEmail?: string;
+    clientNumber?: string;
     postedAt: string;
     skills: string[];
     budget: string;
@@ -52,7 +55,10 @@ export const mapJobToResponseDTO = (job: any): JobResponseDTO => {
         description: job.description,
         clientName,
         clientInitials: getInitials(clientName),
-        location: location.name || 'Remote',
+        location: job.location?.address || 'Remote',
+        additionalDetails: job.location?.additionalDetails,
+        clientEmail: user.email,
+        clientNumber: job.contactNumber || user.number,
         postedAt: getRelativeTime(job.createdAt),
         skills: skill.name ? [skill.name] : [], 
         budget: formatBudget(job.budget),

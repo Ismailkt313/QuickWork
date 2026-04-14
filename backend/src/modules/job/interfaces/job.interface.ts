@@ -8,8 +8,17 @@ import { JOB_DURATION_TYPE } from '../../../constants/jobDuration';
 export interface IJob extends Document {
     title: string;
     description: string;
+    contactNumber: string;
     skillId: Types.ObjectId;
-    locationId: Types.ObjectId;
+    location: {
+        district: Types.ObjectId;
+        address: string;
+        additionalDetails?: string;
+        coordinates: {
+            type: "Point";
+            coordinates: [number, number];
+        };
+    };
     budget: {
         min: number;
         max: number;
@@ -60,7 +69,7 @@ export interface IJobService {
 export interface IJobRepository {
     create(jobData: Partial<IJob>): Promise<IJob>;
     findByUser(userId: string): Promise<IJob[]>;
-    findAllOpen(page: number, limit: number, filters: any): Promise<{ jobs: IJob[], total: number }>;
+    findAllOpen(page: number, limit: number, filters: any , skill:string[]): Promise<{ jobs: IJob[], total: number }>;
     findById(id: string): Promise<IJob | null>;
     findByProvider(providerId: string): Promise<IJob[]>;
     updateStatus(id: string, status: JOB_STATUS): Promise<IJob | null>;

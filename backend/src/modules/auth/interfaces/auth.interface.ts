@@ -10,6 +10,10 @@ export interface    IUser extends Document {
     hashedPassword?: string;
     googleId?: string;
     role: ROLES;
+    profileImage?: {
+        url: string;
+        public_id: string;
+    };
     isBlocked: boolean;
     createdAt: Date;
 }
@@ -132,6 +136,10 @@ export interface IChangePasswordInput {
 export interface IUpdateProfileInput {
     name?: string;
     number?: string;
+    profileImage?: {
+        url: string;
+        public_id: string;
+    };
 }
 
 export interface ILogoutResponse {

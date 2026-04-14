@@ -13,7 +13,7 @@ export class AssignmentRepository implements IAssignmentRepository {
                 path: 'jobId',
                 populate: [
                     { path: 'userId', select: 'name email' },
-                    { path: 'locationId', select: 'name' },
+                    { path: 'location.district', select: 'name' },
                     { path: 'skillId', select: 'name' }
                 ]
             })
@@ -33,7 +33,7 @@ export class AssignmentRepository implements IAssignmentRepository {
                 path: 'jobId',
                 populate: [
                     { path: 'userId', select: 'name email' },
-                    { path: 'locationId', select: 'name' },
+                    { path: 'location.district', select: 'name' },
                     { path: 'skillId', select: 'name' }
                 ]
             })

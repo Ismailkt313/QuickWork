@@ -64,4 +64,18 @@ export class UploadController {
             next(error);
         }
     };
+
+    getUploadSignature = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const folder = req.query.folder as string || 'quickwork/general';
+            const signatureData = await this.uploadService.getUploadSignature(folder);
+
+            res.status(200).json({
+                success: true,
+                data: signatureData
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
 }

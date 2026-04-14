@@ -11,6 +11,10 @@ export class LocationRepository implements ILocationRepository {
         return locations.map(loc => ({
             id: loc._id.toString(),
             name: loc.name,
+            center: loc.center
         }));
+    }
+    async findById(id: string): Promise<ILocation | null> {
+        return await LocationModel.findById(id);
     }
 }

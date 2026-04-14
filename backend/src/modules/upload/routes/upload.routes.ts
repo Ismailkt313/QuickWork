@@ -45,6 +45,12 @@ export const createUploadRouter = (controller: UploadController): Router => {
         upload.array('images', 5),
         controller.uploadAssignmentProofs
     );
+    
+    router.get(
+        '/signature',
+        authMiddleware,
+        controller.getUploadSignature
+    );
 
     return router;
 };

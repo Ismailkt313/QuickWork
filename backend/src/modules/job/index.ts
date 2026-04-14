@@ -4,11 +4,13 @@ import { JobController } from './controllers/job.controller';
 import { createJobRouter } from './routes/job.routes';
 import { ServiceProviderRepository } from '../serviceProvider/repositories/serviceProvider.repository';
 import { assignmentService } from '../assignment';
+import { LocationRepository } from '../location/repositories/location.repository';
 
 const jobRepository = new JobRepository();
 const serviceProviderRepository = new ServiceProviderRepository();
+const locationRepository = new LocationRepository();
 
-const jobService = new JobService(jobRepository, serviceProviderRepository, assignmentService);
+const jobService = new JobService(jobRepository, serviceProviderRepository, assignmentService, locationRepository);
 const jobController = new JobController(jobService);
 
 const jobRouter = createJobRouter(jobController);

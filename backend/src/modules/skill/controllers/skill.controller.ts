@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { ISkillService } from '../interfaces/skill.interface';
  import { ISkillController } from '../interfaces/skill.interface';
+import { success } from 'zod';
 
 export class SkillController implements ISkillController {
     private skillService: ISkillService;
@@ -38,4 +39,18 @@ export class SkillController implements ISkillController {
             next(error);
         }
     }
+    myskills = async (req: Request, res: Response, next: any): Promise<void> => {
+        try {
+            console.log('ivida aarelum undoo ',req.user?.userId)
+            const userId = req.user?.userId
+            // if (!userId) {
+            //     res.status(401).json({success:false,message:'UnAutherized user'})
+            // }
+            const result = await this.skillService.getMySkills(userId)
+            res.status(200).json(result)
+        } catch (error) {
+            
+        }
+    }
+
 }

@@ -37,6 +37,10 @@ const UserSchema: Schema<IUser> = new Schema<IUser>(
             type: Boolean,
             default: false,
         },
+        profileImage: {
+            url: { type: String, default: null },
+            public_id: { type: String, default: null },
+        },
     },
     {
         timestamps: { createdAt: true, updatedAt: false },

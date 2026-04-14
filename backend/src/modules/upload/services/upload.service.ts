@@ -1,4 +1,5 @@
 import cloudinary from '../../../config/cloudinary';
+import { config } from '../../../config';
 
 export class UploadService {
     async uploadProfileImage(fileBuffer: Buffer, mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
@@ -36,6 +37,39 @@ export class UploadService {
             );
 
             uploadStream.end(fileBuffer);
+        });
+    }
+
+    async getUploadSignature(folder: string = 'quickwork/general') {
+        const timestamp = Math.round(new Date().getTime() / 1000);
+        
+        const paramsToSign = {
+            timestamp,
+            folder,
+        };
+
+        const signature = cloudinary.utils.api_sign_request(
+            paramsToSign,
+            config.CLOUD_API_SECRET
+        );
+
+        return {
+            signature,
+            timestamp,
+            apiKey: config.CLOUD_API_KEY,
+            cloudName: config.CLOUD_NAME,
+            folder
+        };
+    }
+
+    async deleteImage(publicId: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            cloudinary.uploader.destroy(publicId, (error, result) => {
+                if (error) {
+                    return reject(new Error('Failed to delete image from Cloudinary'));
+                }
+                resolve(result);
+            });
         });
     }
 }
