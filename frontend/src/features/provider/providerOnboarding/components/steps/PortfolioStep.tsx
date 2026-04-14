@@ -11,6 +11,7 @@ import {
 } from "../../../providerOnboarding/store/onboardingSlice";
 import { api } from "../../../../../services/api";
 import { toast } from "react-toastify";
+import { cloudinaryService } from "../../../../../services/cloudinaryService";
 
 const PortfolioStep: React.FC = () => {
     const dispatch = useDispatch();
@@ -45,14 +46,8 @@ const PortfolioStep: React.FC = () => {
                     continue;
                 }
 
-                const uploadData = new FormData();
-                uploadData.append("image", file);
-
-                const response = await api.post("/upload/portfolio-image", uploadData, {
-                    headers: { "Content-Type": "multipart/form-data" }
-                });
-
-                const imageUrl = response.data.data.imageUrl;
+                const response = await cloudinaryService.uploadImage(file, 'quickwork/portfolio-images');
+                const imageUrl = response.secure_url;
                 dispatch(addPortfolioImage({ projectId, image: imageUrl }));
             }
         } catch (error: any) {

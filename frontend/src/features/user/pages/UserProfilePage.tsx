@@ -63,7 +63,7 @@ const UserProfilePage: React.FC = () => {
                 <div className="col-12 col-lg-4">
                     <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
                         <div className="bg-primary text-white p-4 text-center">
-                            <div className="mx-auto mb-3" style={{ 
+                            <div className="mx-auto mb-3 overflow-hidden" style={{ 
                                 width: '100px', 
                                 height: '100px', 
                                 borderRadius: '50%', 
@@ -75,7 +75,11 @@ const UserProfilePage: React.FC = () => {
                                 fontWeight: 'bold',
                                 border: '4px solid rgba(255,255,255,0.3)'
                             }}>
-                                {userInitials}
+                                {user.profileImage?.url ? (
+                                    <img src={user.profileImage.url} alt="Profile" className="w-100 h-100 object-fit-cover" />
+                                ) : (
+                                    userInitials
+                                )}
                             </div>
                             <h4 className="fw-bold mb-1">{user.name}</h4>
                             <span className="badge bg-light text-primary rounded-pill px-3 py-2 small fw-bold">

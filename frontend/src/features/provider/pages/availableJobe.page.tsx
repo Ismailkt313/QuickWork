@@ -58,6 +58,7 @@ const AvailableJobsPage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [fetching,setIsFetching] = useState(false)
   const [jobs, setJobs] = useState<Job[]>([]);
   const [locations, setLocations] = useState<{
     id: Key | null | undefined; _id: string, name: string
@@ -112,38 +113,41 @@ const AvailableJobsPage: React.FC = () => {
   };
 
   const fetchData = useCallback(async (page = 1) => {
-    setLoading(true);
-    try {
-      const budgetRange = parseBudgetRange(budget);
-      const response = await availableJobs(
-        page,
-        JOBS_PER_PAGE,
-        selectedCategory || undefined,
-        selectedLocation || undefined,
-        budgetRange.min,
-        budgetRange.max,
-        searchQuery || undefined
-      );
-      if (response.success) {
-        setJobs(response.data);
-        setPagination(response.pagination);
-      }
-    } catch (error) {
-      console.error('Error fetching jobs:', error);
-    } finally {
-      setTimeout(() => setLoading(false), 300);
-      setRefreshing(false);
+    setIsFetching(true)
+  setLoading(true);
+  try {
+    const budgetRange = parseBudgetRange(budget);
+
+    const response = await availableJobs(
+      page,
+      JOBS_PER_PAGE,
+      selectedCategory || undefined,
+      selectedLocation || undefined,
+      budgetRange.min,
+      budgetRange.max,
+      searchQuery || undefined
+    );
+
+    if (response.success) {
+      setJobs(response.data);
+      setPagination(response.pagination);
     }
-  }, [selectedCategory, selectedLocation, budget, searchQuery, skills, locations]);
+  } catch (error) {
+    console.error('Error fetching jobs:', error);
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
+    setIsFetching(false)
+  }
+}, [selectedCategory, selectedLocation, budget, searchQuery]);;
 
-  useEffect(() => {
-    fetchData(1);
-    setCurrentPage(1);
-  }, [selectedLocation, selectedCategory, budget, searchQuery, fetchData]);
+useEffect(() => {
+  setCurrentPage(1);
+}, [selectedLocation, selectedCategory, budget, searchQuery]);
 
-  useEffect(() => {
-    fetchData(currentPage);
-  }, [currentPage]);
+useEffect(() => {
+  fetchData(currentPage);
+}, [currentPage, fetchData]);
 
   const handleRefresh = useCallback(() => {
     setRefreshing(true);
@@ -219,29 +223,29 @@ const AvailableJobsPage: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const filteredJobs = useMemo(() => {
-    // Backend now does search and budget filtering
-    let result = jobs;
-    if (sortBy === 'applicants') result = [...result].sort((a, b) => a.applicants - b.applicants);
-    if (sortBy === 'budget_hi') result = [...result].sort((a, b) => {
-      const budgetA = parseInt(a.budget.replace(/[^0-9]/g, '')) || 0;
-      const budgetB = parseInt(b.budget.replace(/[^0-9]/g, '')) || 0;
-      return budgetB - budgetA;
-    });
-    if (sortBy === 'budget_lo') result = [...result].sort((a, b) => {
-      const budgetA = parseInt(a.budget.replace(/[^0-9]/g, '')) || 0;
-      const budgetB = parseInt(b.budget.replace(/[^0-9]/g, '')) || 0;
-      return budgetA - budgetB;
-    });
-    return result;
-  }, [jobs, sortBy]);
+  // const filteredJobs = useMemo(() => {
+  //   // Backend now does search and budget filtering
+  //   let result = jobs;
+  //   if (sortBy === 'applicants') result = [...result].sort((a, b) => a.applicants - b.applicants);
+  //   if (sortBy === 'budget_hi') result = [...result].sort((a, b) => {
+  //     const budgetA = parseInt(a.budget.replace(/[^0-9]/g, '')) || 0;
+  //     const budgetB = parseInt(b.budget.replace(/[^0-9]/g, '')) || 0;
+  //     return budgetB - budgetA;
+  //   });
+  //   if (sortBy === 'budget_lo') result = [...result].sort((a, b) => {
+  //     const budgetA = parseInt(a.budget.replace(/[^0-9]/g, '')) || 0;
+  //     const budgetB = parseInt(b.budget.replace(/[^0-9]/g, '')) || 0;
+  //     return budgetA - budgetB;
+  //   });
+  //   return result;
+  // }, [jobs, sortBy]);
 
   const totalPages = pagination.pages;
-  const pagedJobs = filteredJobs;
+  // const pagedJobs = filteredJobs;
 
   const urgentCount = jobs.filter((j) => j.isUrgent).length;
   // const savedCount = jobs.filter((j) => j.isSaved).length;
-
+const displayedJobs = jobs;
   return (
     <div className="ajp-root">
       <div className="ajp-container">
@@ -388,7 +392,7 @@ const AvailableJobsPage: React.FC = () => {
 
         <div className="ajp-sort-row">
           <p className="ajp-results-count">
-            Showing <strong>{filteredJobs.length}</strong> of <strong>{jobs.length}</strong> jobs
+            Showing <strong>{displayedJobs.length}</strong> of <strong>{pagination.total}</strong> jobs
           </p>
           <div className="ajp-sort-group">
             <span className="ajp-sort-label">Sort by:</span>
@@ -410,7 +414,7 @@ const AvailableJobsPage: React.FC = () => {
             Array.from({ length: 6 }).map((_, i) => (
               <SkeletonCard key={i} delay={i * 80} />
             ))
-          ) : pagedJobs.length === 0 ? (
+          ) : displayedJobs.length === 0 ? (
             <div className="ajp-empty" role="status">
               <div className="ajp-empty-icon" aria-hidden="true"><IconBag /></div>
               <div className="ajp-empty-title">No jobs found</div>
@@ -435,10 +439,14 @@ const AvailableJobsPage: React.FC = () => {
                 type="button"
               >
                 <IconZap /> Clear Filters
-              </button>
+                </button>
+                  {fetching &&
+    Array.from({ length: 4 }).map((_, i) => (
+      <SkeletonCard key={`loading-${i}`} />
+    ))}
             </div>
           ) : (
-            pagedJobs.map((job, i) => (
+            displayedJobs.map((job, i) => (
               <div key={job.id} role="listitem">
                 <JobCard
                   job={{ ...job, animationDelay: i * 60 }}
@@ -451,51 +459,73 @@ const AvailableJobsPage: React.FC = () => {
           )}
         </div>
 
-        {!loading && filteredJobs.length > JOBS_PER_PAGE && (
-          <nav className="ajp-pagination" aria-label="Job listing pagination">
-            <button
-              className="ajp-page-btn"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              aria-label="Previous page"
-            >
-              ‹
-            </button>
+        
+        <p className="qw-pagination-info">
+  Page {currentPage} of {totalPages}
+</p>
+       {!loading && totalPages > 1 && (
+  <nav className="qw-pagination">
+  <button
+    onClick={() => setCurrentPage(1)}
+    disabled={currentPage === 1}
+    className="qw-page-btn"
+  >
+    «
+  </button>
 
-            {Array.from({ length: totalPages }).map((_, i) => {
-              const page = i + 1;
-              if (
-                page === 1 || page === totalPages ||
-                (page >= currentPage - 1 && page <= currentPage + 1)
-              ) {
-                return (
-                  <button
-                    key={page}
-                    className={`ajp-page-btn${page === currentPage ? ' active' : ''}`}
-                    onClick={() => setCurrentPage(page)}
-                    aria-label={`Page ${page}`}
-                    aria-current={page === currentPage ? 'page' : undefined}
-                  >
-                    {page}
-                  </button>
-                );
-              }
-              if (page === currentPage - 2 || page === currentPage + 2) {
-                return <span key={page} style={{ color: 'var(--qw-muted)', padding: '0 4px' }}>…</span>;
-              }
-              return null;
-            })}
+  <button
+    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+    disabled={currentPage === 1}
+    className="qw-page-btn"
+  >
+    ‹
+  </button>
 
-            <button
-              className="ajp-page-btn"
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              aria-label="Next page"
-            >
-              ›
-            </button>
-          </nav>
-        )}
+  {Array.from({ length: totalPages }).map((_, i) => {
+    const page = i + 1;
+
+    if (
+      page === 1 ||
+      page === totalPages ||
+      (page >= currentPage - 1 && page <= currentPage + 1)
+    ) {
+      return (
+        <button
+          key={page}
+          onClick={() => setCurrentPage(page)}
+          className={`qw-page-btn ${
+            page === currentPage ? "active" : ""
+          }`}
+        >
+          {page}
+        </button>
+      );
+    }
+
+    if (page === currentPage - 2 || page === currentPage + 2) {
+      return <span key={page} className="qw-dots">...</span>;
+    }
+
+    return null;
+  })}
+
+  <button
+    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+    disabled={currentPage === totalPages}
+    className="qw-page-btn"
+  >
+    ›
+  </button>
+
+  <button
+    onClick={() => setCurrentPage(totalPages)}
+    disabled={currentPage === totalPages}
+    className="qw-page-btn"
+  >
+    »
+  </button>
+</nav>
+)}
       </div>
 
       <UniversalActionModal

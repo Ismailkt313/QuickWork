@@ -27,7 +27,7 @@ interface DirectHireModalProps {
     onClose: () => void;
     providerId: string;
     providerName: string;
-    providerSkills: { _id: string; name: string; }[];
+    providerSkills: { id?: string; _id?: string; name: string; }[];
 }
 
 export const DirectHireModal: React.FC<DirectHireModalProps> = ({
@@ -43,7 +43,7 @@ export const DirectHireModal: React.FC<DirectHireModalProps> = ({
     const [formData, setFormData] = useState<JobFormData>({
         title: '',
         description: '',
-        category: providerSkills.length > 0 ? providerSkills[0].name : '',
+        category: providerSkills.length > 0 ? (providerSkills[0].id || providerSkills[0]._id || '') : '',
         durationType: 'half_day',
         startDate: '',
         days: '',
@@ -51,7 +51,8 @@ export const DirectHireModal: React.FC<DirectHireModalProps> = ({
         maxBudget: '',
         freelancersNeeded: '1',
         location: '',
-        address: ''
+        address: '',
+        isUrgent: false
     });
 
     const [locations, setLocations] = useState<Location[]>([]);
@@ -87,8 +88,8 @@ export const DirectHireModal: React.FC<DirectHireModalProps> = ({
         const { name, value } = e.target;
         setFormData(prev => ({ 
             ...prev, 
-            [name]: value,
-            ...(name === 'durationType' && value !== 'multi_day' ? { startDate: '', days: '' } : {})
+            [name]: name === 'isUrgent' ? (e.target as HTMLInputElement).checked : value,
+            ...(name === 'durationType' && value !== 'multi_day' ? { days: '' } : {})
         }));
         if (errors[name as keyof JobFormData]) {
             setErrors(prev => ({ ...prev, [name]: '' }));
@@ -98,7 +99,11 @@ export const DirectHireModal: React.FC<DirectHireModalProps> = ({
     const validate = () => {
         const newErrors: Partial<Record<keyof JobFormData, string>> = {};
         if (!formData.title.trim()) newErrors.title = 'Job title is required';
+        else if (formData.title.trim().length < 5) newErrors.title = 'Min 5 characters';
+        
         if (!formData.description.trim()) newErrors.description = 'Description is required';
+        else if (formData.description.trim().length < 10) newErrors.description = 'Min 10 characters';
+
         if (!formData.category) newErrors.category = 'Category is required';
         if (!formData.startDate) newErrors.startDate = 'Start date is required';
         if (formData.durationType === 'multi_day' && (!formData.days || Number(formData.days) < 1)) {
@@ -124,19 +129,16 @@ export const DirectHireModal: React.FC<DirectHireModalProps> = ({
 
         setIsSubmitting(true);
         try {
-            const selectedLocation = locations.find(l => l.name === formData.location);
-            const selectedSkill = providerSkills.find(s => s.name === formData.category);
-
-            if (!selectedLocation || !selectedSkill) {
-                toast.error('Invalid selection');
+            if (!formData.location || !formData.category || !providerId) {
+                toast.error('Missing required information');
                 return;
             }
 
             const result = await jobService.createJob({
                 title: formData.title,
                 description: formData.description,
-                skillId: selectedSkill._id,
-                locationId: selectedLocation.id,
+                skillId: formData.category,
+                locationId: formData.location,
                 budget: {
                     min: Number(formData.minBudget),
                     max: Number(formData.maxBudget)
@@ -146,7 +148,8 @@ export const DirectHireModal: React.FC<DirectHireModalProps> = ({
                 days: formData.durationType === 'multi_day' ? Number(formData.days) : undefined,
                 freelancersNeeded: 1,
                 visibility: 'private',
-                hiredProviderId: providerId
+                hiredProviderId: providerId,
+                isUrgent: formData.isUrgent
             });
 
             if (result.success) {
@@ -164,8 +167,8 @@ export const DirectHireModal: React.FC<DirectHireModalProps> = ({
         }
     };
 
-    const skillOptions: SelectOption[] = providerSkills.map(s => ({ value: s.name, label: s.name }));
-    const locationOptions: SelectOption[] = locations.map(l => ({ value: l.name, label: l.name }));
+    const skillOptions: SelectOption[] = providerSkills.map(s => ({ value: s.id || s._id || '', label: s.name }));
+    const locationOptions: SelectOption[] = locations.map(l => ({ value: l.id, label: l.name }));
     const durationOptions = [
         { label: "Half Day (~4 hrs)", value: "half_day" },
         { label: "Full Day (8 hrs)", value: "full_day" },
@@ -238,6 +241,14 @@ export const DirectHireModal: React.FC<DirectHireModalProps> = ({
                             </div>
                             <div className="col-md-6">
                                 <FormInput label="Max Budget (₹)" name="maxBudget" type="number" value={formData.maxBudget} onChange={handleChange} error={errors.maxBudget} placeholder="0" icon={<FiDollarSign />} required />
+                            </div>
+                            <div className="col-12 mt-2">
+                                <div className="d-flex align-items-center gap-2 p-3 rounded-3" style={{ background: formData.isUrgent ? '#fff1f2' : '#f8fafc', border: `1px solid ${formData.isUrgent ? '#fecdd3' : '#e2e8f0'}`, transition: 'all 0.2s' }}>
+                                    <input type="checkbox" id="isUrgent" name="isUrgent" checked={formData.isUrgent} onChange={handleChange} style={{ width: 20, height: 20, cursor: 'pointer' }} />
+                                    <label htmlFor="isUrgent" style={{ flex: 1, margin: 0, cursor: 'pointer', fontSize: 14, fontWeight: 600, color: formData.isUrgent ? '#e11d48' : '#475569' }}>
+                                        Mark as Urgent Project
+                                    </label>
+                                </div>
                             </div>
                         </div>
 

@@ -12,9 +12,10 @@ interface JobInfoCardProps {
     avatarUrl?: string;
   };
   skills: string[];
+  onViewProfile?: () => void;
 }
 
-const JobInfoCard: React.FC<JobInfoCardProps> = ({ description, client, skills }) => {
+const JobInfoCard: React.FC<JobInfoCardProps> = ({ description, client, skills, onViewProfile }) => {
   return (
     <div className="jic-root card border-0 rounded-4 shadow-sm mb-4 overflow-hidden" style={{ backgroundColor: '#fff', border: '1px solid #f1f5f9' }}>
       <div className="card-body p-4 p-lg-5">
@@ -47,7 +48,13 @@ const JobInfoCard: React.FC<JobInfoCardProps> = ({ description, client, skills }
             </div>
           </div>
           <div className="d-none d-md-block">
-            <button className="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold" style={{ fontSize: '12px' }}>View Profile</button>
+            <button 
+                onClick={onViewProfile}
+                className="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold" 
+                style={{ fontSize: '12px' }}
+            >
+                View Profile
+            </button>
           </div>
         </div>
 

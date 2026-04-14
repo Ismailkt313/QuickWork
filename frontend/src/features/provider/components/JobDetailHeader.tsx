@@ -12,6 +12,7 @@ interface JobDetailHeaderProps {
   isNew?: boolean;
   postedAt: string;
   location: string;
+  additionalDetails?: string;
 }
 
 const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({
@@ -20,6 +21,7 @@ const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({
   isNew,
   postedAt,
   location,
+  additionalDetails,
 }) => {
   return (
     <div className="jdh-root mb-4 pb-2">
@@ -50,7 +52,15 @@ const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({
         </div>
         <div className="d-flex align-items-center gap-2">
           <RiMapPinLine size={18} className="text-primary-emphasis" />
-          <span>{location}</span>
+          <div className="d-flex flex-column">
+              <span>{location}</span>
+              {additionalDetails && (
+                  <span className="small text-muted" style={{ fontSize: '12px' }}>
+                      <RiFlashlightLine size={12} className="me-1" style={{ verticalAlign: 'middle' }} />
+                      {additionalDetails}
+                  </span>
+              )}
+          </div>
         </div>
       </div>
 

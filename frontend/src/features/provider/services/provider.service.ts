@@ -1,4 +1,5 @@
 import { api } from "../../../services/api";
+import { cloudinaryService } from "../../../services/cloudinaryService";
 
 export interface ProviderApplicationPayload {
     headline: string;
@@ -44,9 +45,18 @@ export const availableJobs = async (
     }
 };
 
+export const fetchallskills = async () => {
+    try {
+        const response = await api.get("/skills")
+        return response.data
+    } catch (error) {
+        
+    }
+}
+
 export const fetchSkills = async () => {
     try {
-        const response = await api.get("/skills");
+        const response = await api.get("/skills/my/skills");
         return response.data;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || "Failed to fetch skills");
@@ -98,7 +108,7 @@ export const rejectOffer = async (jobId: string) => {
 export const getAssignments = async () => {
     try {
         const response = await api.get("/assignment/my");
-    
+        console.log('enthaan ivida pattiyath',response)
         return response.data;
     } catch (error: any) {
         throw new Error(error.response?.data?.message || "Failed to fetch assignments");
@@ -154,28 +164,31 @@ export const updateProviderProfile = async (data: any): Promise<{ success: boole
 
 export const uploadImage = async (file: File, type: 'profile' | 'portfolio'): Promise<{ success: boolean; data: { imageUrl: string; publicId: string } }> => {
     try {
-        const formData = new FormData();
-        formData.append('image', file);
-        const endpoint = type === 'profile' ? '/upload/profile-image' : '/upload/portfolio-image';
-        const response = await api.post(endpoint, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        return response.data;
+        const folder = type === 'profile' ? 'quickwork/profile-images' : 'quickwork/portfolio-images';
+        const result = await cloudinaryService.uploadImage(file, folder);
+        return {
+            success: true,
+            data: {
+                imageUrl: result.secure_url,
+                publicId: result.public_id
+            }
+        };
     } catch (error: any) {
-        throw new Error(error.response?.data?.message || "Image upload failed");
+        throw new Error(error.message || "Image upload failed");
     }
 };
 
 export const uploadMultipleImages = async (files: FileList | File[]): Promise<{ success: boolean; data: { imageUrl: string; publicId: string }[] }> => {
     try {
-        const formData = new FormData();
-        Array.from(files).forEach(file => formData.append('images', file));
-        const response = await api.post('/upload/assignment-proof', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        return response.data;
+        const results = await Promise.all(
+            Array.from(files).map(file => cloudinaryService.uploadImage(file, 'quickwork/assignment-proofs'))
+        );
+        return {
+            success: true,
+            data: results.map(r => ({ imageUrl: r.secure_url, publicId: r.public_id }))
+        };
     } catch (error: any) {
-        throw new Error(error.response?.data?.message || "Multi-image upload failed");
+        throw new Error(error.message || "Multi-image upload failed");
     }
 };
 

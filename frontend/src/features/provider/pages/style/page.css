@@ -227,6 +227,55 @@
   min-width: 280px;
 }
 
+.qw-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 30px;
+}
+
+.qw-page-btn {
+  min-width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.qw-page-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.qw-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.qw-page-btn.active {
+  background: #6c63ff;
+  color: #fff;
+  border-color: #6c63ff;
+  font-weight: 600;
+}
+
+.qw-dots {
+  padding: 0 6px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.qw-pagination-info {
+  text-align: center;
+  margin-top: 10px;
+  color: #6b7280;
+  font-size: 13px;
+}
 .ajp-search-icon {
   position: absolute;
   left: 16px;

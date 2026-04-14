@@ -4,7 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { updateProfile } from '../../auth/services/authApi';
 import { toast } from 'react-hot-toast';
-import {   RiSaveLine, RiUser3Line, RiPhoneLine } from 'react-icons/ri';
+import { RiSaveLine, RiUser3Line, RiPhoneLine, RiCameraLine } from 'react-icons/ri';
+import { uploadToCloudinary } from '../../../utils/cloudinary';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -39,6 +40,9 @@ const UpdateProfileModal: React.FC<UpdateProfileModalProps> = ({
   user, 
   onSuccess 
 }) => {
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = React.useState<string | null>(user?.profileImage?.url || null);
+
   const {
     register,
     handleSubmit,
@@ -58,19 +62,47 @@ const UpdateProfileModal: React.FC<UpdateProfileModalProps> = ({
         name: user.name,
         number: user.number || '',
       });
+      setPreviewUrl(user.profileImage?.url || null);
+      setSelectedFile(null);
     }
   }, [isOpen, user, reset]);
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error('File size must be less than 2MB');
+        return;
+      }
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
   const onSubmit = async (data: ProfileFormData) => {
     try {
-      const response = await updateProfile(data);
+      let profileImageData = user.profileImage;
+
+      if (selectedFile) {
+        const uploadResponse = await uploadToCloudinary(selectedFile, 'quickwork/profile-images');
+        profileImageData = {
+          url: uploadResponse.secure_url,
+          public_id: uploadResponse.public_id
+        };
+      }
+
+      const response = await updateProfile({
+        ...data,
+        profileImage: profileImageData
+      });
+
       if (response.success) {
         toast.success('Profile updated successfully');
         onSuccess();
         onClose();
       }
     } catch (error: any) {
-      toast.error(error.message || 'Failed to update profile');
+      toast.error(error.response?.data?.message || error.message || 'Failed to update profile');
     }
   };
 
@@ -95,6 +127,40 @@ const UpdateProfileModal: React.FC<UpdateProfileModalProps> = ({
           </div>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="modal-body p-4">
+              {/* Profile Image Upload */}
+              <div className="text-center mb-4">
+                <div className="position-relative d-inline-block">
+                  <div 
+                    className="overflow-hidden rounded-circle border border-4 border-light shadow-sm bg-light d-flex align-items-center justify-content-center"
+                    style={{ width: '100px', height: '100px' }}
+                  >
+                    {previewUrl ? (
+                      <img src={previewUrl} alt="Preview" className="w-100 h-100 object-fit-cover" />
+                    ) : (
+                      <div className="text-secondary opacity-50">
+                        <RiUser3Line size={48} />
+                      </div>
+                    )}
+                  </div>
+                  <label 
+                    htmlFor="profile-upload" 
+                    className="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-2 shadow-sm border border-2 border-white d-flex align-items-center justify-content-center cursor-pointer"
+                    style={{ width: '36px', height: '36px', cursor: 'pointer' }}
+                  >
+                    <RiCameraLine size={18} />
+                    <input 
+                      id="profile-upload" 
+                      type="file" 
+                      className="d-none" 
+                      accept="image/*"
+                      onChange={handleImageChange}
+                    />
+                  </label>
+                </div>
+                <p className="small text-secondary mt-2 mb-0">Click the camera icon to change photo</p>
+                <p className="extra-small text-muted" style={{ fontSize: '10px' }}>JPG, PNG or GIF (Max 2MB)</p>
+              </div>
+
               <div className="mb-3 text-start">
                 <label className="form-label small fw-bold text-secondary">Full Name</label>
                 <div className="input-group">

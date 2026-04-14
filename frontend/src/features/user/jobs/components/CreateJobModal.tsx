@@ -12,14 +12,17 @@ import {
     FiCalendar,
     FiHash,
     FiX,
-    FiZap
+    FiZap,
+    FiPhone
 } from 'react-icons/fi';
+import { api } from '../../../../services/api';
 import { FormInput } from '../../../../shared/components/inputs/FormInput';
 import { FormTextarea } from '../../../../shared/components/inputs/FormTextarea';
 import { FormSelect } from '../../../../shared/components/inputs/FormSelect';
 import type { SelectOption } from '../../../../shared/components/inputs/FormSelect';
 import { CategoryRepository } from '../../../../services/repositories/CategoryRepository';
 import { LocationRepository } from '../../../../services/repositories/LocationRepository';
+import { LocationAutocomplete } from '../../../../shared/components/inputs/LocationAutocomplete';
 import { jobService } from '../services/job.service';
 import type { JobFormData, ServiceCategory, Location } from '../types/job.types';
 import { MIN_JOB_WAGE } from '../constants/jobConstants';
@@ -39,6 +42,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
     const [formData, setFormData] = useState<JobFormData>({
         title: '',
         description: '',
+        contactNumber: '',
         category: '',
         durationType: 'half_day',
         startDate: '',
@@ -46,8 +50,10 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
         minBudget: '',
         maxBudget: '',
         freelancersNeeded: '1',
-        location: '',
-        address: ''
+        districtId: '',
+        selectedLocation: null,
+        additionalDetails: '',
+        isUrgent: false
     });
 
     const [categories, setCategories] = useState<ServiceCategory[]>([]);
@@ -58,14 +64,23 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [cats, locs] = await Promise.all([
+                const [cats, locs, profile] = await Promise.all([
                     CategoryRepository.getCategories(),
-                    LocationRepository.getLocations()
+                    LocationRepository.getLocations(),
+                    api.get('/auth/me')
                 ]);
                 setCategories(cats || []);
                 setLocations(locs || []);
+                
+                // Pre-fill phone number if available
+                if (profile.data?.success && profile.data.data?.number) {
+                    setFormData(prev => ({
+                        ...prev,
+                        contactNumber: profile.data.data.number
+                    }));
+                }
             } catch (error) {
-                console.error('Error fetching categories/locations:', error);
+                console.error('Error fetching categories/locations/profile:', error);
             }
         };
         if (isOpen) fetchData();
@@ -89,10 +104,18 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
         setFormData(prev => ({ 
             ...prev, 
             [name]: value,
-            ...(name === 'durationType' && value !== 'multi_day' ? { startDate: '', days: '' } : {})
+            ...(name === 'durationType' && value !== 'multi_day' ? { startDate: '', days: '' } : {}),
+            ...(name === 'districtId' ? { selectedLocation: null } : {}) // Reset location on district change
         }));
         if (errors[name as keyof JobFormData]) {
             setErrors(prev => ({ ...prev, [name]: '' }));
+        }
+    };
+
+    const handleLocationSelect = (loc: { address: string; lat: number; lng: number; district: string }) => {
+        setFormData(prev => ({ ...prev, selectedLocation: loc }));
+        if (errors.selectedLocation) {
+            setErrors(prev => ({ ...prev, selectedLocation: '' }));
         }
     };
 
@@ -105,7 +128,11 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
         else if (formData.description.length < 10) newErrors.description = 'Please provide at least 10 characters';
 
         if (!formData.category) newErrors.category = 'Category is required';
-        if (!formData.location) newErrors.location = 'Location is required';
+        if (!formData.contactNumber) newErrors.contactNumber = 'Contact number is required';
+        else if (formData.contactNumber.length < 10) newErrors.contactNumber = 'Enter a valid phone number';
+        
+        if (!formData.districtId) newErrors.districtId = 'District is required';
+        if (!formData.selectedLocation) newErrors.selectedLocation = 'Please search and select a location';
         if (!formData.startDate) newErrors.startDate = 'Start date is required';
         
         if (formData.durationType === 'multi_day' && (!formData.days || Number(formData.days) < 1)) {
@@ -136,18 +163,39 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
         setIsSubmitting(true);
         try {
             const selectedCategory = categories.find(c => c.name === formData.category);
-            const selectedLocation = locations.find(l => l.name === formData.location);
+            const selectedDistrict = locations.find(l => l.id === formData.districtId);
 
-            if (!selectedCategory || !selectedLocation) {
+            if (!selectedCategory || !selectedDistrict || !formData.selectedLocation) {
                 toast.error('Invalid selection');
+                return;
+            }
+
+            // Cross-check: Ensure selected location's district matches the chosen district
+            const placeDistrict = formData.selectedLocation.district.toLowerCase();
+            const chosenDistrictName = selectedDistrict.name.toLowerCase();
+            const formattedAddress = formData.selectedLocation.address.toLowerCase();
+
+            if (placeDistrict !== chosenDistrictName && !formattedAddress.includes(chosenDistrictName)) {
+                setErrors(prev => ({ ...prev, selectedLocation: `The selected place must be within ${selectedDistrict.name}` }));
+                setIsSubmitting(false);
                 return;
             }
 
             const result = await jobService.createJob({
                 title: formData.title,
                 description: formData.description,
+                contactNumber: formData.contactNumber,
                 skillId: selectedCategory._id || selectedCategory.id,
-                locationId: selectedLocation.id,
+                location: {
+                    district: selectedDistrict.id,
+                    districtName: selectedDistrict.name,
+                    address: formData.selectedLocation.address,
+                    additionalDetails: formData.additionalDetails,
+                    coordinates: {
+                        type: 'Point',
+                        coordinates: [formData.selectedLocation.lng, formData.selectedLocation.lat]
+                    }
+                },
                 budget: {
                     min: Number(formData.minBudget),
                     max: Number(formData.maxBudget)
@@ -175,7 +223,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
     };
 
     const categoryOptions: SelectOption[] = categories.map(c => ({ value: c.name, label: c.name }));
-    const locationOptions: SelectOption[] = locations.map(l => ({ value: l.name, label: l.name }));
+    const locationOptions: SelectOption[] = locations.map(l => ({ value: l.id, label: l.name }));
     const durationOptions = [
         { label: "Half Day (~4 hrs)", value: "half_day" },
         { label: "Full Day (8 hrs)", value: "full_day" },
@@ -228,11 +276,46 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
                             <div className="col-12">
                                 <FormTextarea label="Job Description" name="description" value={formData.description} onChange={handleChange} error={errors.description} placeholder="Describe the tasks, expectations, and deliverables..." rows={4} icon={<FiAlignLeft />} required />
                             </div>
-                            <div className="col-md-6">
+                            <div className="col-12">
                                 <FormSelect label="Service Category" name="category" value={formData.category} onChange={handleChange} error={errors.category} options={categoryOptions} placeholder="Select a category" icon={<FiGrid />} required />
                             </div>
                             <div className="col-md-6">
-                                <FormSelect label="Work Location" name="location" value={formData.location} onChange={handleChange} error={errors.location} options={locationOptions} placeholder="Select location" icon={<FiMap />} required />
+                                <FormSelect label="Select District" name="districtId" value={formData.districtId} onChange={handleChange} error={errors.districtId} options={locationOptions} placeholder="Choose district" icon={<FiMap />} required />
+                            </div>
+                            <div className="col-md-6">
+                                <LocationAutocomplete 
+                                    key={formData.districtId}
+                                    label="Search Detailed Location" 
+                                    districtName={locations.find(l => l.id === formData.districtId)?.name || ''}
+                                    center={locations.find(l => l.id === formData.districtId)?.center?.coordinates}
+                                    onSelect={handleLocationSelect}
+                                    error={errors.selectedLocation as string}
+                                    helperText="Make sure your district is also visible in the selected location for a successful job posting."
+                                    disabled={!formData.districtId}
+                                    required
+                                />
+                            </div>
+                            <div className="col-12">
+                                <FormInput 
+                                    label="Additional Location Details (Optional)" 
+                                    name="additionalDetails" 
+                                    value={formData.additionalDetails} 
+                                    onChange={handleChange} 
+                                    placeholder="e.g. Landmark, Floor number, House name..." 
+                                    icon={<FiAlignLeft />} 
+                                />
+                            </div>
+                            <div className="col-12">
+                                <FormInput 
+                                    label="Contact Phone Number" 
+                                    name="contactNumber" 
+                                    value={formData.contactNumber} 
+                                    onChange={handleChange} 
+                                    error={errors.contactNumber}
+                                    placeholder="e.g. 9876543210" 
+                                    icon={<FiPhone />} 
+                                    required
+                                />
                             </div>
                             <div className="col-md-4">
                                 <FormSelect label="Estimated Duration" name="durationType" value={formData.durationType} onChange={handleChange} options={durationOptions} icon={<FiClock />} />

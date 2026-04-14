@@ -4,6 +4,7 @@ import type { RootState } from "../../../../../app/store";
 import { updateField, setCurrentStep } from "../../../providerOnboarding/store/onboardingSlice";
 import { api } from "../../../../../services/api"; 
 import { toast } from "react-toastify";
+import { cloudinaryService } from "../../../../../services/cloudinaryService";
 
 const IdentityStep: React.FC = () => {
     const dispatch = useDispatch();
@@ -40,16 +41,8 @@ const IdentityStep: React.FC = () => {
         setIsUploading(true);
 
         try {
-            const uploadData = new FormData();
-            uploadData.append("image", file);
-
-            const response = await api.post("/upload/profile-image", uploadData, {
-                headers: {
-                    "Content-Type": "multipart/form-data"
-                }
-            });
-
-            const secureImageUrl = response.data.data.imageUrl;
+            const response = await cloudinaryService.uploadImage(file, 'quickwork/profile-images');
+            const secureImageUrl = response.secure_url;
             setImagePreview(secureImageUrl);
             dispatch(updateField({ field: "profileImage", value: secureImageUrl }));
         } catch (error: any) {

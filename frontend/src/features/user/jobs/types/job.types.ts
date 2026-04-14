@@ -9,11 +9,16 @@ export interface ServiceCategory {
 export interface Location {
     id: string;
     name: string;
+    center?: {
+        type: "Point";
+        coordinates: [number, number];
+    };
 }
 
 export interface JobFormData {
     title: string;
     description: string;
+    contactNumber: string;
     category: string;
 
     durationType: JOB_DURATION_TYPE;
@@ -22,6 +27,13 @@ export interface JobFormData {
     minBudget: string;
     maxBudget: string;
     freelancersNeeded: string;
-    location: string;
-    address: string;
+    districtId: string;
+    selectedLocation: {
+        address: string;
+        lat: number;
+        lng: number;
+        district: string;
+    } | null;
+    additionalDetails: string;
+    isUrgent: boolean;
 }

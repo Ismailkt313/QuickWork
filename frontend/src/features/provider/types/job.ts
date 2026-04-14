@@ -14,6 +14,9 @@ export interface JobDetail {
   clientReviewsCount?: number;
   isClientVerified?: boolean;
   location: string;
+  additionalDetails?: string;
+  clientEmail?: string;
+  clientNumber?: string;
   postedAt: string;
   createdAt: string;
   skills: string[];

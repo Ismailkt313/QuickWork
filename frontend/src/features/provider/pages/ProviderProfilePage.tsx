@@ -9,7 +9,7 @@ import {
   RiBriefcaseLine,
   RiAddCircleLine
 } from 'react-icons/ri';
-import { getMyProfile, fetchSkills, fetchLocations } from '../services/provider.service';
+import { getMyProfile, fetchallskills, fetchLocations } from '../services/provider.service';
 import FallbackScreen from '../../../components/ui/FallbackScreen';
 import { toast } from 'react-toastify';
 import EditProfileModal from '../components/EditProfileModal';
@@ -35,7 +35,7 @@ const ProviderProfilePage: React.FC = () => {
     try {
       const [profileRes, skillsRes, locationsRes] = await Promise.all([
         getMyProfile(),
-        fetchSkills(),
+        fetchallskills(),
         fetchLocations()
       ]);
       console.log(profileRes.data,'profileRes.data')

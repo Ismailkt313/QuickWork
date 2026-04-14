@@ -6,12 +6,13 @@ import { getLandingData, type Location } from '../../landingPage/services/landin
 import { DirectHireModal } from '../../jobs/components/DirectHireModal';
 
 interface ProviderDetail {
+    id: string;
     _id: string;
     userId: string;
     headline: string;
     about: string;
     profileImage: string;
-    skills: { _id: string; name: string; slug?: string }[];
+    skills: { id?: string; _id?: string; name: string; }[];
     yearsOfExperience: number;
     hourlyRate: number;
     location: { id: string; name: string; lat: number; lon: number };
@@ -255,7 +256,7 @@ const ProviderDetailPage: React.FC = () => {
             <DirectHireModal 
                 isOpen={isHireModalOpen} 
                 onClose={() => setIsHireModalOpen(false)} 
-                providerId={provider._id} 
+                providerId={provider.id || (provider as any)._id} 
                 providerName={provider.headline} 
                 providerSkills={provider.skills}
             />

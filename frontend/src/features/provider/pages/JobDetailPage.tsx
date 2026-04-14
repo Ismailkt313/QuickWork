@@ -12,6 +12,7 @@ import { toast } from 'react-toastify';
 import { useProviderLocation } from '../hooks/useProviderLocation';
 import { acceptJob, getMyProfile } from '../services/provider.service';
 import VerificationPendingModal from '../components/VerificationPendingModal';
+import { ClientProfileModal } from '../components/ClientProfileModal';
 
 const JobDetailPage: React.FC = () => {
   const { jobId } = useParams() as { jobId: string };
@@ -26,6 +27,7 @@ const JobDetailPage: React.FC = () => {
   });
   const [verificationStatus, setVerificationStatus] = React.useState<string>('pending');
   const [isPendingModalOpen, setIsPendingModalOpen] = React.useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = React.useState(false);
 
   const providerLocation = useProviderLocation();
 
@@ -130,6 +132,7 @@ const JobDetailPage: React.FC = () => {
           <JobDetailHeader
             title={job.title}
             location={job.location}
+            additionalDetails={job.additionalDetails}
             postedAt={job.postedAt}
             isUrgent={job.isUrgent}
             isNew={isNew}
@@ -158,6 +161,7 @@ const JobDetailPage: React.FC = () => {
               avatarUrl: job.clientAvatarUrl
             }}
             skills={job.skills}
+            onViewProfile={() => setIsProfileModalOpen(true)}
           />
         </div>
 
@@ -169,6 +173,7 @@ const JobDetailPage: React.FC = () => {
             startDate={job.startDate}
             isApplied={job.isApplied || !!job.myApplication}
             isAssigned={job.status === 'fully_assigned'}
+            contactNumber={job.clientNumber}
             onAccept={handleAccept}
             onMessage={handleMessage}
           />
@@ -221,6 +226,19 @@ const JobDetailPage: React.FC = () => {
       <VerificationPendingModal 
         isOpen={isPendingModalOpen}
         onClose={() => setIsPendingModalOpen(false)}
+      />
+
+      <ClientProfileModal 
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        client={{
+            name: job.clientName,
+            email: job.clientEmail,
+            phone: job.clientNumber,
+            initials: job.clientInitials,
+            avatarUrl: job.clientAvatarUrl,
+            isVerified: job.isClientVerified
+        }}
       />
 
       <style>{`

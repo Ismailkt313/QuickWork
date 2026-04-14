@@ -14,6 +14,7 @@ interface JobActionPanelProps {
   startDate: string;
   isApplied: boolean;
   isAssigned: boolean;
+  contactNumber?: string;
   onAccept: () => void;
   onMessage: () => void;
   onSave?: () => void;
@@ -26,6 +27,7 @@ const JobActionPanel: React.FC<JobActionPanelProps> = ({
   startDate,
   isApplied,
   isAssigned,
+  contactNumber,
   onAccept,
   onMessage,
 }) => {
@@ -77,7 +79,8 @@ const JobActionPanel: React.FC<JobActionPanelProps> = ({
           {[
             { icon: <RiTimeLine size={20} />, label: 'Duration', value: duration, color: '#3b82f6' },
             { icon: <RiMapPinLine size={20} />, label: 'Location', value: location, color: '#10b981' },
-            { icon: <RiCalendarLine size={20} />, label: 'Start Date', value: startDate, color: '#f59e0b' }
+            { icon: <RiCalendarLine size={20} />, label: 'Start Date', value: startDate, color: '#f59e0b' },
+            { icon: <RiMessage3Line size={20} />, label: 'WhatsApp / Contact', value: contactNumber || 'Not Provided', color: '#16a34a' }
           ].map((item, idx) => (
             <div key={idx} className="d-flex align-items-center gap-3 p-2 rounded-3 hover-bg">
               <div

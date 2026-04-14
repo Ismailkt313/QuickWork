@@ -39,7 +39,7 @@ export const FormSelect: React.FC<FormSelectProps> = ({
                     className={`form-select ${icon ? 'border-start-0 px-2' : ''} ${error ? 'is-invalid border-danger' : ''} ${className || ''}`}
                     style={{ boxShadow: 'none' }}
                     {...props}
-                >
+                    >
                     {placeholder && <option value="" disabled>{placeholder}</option>}
                     {options.map((opt) => (
                         <option key={opt.value} value={opt.value}>
