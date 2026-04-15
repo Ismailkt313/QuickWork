@@ -12,6 +12,8 @@ const allowedOrigins = [
   config.VERCEL_URL
 ];
 
+console.log('here')
+
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
