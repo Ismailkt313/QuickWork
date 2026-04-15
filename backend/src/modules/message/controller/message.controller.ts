@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { IMessageController, IMessageService } from "../interface/message.interface";
 import { CreateMessageDto, ConversationIdDto, MessageIdDto } from "../dto/message.request.dto";
 import { MESSAGE_TYPE } from "../../../constants/message";
+import {HttpStatusCode} from "../../../constants/httpStatusCode"
+
 
 export class MessageController implements IMessageController {
     private messageService: IMessageService;
@@ -14,7 +16,7 @@ export class MessageController implements IMessageController {
         try {
             const senderId = (req as any).user?.userId || (req as any).user?._id;
             if (!senderId) {
-                res.status(401).json({ success: false, message: "Unauthorized" });
+                res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: "Unauthorized" });
                 return;
             }
 
@@ -29,7 +31,7 @@ export class MessageController implements IMessageController {
                 isRead: false
             });
 
-            res.status(201).json({
+            res.status(HttpStatusCode.CREATED).json({
                 success: true,
                 message: "Message created successfully",
                 data: result
@@ -42,7 +44,7 @@ export class MessageController implements IMessageController {
         try {
             const dto = ConversationIdDto.create(req.query);
             const result = await this.messageService.getMessages(dto.conversationId);
-            res.status(200).json({ success: true, data: result });
+            res.status(HttpStatusCode.OK).json({ success: true, data: result });
         } catch (error: any) {
             res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
@@ -54,7 +56,7 @@ export class MessageController implements IMessageController {
             
             if (!userId) {
                 console.error("DEBUG: No userId found in req.user");
-                res.status(401).json({ success: false, message: "Unauthorized" });
+                res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: "Unauthorized" });
                 return;
             }
 
@@ -62,7 +64,7 @@ export class MessageController implements IMessageController {
             const result = await this.messageService.getConversations(userId);
             console.log("DEBUG: messageService.getConversations result count:", result.length);
             
-            res.status(200).json({ success: true, data: result });
+            res.status(HttpStatusCode.OK).json({ success: true, data: result });
         } catch (error: any) {
             console.error("ERROR AT Controller.getConversations:", error);
             res.status(error.statusCode || 500).json({ success: false, message: error.message });
@@ -72,7 +74,7 @@ export class MessageController implements IMessageController {
         try {
             const dto = ConversationIdDto.create(req.query);
             const result = await this.messageService.getConversation(dto.conversationId);
-            res.status(200).json({ success: true, data: result });
+            res.status(HttpStatusCode.OK).json({ success: true, data: result });
         } catch (error: any) {
             res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
@@ -81,7 +83,7 @@ export class MessageController implements IMessageController {
         try {
             const dto = MessageIdDto.create(req.query);
             const result = await this.messageService.deleteMessage(dto.messageId);
-            res.status(200).json({ success: true, message: "Message deleted", data: result });
+            res.status(HttpStatusCode.OK).json({ success: true, message: "Message deleted", data: result });
         } catch (error: any) {
             res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
@@ -90,7 +92,7 @@ export class MessageController implements IMessageController {
         try {
             const dto = ConversationIdDto.create(req.query);
             const result = await this.messageService.deleteConversation(dto.conversationId);
-            res.status(200).json({ success: true, message: "Conversation deleted", data: result });
+            res.status(HttpStatusCode.OK).json({ success: true, message: "Conversation deleted", data: result });
         } catch (error: any) {
             res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }

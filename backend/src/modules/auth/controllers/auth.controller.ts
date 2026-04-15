@@ -6,6 +6,7 @@ import { ResendOtpDto } from "../dtos/resend-otp.dto";
 import { LoginDto } from "../dtos/login.dto";
 import { ForgotPasswordDto } from "../dtos/forgot-password.dto";
 import { ResetPasswordDto } from "../dtos/reset-password.dto";
+import {HttpStatusCode} from "../../../constants/httpStatusCode"
 
 export class AuthController {
     private readonly authService: IAuthService;
@@ -20,10 +21,10 @@ export class AuthController {
         next: NextFunction
     ): Promise<void> => {
         try {
-            
+
             const dto = SendOtpDto.create(req.body);
             const result = await this.authService.sendOtp(dto);
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -37,7 +38,7 @@ export class AuthController {
         try {
             const dto = VerifyOtpDto.create(req.body);
             const result = await this.authService.verifyOtp(dto);
-            res.status(201).json(result);
+            res.status(HttpStatusCode.CREATED).json(result);
         } catch (error) {
             next(error);
         }
@@ -51,7 +52,7 @@ export class AuthController {
         try {
             const dto = ResendOtpDto.create(req.body);
             const result = await this.authService.resendOtp(dto);
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -65,7 +66,7 @@ export class AuthController {
         try {
             const dto = LoginDto.create(req.body);
             const result = await this.authService.login(dto);
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -80,7 +81,7 @@ export class AuthController {
             const { refreshToken } = req.body;
 
             if (!refreshToken) {
-                res.status(400).json({
+                res.status(HttpStatusCode.BAD_REQUEST).json({
                     success: false,
                     message: "Refresh token is required",
                 });
@@ -88,7 +89,7 @@ export class AuthController {
             }
 
             const result = await this.authService.refreshToken(refreshToken);
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -101,7 +102,7 @@ export class AuthController {
         try {
             const dto = LoginDto.create(req.body);
             const result = await this.authService.adminLogin(dto);
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -114,16 +115,16 @@ export class AuthController {
         try {
             const { refreshToken } = req.body;
             if (!refreshToken) {
-                res.status(400).json({
+                res.status(HttpStatusCode.BAD_REQUEST).json({
                     success: false,
                     message: "Refresh token is required",
                 });
                 return;
             }
             const result = await this.authService.logout(refreshToken);
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
-            
+
             next(error);
         }
     }
@@ -136,7 +137,7 @@ export class AuthController {
         try {
             const dto = ForgotPasswordDto.create(req.body);
             const result = await this.authService.forgotPassword(dto);
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -150,7 +151,7 @@ export class AuthController {
         try {
             const dto = ResetPasswordDto.create(req.body);
             const result = await this.authService.resetPassword(dto);
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -164,7 +165,7 @@ export class AuthController {
         try {
             const userId = (req.user as any).userId;
             const result = await this.authService.getProfile(userId);
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: "Profile fetched successfully",
                 data: result
@@ -183,7 +184,7 @@ export class AuthController {
             const userId = (req.user as any).userId;
             const { name, number } = req.body;
             const result = await this.authService.updateProfile(userId, { name, number });
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: "Profile updated successfully",
                 data: result
@@ -202,7 +203,7 @@ export class AuthController {
             const userId = (req.user as any).userId;
             const { currentPassword, newPassword } = req.body;
             await this.authService.changePassword(userId, { currentPassword, newPassword });
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: "Password changed successfully"
             });

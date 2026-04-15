@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { UploadService } from '../services/upload.service';
 import { AppError } from '../../../utils/AppError';
+import {HttpStatusCode} from "../../../constants/httpStatusCode"
+
 
 export class UploadController {
     private uploadService: UploadService;
@@ -17,7 +19,7 @@ export class UploadController {
 
             const result = await this.uploadService.uploadProfileImage(req.file.buffer, req.file.mimetype);
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: true,
                 data: result
             });
@@ -34,7 +36,7 @@ export class UploadController {
 
             const result = await this.uploadService.uploadPortfolioImage(req.file.buffer, req.file.mimetype);
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: true,
                 data: result
             });
@@ -56,7 +58,7 @@ export class UploadController {
 
             const results = await Promise.all(uploadPromises);
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: true,
                 data: results.map(r => ({ imageUrl: r.imageUrl, publicId: r.publicId }))
             });
@@ -70,7 +72,7 @@ export class UploadController {
             const folder = req.query.folder as string || 'quickwork/general';
             const signatureData = await this.uploadService.getUploadSignature(folder);
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: true,
                 data: signatureData
             });

@@ -3,6 +3,7 @@ import { IAssignmentController, IAssignmentService } from '../interfaces/assignm
 import { AppError } from '../../../utils/AppError';
 import { IServiceProviderRepository } from '../../serviceProvider/interfaces/serviceProvider.interface';
 import { mapAssignmentToResponseDTO } from '../dtos/assignmentResponse.dto';
+import {HttpStatusCode} from '../../../constants/httpStatusCode'
 
 export class AssignmentController implements IAssignmentController {
     private assignmentService: IAssignmentService;
@@ -30,7 +31,7 @@ export class AssignmentController implements IAssignmentController {
 
             const assignments = await this.assignmentService.getAssignmentsByProvider(provider._id.toString());
             
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: true,
                 data: assignments.map(mapAssignmentToResponseDTO)
             });
@@ -70,7 +71,7 @@ export class AssignmentController implements IAssignmentController {
             const responseData = mapAssignmentToResponseDTO(assignment);
             responseData.coWorkers = mappedCoWorkers;
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: true,
                 data: responseData
             });
@@ -95,7 +96,7 @@ export class AssignmentController implements IAssignmentController {
             }
 
             const updated = await this.assignmentService.updateStatus(assignmentId, status);
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: `Status updated to ${status}`,
                 data: updated ? mapAssignmentToResponseDTO(updated) : null
@@ -121,7 +122,7 @@ export class AssignmentController implements IAssignmentController {
             }
 
             const updated = await this.assignmentService.submitProof(assignmentId, { images, description });
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: 'Proof submitted successfully',
                 data: updated ? mapAssignmentToResponseDTO(updated) : null

@@ -1,6 +1,7 @@
 import { ISkill } from '../interfaces/skill.interface';
 import { ISkillService } from '../interfaces/skill.interface';
 import { ISkillRepository } from '../interfaces/skill.interface';
+import { HttpStatusCode } from '../../../constants/httpStatusCode';
 
 export class SkillService implements ISkillService {
     private skillRepository: ISkillRepository;

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { IAdminController, IAdminService, IUserListQuery } from "../interfaces/admin.interface";
+import { HttpStatusCode } from "../../../constants/httpStatusCode";
 
 export class AdminController implements IAdminController {
     private readonly adminService: IAdminService;
@@ -21,7 +22,7 @@ export class AdminController implements IAdminController {
             };
 
             const result = await this.adminService.getUsers(query);
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -35,7 +36,7 @@ export class AdminController implements IAdminController {
         try {
             const id = req.params.id as string;
             const result = await this.adminService.toggleBlockUser(id);
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -48,7 +49,7 @@ export class AdminController implements IAdminController {
     ): Promise<void> => {
         try {
             const result = await this.adminService.getPendingProviders();
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -62,7 +63,7 @@ export class AdminController implements IAdminController {
         try {
             const id = req.params.id as string;
             const result = await this.adminService.approveProvider(id);
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -78,12 +79,12 @@ export class AdminController implements IAdminController {
             const { reason } = req.body;
 
             if (!reason || typeof reason !== 'string' || reason.trim() === '') {
-                res.status(400).json({ success: false, message: "Rejection reason is required" });
+                res.status(HttpStatusCode.BAD_REQUEST).json({ success: false, message: "Rejection reason is required" });
                 return;
             }
 
             const result = await this.adminService.rejectProvider(id, reason.trim());
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -96,7 +97,7 @@ export class AdminController implements IAdminController {
         try {
             const id = req.params.id as string;
             const result = await this.adminService.getProviderDetails(id);
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -110,7 +111,7 @@ export class AdminController implements IAdminController {
         try {
             const id = req.params.id as string;
             const result = await this.adminService.getUserById(id);
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }

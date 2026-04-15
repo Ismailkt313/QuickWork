@@ -3,6 +3,8 @@ import { CreateJobDTO } from '../dtos/createJob.dto';
 import { AppError } from '../../../utils/AppError';
 import { IJobController, IJobService } from '../interfaces/job.interface';
 import { mapProviderToResponseDTO } from '../../serviceProvider/dtos/providerResponse.dto';
+import {HttpStatusCode} from "../../../constants/httpStatusCode"
+
 
 export class JobController implements IJobController {
     private jobService: IJobService;
@@ -24,7 +26,7 @@ export class JobController implements IJobController {
                 throw new AppError(result.message, 400);
             }
 
-            res.status(201).json(result);
+            res.status(HttpStatusCode.CREATED).json(result);
         } catch (error) {
             next(error);
         }
@@ -37,10 +39,10 @@ export class JobController implements IJobController {
             if (!userId) {
                 throw new AppError('Unauthorized access', 401);
             }
-                console.log("Fetching jobs for userId:", userId);
+            console.log("Fetching jobs for userId:", userId);
             const result = await this.jobService.getJobsByUser(userId);
             console.log("Jobs fetched for userId:", userId, "Result:", result);
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -57,21 +59,21 @@ export class JobController implements IJobController {
             const search = req.query.search as string;
             const userId = req.user?.userId;
 
-            
-            console.log('enthelum request indonn nokka',req.query)
+
+            console.log('enthelum request indonn nokka', req.query)
             const result = await this.jobService.availableJobs(
-                page, 
-                limit, 
-                { skillId, locationId, minBudget, maxBudget, search }, 
+                page,
+                limit,
+                { skillId, locationId, minBudget, maxBudget, search },
                 userId
             );
-            console.log('ivida job kittiyath kaanam',result)
-            res.status(200).json(result);
+            console.log('ivida job kittiyath kaanam', result)
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
     };
-    
+
     getJobById = async (req: Request, res: Response, next: any): Promise<void> => {
         try {
             const jobId = req.params.jobId as string;
@@ -84,7 +86,7 @@ export class JobController implements IJobController {
             if (!result.success) {
                 throw new AppError(result.message || 'Job not found', 404);
             }
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -98,7 +100,7 @@ export class JobController implements IJobController {
             }
 
             const result = await this.jobService.getDirectOffers(userId);
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -113,7 +115,7 @@ export class JobController implements IJobController {
 
             const jobId = req.params.jobId as string;
             const result = await this.jobService.acceptOffer(jobId, userId);
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -129,7 +131,7 @@ export class JobController implements IJobController {
             const jobId = req.params.jobId as string;
             const { reason } = req.body;
             const result = await this.jobService.rejectOffer(jobId, userId, reason);
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -144,7 +146,7 @@ export class JobController implements IJobController {
 
             const jobId = req.params.jobId as string;
             const result = await this.jobService.acceptJob(jobId, userId);
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -159,7 +161,7 @@ export class JobController implements IJobController {
 
             const jobId = req.params.jobId as string;
             const result = await this.jobService.cancelJob(jobId, userId);
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -186,7 +188,7 @@ export class JobController implements IJobController {
                 provider: a.freelancerId ? mapProviderToResponseDTO(a.freelancerId) : null
             }));
 
-            res.status(200).json({ success: true, data: providers });
+            res.status(HttpStatusCode.OK).json({ success: true, data: providers });
         } catch (error) {
             next(error);
         }

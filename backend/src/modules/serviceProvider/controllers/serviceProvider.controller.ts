@@ -4,6 +4,8 @@ import { SubmitApplicationDTO } from '../dtos/submitApplication.dto';
 import { AppError } from '../../../utils/AppError';
 import { mapProviderToResponseDTO } from '../dtos/providerResponse.dto';
 import { UpdateProviderDTO } from '../dtos/updateProvider.dto';
+import {HttpStatusCode} from "../../../constants/httpStatusCode"
+
 
 export class ServiceProviderController implements IServiceProviderController {
     private serviceProviderService: IServiceProviderService;
@@ -28,7 +30,7 @@ export class ServiceProviderController implements IServiceProviderController {
                 throw new AppError(result.message || 'Conflict occurred', 409);
             }
 
-            res.status(201).json(result);
+            res.status(HttpStatusCode.CREATED).json(result);
         } catch (error: any) {
             next(error);
         }
@@ -44,15 +46,15 @@ export class ServiceProviderController implements IServiceProviderController {
                 page: Number(page),
                 limit: Number(limit),
             });
-            
+
             if (!result.success) {
-                res.status(400).json(result);
+                res.status(HttpStatusCode.BAD_REQUEST).json(result);
                 return;
             }
 
             const { providers, total, page: pg, limit: lm } = result.data!;
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: true,
                 providers: providers,
                 pagination: {
@@ -75,13 +77,13 @@ export class ServiceProviderController implements IServiceProviderController {
             const result = await this.serviceProviderService.getProviderById(id);
 
             if (!result.success) {
-                res.status(404).json(result);
+                res.status(HttpStatusCode.NOT_FOUND).json(result);
                 return;
             }
 
-            res.status(200).json({ 
-                success: true, 
-                data: result.data ? mapProviderToResponseDTO(result.data) : null 
+            res.status(HttpStatusCode.OK).json({
+                success: true,
+                data: result.data ? mapProviderToResponseDTO(result.data) : null
             });
         } catch (error) {
             next(error);
@@ -92,19 +94,19 @@ export class ServiceProviderController implements IServiceProviderController {
         try {
             const userId = (req as any).user?.userId;
             if (!userId) {
-                res.status(401).json({ success: false, message: 'Unauthorized access' });
+                res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: 'Unauthorized access' });
                 return;
             }
 
             const result = await this.serviceProviderService.getMyProfile(userId);
             if (!result.success) {
-                res.status(404).json(result);
+                res.status(HttpStatusCode.NOT_FOUND).json(result);
                 return;
             }
 
-            res.status(200).json({ 
-                success: true, 
-                data: result.data ? mapProviderToResponseDTO(result.data) : null 
+            res.status(HttpStatusCode.OK).json({
+                success: true,
+                data: result.data ? mapProviderToResponseDTO(result.data) : null
             });
         } catch (error) {
             next(error);
@@ -115,7 +117,7 @@ export class ServiceProviderController implements IServiceProviderController {
         try {
             const userId = (req as any).user?.userId;
             if (!userId) {
-                res.status(401).json({ success: false, message: 'Unauthorized access' });
+                res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: 'Unauthorized access' });
                 return;
             }
 
@@ -123,11 +125,11 @@ export class ServiceProviderController implements IServiceProviderController {
             const result = await this.serviceProviderService.updateProfile(userId, updateData);
 
             if (!result.success) {
-                res.status(400).json(result);
+                res.status(HttpStatusCode.BAD_REQUEST).json(result);
                 return;
             }
 
-            res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: result.message,
                 data: result.data ? mapProviderToResponseDTO(result.data) : null
@@ -141,17 +143,17 @@ export class ServiceProviderController implements IServiceProviderController {
         try {
             const userId = (req as any).user?.userId;
             if (!userId) {
-                res.status(401).json({ success: false, message: 'Unauthorized access' });
+                res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: 'Unauthorized access' });
                 return;
             }
 
             const result = await this.serviceProviderService.resetApplication(userId);
             if (!result.success) {
-                res.status(400).json(result);
+                res.status(HttpStatusCode.BAD_REQUEST).json(result);
                 return;
             }
 
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }

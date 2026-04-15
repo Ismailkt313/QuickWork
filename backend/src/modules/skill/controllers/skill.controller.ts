@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import { ISkillService } from '../interfaces/skill.interface';
- import { ISkillController } from '../interfaces/skill.interface';
-import { success } from 'zod';
+import { ISkillController } from '../interfaces/skill.interface';
+// import { success } from 'zod';
+import {HttpStatusCode} from "../../../constants/httpStatusCode"
+
 
 export class SkillController implements ISkillController {
     private skillService: ISkillService;
@@ -14,7 +16,7 @@ export class SkillController implements ISkillController {
         try {
             const query = (req.query.search as string) || '';
             const result = await this.skillService.searchSkills(query);
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -25,7 +27,7 @@ export class SkillController implements ISkillController {
             const search = req.query.search as string | undefined;
             const locationId = req.query.locationId as string | undefined;
             const result = await this.skillService.getAllSkills(search, locationId);
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -34,22 +36,22 @@ export class SkillController implements ISkillController {
     getSkills = async (req: Request, res: Response, next: any): Promise<void> => {
         try {
             const result = await this.skillService.getSkills();
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
     }
     myskills = async (req: Request, res: Response, next: any): Promise<void> => {
         try {
-            console.log('ivida aarelum undoo ',req.user?.userId)
+            console.log('ivida aarelum undoo ', req.user?.userId)
             const userId = req.user?.userId
             // if (!userId) {
-            //     res.status(401).json({success:false,message:'UnAutherized user'})
+            //     res.status(HttpStatusCode.UNAUTH0RIZED).json({success:false,message:'UnAutherized user'})
             // }
             const result = await this.skillService.getMySkills(userId)
-            res.status(200).json(result)
+            res.status(HttpStatusCode.OK).json(result)
         } catch (error) {
-            
+
         }
     }
 

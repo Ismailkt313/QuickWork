@@ -1,5 +1,7 @@
 import e, { Request, Response, NextFunction } from "express";
 import { AppError } from "../utils/AppError";
+import { HttpStatusCode } from "../constants/httpStatusCode";
+
 
 export const errorHandler = (
     err: any,
@@ -18,7 +20,7 @@ export const errorHandler = (
     }
 
     if (err.code === 11000) {
-        res.status(409).json({
+        res.status(HttpStatusCode.CONFLICT).json({
             success: false,
             message: "Duplicate field value. This resource already exists.",
         });
@@ -27,14 +29,14 @@ export const errorHandler = (
 
     if (err.name === "ValidationError") {
 
-        res.status(400).json({
+        res.status(HttpStatusCode.BAD_REQUEST).json({
             success: false,
             message: err.message,
         });
         return
     }
 
-    res.status(500).json({
+    res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: `${err.message} - Internal server error`,
         console: err.message,

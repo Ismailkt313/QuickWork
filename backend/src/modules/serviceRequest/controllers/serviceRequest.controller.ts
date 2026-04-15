@@ -2,7 +2,9 @@ import { Request, Response } from 'express';
 import { CreateServiceRequestDTO } from '../dtos/createServiceRequest.dto';
 import { RejectServiceRequestDTO } from '../dtos/rejectServiceRequest.dto';
 import { AppError } from '../../../utils/AppError';
-import {IServiceRequestController, IServiceRequestService} from '../interfaces/serviceRequest.interface';
+import { IServiceRequestController, IServiceRequestService } from '../interfaces/serviceRequest.interface';
+import {HttpStatusCode} from "../../../constants/httpStatusCode"
+
 
 export class ServiceRequestController implements IServiceRequestController {
     private serviceRequestService: IServiceRequestService;
@@ -27,7 +29,7 @@ export class ServiceRequestController implements IServiceRequestController {
                 throw new AppError(result.message, 409);
             }
 
-            res.status(201).json(result);
+            res.status(HttpStatusCode.CREATED).json(result);
         } catch (error) {
             next(error);
         }
@@ -41,7 +43,7 @@ export class ServiceRequestController implements IServiceRequestController {
             }
 
             const result = await this.serviceRequestService.getUserRequests(userId);
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -50,7 +52,7 @@ export class ServiceRequestController implements IServiceRequestController {
     getPendingRequests = async (req: Request, res: Response, next: any): Promise<void> => {
         try {
             const result = await this.serviceRequestService.getPendingRequests();
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -74,7 +76,7 @@ export class ServiceRequestController implements IServiceRequestController {
                 throw new AppError(result.message, 400);
             }
 
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -99,7 +101,7 @@ export class ServiceRequestController implements IServiceRequestController {
                 throw new AppError(result.message, 400);
             }
 
-            res.status(200).json(result);
+            res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
