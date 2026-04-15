@@ -19,7 +19,7 @@ export class ServiceProviderController implements IServiceProviderController {
             const userId = req.user?.userId;
 
             if (!userId) {
-                throw new AppError('Unauthorized access', 401);
+                throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
             }
 
             const applicationData = SubmitApplicationDTO.create(req.body);
@@ -27,7 +27,7 @@ export class ServiceProviderController implements IServiceProviderController {
             const result = await this.serviceProviderService.submitApplication(userId, applicationData);
 
             if (!result.success) {
-                throw new AppError(result.message || 'Conflict occurred', 409);
+                throw new AppError(result.message || 'Conflict occurred', HttpStatusCode.CONFLICT);
             }
 
             res.status(HttpStatusCode.CREATED).json(result);

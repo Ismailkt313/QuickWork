@@ -1,4 +1,5 @@
 import { AppError } from "../../../utils/AppError";
+import { HttpStatusCode } from "../../../constants/httpStatusCode"
 
 export class CreateServiceRequestDTO {
     public readonly name: string;
@@ -21,7 +22,7 @@ export class CreateServiceRequestDTO {
         }
 
         if (errors.length > 0) {
-            throw new AppError(errors.join(". "), 400);
+            throw new AppError(errors.join(". "), HttpStatusCode.BAD_REQUEST);
         }
 
         return new CreateServiceRequestDTO(data);

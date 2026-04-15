@@ -1,5 +1,6 @@
 import { ILocation, IPortfolioItem } from '../interfaces/serviceProvider.interface';
 import { AppError } from '../../../utils/AppError';
+import { HttpStatusCode } from "../../../constants/httpStatusCode"
 
 export class UpdateProviderDTO {
     public readonly headline?: string;
@@ -71,7 +72,7 @@ export class UpdateProviderDTO {
         }
 
         if (errors.length > 0) {
-            throw new AppError(errors.join(". "), 400);
+            throw new AppError(errors.join(". "), HttpStatusCode.BAD_REQUEST);
         }
 
         return new UpdateProviderDTO(data);

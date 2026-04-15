@@ -1,5 +1,6 @@
 import { IForgotPasswordInput } from "../interfaces/auth.interface";
 import { AppError } from "../../../utils/AppError";
+import { HttpStatusCode } from "../../../constants/httpStatusCode";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -18,7 +19,7 @@ export class ForgotPasswordDto {
         }
 
         if (errors.length > 0) {
-            throw new AppError(errors.join(". "), 400);
+            throw new AppError(errors.join(". "), HttpStatusCode.BAD_REQUEST);
         }
 
         return new ForgotPasswordDto(data as IForgotPasswordInput);

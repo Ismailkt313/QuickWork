@@ -1,5 +1,6 @@
 import { IVerifyOtpInput } from "../interfaces/auth.interface";
 import { AppError } from "../../../utils/AppError";
+import {HttpStatusCode} from "../../../constants/httpStatusCode"
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const OTP_REGEX = /^\d{6}$/;
@@ -25,7 +26,7 @@ export class VerifyOtpDto {
         }
 
         if (errors.length > 0) {
-            throw new AppError(errors.join(". "), 400);
+            throw new AppError(errors.join(". "), HttpStatusCode.BAD_REQUEST);
         }
 
         return new VerifyOtpDto(data as IVerifyOtpInput);

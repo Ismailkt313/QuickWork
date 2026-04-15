@@ -1,5 +1,6 @@
 import { ISendOtpInput } from "../interfaces/auth.interface";
 import { AppError } from "../../../utils/AppError";
+import {HttpStatusCode} from "../../../constants/httpStatusCode"
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 6;
@@ -39,7 +40,7 @@ export class SendOtpDto {
         }
 
         if (errors.length > 0) {
-            throw new AppError(errors.join(". "), 400);
+            throw new AppError(errors.join(". "), HttpStatusCode.BAD_REQUEST);
         }
 
         return new SendOtpDto(data as ISendOtpInput);

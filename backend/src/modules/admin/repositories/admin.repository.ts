@@ -6,6 +6,7 @@ import { ServiceProviderModel } from "../../serviceProvider/models/serviceProvid
 import { IServiceProviderWithUser } from "../interfaces/admin.interface";
 import { ROLES } from "../../../constants/roles";
 import { VERIFICATION_STATUS } from "../../../constants/verification";
+import { HttpStatusCode } from "../../../constants/httpStatusCode";
 
 export class AdminRepository implements IAdminRepository {
 
@@ -41,7 +42,7 @@ export class AdminRepository implements IAdminRepository {
     public async toggleBlockUser(userId: string): Promise<IUser> {
         const user = await UserModel.findById(userId);
         if (!user) {
-            throw new AppError("User not found", 404);
+            throw new AppError("User not found", HttpStatusCode.NOT_FOUND);
         }
         user.isBlocked = !user.isBlocked;
         await user.save();
@@ -56,11 +57,11 @@ export class AdminRepository implements IAdminRepository {
     public async approveProvider(providerId: string): Promise<void> {
         const provider = await ServiceProviderModel.findById(providerId);
         if (!provider) {
-            throw new AppError("Service provider not found", 404);
+            throw new AppError("Service provider not found", HttpStatusCode.NOT_FOUND);
         }
 
         if (provider.verification.status === VERIFICATION_STATUS.VERIFIED) {
-            throw new AppError("Provider is already approved", 400);
+            throw new AppError("Provider is already approved", HttpStatusCode.BAD_REQUEST);
         }
 
         provider.verification.status = VERIFICATION_STATUS.VERIFIED;
@@ -74,11 +75,11 @@ export class AdminRepository implements IAdminRepository {
     public async rejectProvider(providerId: string, reason: string): Promise<void> {
         const provider = await ServiceProviderModel.findById(providerId);
         if (!provider) {
-            throw new AppError("Service provider not found", 404);
+            throw new AppError("Service provider not found", HttpStatusCode.NOT_FOUND);
         }
 
         if (provider.verification.status === VERIFICATION_STATUS.REJECTED) {
-            throw new AppError("Provider is already rejected", 400);
+            throw new AppError("Provider is already rejected", HttpStatusCode.BAD_REQUEST);
         }
 
         provider.verification.status = VERIFICATION_STATUS.REJECTED;
@@ -97,7 +98,7 @@ export class AdminRepository implements IAdminRepository {
             .lean();
 
         if (!provider) {
-            throw new AppError("Service provider not found", 404);
+            throw new AppError("Service provider not found", HttpStatusCode.NOT_FOUND);
         }
 
         return provider;

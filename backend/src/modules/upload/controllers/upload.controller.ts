@@ -14,7 +14,7 @@ export class UploadController {
     uploadProfileImage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             if (!req.file) {
-                throw new AppError('No image file provided', 400);
+                throw new AppError('No image file provided', HttpStatusCode.BAD_REQUEST);
             }
 
             const result = await this.uploadService.uploadProfileImage(req.file.buffer, req.file.mimetype);
@@ -31,7 +31,7 @@ export class UploadController {
     uploadPortfolioImage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             if (!req.file) {
-                throw new AppError('No image file provided', 400);
+                throw new AppError('No image file provided', HttpStatusCode.BAD_REQUEST);
             }
 
             const result = await this.uploadService.uploadPortfolioImage(req.file.buffer, req.file.mimetype);
@@ -49,7 +49,7 @@ export class UploadController {
         try {
             const files = req.files as Express.Multer.File[];
             if (!files || files.length === 0) {
-                throw new AppError('No image files provided', 400);
+                throw new AppError('No image files provided', HttpStatusCode.BAD_REQUEST);
             }
 
             const uploadPromises = files.map(file => 

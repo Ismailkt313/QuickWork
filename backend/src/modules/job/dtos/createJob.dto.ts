@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { AppError } from '../../../utils/AppError';
 import { JOB_DURATION_TYPE } from '../../../constants/jobDuration';
 import { JOB_VISIBILITY } from '../../../constants/jobVisibility';
+import {HttpStatusCode} from "../../../constants/httpStatusCode"
 
 const createJobSchema = z.object({
     title: z.string().min(5).max(100),
@@ -126,7 +127,7 @@ export class CreateJobDTO {
 
         if (!result.success) {
             const errors = result.error.issues.map(err => err.message).join(". ");
-            throw new AppError(errors, 400);
+            throw new AppError(errors, HttpStatusCode.BAD_REQUEST);
         }
 
         return new CreateJobDTO(result.data);

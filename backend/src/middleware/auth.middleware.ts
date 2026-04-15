@@ -3,6 +3,7 @@ import { verifyAccessToken } from "../utils/jwt.util";
 import { ITokenPayload } from "../modules/auth/interfaces/auth.interface";
 import { AppError } from "../utils/AppError";
 import { UserModel } from "../modules/auth/models/user.model";
+import { HttpStatusCode } from "../constants/httpStatusCode";
 
 declare global {
     namespace Express {
@@ -19,7 +20,7 @@ export const authMiddleware = async (
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
 
-            throw new AppError("Access denied. No token provided.", 401);
+            throw new AppError("Access denied. No token provided.", HttpStatusCode.UNAUTH0RIZED);
         }
 
         const token = authHeader.split(" ")[1];
@@ -27,10 +28,10 @@ export const authMiddleware = async (
 
         const user = await UserModel.findById(decoded.userId).select("isBlocked");
         if (!user) {
-            throw new AppError("User not found", 401);
+            throw new AppError("User not found", HttpStatusCode.UNAUTH0RIZED);
         }
         if (user.isBlocked) {
-            throw new AppError("Your account has been blocked", 403);
+            throw new AppError("Your account has been blocked", HttpStatusCode.FORBIDDEN);
         }
 
         req.user = decoded;

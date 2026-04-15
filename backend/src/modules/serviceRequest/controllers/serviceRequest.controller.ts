@@ -18,7 +18,7 @@ export class ServiceRequestController implements IServiceRequestController {
             console.log('Creating service request with body:', req.body);
             const userId = req.user?.userId;
             if (!userId) {
-                throw new AppError('Unauthorized access', 401);
+                throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
             }
 
             const dto = CreateServiceRequestDTO.create(req.body);
@@ -26,7 +26,7 @@ export class ServiceRequestController implements IServiceRequestController {
             const result = await this.serviceRequestService.createRequest(userId, dto);
 
             if (!result.success) {
-                throw new AppError(result.message, 409);
+                throw new AppError(result.message, HttpStatusCode.CONFLICT);
             }
 
             res.status(HttpStatusCode.CREATED).json(result);
@@ -39,7 +39,7 @@ export class ServiceRequestController implements IServiceRequestController {
         try {
             const userId = req.user?.userId;
             if (!userId) {
-                throw new AppError('Unauthorized access', 401);
+                throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
             }
 
             const result = await this.serviceRequestService.getUserRequests(userId);
@@ -62,18 +62,18 @@ export class ServiceRequestController implements IServiceRequestController {
         try {
             const adminId = req.user?.userId;
             if (!adminId) {
-                throw new AppError('Unauthorized access', 401);
+                throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
             }
 
             const id = req.params.id as string;
             if (!id) {
-                throw new AppError('Service request ID is required', 400);
+                throw new AppError('Service request ID is required', HttpStatusCode.BAD_REQUEST);
             }
 
             const result = await this.serviceRequestService.approveRequest(adminId, id);
 
             if (!result.success) {
-                throw new AppError(result.message, 400);
+                throw new AppError(result.message, HttpStatusCode.BAD_REQUEST);
             }
 
             res.status(HttpStatusCode.OK).json(result);
@@ -86,19 +86,19 @@ export class ServiceRequestController implements IServiceRequestController {
         try {
             const adminId = req.user?.userId;
             if (!adminId) {
-                throw new AppError('Unauthorized access', 401);
+                throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
             }
 
             const id = req.params.id as string;
             if (!id) {
-                throw new AppError('Service request ID is required', 400);
+                throw new AppError('Service request ID is required', HttpStatusCode.BAD_REQUEST);
             }
 
             const dto = RejectServiceRequestDTO.create(req.body);
             const result = await this.serviceRequestService.rejectRequest(adminId, id, dto);
 
             if (!result.success) {
-                throw new AppError(result.message, 400);
+                throw new AppError(result.message, HttpStatusCode.BAD_REQUEST);
             }
 
             res.status(HttpStatusCode.OK).json(result);

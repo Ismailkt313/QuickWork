@@ -17,13 +17,13 @@ export class JobController implements IJobController {
         try {
             const userId = req.user?.userId;
             if (!userId) {
-                throw new AppError('Unauthorized access', 401);
+                throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
             }
             const dto = CreateJobDTO.create(req.body);
             const result = await this.jobService.createJob(userId, dto);
 
             if (!result.success) {
-                throw new AppError(result.message, 400);
+                throw new AppError(result.message, HttpStatusCode.BAD_REQUEST);
             }
 
             res.status(HttpStatusCode.CREATED).json(result);
@@ -37,7 +37,7 @@ export class JobController implements IJobController {
             console.log("Fetching jobs for userId:", req.user?.userId);
             const userId = req.user?.userId;
             if (!userId) {
-                throw new AppError('Unauthorized access', 401);
+                throw new AppError('Unauthorized access', HttpStatusCode.BAD_REQUEST);
             }
             console.log("Fetching jobs for userId:", userId);
             const result = await this.jobService.getJobsByUser(userId);
@@ -78,13 +78,13 @@ export class JobController implements IJobController {
         try {
             const jobId = req.params.jobId as string;
             if (!jobId) {
-                throw new AppError('Job ID is required', 400);
+                throw new AppError('Job ID is required', HttpStatusCode.BAD_REQUEST);
             }
 
             const userId = req.user?.userId;
             const result = await this.jobService.getJobById(jobId, userId);
             if (!result.success) {
-                throw new AppError(result.message || 'Job not found', 404);
+                throw new AppError(result.message || 'Job not found', HttpStatusCode.NOT_FOUND);
             }
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
@@ -96,7 +96,7 @@ export class JobController implements IJobController {
         try {
             const userId = req.user?.userId;
             if (!userId) {
-                throw new AppError('Unauthorized access', 401);
+                throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
             }
 
             const result = await this.jobService.getDirectOffers(userId);
@@ -110,7 +110,7 @@ export class JobController implements IJobController {
         try {
             const userId = req.user?.userId;
             if (!userId) {
-                throw new AppError('Unauthorized access', 401);
+                throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
             }
 
             const jobId = req.params.jobId as string;
@@ -125,7 +125,7 @@ export class JobController implements IJobController {
         try {
             const userId = req.user?.userId;
             if (!userId) {
-                throw new AppError('Unauthorized access', 401);
+                throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
             }
 
             const jobId = req.params.jobId as string;
@@ -141,7 +141,7 @@ export class JobController implements IJobController {
         try {
             const userId = req.user?.userId;
             if (!userId) {
-                throw new AppError('Unauthorized access', 401);
+                throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
             }
 
             const jobId = req.params.jobId as string;
@@ -156,7 +156,7 @@ export class JobController implements IJobController {
         try {
             const userId = req.user?.userId;
             if (!userId) {
-                throw new AppError('Unauthorized access', 401);
+                throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
             }
 
             const jobId = req.params.jobId as string;
@@ -170,7 +170,7 @@ export class JobController implements IJobController {
     getJobAssignments = async (req: Request, res: Response, next: any): Promise<void> => {
         try {
             const userId = req.user?.userId;
-            if (!userId) throw new AppError('Unauthorized access', 401);
+            if (!userId) throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
 
             const jobId = req.params.jobId as string;
             // Fetch AssignmentModel dynamically to avoid circular deps, or just require it

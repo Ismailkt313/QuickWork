@@ -1,5 +1,6 @@
 import { AppError } from "../../../utils/AppError";
 import { MESSAGE_TYPE } from "../../../constants/message";
+import { HttpStatusCode } from "../../../constants/httpStatusCode"
 
 export class CreateMessageDto {
     public readonly receiverId: string;
@@ -26,7 +27,7 @@ export class CreateMessageDto {
         }
 
         if (errors.length > 0) {
-            throw new AppError(errors.join(". "), 400);
+            throw new AppError(errors.join(". "), HttpStatusCode.BAD_REQUEST);
         }
 
         return new CreateMessageDto(data);
@@ -42,7 +43,7 @@ export class ConversationIdDto {
 
     public static create(data: any): ConversationIdDto {
         if (!data.conversationId) {
-            throw new AppError("Conversation ID is required", 400);
+            throw new AppError("Conversation ID is required", HttpStatusCode.BAD_REQUEST);
         }
         return new ConversationIdDto(data.conversationId);
     }
@@ -57,7 +58,7 @@ export class MessageIdDto {
 
     public static create(data: any): MessageIdDto {
         if (!data.messageId) {
-            throw new AppError("Message ID is required", 400);
+            throw new AppError("Message ID is required", HttpStatusCode.BAD_REQUEST);
         }
         return new MessageIdDto(data.messageId);
     }

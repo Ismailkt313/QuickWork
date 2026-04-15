@@ -21,12 +21,12 @@ export class AssignmentController implements IAssignmentController {
         try {
             const userId = req.user?.userId;
             if (!userId) {
-                throw new AppError('Unauthorized access', 401);
+                throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
             }
 
             const provider = await this.serviceProviderRepository.findByUserId(userId);
             if (!provider) {
-                throw new AppError('Provider profile not found', 404);
+                throw new AppError('Provider profile not found', HttpStatusCode.NOT_FOUND);
             }
 
             const assignments = await this.assignmentService.getAssignmentsByProvider(provider._id.toString());
@@ -50,7 +50,7 @@ export class AssignmentController implements IAssignmentController {
             const freelancerId = assignment?.freelancerId?._id ? assignment.freelancerId._id.toString() : assignment?.freelancerId?.toString();
 
             if (!assignment || !provider || freelancerId !== provider._id.toString()) {
-                throw new AppError('Assignment not found or unauthorized', 404);
+                throw new AppError('Assignment not found or unauthorized', HttpStatusCode.UNAUTH0RIZED);
             }
 
             // Fetch co-workers (other assignments for the same job)
@@ -92,7 +92,7 @@ export class AssignmentController implements IAssignmentController {
             const freelancerId = assignment?.freelancerId?._id ? assignment.freelancerId._id.toString() : assignment?.freelancerId?.toString();
 
             if (!assignment || !provider || freelancerId !== provider._id.toString()) {
-                throw new AppError('Assignment not found or unauthorized', 404);
+                throw new AppError('Assignment not found or unauthorized', HttpStatusCode.NOT_FOUND);
             }
 
             const updated = await this.assignmentService.updateStatus(assignmentId, status);
@@ -118,7 +118,7 @@ export class AssignmentController implements IAssignmentController {
             const freelancerId = assignment?.freelancerId?._id ? assignment.freelancerId._id.toString() : assignment?.freelancerId?.toString();
 
             if (!assignment || !provider || freelancerId !== provider._id.toString()) {
-                throw new AppError('Assignment not found or unauthorized', 404);
+                throw new AppError('Assignment not found or unauthorized', HttpStatusCode.NOT_FOUND);
             }
 
             const updated = await this.assignmentService.submitProof(assignmentId, { images, description });
