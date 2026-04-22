@@ -6,6 +6,8 @@ import { IAuthRepository } from '../../auth/interfaces/auth.interface';
 import { generateAccessToken, generateRefreshToken } from '../../../utils/jwt.util';
 import { ROLES } from '../../../constants/roles';
 import { VERIFICATION_STATUS } from '../../../constants/verification';
+import { SuccessMessages } from '../../../constants/messages/successMessages';
+import { ErrorMessages } from '../../../constants/messages/errorMessages';
 
 const DEFAULT_LIMIT = 12;
 const MAX_LIMIT = 50;
@@ -22,11 +24,10 @@ export class ServiceProviderService implements IServiceProviderService {
     async submitApplication(userId: string, providerData: SubmitApplicationDTO): Promise<{ success: boolean; data?: any; message?: string }> {
         try {
             const existingProvider = await this.providerRepository.findByUserId(userId);
-            console.log("Existing Provider:", existingProvider);``
             if (existingProvider) {
                 return {
                     success: false,
-                    message: 'Provider profile already exists'
+                    message: ErrorMessages.RESOURCE_ALREADY_EXISTS 
                 };
             }
 
@@ -61,7 +62,7 @@ export class ServiceProviderService implements IServiceProviderService {
 
             return {
                 success: true,
-                message: 'Provider application submitted successfully',
+                message: SuccessMessages.PROVIDER_APPLICATION_SUBMITTED,
                 data: {
                     providerId: createdProvider._id.toString(),
                     accessToken,
@@ -81,12 +82,12 @@ export class ServiceProviderService implements IServiceProviderService {
     }): Promise<{ success: boolean; message?: string; data?: ProviderListResult & { page: number; limit: number } }> {
         const { skillId, locationId } = params;
         if (!skillId) {
-            return { success: false, message: 'skillId is required' };
+            return { success: false, message: ErrorMessages.MISSING_REQUIRED_FIELDS };
         }
 
         const skillExists = await SkillModel.exists({ _id: skillId });
         if (!skillExists) {
-            return { success: false, message: 'Skill not found' };
+            return { success: false, message: ErrorMessages.SKILL_NOT_FOUND };
         }
 
         const page = Math.max(1, Number(params.page) || 1);
@@ -100,10 +101,10 @@ export class ServiceProviderService implements IServiceProviderService {
     async getProviderById(id: string): Promise<{ success: boolean; data?: any; message?: string }> {
         const provider = await this.providerRepository.findById(id);
         if (!provider) {
-            return { success: false, message: 'Provider not found' };
+            return { success: false, message: ErrorMessages.PROVIDER_NOT_FOUND };
         }
         if (!provider.isActive || provider.verification?.status !== VERIFICATION_STATUS.VERIFIED) {
-            return { success: false, message: 'Provider is not available' };
+            return { success: false, message: ErrorMessages.PROVIDER_NOT_AVAILABLE };
         }
         return { success: true, data: provider };
     }
@@ -111,7 +112,7 @@ export class ServiceProviderService implements IServiceProviderService {
     async getMyProfile(userId: string): Promise<{ success: boolean; data?: any; message?: string }> {
         const provider = await this.providerRepository.findByUserId(userId);
         if (!provider) {
-            return { success: false, message: 'Provider profile not found' };
+            return { success: false, message: ErrorMessages.PROVIDER_NOT_FOUND };
         }
         return { success: true, data: provider };
     }
@@ -126,23 +127,23 @@ export class ServiceProviderService implements IServiceProviderService {
         const updatedProvider = await this.providerRepository.updateByUserId(userId, updateData);
         
         if (!updatedProvider) {
-            return { success: false, message: 'Failed to update profile' };
+            return { success: false, message: ErrorMessages.INTERNAL_SERVER_ERROR };
         }
 
-        return { success: true, data: updatedProvider, message: 'Profile updated successfully' };
+        return { success: true, data: updatedProvider, message: SuccessMessages.PROFILE_UPDATED };
     }
 
     async resetApplication(userId: string): Promise<{ success: boolean; message: string }> {
         const provider = await this.providerRepository.findByUserId(userId);
         if (!provider) {
-            return { success: false, message: 'Provider profile not found' };
+            return { success: false, message: ErrorMessages.PROVIDER_NOT_FOUND };
         }
 
         if (provider.verification.status !== VERIFICATION_STATUS.REJECTED) {
-            return { success: false, message: 'Only rejected applications can be reset' };
+            return { success: false, message: ErrorMessages.RESET_NOT_ALLOWED };
         }
 
         await this.providerRepository.deleteByUserId(userId);
-        return { success: true, message: 'Application reset successfully' };
+        return { success: true, message: SuccessMessages.APPLICATION_RESET };
     }
 }

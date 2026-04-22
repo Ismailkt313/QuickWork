@@ -1,6 +1,6 @@
-import React from 'react';
+import React from "react";
 import { RiMessage2Line, RiSearchLine } from "react-icons/ri";
-import { ConversationItem } from './ConversationItem';
+import { ConversationItem } from "./ConversationItem";
 
 interface SidebarProps {
   conversations: any[];
@@ -19,10 +19,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   loading,
   searchQuery,
   onSearchChange,
-  getRecipientDetails
+  getRecipientDetails,
 }) => {
   return (
-    <div className="card border-0 shadow-sm rounded-4 overflow-hidden h-100 d-flex flex-column" style={{ background: '#fff' }}>
+    <div
+      className="card border-0 shadow-sm rounded-4 overflow-hidden h-100 d-flex flex-column"
+      style={{ background: "#fff" }}
+    >
       <div className="p-4 bg-white border-bottom">
         <h5 className="fw-bold mb-3 d-flex align-items-center gap-2">
           <RiMessage2Line className="text-primary" />
@@ -45,12 +48,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="flex-grow-1 overflow-auto p-2">
         {loading ? (
           <div className="text-center py-5">
-            <div className="spinner-border spinner-border-sm text-primary" role="status"></div>
+            <div
+              className="spinner-border spinner-border-sm text-primary"
+              role="status"
+            ></div>
           </div>
         ) : conversations.length === 0 ? (
           <div className="text-center py-5 text-secondary small">
             <RiMessage2Line size={32} className="opacity-25 mb-2" />
-            <p>{searchQuery ? 'No matching conversations' : 'No conversations found'}</p>
+            <p>
+              {searchQuery
+                ? "No matching conversations"
+                : "No conversations found"}
+            </p>
           </div>
         ) : (
           conversations.map((conv) => (

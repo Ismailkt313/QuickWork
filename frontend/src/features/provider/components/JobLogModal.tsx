@@ -1,13 +1,14 @@
-import React from 'react';
-import { 
-  RiHistoryLine, 
-  RiCloseLine, 
-  RiCheckDoubleLine, 
-  RiPlayCircleLine, 
+import React from "react";
+import {
+  RiHistoryLine,
+  RiCloseLine,
+  RiCheckDoubleLine,
+  RiPlayCircleLine,
   RiNotification3Line,
   RiCheckboxCircleLine,
-  RiTimeLine
-} from 'react-icons/ri';
+  RiTimeLine,
+  RiErrorWarningLine,
+} from "react-icons/ri";
 
 interface JobLogModalProps {
   isOpen: boolean;
@@ -15,49 +16,75 @@ interface JobLogModalProps {
   assignment: any;
 }
 
-const JobLogModal: React.FC<JobLogModalProps> = ({ isOpen, onClose, assignment }) => {
+const JobLogModal: React.FC<JobLogModalProps> = ({
+  isOpen,
+  onClose,
+  assignment,
+}) => {
   if (!isOpen || !assignment) return null;
 
   const events = [
     {
-      title: 'Job Invitation Sent',
+      title: "Job Invitation Sent",
       time: assignment.invitedAt,
       icon: <RiNotification3Line size={20} />,
-      color: '#6366f1',
-      description: 'The client sent an invitation for this job.',
-      isDone: true
+      color: "#6366f1",
+      description: "The client sent an invitation for this job.",
+      isDone: true,
     },
     {
-      title: 'Invitation Accepted',
+      title: "Invitation Accepted",
       time: assignment.respondedAt,
       icon: <RiCheckDoubleLine size={20} />,
-      color: '#10b981',
-      description: 'You accepted the job invitation.',
-      isDone: !!assignment.respondedAt
+      color: "#10b981",
+      description: "You accepted the job invitation.",
+      isDone: !!assignment.respondedAt,
     },
     {
-      title: 'Work Commenced',
+      title: "Work Commenced",
       time: assignment.startedAt,
       icon: <RiPlayCircleLine size={20} />,
-      color: '#f59e0b',
-      description: 'You started working on this assignment.',
-      isDone: !!assignment.startedAt
+      color: "#f59e0b",
+      description: "You started working on this assignment.",
+      isDone: !!assignment.startedAt,
     },
     {
-      title: 'Work Completed',
+      title: "Work Completed",
       time: assignment.completedAt,
       icon: <RiCheckboxCircleLine size={20} />,
-      color: '#10b981',
-      description: 'You submitted the work proof and completed the job.',
-      isDone: !!assignment.completedAt
-    }
-  ].filter(e => e.isDone).sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+      color: "#10b981",
+      description: "You submitted the work proof and completed the job.",
+      isDone: !!assignment.completedAt,
+    },
+    {
+      title: "Assignment Cancelled",
+      time: assignment.cancellation?.cancelledAt,
+      icon: <RiCloseLine size={20} />,
+      color: "#ef4444",
+      description: assignment.cancellation?.notes
+        ? `Reason: ${assignment.cancellation.notes}`
+        : "The assignment was cancelled.",
+      isDone: !!assignment.cancellation?.cancelledAt,
+    },
+    {
+      title: "Absence Reported",
+      time: assignment.absence?.reportedAt,
+      icon: <RiErrorWarningLine size={20} />,
+      color: "#f59e0b",
+      description: assignment.absence?.notes
+        ? `Notes: ${assignment.absence.notes}`
+        : "An absence was reported for this job.",
+      isDone: !!assignment.absence?.reportedAt,
+    },
+  ]
+    .filter((e) => e.isDone)
+    .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
 
   return (
     <div className="qw-modal-overlay" onClick={onClose}>
-      <div 
-        className="qw-modal-content animate-pop-in" 
-        style={{ maxWidth: '500px' }}
+      <div
+        className="qw-modal-content animate-pop-in"
+        style={{ maxWidth: "500px" }}
         onClick={(e) => e.stopPropagation()}
       >
         <button className="qw-modal-close-btn" onClick={onClose}>
@@ -70,10 +97,15 @@ const JobLogModal: React.FC<JobLogModalProps> = ({ isOpen, onClose, assignment }
               <RiHistoryLine size={24} />
             </div>
             <div>
-              <h3 className="fw-bold text-dark mb-0" style={{ fontFamily: 'Syne, sans-serif' }}>
-                 Activity Log
+              <h3
+                className="fw-bold text-dark mb-0"
+                style={{ fontFamily: "Syne, sans-serif" }}
+              >
+                Activity Log
               </h3>
-              <p className="text-muted mb-0 small">Processing timeline for this job</p>
+              <p className="text-muted mb-0 small">
+                Processing timeline for this job
+              </p>
             </div>
           </div>
         </div>
@@ -81,30 +113,33 @@ const JobLogModal: React.FC<JobLogModalProps> = ({ isOpen, onClose, assignment }
         <div className="qw-timeline-container px-2 py-3">
           {events.length > 0 ? (
             events.map((event, index) => (
-              <div key={index} className="qw-timeline-item mb-4 position-relative ps-5">
+              <div
+                key={index}
+                className="qw-timeline-item mb-4 position-relative ps-5"
+              >
                 {index !== events.length - 1 && (
-                  <div 
-                    className="position-absolute" 
-                    style={{ 
-                      left: '19px', 
-                      top: '40px', 
-                      bottom: '-25px', 
-                      width: '2px', 
-                      background: '#f1f5f9' 
-                    }} 
+                  <div
+                    className="position-absolute"
+                    style={{
+                      left: "19px",
+                      top: "40px",
+                      bottom: "-25px",
+                      width: "2px",
+                      background: "#f1f5f9",
+                    }}
                   />
                 )}
-                
-                <div 
+
+                <div
                   className="position-absolute d-flex align-items-center justify-content-center rounded-circle shadow-sm"
-                  style={{ 
-                    left: '0', 
-                    top: '0', 
-                    width: '40px', 
-                    height: '40px', 
-                    background: 'white', 
+                  style={{
+                    left: "0",
+                    top: "0",
+                    width: "40px",
+                    height: "40px",
+                    background: "white",
                     color: event.color,
-                    border: `2px solid ${event.color}15`
+                    border: `2px solid ${event.color}15`,
                   }}
                 >
                   {event.icon}
@@ -114,14 +149,24 @@ const JobLogModal: React.FC<JobLogModalProps> = ({ isOpen, onClose, assignment }
                   <div className="d-flex justify-content-between align-items-center mb-1">
                     <h6 className="fw-bold text-dark mb-0">{event.title}</h6>
                     <span className="text-muted small d-flex align-items-center gap-1">
-                      <RiTimeLine size={14} /> {new Date(event.time).toLocaleDateString()}
+                      <RiTimeLine size={14} />{" "}
+                      {new Date(event.time).toLocaleDateString()}
                     </span>
                   </div>
-                  <p className="text-muted small mb-0" style={{ lineHeight: 1.4 }}>
+                  <p
+                    className="text-muted small mb-0"
+                    style={{ lineHeight: 1.4 }}
+                  >
                     {event.description}
                   </p>
-                  <span className="text-primary fw-bold mt-1 d-inline-block" style={{ fontSize: '11px' }}>
-                    {new Date(event.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  <span
+                    className="text-primary fw-bold mt-1 d-inline-block"
+                    style={{ fontSize: "11px" }}
+                  >
+                    {new Date(event.time).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </span>
                 </div>
               </div>
@@ -134,9 +179,12 @@ const JobLogModal: React.FC<JobLogModalProps> = ({ isOpen, onClose, assignment }
         </div>
 
         <div className="mt-4 pt-3 border-top d-grid">
-           <button className="btn btn-dark py-3 rounded-4 fw-bold" onClick={onClose}>
-             Close Log
-           </button>
+          <button
+            className="btn btn-dark py-3 rounded-4 fw-bold"
+            onClick={onClose}
+          >
+            Close Log
+          </button>
         </div>
       </div>
 

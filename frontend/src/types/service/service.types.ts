@@ -1,4 +1,4 @@
-export type SortOption = 'name-asc' | 'name-desc' | 'newest';
+export type SortOption = "name-asc" | "name-desc" | "newest";
 
 export interface Service {
   _id: string;

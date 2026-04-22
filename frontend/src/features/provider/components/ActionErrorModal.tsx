@@ -1,18 +1,18 @@
-import React, { useEffect } from 'react';
-import { 
-  RiErrorWarningLine, 
-  RiCloseLine, 
+import React, { useEffect } from "react";
+import {
+  RiErrorWarningLine,
+  RiCloseLine,
   RiCalendarEventLine,
   RiAlertLine,
-  RiArrowRightLine
-} from 'react-icons/ri';
+  RiArrowRightLine,
+} from "react-icons/ri";
 
 interface ActionErrorModalProps {
   isOpen: boolean;
   onClose: () => void;
   title?: string;
   message?: string;
-  type?: 'error' | 'warning';
+  type?: "error" | "warning";
   primaryAction?: {
     label: string;
     onClick: () => void;
@@ -22,117 +22,163 @@ interface ActionErrorModalProps {
 const ActionErrorModal: React.FC<ActionErrorModalProps> = ({
   isOpen,
   onClose,
-  title = 'Action Prohibited',
-  message = 'An unexpected error occurred. Please try again.',
-  type = 'error',
-  primaryAction
+  title = "Action Prohibited",
+  message = "An unexpected error occurred. Please try again.",
+  type = "error",
+  primaryAction,
 }) => {
-  // Handle Escape key
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) onClose();
+      if (e.key === "Escape" && isOpen) onClose();
     };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
-  // Determine Icon and Colors
-  const isOverlap = message.toLowerCase().includes('overlap') || message.toLowerCase().includes('schedule');
-  const Icon = isOverlap ? RiCalendarEventLine : (type === 'warning' ? RiAlertLine : RiErrorWarningLine);
-  
+  const isOverlap =
+    message.toLowerCase().includes("overlap") ||
+    message.toLowerCase().includes("schedule");
+  const Icon = isOverlap
+    ? RiCalendarEventLine
+    : type === "warning"
+      ? RiAlertLine
+      : RiErrorWarningLine;
+
   const colors = {
-    error: { color: '#ef4444', bg: '#fef2f2', glow: 'rgba(239, 68, 68, 0.15)' },
-    warning: { color: '#f59e0b', bg: '#fffbeb', glow: 'rgba(245, 158, 11, 0.15)' },
-    overlap: { color: '#6366f1', bg: '#eef2ff', glow: 'rgba(99, 102, 241, 0.15)' }
+    error: { color: "#ef4444", bg: "#fef2f2", glow: "rgba(239, 68, 68, 0.15)" },
+    warning: {
+      color: "#f59e0b",
+      bg: "#fffbeb",
+      glow: "rgba(245, 158, 11, 0.15)",
+    },
+    overlap: {
+      color: "#6366f1",
+      bg: "#eef2ff",
+      glow: "rgba(99, 102, 241, 0.15)",
+    },
   };
 
-  const { color, bg, glow } = colors[isOverlap ? 'overlap' : type];
+  const { color, bg, glow } = colors[isOverlap ? "overlap" : type];
 
   return (
     <div className="qw-modal-overlay" onClick={onClose}>
-      <div 
-        className="qw-modal-content animate-pop-in" 
-        style={{ maxWidth: '440px' }}
+      <div
+        className="qw-modal-content animate-pop-in"
+        style={{ maxWidth: "440px" }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Decorative Top Accent */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '6px', background: `linear-gradient(90deg, transparent, ${color}, transparent)`, opacity: 0.5, borderRadius: '42px 42px 0 0' }} />
-
-        {/* Close Button */}
-        <button 
-          className="qw-modal-close-btn" 
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "6px",
+            background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
+            opacity: 0.5,
+            borderRadius: "42px 42px 0 0",
+          }}
+        />
+        <button
+          className="qw-modal-close-btn"
           onClick={onClose}
           aria-label="Close"
         >
           <RiCloseLine size={24} />
         </button>
-
-        {/* Content Area */}
         <div className="text-center">
-          {/* Icon Section with Decorative Glow */}
           <div className="position-relative d-inline-block mb-4">
-            <div 
+            <div
               style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: '110px',
-                height: '110px',
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                width: "110px",
+                height: "110px",
                 background: `radial-gradient(circle, ${glow} 0%, transparent 70%)`,
-                zIndex: -1
+                zIndex: -1,
               }}
             />
-            <div 
-              className="d-flex align-items-center justify-content-center" 
-              style={{ 
-                  width: '80px', 
-                  height: '80px', 
-                  borderRadius: '26px', 
-                  background: 'white', 
-                  color: color,
-                  boxShadow: '0 12px 30px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(0,0,0,0.02)',
-                  position: 'relative'
+            <div
+              className="d-flex align-items-center justify-content-center"
+              style={{
+                width: "80px",
+                height: "80px",
+                borderRadius: "26px",
+                background: "white",
+                color: color,
+                boxShadow:
+                  "0 12px 30px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(0,0,0,0.02)",
+                position: "relative",
               }}
             >
-              <div style={{ position: 'absolute', inset: 0, borderRadius: '26px', background: bg, opacity: 0.4 }} />
-              <Icon size={40} style={{ position: 'relative' }} />
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  borderRadius: "26px",
+                  background: bg,
+                  opacity: 0.4,
+                }}
+              />
+              <Icon size={40} style={{ position: "relative" }} />
             </div>
           </div>
 
-          <h3 className="fw-bold text-dark mb-2 px-3" style={{ fontFamily: 'Syne, sans-serif', letterSpacing: '-0.03em', fontSize: '1.6rem', lineHeight: 1.2 }}>
+          <h3
+            className="fw-bold text-dark mb-2 px-3"
+            style={{
+              fontFamily: "Syne, sans-serif",
+              letterSpacing: "-0.03em",
+              fontSize: "1.6rem",
+              lineHeight: 1.2,
+            }}
+          >
             {title}
           </h3>
-          
-          <div 
-            className="p-3 rounded-4 mb-4 mx-auto" 
-            style={{ backgroundColor: '#f9fafb', border: '1px solid #f3f4f6', maxWidth: '360px' }}
+
+          <div
+            className="p-3 rounded-4 mb-4 mx-auto"
+            style={{
+              backgroundColor: "#f9fafb",
+              border: "1px solid #f3f4f6",
+              maxWidth: "360px",
+            }}
           >
-            <p className="text-muted mb-0 small" style={{ fontSize: '14.5px', lineHeight: '1.6' }}>
+            <p
+              className="text-muted mb-0 small"
+              style={{ fontSize: "14.5px", lineHeight: "1.6" }}
+            >
               {message}
             </p>
           </div>
-
-          {/* Action Footer */}
           <div className="d-flex flex-column gap-3 mt-4">
             {primaryAction && (
-                <button 
-                  className="btn-action-primary"
-                  onClick={() => { primaryAction.onClick(); onClose(); }}
-                >
-                  <span className="position-relative z-1 d-flex align-items-center justify-content-center gap-2">
-                    {primaryAction.label}
-                    <RiArrowRightLine size={18} />
-                  </span>
-                </button>
+              <button
+                className="btn-action-primary"
+                onClick={() => {
+                  primaryAction.onClick();
+                  onClose();
+                }}
+              >
+                <span className="position-relative z-1 d-flex align-items-center justify-content-center gap-2">
+                  {primaryAction.label}
+                  <RiArrowRightLine size={18} />
+                </span>
+              </button>
             )}
-            
-            <button 
+
+            <button
               className="btn btn-link text-muted fw-bold py-2 border-0 hover-opacity"
               onClick={onClose}
-              style={{ fontSize: '14px', textDecoration: 'none', transition: 'all 0.2s' }}
+              style={{
+                fontSize: "14px",
+                textDecoration: "none",
+                transition: "all 0.2s",
+              }}
             >
               Dismiss
             </button>

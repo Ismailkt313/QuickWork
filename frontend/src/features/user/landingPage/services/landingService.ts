@@ -20,8 +20,10 @@ export interface LandingData {
   locations: Location[];
 }
 
-export const getLandingData = async (locationId?: string): Promise<LandingData> => {
+export const getLandingData = async (
+  locationId?: string,
+): Promise<LandingData> => {
   const params = locationId ? { locationId } : {};
-  const response = await api.get('/landing', { params });
+  const response = await api.get("/landing", { params });
   return response.data.data;
 };

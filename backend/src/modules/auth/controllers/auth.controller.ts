@@ -6,7 +6,9 @@ import { ResendOtpDto } from "../dtos/resend-otp.dto";
 import { LoginDto } from "../dtos/login.dto";
 import { ForgotPasswordDto } from "../dtos/forgot-password.dto";
 import { ResetPasswordDto } from "../dtos/reset-password.dto";
-import {HttpStatusCode} from "../../../constants/httpStatusCode"
+import { HttpStatusCode } from "../../../constants/httpStatusCode"
+import { ErrorMessages } from "../../../constants/messages/errorMessages";
+import { SuccessMessages } from "../../../constants/messages/successMessages";
 
 export class AuthController {
     private readonly authService: IAuthService;
@@ -83,7 +85,7 @@ export class AuthController {
             if (!refreshToken) {
                 res.status(HttpStatusCode.BAD_REQUEST).json({
                     success: false,
-                    message: "Refresh token is required",
+                    message: ErrorMessages.REFRESH_TOKEN_REQUIRED,
                 });
                 return;
             }
@@ -117,7 +119,7 @@ export class AuthController {
             if (!refreshToken) {
                 res.status(HttpStatusCode.BAD_REQUEST).json({
                     success: false,
-                    message: "Refresh token is required",
+                    message: ErrorMessages.REFRESH_TOKEN_REQUIRED,
                 });
                 return;
             }
@@ -167,7 +169,7 @@ export class AuthController {
             const result = await this.authService.getProfile(userId);
             res.status(HttpStatusCode.OK).json({
                 success: true,
-                message: "Profile fetched successfully",
+                message: SuccessMessages.PROFILE_FETCHED,
                 data: result
             });
         } catch (error) {
@@ -186,7 +188,7 @@ export class AuthController {
             const result = await this.authService.updateProfile(userId, { name, number });
             res.status(HttpStatusCode.OK).json({
                 success: true,
-                message: "Profile updated successfully",
+                message: SuccessMessages.PROFILE_UPDATED,
                 data: result
             });
         } catch (error) {
@@ -205,7 +207,7 @@ export class AuthController {
             await this.authService.changePassword(userId, { currentPassword, newPassword });
             res.status(HttpStatusCode.OK).json({
                 success: true,
-                message: "Password changed successfully"
+                message: SuccessMessages.PASSWORD_CHANGED
             });
         } catch (error) {
             next(error);

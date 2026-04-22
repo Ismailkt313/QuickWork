@@ -1,17 +1,23 @@
-import { useState, useEffect, useCallback } from 'react';
-import { getLandingData, type Location, type Skill } from '../landingPage/services/landingService';
+import { useState, useEffect, useCallback } from "react";
+import {
+  getLandingData,
+  type Location,
+  type Skill,
+} from "../landingPage/services/landingService";
 
-const LOCATION_STORAGE_KEY = 'locationId';
+const LOCATION_STORAGE_KEY = "locationId";
 
 export const useLandingData = () => {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedLocationId, setSelectedLocationId] = useState<string | undefined>(
-    () => localStorage.getItem(LOCATION_STORAGE_KEY) ?? undefined
+  const [selectedLocationId, setSelectedLocationId] = useState<
+    string | undefined
+  >(() => localStorage.getItem(LOCATION_STORAGE_KEY) ?? undefined);
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(
+    null,
   );
-  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
 
   const fetchData = useCallback(async (locationId?: string) => {
     setLoading(true);
@@ -25,7 +31,7 @@ export const useLandingData = () => {
         setSelectedLocation(found);
       }
     } catch {
-      setError('Failed to load data. Please try again.');
+      setError("Failed to load data. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -47,5 +53,13 @@ export const useLandingData = () => {
     setSelectedLocationId(undefined);
   };
 
-  return { skills, locations, loading, error, selectedLocation, selectLocation, clearLocation };
+  return {
+    skills,
+    locations,
+    loading,
+    error,
+    selectedLocation,
+    selectLocation,
+    clearLocation,
+  };
 };

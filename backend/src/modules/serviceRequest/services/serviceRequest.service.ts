@@ -6,6 +6,10 @@ import { RejectServiceRequestDTO } from '../dtos/rejectServiceRequest.dto';
 import { IServiceRequest, IServiceRequestService, IServiceRequestRepository } from '../interfaces/serviceRequest.interface';
 import { generateSlug } from '../../../utils/slug.util';
 import { SKILL_STATUS } from '../../../constants/skill';
+import { AppError } from '../../../utils/AppError';
+import { HttpStatusCode } from '../../../constants/httpStatusCode';
+import { SuccessMessages } from '../../../constants/messages/successMessages';
+import { ErrorMessages } from '../../../constants/messages/errorMessages';
 
 export class ServiceRequestService implements IServiceRequestService {
     private serviceRequestRepository: IServiceRequestRepository;
@@ -28,12 +32,12 @@ export class ServiceRequestService implements IServiceRequestService {
 
         const existingSkill = await this.skillRepository.findByName(normalizedName);
         if (existingSkill) {
-            return { success: false, message: 'Skill already exists in the system' };
+            return { success: false, message: ErrorMessages.SKILL_ALREADY_EXISTS };
         }
 
         const existingRequest = await this.serviceRequestRepository.findPendingByName(normalizedName);
         if (existingRequest) {
-            return { success: false, message: 'A pending request for this skill already exists' };
+            return { success: false, message: ErrorMessages.PENDING_REQUEST_EXISTS };
         }
 
         const newRequest = await this.serviceRequestRepository.create({
@@ -45,7 +49,7 @@ export class ServiceRequestService implements IServiceRequestService {
 
         return {
             success: true,
-            message: 'Service request submitted successfully',
+            message: SuccessMessages.SERVICE_REQUEST_SUBMITTED,
             data: newRequest
         };
     }
@@ -67,14 +71,14 @@ export class ServiceRequestService implements IServiceRequestService {
 
       const request = await this.serviceRequestRepository.findById(requestId);
       if (!request) {
-        return { success: false, message: 'Service request not found' };
+        return { success: false, message: ErrorMessages.SERVICE_REQUEST_NOT_FOUND };
       }
 
       if (request.status !== SKILL_STATUS.PENDING) {
-        return { success: false, message: `Request is already ${request.status}` };
+        return { success: false, message: ErrorMessages.REQUEST_ALREADY_REVIEWED(request.status) };
       }
 
-      // 1. Ensure the skill exists in the global Skill directory
+
       let skill = await this.skillRepository.findBySlug(request.slug);
 
       if (!skill) {
@@ -83,7 +87,6 @@ export class ServiceRequestService implements IServiceRequestService {
             name: request.name,
             slug: request.slug
           });
-          console.log(`Created new global skill: ${request.name}`);
         } catch (error: any) {
           if (error.code === 11000) {
             skill = await this.skillRepository.findBySlug(request.slug);
@@ -98,8 +101,6 @@ export class ServiceRequestService implements IServiceRequestService {
         throw new Error('Failed to find or create skill');
       }
 
-      // 2. Add the skill to the specific provider who requested it
-      // Note: request.requestedBy is the User ID. addSkillToProvider finds the provider by userId.
       const userId = request.requestedBy.toString();
       const updateResult = await this.serviceProviderRepository.addSkillToProvider(
         userId,
@@ -107,9 +108,7 @@ export class ServiceRequestService implements IServiceRequestService {
       );
 
       if (updateResult.matchedCount === 0) {
-        console.warn(`Skill approved but provider profile not found for user ${userId}`);
-        // We still approve the global skill, but notify admin that provider wasn't updated
-        await this.serviceRequestRepository.updateStatus(requestId, {
+         await this.serviceRequestRepository.updateStatus(requestId, {
           status: SKILL_STATUS.APPROVED,
           reviewedBy: new Types.ObjectId(adminId),
           reviewedAt: new Date(),
@@ -118,33 +117,31 @@ export class ServiceRequestService implements IServiceRequestService {
 
         return {
           success: true,
-          message: 'Skill approved globally, but requesting provider profile was not found.'
+          message: SuccessMessages.SERVICE_REQUEST_PARTIAL_SUCCESS
         };
       }
 
-      // 3. Mark the request as Approved
+
       await this.serviceRequestRepository.updateStatus(requestId, {
         status: SKILL_STATUS.APPROVED,
         reviewedBy: new Types.ObjectId(adminId),
         reviewedAt: new Date()
       });
 
-      console.log(`Successfully approved skill request ${requestId} for user ${userId}`);
-
       return {
         success: true,
-        message: 'Service request approved successfully'
+        message: SuccessMessages.SERVICE_REQUEST_APPROVED
       };
     }
 
     async rejectRequest(adminId: string, requestId: string, dto: RejectServiceRequestDTO): Promise<{ success: boolean; message: string }> {
         const request = await this.serviceRequestRepository.findById(requestId);
         if (!request) {
-            return { success: false, message: 'Service request not found' };
+            return { success: false, message: ErrorMessages.SERVICE_REQUEST_NOT_FOUND };
         }
 
         if (request.status !== SKILL_STATUS.PENDING) {
-            return { success: false, message: `Request is already ${request.status}` };
+            return { success: false, message: ErrorMessages.REQUEST_ALREADY_REVIEWED(request.status) };
         }
 
         await this.serviceRequestRepository.updateStatus(requestId, {
@@ -154,6 +151,6 @@ export class ServiceRequestService implements IServiceRequestService {
             rejectionReason: dto.rejectionReason
         });
 
-        return { success: true, message: 'Service request has been rejected' };
+        return { success: true, message: SuccessMessages.SERVICE_REQUEST_REJECTED };
     }
 }

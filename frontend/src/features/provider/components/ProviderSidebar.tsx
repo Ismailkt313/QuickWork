@@ -1,8 +1,5 @@
-// ProviderSidebar.tsx — QuickWork Provider Sidebar
-// Requires: react-icons, bootstrap (CSS only)
-
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   RiDashboardLine,
   RiBriefcaseLine,
@@ -14,28 +11,26 @@ import {
   RiFileListLine,
   RiSettings3Line,
   RiLogoutBoxLine,
-   RiArrowRightSLine,
+  RiArrowRightSLine,
   RiMapLine,
   RiInboxArchiveLine,
-} from 'react-icons/ri';
-import { NavLink, Link } from 'react-router-dom';
-import './ProviderSidebar.css';
-import { api } from '../../../services/api';
-import { JOB_STATUS } from '../../../constants/jobStatus';
-import { WORK_STATUS } from '../../../constants/assignment';
+} from "react-icons/ri";
+import { NavLink, Link } from "react-router-dom";
+import "./ProviderSidebar.css";
+import { api } from "../../../services/api";
+import { JOB_STATUS } from "../../../constants/jobStatus";
+import { WORK_STATUS } from "../../../constants/assignment";
 
-// ─── Types ────────────────────────────────────────────────────
 interface NavItem {
   id: string;
   label: string;
   icon: React.ReactNode;
   href: string;
   badge?: number | string;
-  badgeVariant?: 'danger' | 'accent' | 'warning';
+  badgeVariant?: "danger" | "accent" | "warning";
 }
 
 interface ProviderSidebarProps {
-  /** Provider profile data */
   provider?: {
     name: string;
     role?: string;
@@ -44,86 +39,85 @@ interface ProviderSidebarProps {
     profileImage?: string;
     headline?: string;
   };
-  /** Mobile: whether sidebar is visible */
+
   showOnMobile?: boolean;
-  /** Mobile: callback to close the sidebar */
+
   onCloseMobile?: () => void;
-  /** Logout handler */
+
   onLogout?: () => void;
 }
 
-// ─── Nav Config ──────────────────────────────────────────────
 const PRIMARY_NAV: NavItem[] = [
   {
-    id: 'dashboard',
-    label: 'Dashboard',
+    id: "dashboard",
+    label: "Dashboard",
     icon: <RiDashboardLine />,
-    href: '/provider/dashboard',
+    href: "/provider/dashboard",
   },
   {
-    id: 'my-jobs',
-    label: 'My Jobs',
+    id: "my-jobs",
+    label: "My Jobs",
     icon: <RiBriefcaseLine />,
-    href: '/provider/my-jobs',
+    href: "/provider/my-jobs",
     badge: 3,
-    badgeVariant: 'accent',
+    badgeVariant: "accent",
   },
   {
-    id: 'requests',
-    label: 'Requests',
+    id: "requests",
+    label: "Requests",
     icon: <RiInboxArchiveLine />,
-    href: '/provider/requests',
+    href: "/provider/requests",
     badge: 0,
-    badgeVariant: 'warning',
+    badgeVariant: "warning",
   },
   {
-    id: 'available-jobs',
-    label: 'Available Jobs',
+    id: "available-jobs",
+    label: "Available Jobs",
     icon: <RiSearchLine />,
-    href: '/provider/available-jobs',
-    badge: 'New',
-    badgeVariant: 'warning',
+    href: "/provider/available-jobs",
+    badge: "New",
+    badgeVariant: "warning",
   },
   {
-    id: 'completed-jobs',
-    label: 'Completed Jobs',
+    id: "completed-jobs",
+    label: "Completed Jobs",
     icon: <RiCheckboxCircleLine />,
-    href: '/provider/completed-jobs',
+    href: "/provider/completed-jobs",
   },
   {
-    id: 'messages',
-    label: 'Messages',
+    id: "messages",
+    label: "Messages",
     icon: <RiMessage3Line />,
-    href: '/provider/messages',
+    href: "/provider/messages",
     badge: 7,
-    badgeVariant: 'danger',
+    badgeVariant: "danger",
   },
 ];
 
 const SECONDARY_NAV: NavItem[] = [
   {
-    id: 'reviews',
-    label: 'Reviews',
+    id: "reviews",
+    label: "Reviews",
     icon: <RiStarLine />,
-    href: '/provider/reviews',
+    href: "/provider/reviews",
   },
   {
-    id: 'earnings',
-    label: 'Earnings',
+    id: "earnings",
+    label: "Earnings",
     icon: <RiWalletLine />,
-    href: '/provider/earnings',
+    href: "/provider/earnings",
   },
   {
-    id: 'applications',
-    label: 'My Applications',
+    id: "applications",
+    label: "My Applications",
     icon: <RiFileListLine />,
-    href: '/provider/applications',
+    href: "/provider/applications",
   },
   {
-    id: 'settings',
-    label: 'Settings',
+    id: "settings",
+    label: "Settings",
     icon: <RiSettings3Line />,
-    href: '/provider/settings',
+    href: "/provider/settings",
   },
 ];
 
@@ -133,7 +127,7 @@ const SidebarNavItem: React.FC<{
 }> = ({ item, onClick }) => (
   <NavLink
     to={item.href}
-    className={({ isActive }) => `qw-nav-item${isActive ? ' active' : ''}`}
+    className={({ isActive }) => `qw-nav-item${isActive ? " active" : ""}`}
     onClick={onClick}
     aria-label={item.label}
     tabIndex={0}
@@ -144,7 +138,7 @@ const SidebarNavItem: React.FC<{
     <span className="qw-nav-label-text">{item.label}</span>
     {item.badge !== undefined && (
       <span
-        className={`qw-badge qw-badge-${item.badgeVariant ?? 'accent'}`}
+        className={`qw-badge qw-badge-${item.badgeVariant ?? "accent"}`}
         aria-label={`${item.badge} notifications`}
       >
         {item.badge}
@@ -153,58 +147,71 @@ const SidebarNavItem: React.FC<{
   </NavLink>
 );
 
-
-// ─── Main Sidebar Component ───────────────────────────────────
 const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
   provider,
   showOnMobile = false,
-  onCloseMobile
+  onCloseMobile,
 }) => {
-  console.log(provider,"provider");
+  console.log(provider, "provider");
   const [navItems, setNavItems] = React.useState<NavItem[]>(PRIMARY_NAV);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCounts = async () => {
       try {
-         const offersRes = await api.get('/job/offers');
-        const pendingCount = (offersRes.data.data || []).filter((r: any) => r.status === JOB_STATUS.OPEN).length;
+        const offersRes = await api.get("/job/offers");
+        const pendingCount = (offersRes.data.data || []).filter(
+          (r: any) => r.status === JOB_STATUS.OPEN,
+        ).length;
 
-         const assignmentsRes = await api.get('/assignment/my');
-        const activeCount = (assignmentsRes.data.data || []).filter((as: any) => as.workStatus === WORK_STATUS.ASSIGNED || as.workStatus === WORK_STATUS.IN_PROGRESS).length;
+        const assignmentsRes = await api.get("/assignment/my");
+        const activeCount = (assignmentsRes.data.data || []).filter(
+          (as: any) =>
+            as.workStatus === WORK_STATUS.ASSIGNED ||
+            as.workStatus === WORK_STATUS.IN_PROGRESS,
+        ).length;
 
-        setNavItems(prev => prev.map(item => {
-          if (item.id === 'requests') {
-            return { ...item, badge: pendingCount > 0 ? pendingCount : undefined };
-          }
-          if (item.id === 'my-jobs') {
-            return { ...item, badge: activeCount > 0 ? activeCount : undefined };
-          }
-          return item;
-        }));
+        setNavItems((prev) =>
+          prev.map((item) => {
+            if (item.id === "requests") {
+              return {
+                ...item,
+                badge: pendingCount > 0 ? pendingCount : undefined,
+              };
+            }
+            if (item.id === "my-jobs") {
+              return {
+                ...item,
+                badge: activeCount > 0 ? activeCount : undefined,
+              };
+            }
+            return item;
+          }),
+        );
       } catch (error) {
-        console.error('Failed to fetch nav counts:', error);
+        console.error("Failed to fetch nav counts:", error);
       }
     };
     fetchCounts();
   }, []);
-  // Close on Escape key
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && showOnMobile) onCloseMobile?.();
+      if (e.key === "Escape" && showOnMobile) onCloseMobile?.();
     };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
   }, [showOnMobile, onCloseMobile]);
 
-  // Prevent body scroll on mobile when open
   useEffect(() => {
     if (showOnMobile) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     }
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [showOnMobile]);
 
   const handleNavClick = () => {
@@ -223,7 +230,7 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
       )}
 
       <aside
-        className={`qw-sidebar${showOnMobile ? ' open' : ''}`}
+        className={`qw-sidebar${showOnMobile ? " open" : ""}`}
         aria-label="Provider navigation"
         role="navigation"
       >
@@ -245,7 +252,6 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
 
         {/* ── Scrollable Nav ── */}
         <nav className="qw-nav-scroll" aria-label="Main navigation">
-
           <p className="qw-nav-label">Overview</p>
           {navItems.map((item) => (
             <SidebarNavItem
@@ -297,15 +303,32 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
                   />
                 ) : (
                   <div className="qw-avatar" aria-hidden="true">
-                    {provider.initials || (provider.name ? provider.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : '??')}
+                    {provider.initials ||
+                      (provider.name
+                        ? provider.name
+                            .split(" ")
+                            .map((n: string) => n[0])
+                            .join("")
+                            .toUpperCase()
+                        : "??")}
                   </div>
                 )}
                 <span className="qw-avatar-status" aria-label="Online" />
               </div>
               <div className="qw-profile-info">
-                <div className="qw-profile-name text-truncate" style={{ maxWidth: '120px' }}>{provider.name || 'Provider'}</div>
+                <div
+                  className="qw-profile-name text-truncate"
+                  style={{ maxWidth: "120px" }}
+                >
+                  {provider.name || "Provider"}
+                </div>
                 {(provider.role || provider.headline) && (
-                  <div className="qw-profile-role text-truncate" style={{ maxWidth: '120px' }}>{provider.role || provider.headline || 'Top Rated'}</div>
+                  <div
+                    className="qw-profile-role text-truncate"
+                    style={{ maxWidth: "120px" }}
+                  >
+                    {provider.role || provider.headline || "Top Rated"}
+                  </div>
                 )}
               </div>
               <span className="qw-profile-chevron" aria-hidden="true">
@@ -314,11 +337,9 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
             </Link>
           )}
 
-
-          {/* Logout */}
           <button
             className="qw-logout-btn"
-            onClick={()=>navigate('/')}
+            onClick={() => navigate("/")}
             type="button"
             aria-label="Switch to client"
           >

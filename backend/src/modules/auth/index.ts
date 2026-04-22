@@ -8,6 +8,7 @@ import { UploadService } from "../upload/services/upload.service";
 const authRepository = new AuthRepository();
 const otpRepository = new OtpRepository();
 const uploadService = new UploadService();
+
 const authService = new AuthService(authRepository, otpRepository, uploadService);
 const authController = new AuthController(authService);
 

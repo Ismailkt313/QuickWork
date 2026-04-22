@@ -23,7 +23,20 @@ const AssignmentSchema: Schema = new Schema(
         completedAt: { type: Date },
         isOutOfDistrict: { type: Boolean, default: false },
         proof: [{ type: String }],
-        proofDescription: { type: String }
+        proofDescription: { type: String },
+        cancellation: {
+            cancelledBy: { type: Schema.Types.ObjectId, ref: 'User' },
+            cancelledAt: { type: Date },
+            reason: { type: String, enum: ['provider_requested', 'client_requested'] },
+            isLateCancel: { type: Boolean },
+            notes: { type: String }
+        },
+        absence: {
+            reportedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+            reportedAt: { type: Date },
+            notes: { type: String },
+            evidence: [{ type: String }]
+        }
     },
     { 
         timestamps: true 

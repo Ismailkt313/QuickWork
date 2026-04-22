@@ -35,21 +35,48 @@ export interface JobResponseDTO {
   isApplied?: boolean;
   createdAt: Date;
   updatedAt: Date;
+  schedule?: {
+    startDate: Date;
+    endDate: Date;
+  };
 }
 
-export const mapJobToResponseDTO = (job: any): JobResponseDTO => {
+export const mapJobToResponseDTO = async (job: any): Promise<JobResponseDTO> => {
   const user = job.userId || {};
   const skill = job.skillId || {};
 
   let hiredProvider = undefined;
 
   if (job.hiredProviderId?.userId) {
+    let assignmentData: any = null;
+    try {
+      const { AssignmentModel } = require('../../assignment/models/assignment.model');
+      assignmentData = await AssignmentModel.findOne({
+        jobId: job._id,
+        freelancerId: job.hiredProviderId._id
+      }).lean();
+    } catch (e) {
+    }
+
     hiredProvider = {
       id: job.hiredProviderId._id?.toString() || job.hiredProviderId.id,
       name: job.hiredProviderId.userId.name,
       email: job.hiredProviderId.userId.email,
       headline: job.hiredProviderId.headline,
       profileImage: job.hiredProviderId.profileImage,
+      assignmentId: assignmentData?._id?.toString() || null,
+      workStatus: assignmentData?.workStatus || null,
+      cancellation: assignmentData?.cancellation ? {
+        reason: assignmentData.cancellation.reason,
+        cancelledAt: assignmentData.cancellation.cancelledAt,
+        isLateCancel: assignmentData.cancellation.isLateCancel,
+        notes: assignmentData.cancellation.notes,
+      } : null,
+      absence: assignmentData?.absence ? {
+        reportedAt: assignmentData.absence.reportedAt,
+        notes: assignmentData.absence.notes,
+        evidence: assignmentData.absence.evidence,
+      } : null,
     };
   }
 
@@ -59,7 +86,6 @@ export const mapJobToResponseDTO = (job: any): JobResponseDTO => {
 
   const clientName = user.name || "Anonymous";
 
-  // ✅ Safe location mapping
   let location: JobLocation | null = null;
 
   if (
@@ -74,7 +100,7 @@ export const mapJobToResponseDTO = (job: any): JobResponseDTO => {
       lat,
       lng,
       districtId: job.location.district?.toString(),
-      districtName: job.location.district?.name, // only if populated
+      districtName: job.location.district?.name,
     };
   }
 
@@ -115,5 +141,10 @@ export const mapJobToResponseDTO = (job: any): JobResponseDTO => {
 
     createdAt: job.createdAt,
     updatedAt: job.updatedAt,
+
+    schedule: job.schedule ? {
+      startDate: job.schedule.startDate,
+      endDate: job.schedule.endDate,
+    } : undefined,
   };
-};
+};

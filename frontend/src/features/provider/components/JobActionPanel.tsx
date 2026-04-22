@@ -1,11 +1,11 @@
-import React from 'react';
+import React from "react";
 import {
   RiCalendarLine,
   RiMapPinLine,
   RiTimeLine,
   RiMessage3Line,
-  RiHeartLine
-} from 'react-icons/ri';
+  RiHeartLine,
+} from "react-icons/ri";
 
 interface JobLocation {
   address: string;
@@ -45,24 +45,29 @@ const JobActionPanel: React.FC<JobActionPanelProps> = ({
     <div
       className="card border-0 rounded-4 shadow-sm h-100 overflow-hidden"
       style={{
-        backgroundColor: '#fff',
-        border: '1px solid #f1f5f9',
-        position: 'sticky',
-        top: '2rem'
+        backgroundColor: "#fff",
+        border: "1px solid #f1f5f9",
+        position: "sticky",
+        top: "2rem",
       }}
     >
       <div className="card-body p-4 d-flex flex-column gap-4">
-        {/* Budget Section */}
-        <div className="p-4 rounded-4" style={{ background: 'linear-gradient(135deg, #f8fafc, #f1f5f9)', border: '1px solid #e2e8f0' }}>
+        <div
+          className="p-4 rounded-4"
+          style={{
+            background: "linear-gradient(135deg, #f8fafc, #f1f5f9)",
+            border: "1px solid #e2e8f0",
+          }}
+        >
           <label
             className="d-block mb-1"
             style={{
-              fontSize: '10px',
+              fontSize: "10px",
               fontWeight: 800,
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-              fontFamily: 'Syne, sans-serif',
-              color: '#64748b'
+              textTransform: "uppercase",
+              letterSpacing: "1px",
+              fontFamily: "Syne, sans-serif",
+              color: "#64748b",
             }}
           >
             Estimated Budget
@@ -71,26 +76,47 @@ const JobActionPanel: React.FC<JobActionPanelProps> = ({
             <h2
               className="mb-0 fw-bold"
               style={{
-                fontFamily: 'Syne, sans-serif',
-                fontSize: '32px',
-                letterSpacing: '-1px',
-                color: '#0f172a'
+                fontFamily: "Syne, sans-serif",
+                fontSize: "32px",
+                letterSpacing: "-1px",
+                color: "#0f172a",
               }}
             >
               {budget}
             </h2>
           </div>
         </div>
-
-        {/* Property Grid */}
         <div className="d-flex flex-column gap-3">
           {[
-            { icon: <RiTimeLine size={20} />, label: 'Duration', value: duration, color: '#3b82f6' },
-            { icon: <RiMapPinLine size={20} />, label: 'Location', value: location?.address || 'Remote', color: '#10b981' },
-            { icon: <RiCalendarLine size={20} />, label: 'Start Date', value: startDate, color: '#f59e0b' },
-            { icon: <RiMessage3Line size={20} />, label: 'WhatsApp / Contact', value: contactNumber || 'Not Provided', color: '#16a34a' }
+            {
+              icon: <RiTimeLine size={20} />,
+              label: "Duration",
+              value: duration,
+              color: "#3b82f6",
+            },
+            {
+              icon: <RiMapPinLine size={20} />,
+              label: "Location",
+              value: location?.address || "Remote",
+              color: "#10b981",
+            },
+            {
+              icon: <RiCalendarLine size={20} />,
+              label: "Start Date",
+              value: startDate,
+              color: "#f59e0b",
+            },
+            {
+              icon: <RiMessage3Line size={20} />,
+              label: "WhatsApp / Contact",
+              value: contactNumber || "Not Provided",
+              color: "#16a34a",
+            },
           ].map((item, idx) => (
-            <div key={idx} className="d-flex align-items-center gap-3 p-2 rounded-3 hover-bg">
+            <div
+              key={idx}
+              className="d-flex align-items-center gap-3 p-2 rounded-3 hover-bg"
+            >
               <div
                 className="rounded-3 d-flex align-items-center justify-content-center"
                 style={{
@@ -98,45 +124,66 @@ const JobActionPanel: React.FC<JobActionPanelProps> = ({
                   width: 42,
                   height: 42,
                   color: item.color,
-                  border: `1px solid ${item.color}20`
+                  border: `1px solid ${item.color}20`,
                 }}
               >
                 {item.icon}
               </div>
               <div>
-                <label className="d-block" style={{ fontSize: '10px', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>{item.label}</label>
-                <span className="fw-bold" style={{ fontSize: '14px', color: '#334155' }}>{item.value}</span>
+                <label
+                  className="d-block"
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    color: "#94a3b8",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {item.label}
+                </label>
+                <span
+                  className="fw-bold"
+                  style={{ fontSize: "14px", color: "#334155" }}
+                >
+                  {item.value}
+                </span>
               </div>
             </div>
           ))}
         </div>
-
-        {/* Action Buttons */}
         <div className="d-flex flex-column gap-2 mt-2">
           <button
-            className={`btn btn-primary w-100 py-3 rounded-3 fw-bold shadow-sm ${isDisabled ? 'disabled' : ''}`}
+            className={`btn btn-primary w-100 py-3 rounded-3 fw-bold shadow-sm ${isDisabled ? "disabled" : ""}`}
             onClick={onAccept}
             disabled={isDisabled}
             style={{
-              background: isApplied ? '#10b981' : 'linear-gradient(135deg, #3b82f6, #2563eb)',
-              border: 'none',
-              fontSize: '15px',
-              fontFamily: 'DM Sans, sans-serif',
-              transition: 'all 0.3s ease',
-              boxShadow: isApplied ? 'none' : '0 10px 20px -5px rgba(37, 99, 235, 0.3)'
+              background: isApplied
+                ? "#10b981"
+                : "linear-gradient(135deg, #3b82f6, #2563eb)",
+              border: "none",
+              fontSize: "15px",
+              fontFamily: "DM Sans, sans-serif",
+              transition: "all 0.3s ease",
+              boxShadow: isApplied
+                ? "none"
+                : "0 10px 20px -5px rgba(37, 99, 235, 0.3)",
             }}
           >
-            {isApplied ? 'Accepted' : isAssigned ? 'Already Assigned' : 'Accept this job'}
+            {isApplied
+              ? "Accepted"
+              : isAssigned
+                ? "Already Assigned"
+                : "Accept this job"}
           </button>
 
           <button
             className="btn btn-outline-light w-100 py-3 rounded-3 fw-bold d-flex align-items-center justify-content-center gap-2"
             onClick={onMessage}
             style={{
-              border: '1.5px solid #e2e8f0',
-              color: '#475569',
-              fontSize: '15px',
-              backgroundColor: '#fff'
+              border: "1.5px solid #e2e8f0",
+              color: "#475569",
+              fontSize: "15px",
+              backgroundColor: "#fff",
             }}
           >
             <RiMessage3Line size={20} />
@@ -145,7 +192,7 @@ const JobActionPanel: React.FC<JobActionPanelProps> = ({
 
           <button
             className="btn btn-link w-100 text-decoration-none fw-bold d-flex align-items-center justify-content-center gap-1"
-            style={{ fontSize: '13px', color: '#94a3b8' }}
+            style={{ fontSize: "13px", color: "#94a3b8" }}
           >
             <RiHeartLine size={16} />
             Save job for later
@@ -156,14 +203,17 @@ const JobActionPanel: React.FC<JobActionPanelProps> = ({
           <div
             className="alert border-0 rounded-4 mb-0 py-3 d-flex align-items-center gap-3"
             style={{
-              fontSize: '13px',
-              backgroundColor: '#f0fdf4',
-              color: '#166534',
-              border: '1px solid #dcfce7',
-              fontWeight: 600
+              fontSize: "13px",
+              backgroundColor: "#f0fdf4",
+              color: "#166534",
+              border: "1px solid #dcfce7",
+              fontWeight: 600,
             }}
           >
-            <div className="bg-success rounded-circle" style={{ width: 8, height: 8 }}></div>
+            <div
+              className="bg-success rounded-circle"
+              style={{ width: 8, height: 8 }}
+            ></div>
             You've expressed interest in this job
           </div>
         )}

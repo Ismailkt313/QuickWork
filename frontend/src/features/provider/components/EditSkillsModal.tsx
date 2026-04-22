@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
-import { RiCloseLine, RiSaveLine, RiCheckboxCircleLine, RiAddCircleLine } from 'react-icons/ri';
-import { updateProviderProfile } from '../services/provider.service';
-import { toast } from 'react-toastify';
-import './Modals.css';
+import React, { useState } from "react";
+import {
+  RiCloseLine,
+  RiSaveLine,
+  RiCheckboxCircleLine,
+  RiAddCircleLine,
+} from "react-icons/ri";
+import { updateProviderProfile } from "../services/provider.service";
+import { toast } from "react-toastify";
+import "./Modals.css";
 
 interface EditSkillsModalProps {
   isOpen: boolean;
@@ -12,24 +17,24 @@ interface EditSkillsModalProps {
   allSkills: any[];
 }
 
-const EditSkillsModal: React.FC<EditSkillsModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  onSuccess, 
-  currentSkills, 
-  allSkills 
+const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
+  isOpen,
+  onClose,
+  onSuccess,
+  currentSkills,
+  allSkills,
 }) => {
-  console.log(currentSkills,'currentSkills in edit skills modal')
-  console.log(allSkills,'allSkills in edit skills modal')
+  console.log(currentSkills, "currentSkills in edit skills modal");
+  console.log(allSkills, "allSkills in edit skills modal");
   const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>(
-    currentSkills.map(s => s.id || s._id)
+    currentSkills.map((s) => s.id || s._id),
   );
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   const toggleSkill = (id: string) => {
-    setSelectedSkillIds(prev => 
-      prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
+    setSelectedSkillIds((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
     );
   };
 
@@ -41,7 +46,9 @@ const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
 
     setLoading(true);
     try {
-      const response = await updateProviderProfile({ skills: selectedSkillIds });
+      const response = await updateProviderProfile({
+        skills: selectedSkillIds,
+      });
       if (response.success) {
         toast.success("Skills updated successfully");
         onSuccess();
@@ -56,8 +63,8 @@ const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
 
   if (!isOpen) return null;
 
-  const filteredSkills = allSkills.filter(s => 
-    s.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredSkills = allSkills.filter((s) =>
+    s.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -71,27 +78,31 @@ const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
         </div>
 
         <div className="mb-4">
-          <input 
-            type="text" 
-            className="form-control qw-input" 
-            placeholder="Search for skills..." 
+          <input
+            type="text"
+            className="form-control qw-input"
+            placeholder="Search for skills..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
         <div className="qw-skills-grid mb-4">
-          {filteredSkills.map(skill => {
+          {filteredSkills.map((skill) => {
             const isSelected = selectedSkillIds.includes(skill.id || skill._id);
             return (
-              <div 
-                key={skill.id || skill._id} 
-                className={`qw-skill-option p-3 ${isSelected ? 'selected' : ''}`}
+              <div
+                key={skill.id || skill._id}
+                className={`qw-skill-option p-3 ${isSelected ? "selected" : ""}`}
                 onClick={() => toggleSkill(skill.id || skill._id)}
               >
                 <div className="d-flex align-items-center justify-content-between">
                   <span className="fw-600">{skill.name}</span>
-                  {isSelected ? <RiCheckboxCircleLine className="text-success" size={20} /> : <RiAddCircleLine className="text-muted" size={20} />}
+                  {isSelected ? (
+                    <RiCheckboxCircleLine className="text-success" size={20} />
+                  ) : (
+                    <RiAddCircleLine className="text-muted" size={20} />
+                  )}
                 </div>
               </div>
             );
@@ -102,16 +113,25 @@ const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
           <div className="flex-grow-1 align-self-center text-muted small">
             {selectedSkillIds.length} skills selected
           </div>
-          <button type="button" className="btn btn-light rounded-pill px-4" onClick={onClose} disabled={loading}>
-            Cancel
-          </button>
-          <button 
-            type="button" 
-            className="btn btn-primary rounded-pill px-4 d-flex align-items-center gap-2" 
-            onClick={handleSubmit} 
+          <button
+            type="button"
+            className="btn btn-light rounded-pill px-4"
+            onClick={onClose}
             disabled={loading}
           >
-            {loading ? <span className="spinner-border spinner-border-sm" /> : <RiSaveLine />}
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="btn btn-primary rounded-pill px-4 d-flex align-items-center gap-2"
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? (
+              <span className="spinner-border spinner-border-sm" />
+            ) : (
+              <RiSaveLine />
+            )}
             Save Changes
           </button>
         </div>

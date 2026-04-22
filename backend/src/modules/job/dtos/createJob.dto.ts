@@ -3,6 +3,7 @@ import { AppError } from '../../../utils/AppError';
 import { JOB_DURATION_TYPE } from '../../../constants/jobDuration';
 import { JOB_VISIBILITY } from '../../../constants/jobVisibility';
 import {HttpStatusCode} from "../../../constants/httpStatusCode"
+import { ErrorMessages } from '../../../constants/messages/errorMessages';
 
 const createJobSchema = z.object({
     title: z.string().min(5).max(100),
@@ -21,7 +22,7 @@ const createJobSchema = z.object({
                 .length(2)
                 .refine(([lng, lat]) => 
                     lng >= -180 && lng <= 180 && lat >= -90 && lat <= 90,
-                    { message: "Invalid coordinate range" }
+                    { message: ErrorMessages.INVALID_COORD_RANGE }
                 )
         })
     }),
@@ -30,7 +31,7 @@ const createJobSchema = z.object({
         min: z.number().positive(),
         max: z.number().positive()
     }).refine(data => data.max >= data.min, {
-        message: "Max must be >= min",
+        message: ErrorMessages.MAX_MIN_BUDGET_ERROR,
         path: ["max"]
     }),
 
@@ -52,7 +53,7 @@ const createJobSchema = z.object({
     }
     return true;
 }, {
-    message: "Private jobs must have only 1 freelancer",
+    message: ErrorMessages.PRIVATE_JOB_FREELANCER_LIMIT,
     path: ["freelancersNeeded"]
 })
 
@@ -62,7 +63,7 @@ const createJobSchema = z.object({
     }
     return true;
 }, {
-    message: "Days required for multi-day jobs",
+    message: ErrorMessages.MULTI_DAY_REQUIRED_DAYS,
     path: ["days"]
 });
 

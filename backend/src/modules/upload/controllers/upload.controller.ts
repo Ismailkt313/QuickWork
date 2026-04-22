@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { UploadService } from '../services/upload.service';
 import { AppError } from '../../../utils/AppError';
-import {HttpStatusCode} from "../../../constants/httpStatusCode"
+import { HttpStatusCode } from "../../../constants/httpStatusCode"
 
 
 export class UploadController {
@@ -61,6 +61,23 @@ export class UploadController {
             res.status(HttpStatusCode.OK).json({
                 success: true,
                 data: results.map(r => ({ imageUrl: r.imageUrl, publicId: r.publicId }))
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    uploadChatMessage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            if (!req.file) {
+                throw new AppError('No image file provided', HttpStatusCode.BAD_REQUEST);
+            }
+
+            const result = await this.uploadService.uploadChatMessage(req.file.buffer, req.file.mimetype);
+
+            res.status(HttpStatusCode.OK).json({
+                success: true,
+                data: result
             });
         } catch (error) {
             next(error);

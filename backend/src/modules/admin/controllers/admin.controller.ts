@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { IAdminController, IAdminService, IUserListQuery } from "../interfaces/admin.interface";
 import { HttpStatusCode } from "../../../constants/httpStatusCode";
+import { ErrorMessages } from "../../../constants/messages/errorMessages";
+
 
 export class AdminController implements IAdminController {
     private readonly adminService: IAdminService;
@@ -79,7 +81,7 @@ export class AdminController implements IAdminController {
             const { reason } = req.body;
 
             if (!reason || typeof reason !== 'string' || reason.trim() === '') {
-                res.status(HttpStatusCode.BAD_REQUEST).json({ success: false, message: "Rejection reason is required" });
+                res.status(HttpStatusCode.BAD_REQUEST).json({ success: false, message: ErrorMessages.VALIDATION_FAILED });
                 return;
             }
 

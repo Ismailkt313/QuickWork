@@ -19,7 +19,8 @@ export class JobController implements IJobController {
             if (!userId) {
                 throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
             }
-            const dto = CreateJobDTO.create(req.body);
+             const dto = CreateJobDTO.create(req.body);
+
             const result = await this.jobService.createJob(userId, dto);
 
             if (!result.success) {
@@ -34,15 +35,19 @@ export class JobController implements IJobController {
 
     getUserJobs = async (req: Request, res: Response, next: any): Promise<void> => {
         try {
-            console.log("Fetching jobs for userId:", req.user?.userId);
-            const userId = req.user?.userId;
+             const userId = req.user?.userId;
             if (!userId) {
                 throw new AppError('Unauthorized access', HttpStatusCode.BAD_REQUEST);
             }
-            console.log("Fetching jobs for userId:", userId);
-            const result = await this.jobService.getJobsByUser(userId);
-            console.log("Jobs fetched for userId:", userId, "Result:", result);
-            res.status(HttpStatusCode.OK).json(result);
+
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const status = req.query.status as string;
+            const search = req.query.search as string;
+            const visibility = req.query.visibility as string;
+
+             const result = await this.jobService.getJobsByUser(userId, page, limit, { status, search, visibility });
+             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
         }
@@ -60,14 +65,12 @@ export class JobController implements IJobController {
             const userId = req.user?.userId;
 
 
-            console.log('enthelum request indonn nokka', req.query)
             const result = await this.jobService.availableJobs(
                 page,
                 limit,
                 { skillId, locationId, minBudget, maxBudget, search },
                 userId
             );
-            console.log('ivida job kittiyath kaanam', result)
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
@@ -173,7 +176,6 @@ export class JobController implements IJobController {
             if (!userId) throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
 
             const jobId = req.params.jobId as string;
-            // Fetch AssignmentModel dynamically to avoid circular deps, or just require it
             const { AssignmentModel } = require('../../assignment/models/assignment.model');
             const assignments = await AssignmentModel.find({ jobId })
                 .populate({

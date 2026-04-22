@@ -52,11 +52,24 @@ export interface IJobPaginationResponse {
         limit: number;
         pages: number;
     };
+    counts?: {
+        all: number;
+        direct: number;
+        pending: number;
+        ongoing: number;
+        completed: number;
+        cancelled: number;
+    };
 }
 
 export interface IJobService {
     createJob(userId: string, dto: CreateJobDTO): Promise<{ success: boolean; message: string; data?: JobResponseDTO }>;
-    getJobsByUser(userId: string): Promise<{ success: boolean; data: JobResponseDTO[] }>;
+    getJobsByUser(
+        userId: string,
+        page: number,
+        limit: number,
+        filters?: { status?: string; search?: string; visibility?: string }
+    ): Promise<IJobPaginationResponse>;
     availableJobs(page: number, limit: number, filters?: any, userId?: string): Promise<IJobPaginationResponse>;
     getJobById(id: string, userId?: string): Promise<{ success: boolean; data?: JobResponseDTO; message?: string }>;
     getDirectOffers(userId: string): Promise<{ success: boolean; data: JobResponseDTO[] }>;
@@ -69,11 +82,26 @@ export interface IJobService {
 export interface IJobRepository {
     create(jobData: Partial<IJob>): Promise<IJob>;
     findByUser(userId: string): Promise<IJob[]>;
+    findByUserPaginated(
+        userId: string,
+        page: number,
+        limit: number,
+        filters?: { status?: string; search?: string; visibility?: string }
+    ): Promise<{ jobs: IJob[]; total: number }>;
+    countByUserGrouped(userId: string): Promise<{
+        all: number;
+        direct: number;
+        pending: number;
+        ongoing: number;
+        completed: number;
+        cancelled: number;
+    }>;
     findAllOpen(page: number, limit: number, filters: any , skill:string[]): Promise<{ jobs: IJob[], total: number }>;
     findById(id: string): Promise<IJob | null>;
     findByProvider(providerId: string): Promise<IJob[]>;
     updateStatus(id: string, status: JOB_STATUS): Promise<IJob | null>;
     findByConditionAndUpdate(query: any, update: any): Promise<IJob | null>;
+    find(query: any): Promise<IJob[]>;
 }
 
 export interface IJobController {

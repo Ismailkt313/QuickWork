@@ -10,18 +10,20 @@ import { landingRouter } from "./modules/landing";
 import { jobRouter } from "./modules/job";
 import { assignmentRouter } from "./modules/assignment";
 import messageRouter from "./modules/message";
+import { API_ROUTES } from "./constants/routes";
 
-export const registerdRoutes = (app:Application) => {
-    app.use("/api/auth", authRouter);
-    app.use("/api/admin", adminRouter);
-    app.use("/api/admin", adminServiceRequestRouter);
-    app.use("/api/provider", serviceProviderRouter);
-    app.use("/api/service-request", serviceRequestRouter);
-    app.use("/api/locations", locationRouter);
-    app.use("/api/skills", skillRouter);
-    app.use("/api/upload", uploadRouter);
-    app.use("/api/landing", landingRouter);
-    app.use("/api/job", jobRouter);
-    app.use("/api/assignment", assignmentRouter); 
-    app.use("/api/messages", messageRouter);
+export const registerdRoutes = (app: Application) => {
+    const BASE_URL = API_ROUTES.BASE
+    app.use(BASE_URL + API_ROUTES.AUTH, authRouter);
+    app.use(BASE_URL + API_ROUTES.ADMIN, adminRouter);
+    app.use(BASE_URL + API_ROUTES.ADMIN, adminServiceRequestRouter);
+    app.use(BASE_URL + API_ROUTES.PROVIDER, serviceProviderRouter);
+    app.use(BASE_URL + API_ROUTES.SERVICE_REQUEST, serviceRequestRouter);
+    app.use(BASE_URL + API_ROUTES.LOCATIONS, locationRouter);
+    app.use(BASE_URL + API_ROUTES.SKILLS, skillRouter);
+    app.use(BASE_URL + API_ROUTES.UPLOAD, uploadRouter);
+    app.use(BASE_URL + API_ROUTES.LANDING, landingRouter);
+    app.use(BASE_URL + API_ROUTES.JOB, jobRouter);
+    app.use(BASE_URL + API_ROUTES.ASSIGNMENT, assignmentRouter);
+    app.use(BASE_URL + API_ROUTES.MESSAGES, messageRouter);
 }

@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { ISkillService } from '../interfaces/skill.interface';
 import { ISkillController } from '../interfaces/skill.interface';
-// import { success } from 'zod';
 import {HttpStatusCode} from "../../../constants/httpStatusCode"
 
 
@@ -43,11 +42,7 @@ export class SkillController implements ISkillController {
     }
     myskills = async (req: Request, res: Response, next: any): Promise<void> => {
         try {
-            console.log('ivida aarelum undoo ', req.user?.userId)
             const userId = req.user?.userId
-            // if (!userId) {
-            //     res.status(HttpStatusCode.UNAUTH0RIZED).json({success:false,message:'UnAutherized user'})
-            // }
             const result = await this.skillService.getMySkills(userId)
             res.status(HttpStatusCode.OK).json(result)
         } catch (error) {

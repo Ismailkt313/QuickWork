@@ -1,7 +1,3 @@
-/**
- * Shared utility functions for DTO mapping
- */
-
 export const formatBudget = (budget: { min: number; max: number }): string => {
     if (!budget) return 'No budget specified';
     return `₹${budget.min} – ₹${budget.max}`;

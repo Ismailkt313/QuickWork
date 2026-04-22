@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface ServicesHeaderProps {
   total: number;
@@ -10,7 +10,9 @@ const ServicesHeader: React.FC<ServicesHeaderProps> = ({ total }) => (
       <nav aria-label="breadcrumb" className="qw-breadcrumb mb-3">
         <ol className="breadcrumb mb-0">
           <li className="breadcrumb-item">
-            <a href="/" className="qw-breadcrumb-link">Home</a>
+            <a href="/" className="qw-breadcrumb-link">
+              Home
+            </a>
           </li>
           <li className="breadcrumb-item active" aria-current="page">
             All Services

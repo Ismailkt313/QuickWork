@@ -27,8 +27,14 @@ export class AssignmentRepository implements IAssignmentRepository {
         return await AssignmentModel.findOne(query);
     }
 
-    async find(query: any): Promise<IAssignment[]> {
+    async find(query: any, options?: { page?: number, limit?: number, sort?: any }): Promise<IAssignment[]> {
+        const { page = 1, limit = 10, sort = { createdAt: -1 } } = options || {};
+        const skip = (page - 1) * limit;
+
         return await AssignmentModel.find(query)
+            .sort(sort)
+            .skip(skip)
+            .limit(limit)
             .populate({
                 path: 'jobId',
                 populate: [

@@ -1,12 +1,12 @@
-import React, { useEffect } from 'react';
-import { 
-  RiErrorWarningLine, 
-  RiCloseLine, 
+import React, { useEffect } from "react";
+import {
+  RiErrorWarningLine,
+  RiCloseLine,
   RiMapPinLine,
   RiInformationLine,
   RiCheckboxCircleLine,
-  RiArrowRightLine
-} from 'react-icons/ri';
+  RiArrowRightLine,
+} from "react-icons/ri";
 
 interface UniversalActionModalProps {
   isOpen: boolean;
@@ -16,7 +16,7 @@ interface UniversalActionModalProps {
   message?: string;
   confirmLabel?: string;
   cancelLabel?: string;
-  iconType?: 'warning' | 'info' | 'location' | 'success';
+  iconType?: "warning" | "info" | "location" | "success";
   children?: React.ReactNode;
 }
 
@@ -26,117 +26,165 @@ const UniversalActionModal: React.FC<UniversalActionModalProps> = ({
   onConfirm,
   title,
   message,
-  confirmLabel = 'Accept & Continue',
-  cancelLabel = 'Cancel',
-  iconType = 'warning',
-  children
+  confirmLabel = "Accept & Continue",
+  cancelLabel = "Cancel",
+  iconType = "warning",
+  children,
 }) => {
-  // Handle Escape key
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) onClose();
+      if (e.key === "Escape" && isOpen) onClose();
     };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
-  // Determine Icon and Colors
   const iconConfig = {
-    warning: { icon: RiErrorWarningLine, color: '#f59e0b', bg: '#fffbeb', glow: 'rgba(245, 158, 11, 0.15)' },
-    info: { icon: RiInformationLine, color: '#3b82f6', bg: '#eff6ff', glow: 'rgba(59, 130, 246, 0.15)' },
-    location: { icon: RiMapPinLine, color: '#6366f1', bg: '#eef2ff', glow: 'rgba(99, 102, 241, 0.15)' },
-    success: { icon: RiCheckboxCircleLine, color: '#10b981', bg: '#ecfdf5', glow: 'rgba(16, 185, 129, 0.15)' }
+    warning: {
+      icon: RiErrorWarningLine,
+      color: "#f59e0b",
+      bg: "#fffbeb",
+      glow: "rgba(245, 158, 11, 0.15)",
+    },
+    info: {
+      icon: RiInformationLine,
+      color: "#3b82f6",
+      bg: "#eff6ff",
+      glow: "rgba(59, 130, 246, 0.15)",
+    },
+    location: {
+      icon: RiMapPinLine,
+      color: "#6366f1",
+      bg: "#eef2ff",
+      glow: "rgba(99, 102, 241, 0.15)",
+    },
+    success: {
+      icon: RiCheckboxCircleLine,
+      color: "#10b981",
+      bg: "#ecfdf5",
+      glow: "rgba(16, 185, 129, 0.15)",
+    },
   };
 
   const { icon: Icon, color, bg, glow } = iconConfig[iconType];
 
   return (
     <div className="qw-modal-overlay" onClick={onClose}>
-      <div 
-        className="qw-modal-content animate-pop-in" 
-        style={{ maxWidth: '480px' }}
+      <div
+        className="qw-modal-content animate-pop-in"
+        style={{ maxWidth: "480px" }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Decorative Top Accent */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '6px', background: `linear-gradient(90deg, transparent, ${color}, transparent)`, opacity: 0.5, borderRadius: '36px 36px 0 0' }} />
-
-        {/* Close Button */}
-        <button 
-          className="qw-modal-close-btn" 
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "6px",
+            background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
+            opacity: 0.5,
+            borderRadius: "36px 36px 0 0",
+          }}
+        />
+        <button
+          className="qw-modal-close-btn"
           onClick={onClose}
           aria-label="Close"
         >
           <RiCloseLine size={24} />
         </button>
-
-        {/* Content Area */}
         <div className="text-center">
-          {/* Icon Section with Decorative Glow */}
           <div className="position-relative d-inline-block mb-4">
-            <div 
+            <div
               style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: '120px',
-                height: '120px',
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                width: "120px",
+                height: "120px",
                 background: `radial-gradient(circle, ${glow} 0%, transparent 70%)`,
-                zIndex: -1
+                zIndex: -1,
               }}
             />
-            <div 
-              className="d-flex align-items-center justify-content-center" 
-              style={{ 
-                  width: '84px', 
-                  height: '84px', 
-                  borderRadius: '28px', 
-                  background: 'white', 
-                  color: color,
-                  boxShadow: '0 12px 30px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(0,0,0,0.02)',
-                  position: 'relative'
+            <div
+              className="d-flex align-items-center justify-content-center"
+              style={{
+                width: "84px",
+                height: "84px",
+                borderRadius: "28px",
+                background: "white",
+                color: color,
+                boxShadow:
+                  "0 12px 30px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(0,0,0,0.02)",
+                position: "relative",
               }}
             >
-              <div style={{ position: 'absolute', inset: 0, borderRadius: '28px', background: bg, opacity: 0.4 }} />
-              <Icon size={42} style={{ position: 'relative' }} />
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  borderRadius: "28px",
+                  background: bg,
+                  opacity: 0.4,
+                }}
+              />
+              <Icon size={42} style={{ position: "relative" }} />
             </div>
           </div>
 
-          <h3 className="fw-bold text-dark mb-2 px-3" style={{ fontFamily: 'Syne, sans-serif', letterSpacing: '-0.03em', fontSize: '1.75rem', lineHeight: 1.2 }}>
+          <h3
+            className="fw-bold text-dark mb-2 px-3"
+            style={{
+              fontFamily: "Syne, sans-serif",
+              letterSpacing: "-0.03em",
+              fontSize: "1.75rem",
+              lineHeight: 1.2,
+            }}
+          >
             {title}
           </h3>
-          
+
           {message && (
-            <p className="text-muted mb-4 px-4 mx-auto" style={{ fontSize: '15px', lineHeight: '1.6', maxWidth: '380px' }}>
+            <p
+              className="text-muted mb-4 px-4 mx-auto"
+              style={{ fontSize: "15px", lineHeight: "1.6", maxWidth: "380px" }}
+            >
               {message}
             </p>
           )}
 
-          {/* Specialized Children Area */}
           {children && (
             <div className="mb-4 text-start bg-light-subtle p-2 rounded-5 overflow-hidden transition-all">
-                {children}
+              {children}
             </div>
           )}
 
-          {/* Action Footer */}
           <div className="d-flex flex-column gap-3 mt-4">
-            <button 
+            <button
               className="btn-action-primary"
-              onClick={() => { onConfirm(); onClose(); }}
+              onClick={() => {
+                onConfirm();
+                onClose();
+              }}
             >
               <span className="position-relative z-1 d-flex align-items-center justify-content-center gap-2">
                 {confirmLabel}
                 <RiArrowRightLine size={18} />
               </span>
             </button>
-            
-            <button 
+
+            <button
               className="btn btn-link text-muted fw-bold py-2 border-0 hover-opacity"
               onClick={onClose}
-              style={{ fontSize: '14px', textDecoration: 'none', transition: 'all 0.2s' }}
+              style={{
+                fontSize: "14px",
+                textDecoration: "none",
+                transition: "all 0.2s",
+              }}
             >
               {cancelLabel}
             </button>

@@ -14,9 +14,13 @@ const messageSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "User"
     },
-    message: {
+    text: {
         type: String,
-        required: true
+        required: false
+    },
+    image: {
+        type: String,
+        required: false
     },
     messageType: {
         type: String,

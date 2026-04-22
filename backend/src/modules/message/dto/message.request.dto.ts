@@ -4,13 +4,15 @@ import { HttpStatusCode } from "../../../constants/httpStatusCode"
 
 export class CreateMessageDto {
     public readonly receiverId: string;
-    public readonly message: string;
+    public readonly text?: string;
+    public readonly image?: string;
     public readonly messageType: MESSAGE_TYPE;
     public readonly conversationId?: string;
 
     private constructor(data: any) {
         this.receiverId = data.receiverId;
-        this.message = data.message;
+        this.text = data.text;
+        this.image = data.image;
         this.messageType = data.messageType || MESSAGE_TYPE.TEXT;
         this.conversationId = data.conversationId || "";
     }
@@ -22,8 +24,8 @@ export class CreateMessageDto {
             errors.push("Receiver ID is required");
         }
 
-        if (!data.message || data.message.trim().length === 0) {
-            errors.push("Message content is required");
+        if (!data.text && !data.image) {
+            errors.push("Message text or image is required");
         }
 
         if (errors.length > 0) {

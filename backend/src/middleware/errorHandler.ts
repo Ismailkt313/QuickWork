@@ -1,6 +1,7 @@
 import e, { Request, Response, NextFunction } from "express";
 import { AppError } from "../utils/AppError";
 import { HttpStatusCode } from "../constants/httpStatusCode";
+import { ErrorMessages } from "../constants/messages/errorMessages";
 
 
 export const errorHandler = (
@@ -22,7 +23,7 @@ export const errorHandler = (
     if (err.code === 11000) {
         res.status(HttpStatusCode.CONFLICT).json({
             success: false,
-            message: "Duplicate field value. This resource already exists.",
+            message: ErrorMessages.RESOURCE_ALREADY_EXISTS,
         });
         return
     }
@@ -36,9 +37,25 @@ export const errorHandler = (
         return
     }
 
+    if (err.code === "LIMIT_FILE_SIZE") {
+        res.status(HttpStatusCode.BAD_REQUEST).json({
+            success: false,
+            message: "File is too large. Maximum size is 5MB.",
+        });
+        return
+    }
+
+    if (err.name === "MulterError") {
+        res.status(HttpStatusCode.BAD_REQUEST).json({
+            success: false,
+            message: `Upload error: ${err.message}`,
+        });
+        return
+    }
+
     res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: `${err.message} - Internal server error`,
+        message: ErrorMessages.INTERNAL_SERVER_ERROR,
         console: err.message,
     });
     return

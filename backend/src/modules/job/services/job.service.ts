@@ -10,6 +10,8 @@ import { ASSIGNMENT_STATUS, WORK_STATUS, ASSIGNMENT_TYPE } from '../../../consta
 import { JOB_DURATION_TYPE } from '../../../constants/jobDuration';
 import { JOB_VISIBILITY } from '../../../constants/jobVisibility';
 import { MIN_JOB_WAGE } from '../../../constants/job';
+import { SuccessMessages } from '../../../constants/messages/successMessages';
+import { ErrorMessages } from '../../../constants/messages/errorMessages';
 
 export class JobService implements IJobService {
     private jobRepository: IJobRepository;
@@ -30,35 +32,35 @@ export class JobService implements IJobService {
     }
 
     async createJob(userId: string, dto: CreateJobDTO): Promise<{ success: boolean; message: string; data?: JobResponseDTO }> {
-        // Validation Checks
+
         const district = await this.locationRepository.findById(dto.location.district);
         if (!district) {
-            throw new Error("Invalid district selected");
+            throw new Error(ErrorMessages.INVALID_DISTRICT);
         }
 
-        // Strict District Matching (Zero Inconsistent Data States)
+
         const placeDistrict = dto.location.districtName.toLowerCase();
         const chosenDistrictName = district.name.toLowerCase();
         const formattedAddress = dto.location.address.toLowerCase();
 
         if (placeDistrict !== chosenDistrictName && !formattedAddress.includes(chosenDistrictName)) {
-            throw new Error(`Selected location does not belong to the ${district.name} district`);
+            throw new Error(ErrorMessages.DISTRICT_MISMATCH);
         }
 
         if (!dto.budget || dto.budget.min === undefined || dto.budget.max === undefined) {
-            throw new Error("Budget information is required");
+            throw new Error(ErrorMessages.BUDGET_REQUIRED);
         }
 
         if (dto.budget.min < MIN_JOB_WAGE) {
-            throw new Error(`Minimum budget must be at least ₹${MIN_JOB_WAGE}`);
+            throw new Error(ErrorMessages.MIN_BUDGET_ERROR(MIN_JOB_WAGE));
         }
 
         if (dto.budget.max < dto.budget.min) {
-            throw new Error("Maximum budget must be greater than or equal to minimum budget");
+            throw new Error(ErrorMessages.MAX_BUDGET_ERROR);
         }
 
         if (dto.budget.min <= 0 || dto.budget.max <= 0) {
-            throw new Error("Budget values must be greater than zero");
+            throw new Error(ErrorMessages.BUDGET_POSITIVE);
         }
 
         let endDate: Date;
@@ -107,26 +109,37 @@ export class JobService implements IJobService {
             applicantsCount: 0
         });
 
-        if (isPrivate && dto.hiredProviderId) {
-            console.log(`Direct hire offer created for provider: ${dto.hiredProviderId}`);
-        }
 
-        console.log("New Job Created:", newJob);
         const job = await this.jobRepository.findById(newJob._id.toString());
 
         return {
             success: true,
-            message: 'Job created successfully',
-            data: job ? mapJobToResponseDTO(job) : undefined
+            message: SuccessMessages.JOB_CREATED,
+            data: job ? await mapJobToResponseDTO(job) : undefined
         };
     }
 
-    async getJobsByUser(userId: string): Promise<{ success: boolean; data: JobResponseDTO[] }> {
-        const jobs = await this.jobRepository.findByUser(userId);
-        console.log("Jobs:", jobs);
+    async getJobsByUser(
+        userId: string,
+        page: number = 1,
+        limit: number = 10,
+        filters?: { status?: string; search?: string; visibility?: string }
+    ): Promise<import('../interfaces/job.interface').IJobPaginationResponse> {
+        const [{ jobs, total }, counts] = await Promise.all([
+            this.jobRepository.findByUserPaginated(userId, page, limit, filters),
+            this.jobRepository.countByUserGrouped(userId)
+        ]);
+
         return {
             success: true,
-            data: jobs.map(mapJobToResponseDTO)
+            data: await Promise.all(jobs.map(mapJobToResponseDTO)),
+            pagination: {
+                total,
+                page,
+                limit,
+                pages: Math.ceil(total / limit)
+            },
+            counts
         };
     }
 
@@ -136,7 +149,7 @@ export class JobService implements IJobService {
         const assignedJobIds = new Set<string>();
             const provider = await this.serviceProviderRepository.findByUserId(userId as string);
             if (provider) {
-                const providerAssignments = await this.assignmentService.getAssignmentsByProvider(provider._id.toString());
+                const { assignments: providerAssignments } = await this.assignmentService.getAssignmentsByProvider(provider._id.toString(), { limit: 1000 });
                 providerAssignments.forEach(a => {
                     const id = a.jobId && (a.jobId as any)._id ? (a.jobId as any)._id.toString() : a.jobId?.toString();
                     if (id) assignedJobIds.add(id);
@@ -144,15 +157,14 @@ export class JobService implements IJobService {
             }
             const skills:string[] = await provider.skills.map((a: any) => a._id.toString())
             const { jobs, total } = await this.jobRepository.findAllOpen(page, limit, filters, skills);
-        console.log('servicil enthelum undo',jobs)
-
+ 
 
 
         const mappedJobs = await Promise.all(jobs.map(async j => {
-            const dto = mapJobToResponseDTO(j);
+            const dto = await mapJobToResponseDTO(j);
             dto.isApplied = assignedJobIds.has(dto.id);
             
-            // Refine applicant count to only active assignments
+
             dto.applicants = await this.assignmentService.getAssignmentCountByJob(dto.id);
             
             return dto;
@@ -173,17 +185,17 @@ export class JobService implements IJobService {
     async getJobById(jobId: string, userId?: string): Promise<{ success: boolean; data?: JobResponseDTO; message?: string }> {
         const job = await this.jobRepository.findById(jobId);
         if (!job) {
-            return { success: false, message: 'Job not found' };
+            return { success: false, message: ErrorMessages.JOB_NOT_FOUND };
         }
 
-        const dto = mapJobToResponseDTO(job);
+        const dto = await mapJobToResponseDTO(job);
         
         dto.applicants = await this.assignmentService.getAssignmentCountByJob(jobId);
 
         if (userId) {
             const provider = await this.serviceProviderRepository.findByUserId(userId);
             if (provider) {
-                const assignments = await this.assignmentService.getAssignmentsByProvider(provider._id.toString());
+                const { assignments } = await this.assignmentService.getAssignmentsByProvider(provider._id.toString(), { limit: 1000 });
                 dto.isApplied = assignments.some(a => {
                     const id = a.jobId && (a.jobId as any)._id ? (a.jobId as any)._id.toString() : a.jobId?.toString();
                     return id === jobId;
@@ -203,34 +215,34 @@ export class JobService implements IJobService {
         const jobs = await this.jobRepository.findByProvider(provider._id.toString());
         return {
             success: true,
-            data: jobs.map(mapJobToResponseDTO)
+            data: await Promise.all(jobs.map(mapJobToResponseDTO))
         };
     }
 
     async acceptJob(jobId: string, userId: string): Promise<{ success: boolean; message: string }> {
         const provider = await this.serviceProviderRepository.findByUserId(userId);
         if (!provider) {
-            return { success: false, message: 'Provider profile not found' };
+            return { success: false, message: ErrorMessages.PROVIDER_NOT_FOUND };
         }
 
         if (provider.verification?.status !== 'verified') {
-            return { success: false, message: 'Profile under verification by admin' };
+            return { success: false, message: ErrorMessages.PROFILE_UNDER_VERIFICATION };
         }
 
         const job = await this.jobRepository.findById(jobId);
         if (!job || job.visibility !== 'public') {
-            return { success: false, message: 'Job not found or unavailable' };
+            return { success: false, message: ErrorMessages.JOB_UNAVAILABLE };
         }
 
         if ([JOB_STATUS.FULLY_ASSIGNED, JOB_STATUS.COMPLETED, JOB_STATUS.CANCELLED, JOB_STATUS.REJECTED].includes(job.status)) {
-            return { success: false, message: 'Job is no longer open for acceptance' };
+            return { success: false, message: ErrorMessages.JOB_NOT_OPEN };
         }
 
-        const existingAssignments = await this.assignmentService.getAssignmentsByProvider(provider._id.toString());
+        const { assignments: existingAssignments } = await this.assignmentService.getAssignmentsByProvider(provider._id.toString(), { limit: 1000 });
         const hasAlreadyAccepted = existingAssignments.some(a => a.jobId.toString() === job._id.toString());
 
         if (hasAlreadyAccepted) {
-            return { success: false, message: 'You have already accepted this job' };
+            return { success: false, message: ErrorMessages.JOB_ALREADY_ACCEPTED };
         }
 
         const hasOverlap = await this.assignmentService.checkOverlap(
@@ -240,7 +252,7 @@ export class JobService implements IJobService {
         );
 
         if (hasOverlap) {
-            return { success: false, message: 'You have another job overlapping with this schedule' };
+            return { success: false, message: ErrorMessages.JOB_OVERLAP };
         }
 
         const updatedJob = await this.jobRepository.findByConditionAndUpdate(
@@ -255,7 +267,7 @@ export class JobService implements IJobService {
         );
 
         if (!updatedJob) {
-            return { success: false, message: 'Job is already fully assigned' };
+            return { success: false, message: ErrorMessages.JOB_FULLY_ASSIGNED };
         }
 
         const isOutOfDistrict = provider.location?.id?.toString() !== updatedJob.location?.district?._id?.toString();
@@ -282,26 +294,26 @@ export class JobService implements IJobService {
             await this.jobRepository.updateStatus(jobId, JOB_STATUS.PARTIALLY_ASSIGNED);
         }
 
-        return { success: true, message: 'Job accepted successfully' };
+        return { success: true, message: SuccessMessages.JOB_ACCEPTED };
     }
 
     async acceptOffer(jobId: string, userId: string): Promise<{ success: boolean; message: string }> {
         const provider = await this.serviceProviderRepository.findByUserId(userId);
         if (!provider) {
-            return { success: false, message: 'Provider profile not found' };
+            return { success: false, message: ErrorMessages.PROVIDER_NOT_FOUND };
         }
 
         if (provider.verification?.status !== 'verified') {
-            return { success: false, message: 'Profile under verification by admin' };
+            return { success: false, message: ErrorMessages.PROFILE_UNDER_VERIFICATION };
         }
 
         const job = await this.jobRepository.findById(jobId);
         if (!job) {
-            return { success: false, message: 'Job not found' };
+            return { success: false, message: ErrorMessages.JOB_NOT_FOUND };
         }
 
         if (job.hiredProviderId?._id.toString() !== provider._id.toString()) {
-            return { success: false, message: 'This offer is not for you' };
+            return { success: false, message: ErrorMessages.OFFER_NOT_FOR_USER };
         }
 
 
@@ -312,7 +324,7 @@ export class JobService implements IJobService {
         );
 
         if (hasOverlap) {
-            return { success: false, message: 'You have another job overlapping with this schedule' };
+            return { success: false, message: ErrorMessages.JOB_OVERLAP };
         }
 
         const isOutOfDistrict = provider.location?.id?.toString() !== job.location?.district?._id?.toString();
@@ -332,7 +344,7 @@ export class JobService implements IJobService {
         );
 
         if (!updatedJob) {
-            return { success: false, message: 'Offer is no longer valid or already accepted' };
+            return { success: false, message: ErrorMessages.OFFER_INVALID };
         }
 
         await this.assignmentService.createAssignment({
@@ -351,18 +363,18 @@ export class JobService implements IJobService {
             assignedAt: new Date()
         });
 
-        return { success: true, message: 'Offer accepted successfully' };
+        return { success: true, message: SuccessMessages.OFFER_ACCEPTED };
     }
 
     async rejectOffer(jobId: string, userId: string, reason?: string): Promise<{ success: boolean; message: string }> {
         const provider = await this.serviceProviderRepository.findByUserId(userId);
         if (!provider) {
-            return { success: false, message: 'Provider profile not found' };
+            return { success: false, message: ErrorMessages.PROVIDER_NOT_FOUND };
         }
 
         const job = await this.jobRepository.findById(jobId);
         if (!job || job.hiredProviderId?.toString() !== provider._id.toString()) {
-            return { success: false, message: 'Direct offer not found for you' };
+            return { success: false, message: ErrorMessages.JOB_NOT_FOUND };
         }
 
         await this.jobRepository.findByConditionAndUpdate(
@@ -370,32 +382,30 @@ export class JobService implements IJobService {
             { $set: { status: JOB_STATUS.REJECTED, rejectionReason: reason || 'Provider declined the offer' } }
         );
 
-        return { success: true, message: 'Offer rejected successfully' };
+        return { success: true, message: SuccessMessages.OFFER_REJECTED };
     }
 
     async cancelJob(jobId: string, userId: string): Promise<{ success: boolean; message: string }> {
         const job = await this.jobRepository.findById(jobId);
         if (!job) {
-            return { success: false, message: 'Job not found' };
+            return { success: false, message: ErrorMessages.JOB_NOT_FOUND };
         }
 
         const jobOwnerId = (job.userId as any)._id ? (job.userId as any)._id.toString() : job.userId.toString();
         if (jobOwnerId !== userId.toString()) {
-            return { success: false, message: 'Unauthorized to cancel this job' };
+            return { success: false, message: ErrorMessages.UNAUTHORIZED_CANCEL };
         }
 
         if ([JOB_STATUS.COMPLETED, JOB_STATUS.CANCELLED, JOB_STATUS.REJECTED].includes(job.status)) {
-            return { success: false, message: `Cannot cancel a job that is already ${job.status}` };
+            return { success: false, message: ErrorMessages.CANCEL_ALREADY_CLOSED(job.status) };
         }
 
-        // Update Job status
         await this.jobRepository.updateStatus(jobId, JOB_STATUS.CANCELLED);
 
-        // Cancel any related assignments
         if (job.status === JOB_STATUS.FULLY_ASSIGNED || job.status === JOB_STATUS.PARTIALLY_ASSIGNED || job.status === JOB_STATUS.IN_PROGRESS) {
             await this.assignmentService.cancelAssignmentsByJob(jobId);
         }
 
-        return { success: true, message: 'Job cancelled successfully' };
+        return { success: true, message: SuccessMessages.JOB_CANCELLED };
     }
 }

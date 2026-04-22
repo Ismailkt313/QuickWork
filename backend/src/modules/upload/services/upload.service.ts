@@ -1,5 +1,6 @@
 import cloudinary from '../../../config/cloudinary';
 import { config } from '../../../config';
+import { ErrorMessages } from '../../../constants/messages/errorMessages';
 
 export class UploadService {
     async uploadProfileImage(fileBuffer: Buffer, mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
@@ -14,6 +15,10 @@ export class UploadService {
         return this.uploadImage(fileBuffer, 'quickwork/assignment-proofs');
     }
 
+    async uploadChatMessage(fileBuffer: Buffer, mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
+        return this.uploadImage(fileBuffer, 'quickwork/chat-images');
+    }
+
     private uploadImage(fileBuffer: Buffer, folder: string): Promise<{ imageUrl: string, publicId: string }> {
         return new Promise((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
@@ -23,7 +28,7 @@ export class UploadService {
                 },
                 (error, result) => {
                     if (error) {
-                        return reject(new Error('Failed to upload image to Cloudinary'));
+                        return reject(new Error(ErrorMessages.FILE_UPLOAD_FAILED));
                     }
                     if (result) {
                         resolve({
@@ -31,7 +36,7 @@ export class UploadService {
                             publicId: result.public_id
                         });
                     } else {
-                        reject(new Error('Cloudinary returned no result'));
+                        reject(new Error(ErrorMessages.INTERNAL_SERVER_ERROR));
                     }
                 }
             );
@@ -66,7 +71,7 @@ export class UploadService {
         return new Promise((resolve, reject) => {
             cloudinary.uploader.destroy(publicId, (error, result) => {
                 if (error) {
-                    return reject(new Error('Failed to delete image from Cloudinary'));
+                    return reject(new Error(ErrorMessages.INTERNAL_SERVER_ERROR));
                 }
                 resolve(result);
             });

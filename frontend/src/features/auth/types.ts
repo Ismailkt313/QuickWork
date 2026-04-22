@@ -1,37 +1,37 @@
 import { ROLES } from "../../constants/roles";
 
 export type RegisterFormProps = {
-    mode: "/auth/login" | "/auth/signup";
+  mode: "/auth/login" | "/auth/signup";
 };
 
 export type sendOtpPayload = {
-    name: string,
-    email: string,
-    password: string,
-    confirmPassword: string,
-    role?: ROLES
-}
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  role?: ROLES;
+};
 
 export type resendOtpPayload = {
-    email: string
-}
+  email: string;
+};
 
 export type loginPayload = {
-    email: string
-    password: string
-}
+  email: string;
+  password: string;
+};
 
 export type otpPayload = {
-    email: string
-    otp: string
-}
+  email: string;
+  otp: string;
+};
 
 export type forgotPasswordPayload = {
-    email: string
-}
+  email: string;
+};
 
 export type resetPasswordPayload = {
-    email: string
-    otp: string
-    newPassword: string
-}
+  email: string;
+  otp: string;
+  newPassword: string;
+};

@@ -22,6 +22,19 @@ export interface IAssignment extends Document {
     isOutOfDistrict: boolean;
     proof: string[];
     proofDescription?: string;
+    cancellation?: {
+        cancelledBy: Types.ObjectId;
+        cancelledAt: Date;
+        reason: 'provider_requested' | 'client_requested';
+        isLateCancel: boolean;
+        notes?: string;
+    };
+    absence?: {
+        reportedBy: Types.ObjectId;
+        reportedAt: Date;
+        notes?: string;
+        evidence?: string[];
+    };
     createdAt: Date;
     updatedAt: Date;
 }
@@ -30,7 +43,7 @@ export interface IAssignmentRepository {
     create(data: Partial<IAssignment>): Promise<IAssignment>;
     findById(id: string): Promise<IAssignment | null>;
     findOne(query: any): Promise<IAssignment | null>;
-    find(query: any): Promise<IAssignment[]>;
+    find(query: any, options?: { page?: number, limit?: number, sort?: any }): Promise<IAssignment[]>;
     update(id: string, data: Partial<IAssignment>): Promise<IAssignment | null>;
     updateByJobId(jobId: string, data: Partial<IAssignment>): Promise<any>;
     exists(query: any): Promise<boolean>;
@@ -40,13 +53,16 @@ export interface IAssignmentRepository {
 export interface IAssignmentService {
     checkOverlap(freelancerId: string, startDate: Date, endDate: Date): Promise<boolean>;
     createAssignment(data: Partial<IAssignment>): Promise<IAssignment>;
-    getAssignmentsByProvider(providerId: string): Promise<IAssignment[]>;
+    getAssignmentsByProvider(providerId: string, options?: { page?: number, limit?: number, search?: string, status?: string }): Promise<{ assignments: IAssignment[], total: number, counts: { active: number, completed: number, cancelled: number, all: number } }>;
     cancelAssignmentsByJob(jobId: string): Promise<void>;
     getAssignmentById(id: string): Promise<IAssignment | null>;
     getAssignmentsByJobId(jobId: string): Promise<IAssignment[]>;
     updateStatus(id: string, status: WORK_STATUS): Promise<IAssignment | null>;
     submitProof(id: string, proofData: { images: string[], description: string }): Promise<IAssignment | null>;
     getAssignmentCountByJob(jobId: string): Promise<number>;
+    cancelByProvider(id: string, providerId: string, notes?: string): Promise<IAssignment>;
+    cancelByClient(id: string, clientId: string, notes?: string): Promise<IAssignment>;
+    reportAbsence(id: string, clientId: string, notes?: string, evidence?: string[]): Promise<IAssignment>;
 }
 
 export interface IAssignmentController {
@@ -54,5 +70,8 @@ export interface IAssignmentController {
     getAssignmentById(req: any, res: any, next: any): Promise<void>;
     updateStatus(req: any, res: any, next: any): Promise<void>;
     submitProof(req: any, res: any, next: any): Promise<void>;
+    cancelByProvider(req: any, res: any, next: any): Promise<void>;
+    cancelByClient(req: any, res: any, next: any): Promise<void>;
+    reportAbsence(req: any, res: any, next: any): Promise<void>;
 }
 

@@ -18,7 +18,7 @@ export const upload = multer({
     storage,
     fileFilter,
     limits: {
-        fileSize: 2 * 1024 * 1024,
+        fileSize: 5 * 1024 * 1024,
     }
 });
 
@@ -50,6 +50,13 @@ export const createUploadRouter = (controller: UploadController): Router => {
         '/signature',
         authMiddleware,
         controller.getUploadSignature
+    );
+
+    router.post(
+        '/chat-image',
+        authMiddleware,
+        upload.single('image'),
+        controller.uploadChatMessage
     );
 
     return router;

@@ -24,9 +24,12 @@ export const searchSkills = async (query: string): Promise<SkillResult[]> => {
   if (!query.trim()) return [];
 
   try {
-    const response = await api.get<{ success: boolean; data: SkillResult[] }>("/skills", {
-      params: { search: query.trim() },
-    });
+    const response = await api.get<{ success: boolean; data: SkillResult[] }>(
+      "/skills",
+      {
+        params: { search: query.trim() },
+      },
+    );
 
     return Array.isArray(response.data?.data) ? response.data.data : [];
   } catch (error) {
@@ -34,7 +37,9 @@ export const searchSkills = async (query: string): Promise<SkillResult[]> => {
   }
 };
 
-export const requestSkill = async (skillName: string): Promise<SkillRequestResponse> => {
+export const requestSkill = async (
+  skillName: string,
+): Promise<SkillRequestResponse> => {
   const name = skillName.trim();
 
   if (!name) {

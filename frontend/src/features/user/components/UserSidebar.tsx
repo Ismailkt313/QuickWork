@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   RiBriefcaseLine,
   RiUser3Line,
@@ -6,10 +6,10 @@ import {
   RiLogoutBoxLine,
   RiArrowRightSLine,
   RiMapPin2Line,
-  RiSearchEyeLine
-} from 'react-icons/ri';
-import { NavLink, Link } from 'react-router-dom';
-import '../../provider/components/ProviderSidebar.css'; 
+  RiSearchEyeLine,
+} from "react-icons/ri";
+import { NavLink, Link } from "react-router-dom";
+import "../../provider/components/ProviderSidebar.css";
 
 interface NavItem {
   id: string;
@@ -17,7 +17,7 @@ interface NavItem {
   icon: React.ReactNode;
   href: string;
   badge?: number | string;
-  badgeVariant?: 'danger' | 'accent' | 'warning';
+  badgeVariant?: "danger" | "accent" | "warning";
 }
 
 interface UserSidebarProps {
@@ -34,31 +34,31 @@ interface UserSidebarProps {
 
 const PRIMARY_NAV: NavItem[] = [
   {
-    id: 'marketplace',
-    label: 'Marketplace',
+    id: "marketplace",
+    label: "Marketplace",
     icon: <RiSearchEyeLine />,
-    href: '/user/services',
+    href: "/user/services",
   },
   {
-    id: 'my-jobs',
-    label: 'My Jobs',
+    id: "my-jobs",
+    label: "My Jobs",
     icon: <RiBriefcaseLine />,
-    href: '/user/jobs',
+    href: "/user/jobs",
   },
 ];
 
 const SECONDARY_NAV: NavItem[] = [
   {
-    id: 'messages',
-    label: 'Messages',
+    id: "messages",
+    label: "Messages",
     icon: <RiUser3Line />,
-    href: '/user/messages',
+    href: "/user/messages",
   },
   {
-    id: 'security',
-    label: 'Security',
+    id: "security",
+    label: "Security",
     icon: <RiShieldFlashLine />,
-    href: '/user/security',
+    href: "/user/security",
   },
 ];
 
@@ -68,15 +68,13 @@ const SidebarNavItem: React.FC<{
 }> = ({ item, onClick }) => (
   <NavLink
     to={item.href}
-    className={({ isActive }) => `qw-nav-item${isActive ? ' active' : ''}`}
+    className={({ isActive }) => `qw-nav-item${isActive ? " active" : ""}`}
     onClick={onClick}
   >
-    <span className="qw-nav-icon">
-      {item.icon}
-    </span>
+    <span className="qw-nav-icon">{item.icon}</span>
     <span className="qw-nav-label-text">{item.label}</span>
     {item.badge !== undefined && (
-      <span className={`qw-badge qw-badge-${item.badgeVariant ?? 'accent'}`}>
+      <span className={`qw-badge qw-badge-${item.badgeVariant ?? "accent"}`}>
         {item.badge}
       </span>
     )}
@@ -85,8 +83,8 @@ const SidebarNavItem: React.FC<{
 
 const UserSidebar: React.FC<UserSidebarProps> = ({
   user = {
-    name: 'User',
-    initials: 'U',
+    name: "User",
+    initials: "U",
   },
   showOnMobile = false,
   onCloseMobile,
@@ -99,13 +97,10 @@ const UserSidebar: React.FC<UserSidebarProps> = ({
   return (
     <>
       {showOnMobile && (
-        <div
-          className="qw-backdrop visible"
-          onClick={onCloseMobile}
-        />
+        <div className="qw-backdrop visible" onClick={onCloseMobile} />
       )}
 
-      <aside className={`qw-sidebar${showOnMobile ? ' open' : ''}`}>
+      <aside className={`qw-sidebar${showOnMobile ? " open" : ""}`}>
         <Link
           to="/user/services"
           className="qw-logo-area"
@@ -149,9 +144,9 @@ const UserSidebar: React.FC<UserSidebarProps> = ({
             onClick={handleNavClick}
           >
             <div className="qw-avatar-wrap">
-               <div className="qw-avatar">
-                  {user.initials ?? user.name.slice(0, 1).toUpperCase()}
-                </div>
+              <div className="qw-avatar">
+                {user.initials ?? user.name.slice(0, 1).toUpperCase()}
+              </div>
               <span className="qw-avatar-status" />
             </div>
             <div className="qw-profile-info">
@@ -163,11 +158,7 @@ const UserSidebar: React.FC<UserSidebarProps> = ({
             </span>
           </Link>
 
-          <button
-            className="qw-logout-btn"
-            onClick={onLogout}
-            type="button"
-          >
+          <button className="qw-logout-btn" onClick={onLogout} type="button">
             <RiLogoutBoxLine />
             Log out
           </button>

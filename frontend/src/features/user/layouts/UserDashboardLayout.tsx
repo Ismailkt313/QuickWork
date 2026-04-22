@@ -1,22 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import UserSidebar from '../components/UserSidebar';
-import { RiMenuLine, RiMapPin2Line } from 'react-icons/ri';
-import { useNavigate, Outlet } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode';
-import { api } from '../../../services/api';
-import '../../provider/components/ProviderSidebar.css';
+import React, { useState, useEffect } from "react";
+import UserSidebar from "../components/UserSidebar";
+import { RiMenuLine, RiMapPin2Line } from "react-icons/ri";
+import { useNavigate, Outlet } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
+import { api } from "../../../services/api";
+import "../../provider/components/ProviderSidebar.css";
 
 const UserDashboardLayout: React.FC = () => {
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [user, setUser] = useState<{ name: string; email: string } | null>(
+    null,
+  );
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
       const fetchProfile = async () => {
         try {
-          const response = await api.get('/auth/me');
+          const response = await api.get("/auth/me");
           const result = response.data;
           if (result.success) {
             setUser({
@@ -25,16 +27,16 @@ const UserDashboardLayout: React.FC = () => {
             });
           }
         } catch (error) {
-          console.error('Failed to fetch profile:', error);
-          // Fallback to token decoded name if profile fetch fails
+          console.error("Failed to fetch profile:", error);
+
           try {
             const decoded: any = jwtDecode(token);
             setUser({
-              name: decoded.name || 'User',
-              email: decoded.email || '',
+              name: decoded.name || "User",
+              email: decoded.email || "",
             });
           } catch (e) {
-            console.error('Failed to decode token:', e);
+            console.error("Failed to decode token:", e);
           }
         }
       };
@@ -43,13 +45,12 @@ const UserDashboardLayout: React.FC = () => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/auth/login');
+    localStorage.removeItem("token");
+    navigate("/auth/login");
   };
 
   return (
     <div className="qw-layout">
-      {/* Mobile Top Header */}
       <header className="qw-mobile-header">
         <button
           className="qw-hamburger"
@@ -63,21 +64,16 @@ const UserDashboardLayout: React.FC = () => {
           Quick<span>Work</span>
         </div>
       </header>
-
-      {/* Sidebar Navigation */}
       <UserSidebar
-      
         showOnMobile={showMobileSidebar}
         onCloseMobile={() => setShowMobileSidebar(false)}
         onLogout={handleLogout}
         user={{
-          name: user?.name || 'User',
+          name: user?.name || "User",
           email: user?.email,
-          initials: user?.name ? user.name.slice(0, 1).toUpperCase() : 'U',
+          initials: user?.name ? user.name.slice(0, 1).toUpperCase() : "U",
         }}
       />
-
-      {/* Main Content Area */}
       <main className="qw-main-content">
         <div className="container-fluid p-0">
           <Outlet />

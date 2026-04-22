@@ -1,15 +1,13 @@
 import axios from "axios";
 import { ROLES } from "../../../constants/roles";
-const apiUrl = import.meta.env.VITE_API_URL
-console.log(apiUrl, 'API URL is here')
-
-
+const apiUrl = import.meta.env.VITE_API_URL;
+console.log(apiUrl, "API URL is here");
 
 export const Adminapi = axios.create({
-    baseURL: `${apiUrl}/api`,
-    headers: {
-        "Content-Type": "application/json",
-    },
+  baseURL: `${apiUrl}/api`,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 Adminapi.interceptors.request.use((config) => {
   const token = localStorage.getItem("adminAccessToken");
@@ -21,7 +19,6 @@ Adminapi.interceptors.request.use((config) => {
   return config;
 });
 
- 
 export interface IUserListItem {
   id: string;
   _id?: string;
@@ -35,16 +32,16 @@ export interface IUserListItem {
 }
 
 export const adminLogin = (data: { email: string; password: string }) => {
-  return Adminapi.post('/auth/admin/login', data);
+  return Adminapi.post("/auth/admin/login", data);
 };
 
 export const getPendingProviders = () => {
-  return Adminapi.get('/admin/providers/pending');
+  return Adminapi.get("/admin/providers/pending");
 };
 
 export const approveProvider = (id: string) => {
   const response = Adminapi.patch(`/admin/provider/${id}/approve`);
-  console.log(response, 'response is here')
+  console.log(response, "response is here");
   return response;
 };
 
@@ -52,11 +49,15 @@ export const rejectProvider = (id: string, reason?: string) => {
   return Adminapi.patch(`/admin/provider/${id}/reject`, { reason });
 };
 
-export const getUsers = (params?: { page?: number; limit?: number; search?: string }) => {
+export const getUsers = (params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+}) => {
   const tocken = localStorage.getItem("adminAccessToken");
-  
+
   console.log("Admin Access Token:", tocken);
-  return Adminapi.get('/admin/users', { params });
+  return Adminapi.get("/admin/users", { params });
 };
 
 export const toggleBlockUser = (userId: string) => {

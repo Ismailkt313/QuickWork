@@ -4,7 +4,9 @@ import { SubmitApplicationDTO } from '../dtos/submitApplication.dto';
 import { AppError } from '../../../utils/AppError';
 import { mapProviderToResponseDTO } from '../dtos/providerResponse.dto';
 import { UpdateProviderDTO } from '../dtos/updateProvider.dto';
-import {HttpStatusCode} from "../../../constants/httpStatusCode"
+import { HttpStatusCode } from "../../../constants/httpStatusCode"
+import { SuccessMessages } from "../../../constants/messages/successMessages";
+import { ErrorMessages } from "../../../constants/messages/errorMessages";
 
 
 export class ServiceProviderController implements IServiceProviderController {
@@ -19,7 +21,7 @@ export class ServiceProviderController implements IServiceProviderController {
             const userId = req.user?.userId;
 
             if (!userId) {
-                throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
             }
 
             const applicationData = SubmitApplicationDTO.create(req.body);
@@ -94,7 +96,7 @@ export class ServiceProviderController implements IServiceProviderController {
         try {
             const userId = (req as any).user?.userId;
             if (!userId) {
-                res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: 'Unauthorized access' });
+                res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
                 return;
             }
 
@@ -117,7 +119,7 @@ export class ServiceProviderController implements IServiceProviderController {
         try {
             const userId = (req as any).user?.userId;
             if (!userId) {
-                res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: 'Unauthorized access' });
+                res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
                 return;
             }
 
@@ -143,7 +145,7 @@ export class ServiceProviderController implements IServiceProviderController {
         try {
             const userId = (req as any).user?.userId;
             if (!userId) {
-                res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: 'Unauthorized access' });
+                res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
                 return;
             }
 

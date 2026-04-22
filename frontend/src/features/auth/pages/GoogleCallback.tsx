@@ -2,33 +2,36 @@ import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 const GoogleCallback = () => {
-    const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        const accessToken = searchParams.get("accessToken");
-        const refreshToken = searchParams.get("refreshToken");
+  useEffect(() => {
+    const accessToken = searchParams.get("accessToken");
+    const refreshToken = searchParams.get("refreshToken");
 
-        if (accessToken && refreshToken) {
-            console.log(localStorage);
-            localStorage.setItem("token", accessToken);
-            localStorage.setItem("refreshToken", refreshToken);
-            navigate("/", { replace: true });
-        } else {
-            navigate("/login?error=google_auth_failed", { replace: true });
-        }
-    }, [searchParams, navigate]);
+    if (accessToken && refreshToken) {
+      console.log(localStorage);
+      localStorage.setItem("token", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
+      navigate("/", { replace: true });
+    } else {
+      navigate("/login?error=google_auth_failed", { replace: true });
+    }
+  }, [searchParams, navigate]);
 
-    return (
-        <div className="d-flex align-items-center justify-content-center" style={{ minHeight: "100vh" }}>
-            <div className="text-center">
-                <div className="spinner-border text-primary mb-3" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                </div>
-                <p className="text-secondary">Completing sign in...</p>
-            </div>
+  return (
+    <div
+      className="d-flex align-items-center justify-content-center"
+      style={{ minHeight: "100vh" }}
+    >
+      <div className="text-center">
+        <div className="spinner-border text-primary mb-3" role="status">
+          <span className="visually-hidden">Loading...</span>
         </div>
-    );
+        <p className="text-secondary">Completing sign in...</p>
+      </div>
+    </div>
+  );
 };
 
 export default GoogleCallback;

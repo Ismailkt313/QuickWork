@@ -1,69 +1,126 @@
 import { api } from "../../../services/api";
 
 export interface UserJob {
-    id: string;
-    title: string;
-    description: string;
-    skillId: string;
-    locationId: string;
-    budget: {
-        min: number;
-        max: number;
-    };
-    status: 'open' | 'partially_assigned' | 'fully_assigned' | 'in_progress' | 'completed' | 'cancelled';
-    visibility: 'public' | 'private';
-    createdAt: string;
-    schedule: {
-        startDate: string;
-        endDate: string;
-    };
-    categoryName?: string;
-    locationName?: string;
+  id: string;
+  title: string;
+  description: string;
+  skillId: string;
+  locationId: string;
+  budget: {
+    min: number;
+    max: number;
+  };
+  status:
+    | "open"
+    | "partially_assigned"
+    | "fully_assigned"
+    | "in_progress"
+    | "completed"
+    | "cancelled";
+  visibility: "public" | "private";
+  createdAt: string;
+  schedule: {
+    startDate: string;
+    endDate: string;
+  };
+  categoryName?: string;
+  locationName?: string;
 }
 
-export const getUserJobs = async () => {
-    try {
-        const response = await api.get('/job/my');
-        console.log("User Jobs Response:", response.data);
-        return response.data;
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch your jobs');
-    }
+export const getUserJobs = async (
+  page: number = 1,
+  limit: number = 10,
+  status?: string,
+  search?: string,
+) => {
+  try {
+    const params = new URLSearchParams();
+    params.append("page", page.toString());
+    params.append("limit", limit.toString());
+    if (status && status !== "all") params.append("status", status);
+    if (search) params.append("search", search);
+
+    const response = await api.get(`/job/my?${params.toString()}`);
+    console.log("User Jobs Response:", response.data);
+    return response.data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message || "Failed to fetch your jobs",
+    );
+  }
 };
 
 export const cancelJob = async (jobId: string) => {
-    try {
-        console.log("Cancelling job:", jobId);
-        const response = await api.put(`/job/${jobId}/cancel`);
-        return response.data;
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || 'Failed to cancel job');
-    }
+  try {
+    console.log("Cancelling job:", jobId);
+    const response = await api.put(`/job/${jobId}/cancel`);
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Failed to cancel job");
+  }
 };
 
 export const getJobDetails = async (jobId: string) => {
-    try {
-        const response = await api.get(`/job/${jobId}`);
-        return response.data;
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch job details');
-    }
+  try {
+    const response = await api.get(`/job/${jobId}`);
+    return response.data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message || "Failed to fetch job details",
+    );
+  }
 };
 
 export const getJobAssignments = async (jobId: string) => {
-    try {
-        const response = await api.get(`/job/${jobId}/assignments`);
-        return response.data;
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch assignments');
-    }
+  try {
+    const response = await api.get(`/job/${jobId}/assignments`);
+    return response.data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message || "Failed to fetch assignments",
+    );
+  }
 };
 
 export const userProfile = async () => {
-    try {
-        const response = await api.get('/user/profile');
-        return response.data;
-    } catch (error: any) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch profile');
-    }
+  try {
+    const response = await api.get("/user/profile");
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Failed to fetch profile");
+  }
+};
+export const cancelAssignmentByClient = async (
+  assignmentId: string,
+  notes?: string,
+) => {
+  try {
+    const response = await api.post(
+      `/assignment/${assignmentId}/cancel-by-client`,
+      { notes },
+    );
+    return response.data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message || "Failed to cancel assignment",
+    );
+  }
+};
+
+export const reportAbsence = async (
+  assignmentId: string,
+  notes: string,
+  evidence?: string[],
+) => {
+  try {
+    const response = await api.post(`/assignment/${assignmentId}/absence`, {
+      notes,
+      evidence,
+    });
+    return response.data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message || "Failed to report absence",
+    );
+  }
 };

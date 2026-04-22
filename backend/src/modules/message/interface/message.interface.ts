@@ -5,7 +5,8 @@ export interface IMessage {
     conversationId: string;
     sender: string;
     receiver: string;
-    message: string;
+    text?: string;
+    image?: string;
     messageType: MESSAGE_TYPE;
     isRead: boolean;
 }
@@ -22,7 +23,8 @@ export interface IMessageResponse {
     conversationId: string;
     sender: string;
     receiver: string;
-    message: string;
+    text?: string;
+    image?: string;
     messageType: MESSAGE_TYPE;
     isRead: boolean;
     createdAt: Date;

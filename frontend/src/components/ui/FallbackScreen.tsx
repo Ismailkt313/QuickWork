@@ -1,4 +1,4 @@
-import React from "react"
+import React from "react";
 
 const FallbackScreen: React.FC = () => {
   return (
@@ -9,7 +9,7 @@ const FallbackScreen: React.FC = () => {
         alignItems: "center",
         justifyContent: "center",
         flexDirection: "column",
-        background: "#f8fafc"
+        background: "#f8fafc",
       }}
     >
       <div
@@ -19,7 +19,7 @@ const FallbackScreen: React.FC = () => {
           border: "5px solid #e2e8f0",
           borderTop: "5px solid #3b82f6",
           borderRadius: "50%",
-          animation: "spin 1s linear infinite"
+          animation: "spin 1s linear infinite",
         }}
       />
       <p
@@ -27,7 +27,7 @@ const FallbackScreen: React.FC = () => {
           marginTop: 16,
           fontSize: 14,
           color: "#64748b",
-          fontWeight: 500
+          fontWeight: 500,
         }}
       >
         Loading...
@@ -42,7 +42,7 @@ const FallbackScreen: React.FC = () => {
         `}
       </style>
     </div>
-  )
-}
+  );
+};
 
-export default FallbackScreen
+export default FallbackScreen;

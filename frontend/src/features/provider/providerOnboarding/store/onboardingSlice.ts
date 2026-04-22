@@ -1,4 +1,4 @@
-import { createSlice,type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 const STORAGE_KEY = "provider_onboarding";
 const EXPIRY_TIME = 1000 * 60 * 60;
@@ -6,7 +6,7 @@ const EXPIRY_TIME = 1000 * 60 * 60;
 const saveWithExpiry = (key: string, value: any) => {
   const item = {
     data: value,
-    expiry: Date.now() + EXPIRY_TIME
+    expiry: Date.now() + EXPIRY_TIME,
   };
 
   localStorage.setItem(key, JSON.stringify(item));
@@ -74,28 +74,26 @@ interface OnboardingState {
 
 const savedState = loadWithExpiry(STORAGE_KEY);
 
-const initialState: OnboardingState =
-  savedState || {
-    currentStep: 0,
-    formData: {
-      profileImage: "",
-      headline: "",
-      about: "",
-      yearsOfExperience: 0,
-      phone: "",
-      skills: [],
-      hourlyRate: 0,
-      location: null,
-      portfolio: [],
-      agreedToTerms: false
-    }
-  };
+const initialState: OnboardingState = savedState || {
+  currentStep: 0,
+  formData: {
+    profileImage: "",
+    headline: "",
+    about: "",
+    yearsOfExperience: 0,
+    phone: "",
+    skills: [],
+    hourlyRate: 0,
+    location: null,
+    portfolio: [],
+    agreedToTerms: false,
+  },
+};
 
 const onboardingSlice = createSlice({
   name: "onboarding",
   initialState,
   reducers: {
-
     setCurrentStep: (state, action: PayloadAction<number>) => {
       state.currentStep = action.payload;
       saveWithExpiry(STORAGE_KEY, state);
@@ -103,7 +101,10 @@ const onboardingSlice = createSlice({
 
     updateField: (
       state,
-      action: PayloadAction<{ field: keyof OnboardingState["formData"]; value: any }>
+      action: PayloadAction<{
+        field: keyof OnboardingState["formData"];
+        value: any;
+      }>,
     ) => {
       (state.formData as any)[action.payload.field] = action.payload.value;
       saveWithExpiry(STORAGE_KEY, state);
@@ -111,10 +112,14 @@ const onboardingSlice = createSlice({
 
     addSkill: (
       state,
-      action: PayloadAction<{ id: string; name: string; isRequested?: boolean }>
+      action: PayloadAction<{
+        id: string;
+        name: string;
+        isRequested?: boolean;
+      }>,
     ) => {
       const exists = state.formData.skills.find(
-        s => s.name === action.payload.name
+        (s) => s.name === action.payload.name,
       );
 
       if (!exists && state.formData.skills.length < 10) {
@@ -125,7 +130,7 @@ const onboardingSlice = createSlice({
 
     removeSkill: (state, action: PayloadAction<string>) => {
       state.formData.skills = state.formData.skills.filter(
-        s => s.name !== action.payload
+        (s) => s.name !== action.payload,
       );
       saveWithExpiry(STORAGE_KEY, state);
     },
@@ -137,7 +142,12 @@ const onboardingSlice = createSlice({
 
     setLocation: (
       state,
-      action: PayloadAction<{ id: string; name: string; lat?: number; lon?: number } | null>
+      action: PayloadAction<{
+        id: string;
+        name: string;
+        lat?: number;
+        lon?: number;
+      } | null>,
     ) => {
       state.formData.location = action.payload;
       saveWithExpiry(STORAGE_KEY, state);
@@ -155,7 +165,7 @@ const onboardingSlice = createSlice({
         hourlyRate: 0,
         location: null,
         portfolio: [],
-        agreedToTerms: false
+        agreedToTerms: false,
       };
 
       removeStorage(STORAGE_KEY);
@@ -163,7 +173,12 @@ const onboardingSlice = createSlice({
 
     addPortfolioProject: (
       state,
-      action: PayloadAction<{ id: string; title: string; description: string; images: string[] }>
+      action: PayloadAction<{
+        id: string;
+        title: string;
+        description: string;
+        images: string[];
+      }>,
     ) => {
       state.formData.portfolio.push(action.payload);
       saveWithExpiry(STORAGE_KEY, state);
@@ -171,17 +186,17 @@ const onboardingSlice = createSlice({
 
     removePortfolioProject: (state, action: PayloadAction<string>) => {
       state.formData.portfolio = state.formData.portfolio.filter(
-        p => p.id !== action.payload
+        (p) => p.id !== action.payload,
       );
       saveWithExpiry(STORAGE_KEY, state);
     },
 
     updatePortfolioProject: (
       state,
-      action: PayloadAction<{ id: string; title: string; description: string }>
+      action: PayloadAction<{ id: string; title: string; description: string }>,
     ) => {
       const project = state.formData.portfolio.find(
-        p => p.id === action.payload.id
+        (p) => p.id === action.payload.id,
       );
 
       if (project) {
@@ -193,10 +208,10 @@ const onboardingSlice = createSlice({
 
     addPortfolioImage: (
       state,
-      action: PayloadAction<{ projectId: string; image: string }>
+      action: PayloadAction<{ projectId: string; image: string }>,
     ) => {
       const project = state.formData.portfolio.find(
-        p => p.id === action.payload.projectId
+        (p) => p.id === action.payload.projectId,
       );
 
       if (project) {
@@ -207,10 +222,10 @@ const onboardingSlice = createSlice({
 
     removePortfolioImage: (
       state,
-      action: PayloadAction<{ projectId: string; imageIndex: number }>
+      action: PayloadAction<{ projectId: string; imageIndex: number }>,
     ) => {
       const project = state.formData.portfolio.find(
-        p => p.id === action.payload.projectId
+        (p) => p.id === action.payload.projectId,
       );
 
       if (project) {
@@ -222,9 +237,8 @@ const onboardingSlice = createSlice({
     setAgreedToTerms: (state, action: PayloadAction<boolean>) => {
       state.formData.agreedToTerms = action.payload;
       saveWithExpiry(STORAGE_KEY, state);
-    }
-
-  }
+    },
+  },
 });
 
 export const {
@@ -240,7 +254,7 @@ export const {
   updatePortfolioProject,
   addPortfolioImage,
   removePortfolioImage,
-  setAgreedToTerms
+  setAgreedToTerms,
 } = onboardingSlice.actions;
 
 export default onboardingSlice.reducer;

@@ -1,8 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
 import type { Message } from "../types/message.types";
-import { getMessages as fetchMessagesApi } from "../api/message.api";
+import { getMessages as fetchMessagesApi, createMessage } from "../api/message.api";
 
-export const useMessages = (socket: any, activeConversationId: string | null) => {
+export const useMessages = (
+  socket: any,
+  activeConversationId: string | null,
+) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -10,22 +13,27 @@ export const useMessages = (socket: any, activeConversationId: string | null) =>
     if (!socket) return;
 
     const handleNewMessage = (newMessage: any) => {
-      // Check if message belongs to active conversation or matches a placeholder
-      const matchesPlaceholder = activeConversationId?.startsWith("new-") && 
-        (String(activeConversationId) === `new-${newMessage.sender}` || String(activeConversationId) === `new-${newMessage.receiver}`);
-        
-      if (newMessage.conversationId !== activeConversationId && !matchesPlaceholder) return;
+      const matchesPlaceholder =
+        activeConversationId?.startsWith("new-") &&
+        (String(activeConversationId) === `new-${newMessage.sender}` ||
+          String(activeConversationId) === `new-${newMessage.receiver}`);
 
-      // Map API response field 'id' to '_id' if needed for consistency with Message type
+      if (
+        newMessage.conversationId !== activeConversationId &&
+        !matchesPlaceholder
+      )
+        return;
+
       const normalizedMessage: Message = {
         _id: newMessage.id || newMessage._id,
         sender: newMessage.sender,
         receiver: newMessage.receiver,
-        message: newMessage.message,
-        messageType: newMessage.messageType || "text", 
+        message: newMessage.text || newMessage.message,
+        image: newMessage.image,
+        messageType: newMessage.messageType || (newMessage.image ? "image" : "text"),
         createdAt: newMessage.createdAt,
       };
-      setMessages(prev => [...prev, normalizedMessage]);
+      setMessages((prev) => [...prev, normalizedMessage]);
     };
 
     socket.on("receiveMessage", handleNewMessage);
@@ -40,10 +48,11 @@ export const useMessages = (socket: any, activeConversationId: string | null) =>
     try {
       const response = await fetchMessagesApi(conversationId);
       if (response.success) {
-        // Map backend 'id' to '_id' for frontend consistency
         const mappedMessages = response.data.map((m: any) => ({
           ...m,
-          _id: m.id || m._id
+          _id: m.id || m._id,
+          message: m.text || m.message,
+          image: m.image
         }));
         setMessages(mappedMessages);
       }
@@ -54,16 +63,29 @@ export const useMessages = (socket: any, activeConversationId: string | null) =>
     }
   }, []);
 
-  // Cleanup: clear messages when activeConversationId changes
   useEffect(() => {
     setMessages([]);
   }, [activeConversationId]);
 
-  const sendMessage = useCallback((receiverId: string | null, message: string) => {
-    if (socket && receiverId && message.trim()) {
-      socket.emit("sendMessage", { receiverId, message });
-    }
-  }, [socket]);
+  const sendMessage = useCallback(
+    async (receiverId: string | null, message: string, imageUrl?: string) => {
+      if (receiverId && (message.trim() || imageUrl)) {
+        try {
+          const dataToAPI: any = { receiverId };
+          if (message.trim()) dataToAPI.text = message;
+          if (imageUrl) dataToAPI.image = imageUrl;
+
+          if (activeConversationId && !activeConversationId.startsWith("new-")) {
+            dataToAPI.conversationId = activeConversationId;
+          }
+          await createMessage(dataToAPI);
+        } catch (error) {
+          console.error("Failed to send message:", error);
+        }
+      }
+    },
+    [activeConversationId],
+  );
 
   return { messages, setMessages, sendMessage, loadMessages, loading };
 };

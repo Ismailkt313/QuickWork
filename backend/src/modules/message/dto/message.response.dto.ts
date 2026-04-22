@@ -5,7 +5,8 @@ export interface MessageResponseDTO {
     conversationId: string;
     sender: string;
     receiver: string;
-    message: string;
+    text?: string;
+    image?: string;
     messageType: string;
     isRead: boolean;
     createdAt: Date;
@@ -17,7 +18,8 @@ export const mapMessageToResponseDTO = (message: IMessageResponse): MessageRespo
         conversationId: message.conversationId?.toString() || "",
         sender: message.sender?.toString() || "",
         receiver: message.receiver?.toString() || "",
-        message: message.message,
+        text: message.text,
+        image: message.image,
         messageType: message.messageType,
         isRead: message.isRead,
         createdAt: message.createdAt,

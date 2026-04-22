@@ -9,7 +9,8 @@ export enum WORK_STATUS {
     ASSIGNED = "assigned",
     IN_PROGRESS = "in_progress",
     COMPLETED = "completed",
-    CANCELLED = "cancelled"
+    CANCELLED = "cancelled",
+    ABSENT = "absent"
 }
 
 export enum ASSIGNMENT_TYPE {

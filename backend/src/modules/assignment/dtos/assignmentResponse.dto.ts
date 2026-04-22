@@ -1,4 +1,3 @@
-import { IAssignment } from "../interfaces/assignment.interface";
 import { JobResponseDTO, mapJobToResponseDTO } from "../../job/dtos/jobResponse.dto";
 import { formatDate } from "../../../utils/mapper.utils";
 
@@ -21,13 +20,26 @@ export interface AssignmentResponseDTO {
     proof: string[];
     proofDescription?: string;
     coWorkers?: any[];
+    cancellation?: {
+        cancelledBy: string;
+        cancelledAt: string;
+        reason: string;
+        isLateCancel: boolean;
+        notes?: string;
+    };
+    absence?: {
+        reportedBy: string;
+        reportedAt: string;
+        notes?: string;
+        evidence?: string[];
+    };
 }
 
-export const mapAssignmentToResponseDTO = (assignment: any): AssignmentResponseDTO => {
+export const mapAssignmentToResponseDTO = async (assignment: any): Promise<AssignmentResponseDTO> => {
     return {
         id: assignment._id ? assignment._id.toString() : assignment.id,
         jobId: assignment.jobId?._id ? assignment.jobId._id.toString() : (assignment.jobId?.toString() || ''),
-        job: assignment.jobId && typeof assignment.jobId === 'object' ? mapJobToResponseDTO(assignment.jobId) : null,
+        job: assignment.jobId && typeof assignment.jobId === 'object' ? await mapJobToResponseDTO(assignment.jobId) : null,
         workStatus: assignment.workStatus,
         type: assignment.type,
         schedule: {
@@ -42,7 +54,20 @@ export const mapAssignmentToResponseDTO = (assignment: any): AssignmentResponseD
         isOutOfDistrict: !!assignment.isOutOfDistrict,
         proof: assignment.proof || [],
         proofDescription: assignment.proofDescription || '',
-        coWorkers: assignment.coWorkers || []
+        coWorkers: assignment.coWorkers || [],
+        cancellation: assignment.cancellation ? {
+            cancelledBy: assignment.cancellation.cancelledBy?.toString() || '',
+            cancelledAt: formatDate(assignment.cancellation.cancelledAt),
+            reason: assignment.cancellation.reason,
+            isLateCancel: !!assignment.cancellation.isLateCancel,
+            notes: assignment.cancellation.notes
+        } : undefined,
+        absence: assignment.absence ? {
+            reportedBy: assignment.absence.reportedBy?.toString() || '',
+            reportedAt: formatDate(assignment.absence.reportedAt),
+            notes: assignment.absence.notes,
+            evidence: assignment.absence.evidence
+        } : undefined
     };
 };
 

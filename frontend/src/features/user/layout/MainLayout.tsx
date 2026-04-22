@@ -1,7 +1,7 @@
-import React from 'react';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import type { Location } from '.././landingPage/services/landingService';
+import React from "react";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
+import type { Location } from ".././landingPage/services/landingService";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -19,16 +19,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   onClearLocation,
 }) => {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <div
+      style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
+    >
       <Header
         locations={locations}
         selectedLocation={selectedLocation}
         onSelectLocation={onSelectLocation}
         onClearLocation={onClearLocation}
       />
-      <main style={{ flex: 1 }}>
-        {children}
-      </main>
+      <main style={{ flex: 1 }}>{children}</main>
       <Footer />
     </div>
   );

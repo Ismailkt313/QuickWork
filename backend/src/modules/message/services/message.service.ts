@@ -17,8 +17,8 @@ export class MessageService implements IMessageService {
         const sender = messageData.sender.toString();
         const receiver = messageData.receiver.toString();
 
-        if (!messageData.message?.trim()) {
-            throw new Error("Message cannot be empty");
+        if (!messageData.text?.trim() && !messageData.image) {
+            throw new Error("Message text or image is required");
         }
 
         if (sender === receiver) {
@@ -47,10 +47,13 @@ export class MessageService implements IMessageService {
             ...messageData,
             conversationId
         });
+
+        const lastMessageSnippet = message.text ? message.text : (message.image ? "Sent an image" : "");
+
         await this.conversationRepository.updateConversationMetadata(
             conversationId,
             {
-                lastMessage: message.message,
+                lastMessage: lastMessageSnippet,
                 lastMessageAt: new Date()
             }
         );

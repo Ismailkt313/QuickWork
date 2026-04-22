@@ -91,7 +91,7 @@ const JobSchema: Schema = new Schema(
     }
 );
 
-// Pre-save hook to enforce private job constraints
+
 JobSchema.pre('save', function(next) {
     if (this.isModified('visibility') || this.isNew) {
         if (this.get('visibility') === JOB_VISIBILITY.PRIVATE) {

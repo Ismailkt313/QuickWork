@@ -10,12 +10,10 @@ export class ConversationRepository implements IConversationRepository {
 
     async getConversations(userId: string): Promise<IConversationResponse[]> {
         try {
-            console.log("DEBUG: Repo.getConversations searching for userId:", userId);
             const conversations = await Conversation.find({ participants: userId })
                 .populate("participants", "name email _id")
                 .sort({ updatedAt: -1 });
             
-            console.log("DEBUG: Repo.getConversations found count:", conversations.length);
             return conversations.map(c => c.toObject() as unknown as IConversationResponse);
         } catch (error: any) {
             console.error("ERROR AT Repo.getConversations:", error);

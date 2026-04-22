@@ -5,6 +5,8 @@ import {
     IUserListResponse,
 } from "../interfaces/admin.interface";
 import { ROLES } from "../../../constants/roles";
+import { SuccessMessages } from "../../../constants/messages/successMessages";
+import { ErrorMessages } from "../../../constants/messages/errorMessages";
 
 export class AdminService implements IAdminService {
     private readonly adminRepository: IAdminRepository;
@@ -23,7 +25,7 @@ export class AdminService implements IAdminService {
 
         return {
             success: true,
-            message: "Users fetched successfully",
+            message: SuccessMessages.USERS_FETCHED,
             data: {
                 users: users.map((user) => ({
                     id: user._id.toString(),
@@ -45,7 +47,7 @@ export class AdminService implements IAdminService {
         const user = await this.adminRepository.toggleBlockUser(userId);
         return {
             success: true,
-            message: user.isBlocked ? "User blocked successfully" : "User unblocked successfully",
+            message: user.isBlocked ? SuccessMessages.USER_BLOCKED : SuccessMessages.USER_UNBLOCKED,
             data: { isBlocked: user.isBlocked },
         };
     }
@@ -54,7 +56,7 @@ export class AdminService implements IAdminService {
         const providers = await this.adminRepository.getPendingProviders();
         return {
             success: true,
-            message: "Pending providers fetched successfully",
+            message: SuccessMessages.PENDING_PROVIDERS_FETCHED,
             data: {
                 users: providers.map((provider) => ({
                     id: provider._id.toString(),
@@ -76,7 +78,7 @@ export class AdminService implements IAdminService {
         await this.adminRepository.approveProvider(providerId);
         return {
             success: true,
-            message: "Provider approved successfully",
+            message: SuccessMessages.PROVIDER_APPROVED,
         };
     }
 
@@ -84,7 +86,7 @@ export class AdminService implements IAdminService {
         await this.adminRepository.rejectProvider(providerId, reason);
         return {
             success: true,
-            message: "Provider rejected successfully",
+            message: SuccessMessages.PROVIDER_REJECTED,
         };
     }
 
@@ -99,7 +101,7 @@ export class AdminService implements IAdminService {
     public async getUserById(userId: string): Promise<{ success: boolean; data: any }> {
         const user = await this.adminRepository.getUserById(userId);
         if (!user) {
-            throw new Error("User not found");
+            throw new Error(ErrorMessages.USER_NOT_FOUND);
         }
         return {
             success: true,

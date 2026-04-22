@@ -1,33 +1,43 @@
-import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { RiArrowLeftLine, RiErrorWarningLine, RiGroupLine, RiUserAddLine } from 'react-icons/ri';
-import { useJobDetails } from '../hooks/useJobDetails';
-import JobDetailHeader from '../components/JobDetailHeader';
-import JobInfoCard from '../components/JobInfoCard';
-import JobActionPanel from '../components/JobActionPanel';
-import UniversalActionModal from '../components/UniversalActionModal';
-import ActionErrorModal from '../components/ActionErrorModal';
-import { RiMapPinUserLine, RiMapPinRangeLine } from 'react-icons/ri';
-import { toast } from 'react-toastify';
-import { useProviderLocation } from '../hooks/useProviderLocation';
-import { acceptJob, getMyProfile } from '../services/provider.service';
-import VerificationPendingModal from '../components/VerificationPendingModal';
-import { ClientProfileModal } from '../components/ClientProfileModal';
-import Map from '../components/map';
+import React from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  RiArrowLeftLine,
+  RiErrorWarningLine,
+  RiGroupLine,
+  RiUserAddLine,
+} from "react-icons/ri";
+import { useJobDetails } from "../hooks/useJobDetails";
+import JobDetailHeader from "../components/JobDetailHeader";
+import JobInfoCard from "../components/JobInfoCard";
+import JobActionPanel from "../components/JobActionPanel";
+import UniversalActionModal from "../components/UniversalActionModal";
+import ActionErrorModal from "../components/ActionErrorModal";
+import { RiMapPinUserLine, RiMapPinRangeLine } from "react-icons/ri";
+import { toast } from "react-toastify";
+import { useProviderLocation } from "../hooks/useProviderLocation";
+import { acceptJob, getMyProfile } from "../services/provider.service";
+import VerificationPendingModal from "../components/VerificationPendingModal";
+import { ClientProfileModal } from "../components/ClientProfileModal";
+import Map from "../components/Map";
 
 const JobDetailPage: React.FC = () => {
   const { jobId } = useParams() as { jobId: string };
   const navigate = useNavigate();
   const { job, loading, error } = useJobDetails(jobId);
-  console.log(job)
+  console.log(job);
   const [isLocationModalOpen, setIsLocationModalOpen] = React.useState(false);
   const [isAccepting, setIsAccepting] = React.useState(false);
-  const [actionError, setActionError] = React.useState<{isOpen: boolean, title: string, message: string}>({
-      isOpen: false,
-      title: '',
-      message: ''
+  const [actionError, setActionError] = React.useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
   });
-  const [verificationStatus, setVerificationStatus] = React.useState<string>('pending');
+  const [verificationStatus, setVerificationStatus] =
+    React.useState<string>("pending");
   const [isPendingModalOpen, setIsPendingModalOpen] = React.useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = React.useState(false);
 
@@ -38,25 +48,25 @@ const JobDetailPage: React.FC = () => {
       try {
         const response = await getMyProfile();
         if (response.success && response.data) {
-          setVerificationStatus(response.data.verificationStatus || 'pending');
+          setVerificationStatus(response.data.verificationStatus || "pending");
         }
       } catch (err) {
-        console.error('Error fetching profile status:', err);
+        console.error("Error fetching profile status:", err);
       }
     };
     fetchStatus();
   }, []);
 
   const handleBack = () => {
-    navigate('/provider/available-jobs');
+    navigate("/provider/available-jobs");
   };
 
   const handleAccept = () => {
-    if (verificationStatus === 'pending') {
+    if (verificationStatus === "pending") {
       setIsPendingModalOpen(true);
       return;
     }
-     if (job && job.location?.districtName !== providerLocation) {
+    if (job && job.location?.districtName !== providerLocation) {
       setIsLocationModalOpen(true);
     } else {
       processAccept();
@@ -70,15 +80,17 @@ const JobDetailPage: React.FC = () => {
     try {
       const result = await acceptJob(jobId);
       if (result.success) {
-        toast.success('Job accepted successfully!');
-        navigate('/provider/my-jobs');
+        toast.success("Job accepted successfully!");
+        navigate("/provider/my-jobs");
       }
     } catch (err: any) {
-      const errorMessage = err.message || 'Failed to accept job';
+      const errorMessage = err.message || "Failed to accept job";
       setActionError({
-          isOpen: true,
-          title: errorMessage.toLowerCase().includes('overlap') ? 'Schedule Conflict' : 'Action Failed',
-          message: errorMessage
+        isOpen: true,
+        title: errorMessage.toLowerCase().includes("overlap")
+          ? "Schedule Conflict"
+          : "Action Failed",
+        message: errorMessage,
       });
     } finally {
       setIsAccepting(false);
@@ -87,7 +99,9 @@ const JobDetailPage: React.FC = () => {
 
   const handleMessage = () => {
     if (job) {
-      navigate(`/provider/messages?userId=${job.clientId}&name=${encodeURIComponent(job.clientName)}`);
+      navigate(
+        `/provider/messages?userId=${job.clientId}&name=${encodeURIComponent(job.clientName)}`,
+      );
     }
   };
 
@@ -97,13 +111,39 @@ const JobDetailPage: React.FC = () => {
 
   if (error || !job) {
     return (
-      <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '80vh', backgroundColor: '#f8fafc' }}>
-        <div className="text-center p-5 bg-white rounded-5 shadow-sm border border-f1f5f9" style={{ maxWidth: 480 }}>
-          <div className="mb-4 d-inline-flex align-items-center justify-content-center" style={{ width: 80, height: 80, borderRadius: 24, background: '#fef2f2', color: '#ef4444' }}>
+      <div
+        className="d-flex align-items-center justify-content-center"
+        style={{ minHeight: "80vh", backgroundColor: "#f8fafc" }}
+      >
+        <div
+          className="text-center p-5 bg-white rounded-5 shadow-sm border border-f1f5f9"
+          style={{ maxWidth: 480 }}
+        >
+          <div
+            className="mb-4 d-inline-flex align-items-center justify-content-center"
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: 24,
+              background: "#fef2f2",
+              color: "#ef4444",
+            }}
+          >
             <RiErrorWarningLine size={42} />
           </div>
-          <h3 className="fw-bold mb-2" style={{ fontFamily: 'Syne, sans-serif', color: '#0f172a' }}>Job Not Found</h3>
-          <p className="text-muted mb-4" style={{ fontSize: '15px', lineHeight: 1.6 }}>{error || "The job you're looking for doesn't exist, has been removed, or you don't have permission to view it."}</p>
+          <h3
+            className="fw-bold mb-2"
+            style={{ fontFamily: "Syne, sans-serif", color: "#0f172a" }}
+          >
+            Job Not Found
+          </h3>
+          <p
+            className="text-muted mb-4"
+            style={{ fontSize: "15px", lineHeight: 1.6 }}
+          >
+            {error ||
+              "The job you're looking for doesn't exist, has been removed, or you don't have permission to view it."}
+          </p>
           <button
             className="btn btn-primary px-4 py-2-5 rounded-3 fw-bold w-100 shadow-sm"
             onClick={handleBack}
@@ -115,14 +155,20 @@ const JobDetailPage: React.FC = () => {
     );
   }
 
-  const isNew = job.createdAt ? (new Date().getTime() - new Date(job.createdAt).getTime()) < 24 * 60 * 60 * 1000 : false;
+  const isNew = job.createdAt
+    ? new Date().getTime() - new Date(job.createdAt).getTime() <
+      24 * 60 * 60 * 1000
+    : false;
 
   return (
-    <div className="py-4 px-3 px-lg-5" style={{ backgroundColor: '#f8fafc', minHeight: '100vh' }}>
+    <div
+      className="py-4 px-3 px-lg-5"
+      style={{ backgroundColor: "#f8fafc", minHeight: "100vh" }}
+    >
       <button
         className="btn btn-link text-decoration-none mb-4 p-0 d-flex align-items-center gap-2 transition-all hover-translate-x"
         onClick={handleBack}
-        style={{ color: '#64748b', fontSize: '14px', fontWeight: 600 }}
+        style={{ color: "#64748b", fontSize: "14px", fontWeight: 600 }}
       >
         <RiArrowLeftLine size={18} />
         <span>Back to Job Marketplace</span>
@@ -141,23 +187,30 @@ const JobDetailPage: React.FC = () => {
 
           {job.location?.lat && job.location?.lng && (
             <div className="mb-5 rounded-4 overflow-hidden border shadow-sm">
-                <Map 
-                  lat={job.location.lat} 
-                  lng={job.location.lng} 
-                  address={job.location.address} 
-                />
+              <Map
+                lat={job.location.lat}
+                lng={job.location.lng}
+                address={job.location.address}
+              />
             </div>
           )}
 
-          {/* Quick Stats Grid */}
           <div className="d-flex flex-wrap gap-3 mb-5">
             <div className="d-flex align-items-center gap-2 px-3 py-2 bg-white rounded-3 border border-f1f5f9 shadow-sm">
               <RiUserAddLine className="text-primary" size={18} />
-              <span style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>{job.freelancersNeeded || 1} Openings</span>
+              <span
+                style={{ fontSize: "13px", fontWeight: 700, color: "#334155" }}
+              >
+                {job.freelancersNeeded || 1} Openings
+              </span>
             </div>
             <div className="d-flex align-items-center gap-2 px-3 py-2 bg-white rounded-3 border border-f1f5f9 shadow-sm">
               <RiGroupLine className="text-success" size={18} />
-              <span style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>{job.applicants} Applicants</span>
+              <span
+                style={{ fontSize: "13px", fontWeight: 700, color: "#334155" }}
+              >
+                {job.applicants} Applicants
+              </span>
             </div>
           </div>
 
@@ -169,23 +222,20 @@ const JobDetailPage: React.FC = () => {
               rating: job.clientRating,
               reviewsCount: job.clientReviewsCount,
               isVerified: job.isClientVerified,
-              avatarUrl: job.clientAvatarUrl
+              avatarUrl: job.clientAvatarUrl,
             }}
             skills={job.skills}
             onViewProfile={() => setIsProfileModalOpen(true)}
           />
         </div>
-
-        {/* <Map/> */}
-
         <div className="col-12 col-xl-4">
           <JobActionPanel
             budget={job.budget}
-            duration={job.durationType.replace('_', ' ')}
+            duration={job.durationType?.replace("_", " ") || "Not Specified"}
             location={job.location}
             startDate={job.startDate}
             isApplied={job.isApplied || !!job.myApplication}
-            isAssigned={job.status === 'fully_assigned'}
+            isAssigned={job.status === "fully_assigned"}
             contactNumber={job.clientNumber}
             onAccept={handleAccept}
             onMessage={handleMessage}
@@ -202,55 +252,61 @@ const JobDetailPage: React.FC = () => {
           iconType="location"
         >
           <div className="row g-3">
-              <div className="col-6">
-                  <div className="p-3 bg-light rounded-4 border">
-                      <div className="d-flex align-items-center gap-2 mb-2 text-muted small fw-bold text-uppercase">
-                          <RiMapPinUserLine size={14} />
-                          Your Zone
-                      </div>
-                      <div className="fw-bold text-dark small">{providerLocation || 'Not Set'}</div>
-                  </div>
+            <div className="col-6">
+              <div className="p-3 bg-light rounded-4 border">
+                <div className="d-flex align-items-center gap-2 mb-2 text-muted small fw-bold text-uppercase">
+                  <RiMapPinUserLine size={14} />
+                  Your Zone
+                </div>
+                <div className="fw-bold text-dark small">
+                  {providerLocation || "Not Set"}
+                </div>
               </div>
-              <div className="col-6">
-                  <div className="p-3 bg-primary-subtle rounded-4 border border-primary-subtle">
-                      <div className="d-flex align-items-center gap-2 mb-2 text-primary small fw-bold text-uppercase">
-                          <RiMapPinRangeLine size={14} />
-                          Job Zone
-                      </div>
-                      <div className="fw-bold text-primary small">{job.location?.address || 'Remote'}</div>
-                  </div>
+            </div>
+            <div className="col-6">
+              <div className="p-3 bg-primary-subtle rounded-4 border border-primary-subtle">
+                <div className="d-flex align-items-center gap-2 mb-2 text-primary small fw-bold text-uppercase">
+                  <RiMapPinRangeLine size={14} />
+                  Job Zone
+                </div>
+                <div className="fw-bold text-primary small">
+                  {job.location?.address || "Remote"}
+                </div>
               </div>
+            </div>
           </div>
         </UniversalActionModal>
       )}
 
       <ActionErrorModal
         isOpen={actionError.isOpen}
-        onClose={() => setActionError(prev => ({ ...prev, isOpen: false }))}
+        onClose={() => setActionError((prev) => ({ ...prev, isOpen: false }))}
         title={actionError.title}
         message={actionError.message}
-        primaryAction={actionError.title === 'Schedule Conflict' ? {
-            label: 'View My Schedule',
-            onClick: () => navigate('/provider/my-jobs')
-          } : undefined}
-          />
-          {/* {console.log('location nte sadhanam',job.location.coordinates.coordinates[1])} */}
-
-      <VerificationPendingModal 
+        primaryAction={
+          actionError.title === "Schedule Conflict"
+            ? {
+                label: "View My Schedule",
+                onClick: () => navigate("/provider/my-jobs"),
+              }
+            : undefined
+        }
+      />
+      <VerificationPendingModal
         isOpen={isPendingModalOpen}
         onClose={() => setIsPendingModalOpen(false)}
       />
 
-      <ClientProfileModal 
+      <ClientProfileModal
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
         client={{
-            name: job.clientName,
-            email: job.clientEmail,
-            phone: job.clientNumber,
-            initials: job.clientInitials,
-            avatarUrl: job.clientAvatarUrl,
-            isVerified: job.isClientVerified
+          name: job.clientName,
+          email: job.clientEmail,
+          phone: job.clientNumber,
+          initials: job.clientInitials,
+          avatarUrl: job.clientAvatarUrl,
+          isVerified: job.isClientVerified,
         }}
       />
 
@@ -265,20 +321,44 @@ const JobDetailPage: React.FC = () => {
 };
 
 const JobDetailSkeleton: React.FC = () => (
-  <div className="py-4 px-3 px-lg-5" style={{ backgroundColor: '#f8fafc', minHeight: '100vh' }}>
-    <div className="bg-slate-200 animate-pulse mb-4" style={{ width: 150, height: 20, borderRadius: 8 }}></div>
+  <div
+    className="py-4 px-3 px-lg-5"
+    style={{ backgroundColor: "#f8fafc", minHeight: "100vh" }}
+  >
+    <div
+      className="bg-slate-200 animate-pulse mb-4"
+      style={{ width: 150, height: 20, borderRadius: 8 }}
+    ></div>
     <div className="row g-5">
       <div className="col-12 col-xl-8">
         <div className="d-flex gap-2 mb-3">
-          <div className="bg-slate-200 animate-pulse" style={{ width: 100, height: 32, borderRadius: 8 }}></div>
-          <div className="bg-slate-200 animate-pulse" style={{ width: 100, height: 32, borderRadius: 8 }}></div>
+          <div
+            className="bg-slate-200 animate-pulse"
+            style={{ width: 100, height: 32, borderRadius: 8 }}
+          ></div>
+          <div
+            className="bg-slate-200 animate-pulse"
+            style={{ width: 100, height: 32, borderRadius: 8 }}
+          ></div>
         </div>
-        <div className="bg-slate-200 animate-pulse mb-4" style={{ width: '80%', height: 48, borderRadius: 12 }}></div>
-        <div className="bg-slate-200 animate-pulse mb-5" style={{ width: '40%', height: 24, borderRadius: 8 }}></div>
-        <div className="bg-slate-200 animate-pulse mb-4" style={{ height: 500, borderRadius: 24 }}></div>
+        <div
+          className="bg-slate-200 animate-pulse mb-4"
+          style={{ width: "80%", height: 48, borderRadius: 12 }}
+        ></div>
+        <div
+          className="bg-slate-200 animate-pulse mb-5"
+          style={{ width: "40%", height: 24, borderRadius: 8 }}
+        ></div>
+        <div
+          className="bg-slate-200 animate-pulse mb-4"
+          style={{ height: 500, borderRadius: 24 }}
+        ></div>
       </div>
       <div className="col-12 col-xl-4">
-        <div className="bg-slate-200 animate-pulse" style={{ height: 480, borderRadius: 24 }}></div>
+        <div
+          className="bg-slate-200 animate-pulse"
+          style={{ height: 480, borderRadius: 24 }}
+        ></div>
       </div>
     </div>
     <style>{`
@@ -289,13 +369,4 @@ const JobDetailSkeleton: React.FC = () => (
   </div>
 );
 
-export default JobDetailPage; 
-
-
-// const lat = job.location.coordinates.coordinates[1];
-// const lng = job.location.coordinates.coordinates[0];
-// <JobLocationMap
-//   lat={lat}
-//   lng={lng}
-//   address={job.location.address}
-// />
+export default JobDetailPage;

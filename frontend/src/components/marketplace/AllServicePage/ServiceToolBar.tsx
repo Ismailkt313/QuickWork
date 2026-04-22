@@ -3,17 +3,17 @@ import type { ServicesToolbarProps } from "../../../types/service/service.types"
 import type { SortOption } from "../../../types/service/service.types";
 
 const ServiceToolBar: React.FC<ServicesToolbarProps> = ({
-    search,
-    onSearch,
-    sort,
-    onSort,
-    category,
-    onCategory,
-    categories,
-    resultCount,
+  search,
+  onSearch,
+  sort,
+  onSort,
+  category,
+  onCategory,
+  categories,
+  resultCount,
 }) => (
-      <div className="qw-toolbar mb-5">
-     <div className="qw-search-wrap mb-4">
+  <div className="qw-toolbar mb-5">
+    <div className="qw-search-wrap mb-4">
       <span className="qw-search-icon">🔍</span>
       <input
         type="search"
@@ -26,7 +26,7 @@ const ServiceToolBar: React.FC<ServicesToolbarProps> = ({
       {search && (
         <button
           className="qw-search-clear"
-          onClick={() => onSearch('')}
+          onClick={() => onSearch("")}
           aria-label="Clear search"
         >
           ✕
@@ -34,18 +34,18 @@ const ServiceToolBar: React.FC<ServicesToolbarProps> = ({
       )}
     </div>
 
-     <div className="d-flex flex-wrap align-items-center justify-content-between gap-3">
-       <div className="qw-category-pills d-flex flex-wrap gap-2">
+    <div className="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div className="qw-category-pills d-flex flex-wrap gap-2">
         <button
-          className={`qw-pill${category === 'all' ? ' active' : ''}`}
-          onClick={() => onCategory('all')}
+          className={`qw-pill${category === "all" ? " active" : ""}`}
+          onClick={() => onCategory("all")}
         >
           All
         </button>
         {categories.map((cat: string) => (
           <button
             key={cat}
-            className={`qw-pill${category === cat ? ' active' : ''}`}
+            className={`qw-pill${category === cat ? " active" : ""}`}
             onClick={() => onCategory(cat)}
           >
             {cat}
@@ -55,7 +55,7 @@ const ServiceToolBar: React.FC<ServicesToolbarProps> = ({
 
       <div className="d-flex align-items-center gap-3 ms-auto">
         <span className="qw-result-count">
-          {resultCount} result{resultCount !== 1 ? 's' : ''}
+          {resultCount} result{resultCount !== 1 ? "s" : ""}
         </span>
         <select
           className="qw-sort-select"
@@ -70,5 +70,5 @@ const ServiceToolBar: React.FC<ServicesToolbarProps> = ({
       </div>
     </div>
   </div>
-)
+);
 export default ServiceToolBar;

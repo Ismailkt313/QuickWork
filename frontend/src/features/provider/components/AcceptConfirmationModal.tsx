@@ -1,9 +1,9 @@
-import React from 'react';
-import { 
-  RiCheckDoubleLine, 
-  RiCloseLine, 
-  RiArrowRightLine
-} from 'react-icons/ri';
+import React from "react";
+import {
+  RiCheckDoubleLine,
+  RiCloseLine,
+  RiArrowRightLine,
+} from "react-icons/ri";
 
 interface AcceptConfirmationModalProps {
   isOpen: boolean;
@@ -13,86 +13,119 @@ interface AcceptConfirmationModalProps {
   isActionLoading?: boolean;
 }
 
-const AcceptConfirmationModal: React.FC<AcceptConfirmationModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  onConfirm, 
-  jobTitle = 'this job',
-  isActionLoading = false
+const AcceptConfirmationModal: React.FC<AcceptConfirmationModalProps> = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  jobTitle = "this job",
+  isActionLoading = false,
 }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="qw-modal-overlay" onClick={isActionLoading ? undefined : onClose}>
-      <div 
-        className="qw-modal-content animate-pop-in" 
-        style={{ maxWidth: '480px' }}
+    <div
+      className="qw-modal-overlay"
+      onClick={isActionLoading ? undefined : onClose}
+    >
+      <div
+        className="qw-modal-content animate-pop-in"
+        style={{ maxWidth: "480px" }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Decorative Top Accent */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '6px', background: 'linear-gradient(90deg, transparent, #6366f1, transparent)', opacity: 0.5, borderRadius: '42px 42px 0 0' }} />
-
-        {/* Close Button */}
-        <button 
-          className="qw-modal-close-btn" 
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "6px",
+            background:
+              "linear-gradient(90deg, transparent, #6366f1, transparent)",
+            opacity: 0.5,
+            borderRadius: "42px 42px 0 0",
+          }}
+        />
+        <button
+          className="qw-modal-close-btn"
           onClick={onClose}
           disabled={isActionLoading}
           aria-label="Close"
         >
           <RiCloseLine size={24} />
         </button>
-
-        {/* Content Area */}
         <div className="text-center">
-          {/* Icon Section with Decorative Glow */}
           <div className="position-relative d-inline-block mb-4">
-            <div 
+            <div
               style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: '120px',
-                height: '120px',
-                background: 'radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%)',
-                zIndex: -1
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                width: "120px",
+                height: "120px",
+                background:
+                  "radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%)",
+                zIndex: -1,
               }}
             />
-            <div 
-              className="d-flex align-items-center justify-content-center" 
-              style={{ 
-                  width: '84px', 
-                  height: '84px', 
-                  borderRadius: '28px', 
-                  background: 'white', 
-                  color: '#6366f1',
-                  boxShadow: '0 12px 30px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(0,0,0,0.02)',
-                  position: 'relative'
+            <div
+              className="d-flex align-items-center justify-content-center"
+              style={{
+                width: "84px",
+                height: "84px",
+                borderRadius: "28px",
+                background: "white",
+                color: "#6366f1",
+                boxShadow:
+                  "0 12px 30px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(0,0,0,0.02)",
+                position: "relative",
               }}
             >
-              <div style={{ position: 'absolute', inset: 0, borderRadius: '28px', background: '#eef2ff', opacity: 0.4 }} />
-              <RiCheckDoubleLine size={42} style={{ position: 'relative' }} />
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  borderRadius: "28px",
+                  background: "#eef2ff",
+                  opacity: 0.4,
+                }}
+              />
+              <RiCheckDoubleLine size={42} style={{ position: "relative" }} />
             </div>
           </div>
 
-          <h3 className="fw-bold text-dark mb-2 px-3" style={{ fontFamily: 'Syne, sans-serif', letterSpacing: '-0.03em', fontSize: '1.75rem', lineHeight: 1.2 }}>
+          <h3
+            className="fw-bold text-dark mb-2 px-3"
+            style={{
+              fontFamily: "Syne, sans-serif",
+              letterSpacing: "-0.03em",
+              fontSize: "1.75rem",
+              lineHeight: 1.2,
+            }}
+          >
             Confirm Acceptance
           </h3>
-          
-          <p className="text-muted mb-4 px-4 mx-auto" style={{ fontSize: '15px', lineHeight: '1.6', maxWidth: '400px' }}>
-            You are about to accept <span className="text-dark fw-bold">{jobTitle}</span>. 
-            Once accepted, you are expected to fulfill the job requirements.
-          </p>
 
-          {/* Action Footer */}
+          <p
+            className="text-muted mb-4 px-4 mx-auto"
+            style={{ fontSize: "15px", lineHeight: "1.6", maxWidth: "400px" }}
+          >
+            You are about to accept{" "}
+            <span className="text-dark fw-bold">{jobTitle}</span>. Once
+            accepted, you are expected to fulfill the job requirements.
+          </p>
           <div className="d-flex flex-column gap-3 mt-4">
-            <button 
+            <button
               className="btn-action-primary"
               onClick={onConfirm}
               disabled={isActionLoading}
             >
               {isActionLoading ? (
-                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
+                <span
+                  className="spinner-border spinner-border-sm me-2"
+                  role="status"
+                  aria-hidden="true"
+                />
               ) : (
                 <span className="position-relative z-1 d-flex align-items-center justify-content-center gap-2">
                   Yes, I Confirm Acceptance
@@ -100,12 +133,16 @@ const AcceptConfirmationModal: React.FC<AcceptConfirmationModalProps> = ({
                 </span>
               )}
             </button>
-            
-            <button 
+
+            <button
               className="btn btn-link text-muted fw-bold py-2 border-0 hover-opacity"
               onClick={onClose}
               disabled={isActionLoading}
-              style={{ fontSize: '14px', textDecoration: 'none', transition: 'all 0.2s' }}
+              style={{
+                fontSize: "14px",
+                textDecoration: "none",
+                transition: "all 0.2s",
+              }}
             >
               Cancel
             </button>

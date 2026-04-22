@@ -1,30 +1,37 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useLandingData } from '../../hooks/useLandingData';
-import MainLayout from '../../layout/MainLayout';
-import HeroSection from '../components/HeroSecotion';
-import ServiceSection from '../components/ServiceSection';
-import HowItWorks from '../components/HowItWorks';
-import CallToAction from '../components/CallToAction';
-import LocationModal from '../components/LocationModal';
-import type { Location, Skill } from '../services/landingService';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useLandingData } from "../../hooks/useLandingData";
+import MainLayout from "../../layout/MainLayout";
+import HeroSection from "../components/HeroSecotion";
+import ServiceSection from "../components/ServiceSection";
+import HowItWorks from "../components/HowItWorks";
+import CallToAction from "../components/CallToAction";
+import LocationModal from "../components/LocationModal";
+import type { Location, Skill } from "../services/landingService";
 
 const LandingPage: React.FC = () => {
   const {
-    skills, locations, loading, error,
-    selectedLocation, selectLocation, clearLocation,
+    skills,
+    locations,
+    loading,
+    error,
+    selectedLocation,
+    selectLocation,
+    clearLocation,
   } = useLandingData();
 
   const navigate = useNavigate();
   const [serviceModalOpen, setServiceModalOpen] = useState(false);
 
   const handleSkillClick = (skill: Skill) => {
-    navigate(`/user/services/${skill._id}?name=${encodeURIComponent(skill.name)}`);
+    navigate(
+      `/user/services/${skill._id}?name=${encodeURIComponent(skill.name)}`,
+    );
   };
 
   const handleSelectLocation = (loc: Location) => {
     selectLocation(loc);
-    setServiceModalOpen(false); 
+    setServiceModalOpen(false);
   };
 
   return (

@@ -30,9 +30,6 @@ export class ServiceProviderRepository implements IServiceProviderRepository {
 
         const query: Record<string, any> = {
             skills: new Types.ObjectId(skillId),
-            // Relaxing filters for current development phase
-            // isActive: true, 
-            // 'verification.status': 'verified',
         };
 
         if (locationId) {
@@ -47,7 +44,6 @@ export class ServiceProviderRepository implements IServiceProviderRepository {
                 .lean(),
             ServiceProviderModel.countDocuments(query),
         ]);
-        console.log('providers:', providers);
         return {
             providers: providers.map((p) => ({
                 id: (p._id as Types.ObjectId).toString(),

@@ -1,10 +1,10 @@
-import React from 'react';
-import { 
-  RiFlashlightLine, 
-  RiTimeLine, 
-  RiMapPinLine, 
-  RiShieldCheckLine 
-} from 'react-icons/ri';
+import React from "react";
+import {
+  RiFlashlightLine,
+  RiTimeLine,
+  RiMapPinLine,
+  RiShieldCheckLine,
+} from "react-icons/ri";
 
 interface JobLocation {
   address: string;
@@ -40,11 +40,7 @@ const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({
             URGENT HIRE
           </span>
         )}
-        {isNew && (
-          <span className="jdh-badge badge-new">
-            NEW POST
-          </span>
-        )}
+        {isNew && <span className="jdh-badge badge-new">NEW POST</span>}
         <span className="jdh-badge badge-verified">
           <RiShieldCheckLine size={14} className="me-1" />
           VERIFIED JOB
@@ -56,18 +52,24 @@ const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({
       <div className="d-flex align-items-center gap-4 text-muted jdh-meta">
         <div className="d-flex align-items-center gap-2">
           <RiTimeLine size={18} className="text-primary-emphasis" />
-          <span>Posted <strong>{postedAt}</strong></span>
+          <span>
+            Posted <strong>{postedAt}</strong>
+          </span>
         </div>
         <div className="d-flex align-items-center gap-2">
           <RiMapPinLine size={18} className="text-primary-emphasis" />
           <div className="d-flex flex-column">
-              <span>{location?.address || 'Remote'}</span>
-              {additionalDetails && (
-                  <span className="small text-muted" style={{ fontSize: '12px' }}>
-                      <RiFlashlightLine size={12} className="me-1" style={{ verticalAlign: 'middle' }} />
-                      {additionalDetails}
-                  </span>
-              )}
+            <span>{location?.address || "Remote"}</span>
+            {additionalDetails && (
+              <span className="small text-muted" style={{ fontSize: "12px" }}>
+                <RiFlashlightLine
+                  size={12}
+                  className="me-1"
+                  style={{ verticalAlign: "middle" }}
+                />
+                {additionalDetails}
+              </span>
+            )}
           </div>
         </div>
       </div>

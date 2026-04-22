@@ -11,6 +11,10 @@ export function createAssignmentRouter(controller: IAssignmentController): Route
   router.get('/:id', authMiddleware, authorizeRoles(ROLES.PROVIDER), controller.getAssignmentById);
   router.patch('/:id/status', authMiddleware, authorizeRoles(ROLES.PROVIDER), controller.updateStatus);
   router.post('/:id/proof', authMiddleware, authorizeRoles(ROLES.PROVIDER), controller.submitProof);
+  
+  router.post('/:id/cancel-by-provider', authMiddleware, authorizeRoles(ROLES.PROVIDER), controller.cancelByProvider);
+  router.post('/:id/cancel-by-client', authMiddleware, authorizeRoles(ROLES.USER,ROLES.PROVIDER), controller.cancelByClient);
+  router.post('/:id/report-absence', authMiddleware, authorizeRoles(ROLES.USER,ROLES.PROVIDER), controller.reportAbsence);
 
   return router;
 }
