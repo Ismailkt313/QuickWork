@@ -36,10 +36,16 @@ export const useMessages = (
       setMessages((prev) => [...prev, normalizedMessage]);
     };
 
+    const handleMessageDeleted = ({ messageId }: { messageId: string }) => {
+      setMessages((prev) => prev.filter((m) => m._id !== messageId));
+    };
+
     socket.on("receiveMessage", handleNewMessage);
+    socket.on("messageDeleted", handleMessageDeleted);
 
     return () => {
       socket.off("receiveMessage", handleNewMessage);
+      socket.off("messageDeleted", handleMessageDeleted);
     };
   }, [socket, activeConversationId]);
 

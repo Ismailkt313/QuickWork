@@ -86,22 +86,45 @@ export class MessageController implements IMessageController {
             res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     }
+
     async deleteMessage(req: Request, res: Response): Promise<void> {
         try {
             const dto = MessageIdDto.create(req.query);
             const result = await this.messageService.deleteMessage(dto.messageId);
+            const io = getIo();
+            if (io && result){
+                io.to(result.sender.toString()).emit("messageDeleted", { messageId:dto.messageId });
+                io.to(result.receiver.toString()).emit("messageDeleted", { messageId:dto.messageId });
+            }
             res.status(HttpStatusCode.OK).json({ success: true, message: SuccessMessages.MESSAGE_DELETED, data: result });
         } catch (error: any) {
             res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     }
+
     async deleteConversation(req: Request, res: Response): Promise<void> {
         try {
             const dto = ConversationIdDto.create(req.query);
+            const conversation = await this.messageService.getConversation(dto.conversationId);
             const result = await this.messageService.deleteConversation(dto.conversationId);
-            res.status(HttpStatusCode.OK).json({ success: true, message: SuccessMessages.CONVERSATION_DELETED, data: result });
+            const io = getIo();
+            if (io && conversation && conversation.participants) {
+                conversation.participants.forEach((p: any) => {
+                    const participantId = p._id || p.id || p;
+                    io.to(participantId.toString()).emit("conversationDeleted", { 
+                        conversationId: dto.conversationId 
+                    });
+                });
+            }
+
+            res.status(HttpStatusCode.OK).json({ 
+                success: true, 
+                message: SuccessMessages.CONVERSATION_DELETED, 
+                data: result 
+            });
         } catch (error: any) {
             res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     }
+
 }

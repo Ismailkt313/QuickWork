@@ -28,3 +28,17 @@ export const createMessage = async (data: {
   const response = await api.post("/messages/createMessage", data);
   return response.data;
 };
+
+export const deleteConversation = async (conversationId: string) => {
+  const response = await api.delete("/messages/deleteConversation", {
+    params: { conversationId },
+  });
+  return response.data;
+};
+
+export const deleteMessage = async (messageId: string) => {
+    const response = await api.delete("/messages/deleteMessage", {
+        params: { messageId },
+    });
+    return response.data;
+}

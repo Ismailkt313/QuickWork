@@ -5,8 +5,9 @@ import {
   rejectProvider,
   getProviderById,
 } from "../services/adminApi";
-import type { IUserListItem } from "../services/adminApi";
+import type { IUserListItem, IServiceProviderDetails } from "../types/admin.types";
 import ProviderProfileModal from "../components/ProviderProfileModal";
+import axios from "axios";
 import "../admin.css";
 
 interface ToastItem {
@@ -37,7 +38,7 @@ const ProviderManagement = () => {
     loading: false,
   });
 
-  const [selectedProvider, setSelectedProvider] = useState<any>(null);
+  const [selectedProvider, setSelectedProvider] = useState<IServiceProviderDetails | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [fetchingDetail, setFetchingDetail] = useState(false);
 
@@ -94,9 +95,11 @@ const ProviderManagement = () => {
         "success",
         `Provider ${modal.providerName} has been approved successfully.`,
       );
-    } catch (error: any) {
-      const msg =
-        error?.response?.data?.message || "Failed to approve provider.";
+    } catch (error) {
+      let msg = "Failed to approve provider.";
+      if (axios.isAxiosError(error)) {
+        msg = error.response?.data?.message || msg;
+      }
       showToast("error", msg);
     } finally {
       setModal({
@@ -115,9 +118,11 @@ const ProviderManagement = () => {
       await rejectProvider(modal.providerId, rejectionReason.trim());
       setProviders((prev) => prev.filter((p) => p.id !== modal.providerId));
       showToast("success", `Provider ${modal.providerName} has been rejected.`);
-    } catch (error: any) {
-      const msg =
-        error?.response?.data?.message || "Failed to reject provider.";
+    } catch (error) {
+      let msg = "Failed to reject provider.";
+      if (axios.isAxiosError(error)) {
+        msg = error.response?.data?.message || msg;
+      }
       showToast("error", msg);
     } finally {
       setModal({
@@ -150,11 +155,12 @@ const ProviderManagement = () => {
       } else {
         showToast("error", "Failed to fetch provider details.");
       }
-    } catch (error: any) {
-      showToast(
-        "error",
-        error?.response?.data?.message || "Error fetching details.",
-      );
+    } catch (error) {
+      let msg = "Error fetching details.";
+      if (axios.isAxiosError(error)) {
+        msg = error.response?.data?.message || msg;
+      }
+      showToast("error", msg);
     } finally {
       setFetchingDetail(false);
     }

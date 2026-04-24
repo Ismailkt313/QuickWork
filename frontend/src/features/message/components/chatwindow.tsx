@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { Message } from "../types/message.types";
-import { RiUser3Line } from "react-icons/ri";
+import { RiUser3Line,RiDeleteBinLine  } from "react-icons/ri";
 import { format } from "date-fns";
 import { MessageInput } from "./MessageInput";
 
@@ -11,6 +11,10 @@ interface ChatWindowProps {
   receiverId: string | null;
   currentUserId: string;
   recipientName?: string;
+  onDelete: () => void;
+  isDeleting?: boolean;
+  onDeleteMessage: (messageId: string) => void;
+
 }
 
 export const ChatWindow = ({
@@ -20,6 +24,9 @@ export const ChatWindow = ({
   receiverId,
   currentUserId,
   recipientName,
+  onDelete,
+  isDeleting,
+  onDeleteMessage
 }: ChatWindowProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -87,6 +94,16 @@ export const ChatWindow = ({
             ></span>
             Active Now
           </span>
+          <div className="ms-auto">
+  <button 
+    className="btn btn-outline-danger btn-sm border-0" 
+    onClick={onDelete}
+    disabled={isDeleting}
+    title="Delete Conversation"
+  >
+    <RiDeleteBinLine size={20} />
+  </button>
+</div>
         </div>
       </div>
       <div
@@ -107,6 +124,7 @@ export const ChatWindow = ({
             <p className="small fw-medium">
               No messages yet. Start the conversation!
             </p>
+            
           </div>
         ) : (
           <div className="d-flex flex-column gap-3">
@@ -114,9 +132,20 @@ export const ChatWindow = ({
               const isSentByMe = msg.sender === currentUserId;
               return (
                 <div
-                  key={msg._id}
-                  className={`d-flex flex-column ${isSentByMe ? "align-items-end" : "align-items-start"}`}
-                >
+  key={msg._id}
+  className={`d-flex flex-column ${isSentByMe ? "align-items-end" : "align-items-start"} position-relative group`}
+>
+  {isSentByMe && (
+    <button 
+      onClick={() => onDeleteMessage(msg._id)}
+      className="btn btn-sm text-danger p-0 position-absolute"
+      style={{ right: '100%', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}
+      title="Delete Message"
+    >
+      <RiDeleteBinLine size={14} />
+    </button>
+  )}
+
                   <div
                     className={`p-2 rounded-4 shadow-sm ${
                       isSentByMe

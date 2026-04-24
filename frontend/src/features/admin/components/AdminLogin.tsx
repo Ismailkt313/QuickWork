@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { adminLogin } from "../services/adminApi";
+import axios from "axios";
 
 type FieldErrors = {
   email?: string;
@@ -58,8 +59,12 @@ const AdminLogin = () => {
         response.data.data.refreshToken,
       );
       navigate("/admin");
-    } catch (err: any) {
-      setApiError(err?.response?.data?.message || "Invalid credentials");
+    } catch (err) {
+      let msg = "Invalid credentials";
+      if (axios.isAxiosError(err)) {
+        msg = err.response?.data?.message || msg;
+      }
+      setApiError(msg);
     } finally {
       setLoading(false);
     }

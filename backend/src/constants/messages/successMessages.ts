@@ -47,4 +47,6 @@ export const SuccessMessages = {
   SERVICE_REQUEST_APPROVED: "Service request approved successfully",
   SERVICE_REQUEST_REJECTED: "Service request has been rejected",
   SERVICE_REQUEST_PARTIAL_SUCCESS: "Skill approved globally, but requesting provider profile was not found.",
+  PROVIDER_DETAILS_FETCHED: "Provider details fetched successfully",
+  USER_FETCHED: "User fetched successfully",
 };

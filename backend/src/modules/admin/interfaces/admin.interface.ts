@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import { Types } from "mongoose";
 import { ROLES } from "../../../constants/roles";
 import { VERIFICATION_STATUS } from "../../../constants/verification";
+import { IApiResponse, IPaginatedResponse } from "../../../types/api.types";
 
 
 
@@ -22,17 +23,7 @@ export interface IUserListItem {
     createdAt: Date;
 }
 
-export interface IUserListResponse {
-    success: boolean;
-    message: string;
-    data: {
-        users: IUserListItem[];
-        total: number;
-        page: number;
-        limit: number;
-        totalPages: number;
-    };
-}
+export interface IUserListResponse extends IPaginatedResponse<IUserListItem> {}
 
 export interface IServiceProviderWithUser {
   _id: Types.ObjectId
@@ -54,18 +45,18 @@ export interface IAdminRepository {
     getPendingProviders():Promise<IServiceProviderWithUser[]>;
     approveProvider(providerId: string): Promise<void>;
     rejectProvider(providerId: string, reason: string): Promise<void>;
-    getProviderDetails(providerId: string): Promise<any>;
+    getProviderDetails(providerId: string): Promise<IServiceProviderDetails>;
     getUserById(userId: string): Promise<IUser | null>;
 }
 
 export interface IAdminService {
     getUsers(query: IUserListQuery): Promise<IUserListResponse>;
-    toggleBlockUser(userId: string): Promise<{ success: boolean; message: string; data: { isBlocked: boolean } }>;
+    toggleBlockUser(userId: string): Promise<IApiResponse<{ isBlocked: boolean }>>;
     getPendingProviders(): Promise<IUserListResponse>;
-    approveProvider(providerId: string): Promise<{ success: boolean; message: string }>;
-    rejectProvider(providerId: string, reason: string): Promise<{ success: boolean; message: string }>;
-    getProviderDetails(providerId: string): Promise<{ success: boolean; data: IServiceProviderDetails }>;
-    getUserById(userId: string): Promise<{ success: boolean; data: IUser }>;
+    approveProvider(providerId: string): Promise<IApiResponse<void>>;
+    rejectProvider(providerId: string, reason: string): Promise<IApiResponse<void>>;
+    getProviderDetails(providerId: string): Promise<IApiResponse<IServiceProviderDetails>>;
+    getUserById(userId: string): Promise<IApiResponse<IUser>>;
 }
 
 export interface IAdminController {

@@ -1,4 +1,4 @@
-import { IAdminRepository, IUserListQuery } from "../interfaces/admin.interface";
+import { IAdminRepository, IUserListQuery, IServiceProviderDetails } from "../interfaces/admin.interface";
 import { IUser } from "../../auth/interfaces/auth.interface";
 import { UserModel } from "../../auth/models/user.model";
 import { AppError } from "../../../utils/AppError";
@@ -90,7 +90,7 @@ export class AdminRepository implements IAdminRepository {
 
     }
 
-    public async getProviderDetails(providerId: string): Promise<any> {
+    public async getProviderDetails(providerId: string): Promise<IServiceProviderDetails> {
         const provider = await ServiceProviderModel.findById(providerId)
             .populate('userId', 'name email phone')
             .populate('skills', 'name')
@@ -101,7 +101,7 @@ export class AdminRepository implements IAdminRepository {
             throw new AppError("Service provider not found", HttpStatusCode.NOT_FOUND);
         }
 
-        return provider;
+        return provider as unknown as IServiceProviderDetails;
     }
 
     public async getUserById(userId: string): Promise<IUser | null> {

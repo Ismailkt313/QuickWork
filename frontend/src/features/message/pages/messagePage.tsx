@@ -3,9 +3,10 @@ import { useSocket } from "../hooks/useSocket";
 import { useMessages } from "../hooks/useMessages";
 import { ChatWindow } from "../components/chatwindow";
 import { getMe } from "../../auth/services/authApi";
-import { getConversations } from "../api/message.api";
+import { getConversations,deleteConversation,deleteMessage } from "../api/message.api";
 import { useSearchParams } from "react-router-dom";
 import { Sidebar } from "../components/Sidebar";
+import ConfirmModal from "../../../shared/components/ui/ConfirmModal";
 
 const MessagesPage: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -17,6 +18,15 @@ const MessagesPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchParams] = useSearchParams();
   const [placeholderAdded, setPlaceholderAdded] = useState(false);
+  const [deleteModal, setDeleteModal] = useState<{ show: boolean; loading: boolean }>({
+    show: false,
+    loading: false
+  });
+  const [deleteMsgModal, setDeleteMsgModal] = useState<{ show: boolean; loading: boolean; messageId: string }>({
+    show: false,
+    loading: false,
+    messageId: ""
+  });
 
   const targetUserId = searchParams.get("userId");
   const targetUserName = searchParams.get("name");
@@ -36,6 +46,28 @@ const MessagesPage: React.FC = () => {
   useEffect(() => {
     selectedConvIdRef.current = selectedConversationId;
   }, [selectedConversationId]);
+
+  const handleDeleteConversation = async () => {
+    if (!selectedConversationId || selectedConversationId.startsWith("new-")) return;
+    setDeleteModal({ show: true, loading: false });
+  };
+
+  const executeDeleteConversation = async () => {
+    if (!selectedConversationId) return;
+    setDeleteModal(prev => ({ ...prev, loading: true }));
+    try {
+      const res = await deleteConversation(selectedConversationId);
+      if (res.success) {
+        setConversations(prev => prev.filter(c => c.id !== selectedConversationId));
+        setSelectedConversationId(null);
+      }
+    } catch (error) {
+      console.error("Delete failed:", error);
+    } finally {
+      setDeleteModal({ show: false, loading: false });
+    }
+  };
+
 
   const fetchUser = useCallback(async () => {
     try {
@@ -90,7 +122,22 @@ const MessagesPage: React.FC = () => {
     fetchUser();
     fetchConversations();
   }, [fetchUser, fetchConversations]);
+const handleDeleteMessage = (messageId: string) => {
+  setDeleteMsgModal({ show: true, loading: false, messageId });
+};
 
+const executeDeleteMessage = async () => {
+  if (!deleteMsgModal.messageId) return;
+  setDeleteMsgModal(prev => ({ ...prev, loading: true }));
+  try {
+    await deleteMessage(deleteMsgModal.messageId);
+    // UI updates via socket listener in useMessages hook
+  } catch (error) {
+    console.error("Failed to delete message:", error);
+  } finally {
+    setDeleteMsgModal({ show: false, loading: false, messageId: "" });
+  }
+};
   const currentUserId = user?.id || user?._id || "";
 
   useEffect(() => {
@@ -149,6 +196,7 @@ const MessagesPage: React.FC = () => {
   useEffect(() => {
     if (!socket) return;
 
+    // 1. Define the handler for new messages
     const handleNewConversationMessage = (newMessage: any) => {
       const currentSelectedId = selectedConvIdRef.current;
       const myUserId = currentUserIdRef.current;
@@ -166,10 +214,9 @@ const MessagesPage: React.FC = () => {
 
       setConversations((prev) => {
         const convExists = prev.some((c) => c.id === newMessage.conversationId);
-
         const updated = prev.map((conv) => {
           const phTargetId = conv.participants.find(
-            (p: any) => String(p._id || p.id) !== String(myUserId),
+            (p: any) => String(p._id || p.id) !== String(myUserId)
           )?._id;
           const involvesThisParticipant =
             String(newMessage.sender) === String(phTargetId) ||
@@ -190,26 +237,32 @@ const MessagesPage: React.FC = () => {
           return conv;
         });
 
-        if (
-          !convExists &&
-          !prev.some(
-            (c) =>
-              c.isPlaceholder &&
-              String(c.id).includes(String(newMessage.sender)),
-          )
-        ) {
+        if (!convExists && !prev.some(c => c.isPlaceholder && String(c.id).includes(String(newMessage.sender)))) {
           fetchConversations();
         }
-
         return updated;
       });
     };
 
+    // 2. Define the handler for deleted conversations
+    const handleConversationDeleted = ({ conversationId }: { conversationId: string }) => {
+      setConversations((prev) => prev.filter((c) => c.id !== conversationId));
+      if (selectedConvIdRef.current === conversationId) {
+        setSelectedConversationId(null);
+      }
+    };
+
+    // 3. Attach both listeners
     socket.on("receiveMessage", handleNewConversationMessage);
+    socket.on("conversationDeleted", handleConversationDeleted);
+
+    // 4. Clean up both listeners when the component unmounts
     return () => {
       socket.off("receiveMessage", handleNewConversationMessage);
+      socket.off("conversationDeleted", handleConversationDeleted);
     };
   }, [socket, fetchConversations]);
+
 
   useEffect(() => {
     if (selectedConversationId && !selectedConversationId.startsWith("new-")) {
@@ -292,9 +345,32 @@ const MessagesPage: React.FC = () => {
             receiverId={recipient.id}
             currentUserId={currentUserId}
             recipientName={recipient.name}
+            onDelete={handleDeleteConversation}
+            onDeleteMessage={handleDeleteMessage}
+            
           />
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={deleteModal.show}
+        onClose={() => setDeleteModal({ show: false, loading: false })}
+        onConfirm={executeDeleteConversation}
+        title="Delete Conversation"
+        message="Are you sure you want to delete this entire chat? All messages will be permanently removed for both participants."
+        confirmText="Yes, Delete Chat"
+        isLoading={deleteModal.loading}
+      />
+
+      <ConfirmModal
+        isOpen={deleteMsgModal.show}
+        onClose={() => setDeleteMsgModal({ show: false, loading: false, messageId: "" })}
+        onConfirm={executeDeleteMessage}
+        title="Delete Message"
+        message="Are you sure you want to delete this message? This action cannot be undone."
+        confirmText="Yes, Delete"
+        isLoading={deleteMsgModal.loading}
+      />
     </div>
   );
 };

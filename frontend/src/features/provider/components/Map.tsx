@@ -1,7 +1,7 @@
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import type { Zoom } from "react-toastify";
+
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 

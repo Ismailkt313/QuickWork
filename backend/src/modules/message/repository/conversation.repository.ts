@@ -1,5 +1,6 @@
 import { IConversation, IConversationResponse, IConversationRepository } from "../interface/message.interface";
 import { Conversation } from "../modals/conversation.modal";
+import { Message } from "../modals/message.modals";
 
 export class ConversationRepository implements IConversationRepository {
     async createConversation(conversation: IConversation): Promise<IConversationResponse> {
@@ -27,6 +28,7 @@ export class ConversationRepository implements IConversationRepository {
     }
 
     async deleteConversation(conversationId: string): Promise<IConversationResponse | null> {
+        await Message.deleteMany({ conversationId: conversationId });
         const deletedConversation = await Conversation.findByIdAndDelete(conversationId);
         return deletedConversation ? (deletedConversation.toObject() as unknown as IConversationResponse) : null;
     }

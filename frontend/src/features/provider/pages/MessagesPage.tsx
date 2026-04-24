@@ -313,6 +313,8 @@ const MessagesPage: React.FC = () => {
             receiverId={recipient.id}
             currentUserId={currentUserId}
             recipientName={recipient.name}
+            onDelete={() => {}}
+            onDeleteMessage={() => {}}
           />
         </div>
       </div>

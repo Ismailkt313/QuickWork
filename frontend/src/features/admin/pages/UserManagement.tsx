@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { getUsers, toggleBlockUser, getUserById } from "../services/adminApi";
-import type { IUserListItem } from "../services/adminApi";
+import type { IUserListItem } from "../types/admin.types";
 import UserDetailModal from "../components/UserDetailModal";
 import { ROLES } from "../../../constants/roles";
+import axios from "axios";
 
 interface ToastItem {
   id: number;
@@ -38,7 +39,7 @@ const UserManagement = () => {
     loading: false,
   });
 
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<IUserListItem | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [fetchingDetail, setFetchingDetail] = useState(false);
 
@@ -105,32 +106,44 @@ const UserManagement = () => {
   };
 
   const executeBlock = async () => {
+    const targetId = confirmState.userId;
+    const wasBlocked = confirmState.isBlocked;
+    
     setConfirmState((prev) => ({ ...prev, loading: true }));
-    const action = confirmState.isBlocked ? "unblocked" : "blocked";
+    const action = wasBlocked ? "unblocked" : "blocked";
+    
     try {
-      await toggleBlockUser(confirmState.userId);
-      await fetchUsers();
+      await toggleBlockUser(targetId);
+      
+      setUsers((prevUsers) => 
+        prevUsers.map((user) => 
+          (user.id === targetId || user._id === targetId)
+            ? { ...user, isBlocked: !wasBlocked }
+            : user
+        )
+      );
 
       if (
         selectedUser &&
-        (selectedUser._id === confirmState.userId ||
-          selectedUser.id === confirmState.userId)
+        (selectedUser._id === targetId || selectedUser.id === targetId)
       ) {
-        setSelectedUser((prev: any) => ({
-          ...prev,
-          isBlocked: !prev.isBlocked,
-        }));
+        setSelectedUser((prev) => 
+          prev ? { ...prev, isBlocked: !wasBlocked } : null
+        );
       }
 
       showToast(
         "success",
         `User ${confirmState.userName} has been ${action} successfully.`,
       );
-    } catch (error: any) {
-      const msg =
-        error?.response?.data?.message ||
-        `Failed to ${confirmState.isBlocked ? "unblock" : "block"} user.`;
-      console.error("Block/Unblock error:", error?.response?.data || error);
+    } catch (error) {
+      let msg = `Failed to ${wasBlocked ? "unblock" : "block"} user.`;
+      if (axios.isAxiosError(error)) {
+        msg = error.response?.data?.message || msg;
+        console.error("Block/Unblock error:", error.response?.data || error);
+      } else {
+        console.error("Block/Unblock error:", error);
+      }
       showToast("error", msg);
     } finally {
       setConfirmState({
@@ -143,7 +156,10 @@ const UserManagement = () => {
     }
   };
 
-  const getTrustScore = () => Math.floor(Math.random() * 60) + 30;
+  const getStableTrustScore = (userId: string) => {
+    const hash = userId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return (hash % 60) + 30;
+  };
 
   const getTrustLevel = (score: number) => {
     if (score >= 70) return "high";
@@ -171,11 +187,12 @@ const UserManagement = () => {
       } else {
         showToast("error", "Failed to fetch user details.");
       }
-    } catch (error: any) {
-      showToast(
-        "error",
-        error?.response?.data?.message || "Error fetching details.",
-      );
+    } catch (error) {
+      let msg = "Error fetching details.";
+      if (axios.isAxiosError(error)) {
+        msg = error.response?.data?.message || msg;
+      }
+      showToast("error", msg);
     } finally {
       setFetchingDetail(false);
     }
@@ -362,7 +379,7 @@ const UserManagement = () => {
               <tbody>
                 {users &&
                   users.map((user) => {
-                    const score = getTrustScore();
+                    const score = getStableTrustScore(user.id || user._id || "");
                     const level = getTrustLevel(score);
                     return (
                       <tr key={user.id}>

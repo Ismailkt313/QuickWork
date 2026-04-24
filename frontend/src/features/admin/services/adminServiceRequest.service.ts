@@ -1,5 +1,7 @@
 import { Adminapi } from "./adminApi";
 import { SKILL_STATUS } from "../../../constants/skill";
+import type { IApiResponse } from "../../../types/api.types";
+import axios from "axios";
 
 export interface ServiceRequest {
   _id: string;
@@ -21,7 +23,7 @@ export const getPendingServiceRequests = async (): Promise<
   ServiceRequest[]
 > => {
   try {
-    const response = await Adminapi.get("/admin/service-requests");
+    const response = await Adminapi.get<IApiResponse<ServiceRequest[]>>("/admin/service-requests");
     return response.data.data;
   } catch (error) {
     throw error;
@@ -38,10 +40,13 @@ export const approveServiceRequest = async (
       { notes },
     );
     return response.data;
-  } catch (error: any) {
-    throw new Error(
-      error.response?.data?.message || "Failed to approve request",
-    );
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message || "Failed to approve request",
+      );
+    }
+    throw error;
   }
 };
 
@@ -55,9 +60,12 @@ export const rejectServiceRequest = async (
       { rejectionReason },
     );
     return response.data;
-  } catch (error: any) {
-    throw new Error(
-      error.response?.data?.message || "Failed to reject request",
-    );
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message || "Failed to reject request",
+      );
+    }
+    throw error;
   }
 };

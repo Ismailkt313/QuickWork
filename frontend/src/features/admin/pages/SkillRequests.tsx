@@ -93,8 +93,9 @@ const SkillRequests: React.FC = () => {
       } else {
         showToast("error", result.message || "Failed to approve skill.");
       }
-    } catch (error: any) {
-      showToast("error", error.message || "Failed to approve skill.");
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Failed to approve skill.";
+      showToast("error", msg);
     } finally {
       setModal({ mode: null, requestId: "", requestName: "", loading: false });
     }
@@ -107,8 +108,9 @@ const SkillRequests: React.FC = () => {
       await rejectServiceRequest(modal.requestId, rejectionReason.trim());
       setRequests((prev) => prev.filter((r) => r._id !== modal.requestId));
       showToast("success", `Skill "${modal.requestName}" has been rejected.`);
-    } catch (error: any) {
-      showToast("error", error.message || "Failed to reject skill.");
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Failed to reject skill.";
+      showToast("error", msg);
     } finally {
       setModal({ mode: null, requestId: "", requestName: "", loading: false });
       setRejectionReason("");

@@ -1,31 +1,11 @@
 import React, { useEffect } from "react";
+import type { IServiceProviderDetails } from "../types/admin.types";
+import { VERIFICATION_STATUS } from "../../../constants/verification";
 
-interface ProviderDetails {
-  _id: string;
-  userId: {
-    _id: string;
-    name: string;
-    email: string;
-    phone: string;
-  };
-  headline: string;
-  about: string;
-  profileImage: string;
-  skills: { _id: string; name: string }[];
-  yearsOfExperience: number;
-  hourlyRate: number;
-  location: { _id: string; name: string };
-  verification: {
-    status: string;
-    verifiedAt?: string;
-    rejectionReason?: string;
-  };
-  isActive: boolean;
-  submittedAt: string;
-}
+// Removed local ProviderDetails in favor of IServiceProviderDetails
 
 interface ProviderProfileModalProps {
-  provider: ProviderDetails;
+  provider: IServiceProviderDetails;
   onClose: () => void;
 }
 
@@ -153,7 +133,7 @@ const ProviderProfileModal: React.FC<ProviderProfileModalProps> = ({
                   fontWeight: 600,
                   textTransform: "uppercase",
                   background:
-                    provider.verification.status === "VERIFIED"
+                    provider.verification.status === VERIFICATION_STATUS.VERIFIED
                       ? "#059669"
                       : "#d97706",
                 }}
