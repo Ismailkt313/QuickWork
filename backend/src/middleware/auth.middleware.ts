@@ -1,15 +1,19 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyAccessToken } from "../utils/jwt.util";
-import { ITokenPayload } from "../modules/auth/interfaces/auth.interface";
 import { AppError } from "../utils/AppError";
 import { UserModel } from "../modules/auth/models/user.model";
 import { HttpStatusCode } from "../constants/httpStatusCode";
+import { ITokenPayload } from "../modules/auth/interfaces/auth.interface";
 
+/* eslint-disable @typescript-eslint/no-namespace */
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 declare global {
     namespace Express {
         interface User extends ITokenPayload { }
     }
 }
+/* eslint-enable @typescript-eslint/no-namespace */
+/* eslint-enable @typescript-eslint/no-empty-object-type */
 
 export const authMiddleware = async (
     req: Request,

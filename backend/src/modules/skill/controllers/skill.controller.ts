@@ -46,7 +46,7 @@ export class SkillController implements ISkillController {
             const result = await this.skillService.getMySkills(userId)
             res.status(HttpStatusCode.OK).json(result)
         } catch (error) {
-
+            next(error);
         }
     }
 

@@ -1,4 +1,4 @@
-import mongoose, { Types } from 'mongoose';
+import { Types } from 'mongoose';
 import { ISkillRepository } from '../../skill/interfaces/skill.interface';
 import { IServiceProviderRepository } from '../../serviceProvider/interfaces/serviceProvider.interface';
 import { CreateServiceRequestDTO } from '../dtos/createServiceRequest.dto';
@@ -6,10 +6,10 @@ import { RejectServiceRequestDTO } from '../dtos/rejectServiceRequest.dto';
 import { IServiceRequest, IServiceRequestService, IServiceRequestRepository } from '../interfaces/serviceRequest.interface';
 import { generateSlug } from '../../../utils/slug.util';
 import { SKILL_STATUS } from '../../../constants/skill';
-import { AppError } from '../../../utils/AppError';
-import { HttpStatusCode } from '../../../constants/httpStatusCode';
 import { SuccessMessages } from '../../../constants/messages/successMessages';
 import { ErrorMessages } from '../../../constants/messages/errorMessages';
+import { logger } from '../../../utils/logger';
+
 
 export class ServiceRequestService implements IServiceRequestService {
     private serviceRequestRepository: IServiceRequestRepository;
@@ -91,7 +91,8 @@ export class ServiceRequestService implements IServiceRequestService {
           if (error.code === 11000) {
             skill = await this.skillRepository.findBySlug(request.slug);
           } else {
-            console.error('Failed to create skill during approval:', error);
+            logger.error({ error, requestId, slug: request.slug }, "Failed to create skill during approval");
+
             throw error;
           }
         }

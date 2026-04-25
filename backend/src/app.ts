@@ -4,6 +4,7 @@ import passport from "./config/passport";
 import { registerdRoutes } from "./routes";
 import { errorHandler } from "./middleware/errorHandler";
 import { config } from "./config/index";
+import { loggerMiddleware } from "./middleware/logger.middleware";
 
 const app: Application = express();
 
@@ -12,7 +13,8 @@ const allowedOrigins = [
   config.VERCEL_URL
 ];
 
-console.log('here')
+app.use(loggerMiddleware);
+
 
 app.use(cors({
   origin: (origin, callback) => {

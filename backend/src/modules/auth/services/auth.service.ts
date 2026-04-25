@@ -39,7 +39,9 @@ import { SuccessMessages } from "../../../constants/messages/successMessages";
 import { ErrorMessages } from "../../../constants/messages/errorMessages";
 import { HttpStatusCode } from "../../../constants/httpStatusCode";
 import { UploadService } from "../../upload/services/upload.service";
+import { logger } from "../../../utils/logger";
 
+ 
 export class AuthService implements IAuthService {
     private readonly authRepository: IAuthRepository;
     private readonly otpRepository: IOtpRepository;
@@ -148,6 +150,7 @@ export class AuthService implements IAuthService {
 
         const isPasswordValid = await bcrypt.compare(input.password, user.hashedPassword);
         if (!isPasswordValid) {
+            logger.warn({ email: input.email, action: "login_attempt", status: "failed", reason: "invalid_password" }, "Login failed: Invalid password");
             throw new AppError(ErrorMessages.INVALID_CREDENTIALS, HttpStatusCode.BAD_REQUEST);
         }
 
@@ -158,6 +161,8 @@ export class AuthService implements IAuthService {
 
         const accessToken = generateAccessToken(tokenPayload);
         const refreshToken = generateRefreshToken(tokenPayload);
+
+        logger.info({ userId: user._id, email: user.email, action: "login_success", role: user.role }, "User logged in successfully");
 
         return {
             success: true,
@@ -340,8 +345,9 @@ export class AuthService implements IAuthService {
             try {
                 await this.uploadService.deleteImage(currentUser.profileImage.public_id);
             } catch (error) {
-                console.error('Failed to delete old profile image:', error);
+                logger.error({ error, publicId: currentUser.profileImage.public_id }, "Failed to delete old profile image");
             }
+
         }
 
         const user = await this.authRepository.updateUser(userId, data as any);
@@ -352,7 +358,11 @@ export class AuthService implements IAuthService {
     }
 
     public async changePassword(userId: string, data: IChangePasswordInput): Promise<void> {
-        const user = await this.authRepository.findByEmailWithPassword((await this.authRepository.findById(userId))?.email!);
+        const existingUser = await this.authRepository.findById(userId);
+        if (!existingUser) {
+            throw new AppError(ErrorMessages.USER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
+        }
+        const user = await this.authRepository.findByEmailWithPassword(existingUser.email);
         if (!user || !user.hashedPassword) {
             throw new AppError(ErrorMessages.USER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
         }

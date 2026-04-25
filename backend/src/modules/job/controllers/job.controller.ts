@@ -4,6 +4,7 @@ import { AppError } from '../../../utils/AppError';
 import { IJobController, IJobService } from '../interfaces/job.interface';
 import { mapProviderToResponseDTO } from '../../serviceProvider/dtos/providerResponse.dto';
 import {HttpStatusCode} from "../../../constants/httpStatusCode"
+import { AssignmentModel } from '../../assignment/models/assignment.model';
 
 
 export class JobController implements IJobController {
@@ -12,7 +13,6 @@ export class JobController implements IJobController {
     constructor(jobService: IJobService) {
         this.jobService = jobService;
     }
-
     createJob = async (req: Request, res: Response, next: any): Promise<void> => {
         try {
             const userId = req.user?.userId;
@@ -176,7 +176,6 @@ export class JobController implements IJobController {
             if (!userId) throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
 
             const jobId = req.params.jobId as string;
-            const { AssignmentModel } = require('../../assignment/models/assignment.model');
             const assignments = await AssignmentModel.find({ jobId })
                 .populate({
                     path: 'freelancerId',

@@ -22,7 +22,8 @@ export class MessageController implements IMessageController {
                 res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
                 return;
             }
-            console.log("SENDER ID: ", req.body);
+            (req as any).log.debug({ body: req.body }, "Creating new message");
+
             const dto = CreateMessageDto.create(req.body);
 
             const result = await this.messageService.createMessage({
@@ -47,7 +48,8 @@ export class MessageController implements IMessageController {
                 data: result
             });
         } catch (error: any) {
-            console.error("ERROR AT Controller.createMessage:", error.message);
+            (req as any).log.error({ error: error.message }, "Error in createMessage");
+
             res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     }
@@ -66,14 +68,16 @@ export class MessageController implements IMessageController {
             const userId = (req as any).user?.userId || (req as any).user?._id;
             
             if (!userId) {
-                console.error("DEBUG: No userId found in req.user");
+                (req as any).log.warn("No userId found in req.user");
+
                 res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
                 return;
             }
             const result = await this.messageService.getConversations(userId);
             res.status(HttpStatusCode.OK).json({ success: true, data: result });
         } catch (error: any) {
-            console.error("ERROR AT Controller.getConversations:", error);
+            (req as any).log.error({ error: error.message }, "Error in getConversations");
+
             res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     }

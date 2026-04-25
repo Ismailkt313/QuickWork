@@ -10,6 +10,8 @@ import { SuccessMessages } from "../../../constants/messages/successMessages";
 import { ErrorMessages } from "../../../constants/messages/errorMessages";
 import { IApiResponse } from "../../../types/api.types";
 import { IUser } from "../../auth/interfaces/auth.interface";
+import { logger } from "../../../utils/logger";
+
 
 export class AdminService implements IAdminService {
     private readonly adminRepository: IAdminRepository;
@@ -48,12 +50,14 @@ export class AdminService implements IAdminService {
 
     public async toggleBlockUser(userId: string): Promise<IApiResponse<{ isBlocked: boolean }>> {
         const user = await this.adminRepository.toggleBlockUser(userId);
+        logger.info({ userId, action: user.isBlocked ? "user_blocked" : "user_unblocked" }, `User ${user.isBlocked ? "blocked" : "unblocked"} successfully`);
         return {
             success: true,
             message: user.isBlocked ? SuccessMessages.USER_BLOCKED : SuccessMessages.USER_UNBLOCKED,
             data: { isBlocked: user.isBlocked },
         };
     }
+
     
     public async getPendingProviders(): Promise<IUserListResponse> {
         const providers = await this.adminRepository.getPendingProviders();
@@ -79,6 +83,7 @@ export class AdminService implements IAdminService {
 
     public async approveProvider(providerId: string): Promise<IApiResponse<void>> {
         await this.adminRepository.approveProvider(providerId);
+        logger.info({ providerId, action: "provider_approved" }, "Provider approved successfully");
         return {
             success: true,
             message: SuccessMessages.PROVIDER_APPROVED,
@@ -86,14 +91,17 @@ export class AdminService implements IAdminService {
         };
     }
 
+
     public async rejectProvider(providerId: string, reason: string): Promise<IApiResponse<void>> {
         await this.adminRepository.rejectProvider(providerId, reason);
+        logger.info({ providerId, reason, action: "provider_rejected" }, "Provider rejected successfully");
         return {
             success: true,
             message: SuccessMessages.PROVIDER_REJECTED,
             data: undefined as unknown as void,
         };
     }
+
 
     public async getProviderDetails(providerId: string): Promise<IApiResponse<IServiceProviderDetails>> {
         const provider = await this.adminRepository.getProviderDetails(providerId);

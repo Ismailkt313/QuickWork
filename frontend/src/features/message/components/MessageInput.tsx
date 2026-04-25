@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { RiSendPlane2Fill, RiImage2Line, RiCloseLine, RiLoader4Line } from "react-icons/ri";
-import { uploadToCloudinary } from "../../../utils/cloudinary";
 import { toast } from "react-toastify";
+import { apiClient } from "../../../services/api/apiClient";
 
 interface MessageInputProps {
   onSend: (text: string, imageUrl?: string) => void;
@@ -43,8 +43,17 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     if (selectedFile) {
       setIsUploading(true);
       try {
-        const uploadResult = await uploadToCloudinary(selectedFile, "quickwork/chat-images");
-        imageUrl = uploadResult.secure_url;
+        const formData = new FormData();
+        formData.append("image", selectedFile);
+        
+        // This calls our backend, which is now configured to upload to S3
+        const response = await apiClient.post("/upload/chat-image", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        
+        imageUrl = response.data.data.imageUrl;
       } catch (error) {
         console.error("Image upload failed:", error);
         toast.error("Failed to upload image");

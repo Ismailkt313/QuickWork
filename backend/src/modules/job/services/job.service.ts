@@ -7,7 +7,6 @@ import { IServiceProviderRepository } from '../../serviceProvider/interfaces/ser
 import { IAssignmentService } from '../../assignment/interfaces/assignment.interface';
 import { JOB_STATUS } from '../../../constants/jobStatus';
 import { ASSIGNMENT_STATUS, WORK_STATUS, ASSIGNMENT_TYPE } from '../../../constants/assignment';
-import { JOB_DURATION_TYPE } from '../../../constants/jobDuration';
 import { JOB_VISIBILITY } from '../../../constants/jobVisibility';
 import { MIN_JOB_WAGE } from '../../../constants/job';
 import { SuccessMessages } from '../../../constants/messages/successMessages';

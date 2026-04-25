@@ -675,9 +675,8 @@ const AvailableJobsPage: React.FC = () => {
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`qw-page-btn ${
-                      page === currentPage ? "active" : ""
-                    }`}
+                    className={`qw-page-btn ${page === currentPage ? "active" : ""
+                      }`}
                   >
                     {page}
                   </button>
@@ -760,9 +759,9 @@ const AvailableJobsPage: React.FC = () => {
         primaryAction={
           actionError.title === "Schedule Conflict"
             ? {
-                label: "View My Schedule",
-                onClick: () => navigate("/provider/my-jobs"),
-              }
+              label: "View My Schedule",
+              onClick: () => navigate("/provider/my-jobs"),
+            }
             : undefined
         }
       />

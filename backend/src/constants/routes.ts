@@ -1,5 +1,6 @@
 export const API_ROUTES = {
-  BASE: "/api",
+  BASE: "/api/v1",
+
   AUTH: "/auth",
   ADMIN: "/admin",
   PROVIDER: "/provider",

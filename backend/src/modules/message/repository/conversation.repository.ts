@@ -1,6 +1,7 @@
 import { IConversation, IConversationResponse, IConversationRepository } from "../interface/message.interface";
 import { Conversation } from "../modals/conversation.modal";
 import { Message } from "../modals/message.modals";
+import { logger } from "../../../utils/logger";
 
 export class ConversationRepository implements IConversationRepository {
     async createConversation(conversation: IConversation): Promise<IConversationResponse> {
@@ -17,10 +18,11 @@ export class ConversationRepository implements IConversationRepository {
             
             return conversations.map(c => c.toObject() as unknown as IConversationResponse);
         } catch (error: any) {
-            console.error("ERROR AT Repo.getConversations:", error);
+            logger.error({ error, userId }, "Error fetching conversations in repository");
             throw error;
         }
     }
+
 
     async getConversation(conversationId: string): Promise<IConversationResponse | null> {
         const conversation = await Conversation.findById(conversationId);

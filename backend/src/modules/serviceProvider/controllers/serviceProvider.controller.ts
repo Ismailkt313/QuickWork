@@ -5,7 +5,6 @@ import { AppError } from '../../../utils/AppError';
 import { mapProviderToResponseDTO } from '../dtos/providerResponse.dto';
 import { UpdateProviderDTO } from '../dtos/updateProvider.dto';
 import { HttpStatusCode } from "../../../constants/httpStatusCode"
-import { SuccessMessages } from "../../../constants/messages/successMessages";
 import { ErrorMessages } from "../../../constants/messages/errorMessages";
 
 

@@ -1,4 +1,5 @@
 import { IConversationResponse, IMessageResponse } from "../interface/message.interface";
+import { logger } from "../../../utils/logger";
 
 export interface MessageResponseDTO {
     id: string;
@@ -38,7 +39,7 @@ export interface ConversationResponseDTO {
 export const mapConversationToResponseDTO = (conversation: IConversationResponse): ConversationResponseDTO => {
     try {
         if (!conversation) {
-            console.error("DEBUG: mapConversationToResponseDTO received null/undefined conversation");
+            logger.warn("mapConversationToResponseDTO received null/undefined conversation");
             return { id: "", participants: [], lastMessage: "", lastMessageAt: new Date(), createdAt: new Date(), updatedAt: new Date() };
         }
 
@@ -62,7 +63,8 @@ export const mapConversationToResponseDTO = (conversation: IConversationResponse
             updatedAt: conversation.updatedAt || new Date(),
         };
     } catch (error: any) {
-        console.error("ERROR AT mapConversationToResponseDTO:", error);
+        logger.error({ error }, "Error in mapConversationToResponseDTO");
         throw error;
     }
 };
+

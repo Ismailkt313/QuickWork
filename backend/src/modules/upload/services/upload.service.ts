@@ -1,22 +1,32 @@
 import cloudinary from '../../../config/cloudinary';
 import { config } from '../../../config';
 import { ErrorMessages } from '../../../constants/messages/errorMessages';
+import { logger } from '../../../utils/logger';
+import { S3Service } from './s3.service';
+import { randomUUID } from 'crypto';
 
 export class UploadService {
-    async uploadProfileImage(fileBuffer: Buffer, mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
+    private s3Service: S3Service;
+
+    constructor() {
+        this.s3Service = new S3Service();
+    }
+
+    async uploadProfileImage(fileBuffer: Buffer, _mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
         return this.uploadImage(fileBuffer, 'quickwork/profile-images');
     }
 
-    async uploadPortfolioImage(fileBuffer: Buffer, mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
+    async uploadPortfolioImage(fileBuffer: Buffer, _mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
         return this.uploadImage(fileBuffer, 'quickwork/portfolio-images');
     }
 
-    async uploadAssignmentProof(fileBuffer: Buffer, mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
+    async uploadAssignmentProof(fileBuffer: Buffer, _mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
         return this.uploadImage(fileBuffer, 'quickwork/assignment-proofs');
     }
 
     async uploadChatMessage(fileBuffer: Buffer, mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
-        return this.uploadImage(fileBuffer, 'quickwork/chat-images');
+        const fileName = `chat/${randomUUID()}-${Date.now()}`;
+        return this.s3Service.uploadFile(fileBuffer, fileName, mimetype);
     }
 
     private uploadImage(fileBuffer: Buffer, folder: string): Promise<{ imageUrl: string, publicId: string }> {
@@ -28,9 +38,11 @@ export class UploadService {
                 },
                 (error, result) => {
                     if (error) {
+                        logger.error({ error, folder }, "Cloudinary Upload Failed");
                         return reject(new Error(ErrorMessages.FILE_UPLOAD_FAILED));
                     }
                     if (result) {
+                        logger.info({ publicId: result.public_id, folder }, "File uploaded to Cloudinary successfully");
                         resolve({
                             imageUrl: result.secure_url,
                             publicId: result.public_id
@@ -45,9 +57,10 @@ export class UploadService {
         });
     }
 
+
     async getUploadSignature(folder: string = 'quickwork/general') {
         const timestamp = Math.round(new Date().getTime() / 1000);
-        
+
         const paramsToSign = {
             timestamp,
             folder,
@@ -68,9 +81,15 @@ export class UploadService {
     }
 
     async deleteImage(publicId: string): Promise<any> {
+        // Smart routing for deletion
+        if (publicId.includes('/') && !publicId.startsWith('quickwork')) {
+            return this.s3Service.deleteFile(publicId);
+        }
+
         return new Promise((resolve, reject) => {
             cloudinary.uploader.destroy(publicId, (error, result) => {
                 if (error) {
+                    logger.error({ error, publicId }, "Cloudinary Deletion Failed");
                     return reject(new Error(ErrorMessages.INTERNAL_SERVER_ERROR));
                 }
                 resolve(result);
@@ -78,3 +97,4 @@ export class UploadService {
         });
     }
 }
+
