@@ -10,6 +10,8 @@ import { landingRouter } from "./modules/landing";
 import { jobRouter } from "./modules/job";
 import { assignmentRouter } from "./modules/assignment";
 import messageRouter from "./modules/message";
+import { reviewRouter } from "./modules/review";
+import { reportRouter } from "./modules/report";
 import { API_ROUTES } from "./constants/routes";
 
 export const registerdRoutes = (app: Application) => {
@@ -26,4 +28,6 @@ export const registerdRoutes = (app: Application) => {
     app.use(BASE_URL + API_ROUTES.JOB, jobRouter);
     app.use(BASE_URL + API_ROUTES.ASSIGNMENT, assignmentRouter);
     app.use(BASE_URL + API_ROUTES.MESSAGES, messageRouter);
+    app.use(BASE_URL + API_ROUTES.REVIEW, reviewRouter);
+    app.use(BASE_URL + API_ROUTES.REPORT, reportRouter);
 }
