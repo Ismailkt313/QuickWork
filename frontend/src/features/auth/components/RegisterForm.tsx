@@ -139,7 +139,7 @@ const RegisterForm = ({ mode }: RegisterFormProps) => {
       <button
         type="button"
         className="btn auth-btn-google w-100 d-flex align-items-center justify-content-center gap-2"
-        onClick={() => (window.location.href = `${apiUrl}/api/auth/google`)}
+        onClick={() => (window.location.href = `${apiUrl}/api/v1/auth/google`)}
       >
         <svg width="18" height="18" viewBox="0 0 48 48">
           <path

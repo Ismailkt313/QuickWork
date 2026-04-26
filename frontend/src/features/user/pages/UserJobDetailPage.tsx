@@ -5,8 +5,13 @@ import {
   getJobAssignments,
   cancelAssignmentByClient,
   reportAbsence,
+  submitReview,
+  submitReport,
 } from "../services/userJob.service";
-import { toast } from "react-hot-toast";
+import ReviewModal from "../components/ReviewModal";
+import ReportIssueModal from "../components/ReportIssueModal";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import {
   RiArrowLeftLine,
   RiMapPinLine,
@@ -16,8 +21,9 @@ import {
   RiMessage2Line,
   RiLoader4Line,
   RiErrorWarningLine,
-//   RiCloseLine,
   RiUserUnfollowLine,
+  RiStarLine,
+  RiFlagLine,
 } from "react-icons/ri";
 import CancellationModal from "../../provider/components/CancellationModal";
 import ReportAbsenceModal from "../../provider/components/ReportAbsenceModal";
@@ -31,6 +37,9 @@ const UserJobDetailPage: React.FC = () => {
   const [isAbsenceModalOpen, setIsAbsenceModalOpen] = useState(false);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
   const [selectedProviderName, setSelectedProviderName] = useState<string>("");
+  const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -70,6 +79,51 @@ const UserJobDetailPage: React.FC = () => {
     } finally {
       setLoading(false);
       setSelectedAssignmentId(null);
+    }
+  };
+
+  const handleReviewSubmit = async (rating: number, comment: string, images: string[]) => {
+    if (!selectedAssignmentId || !selectedProviderId) return;
+    try {
+      setLoading(true);
+      const response = await submitReview({
+        assignmentId: selectedAssignmentId,
+        revieweeId: selectedProviderId,
+        rating,
+        comment,
+        images,
+        role: "client_to_provider",
+      });
+      console.log(response,"Review submitted successfully");
+
+      toast.success(response.message || "Review submitted successfully");
+      fetchData();
+    } catch (error: any) {
+      console.error("Review Error:", error);
+      toast.error(error.message || "An unexpected error occurred during review");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReportSubmit = async (reason: string, description: string, images: string[]) => {
+    if (!selectedAssignmentId || !selectedProviderId) return;
+    try {
+      setLoading(true);
+      const response = await submitReport({
+        assignmentId: selectedAssignmentId,
+        reportedUserId: selectedProviderId,
+        reason,
+        description,
+        images,
+        role: "client_to_provider",
+      });
+      toast.success(response.message || "Report submitted successfully");
+    } catch (error: any) {
+      console.error("Report Error:", error);
+      toast.error(error.message || "An unexpected error occurred during report");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -346,16 +400,43 @@ const UserJobDetailPage: React.FC = () => {
                   }}
                   className="shadow-sm border border-4 border-white"
                 />
-                <div className="flex-grow-1">
-                  <h4 className="fw-bold mb-1 text-dark">
-                    {job.hiredProvider.name}
-                  </h4>
-                  <p className="text-muted mb-0">
-                    {job.hiredProvider.headline}
-                  </p>
+                  <div className="flex-grow-1">
+                    <h4 className="fw-bold mb-1 text-dark">
+                      {job.hiredProvider.name}
+                    </h4>
+                    <p className="text-muted mb-0">
+                      {job.hiredProvider.headline}
+                    </p>
+                  </div>
+                  <div className="d-flex align-items-center gap-2">
+                    {job.hiredProvider.workStatus === "completed" && (
+                      <>
+                        <button
+                          className="btn btn-primary rounded-pill px-4 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm transition-all"
+                          onClick={() => {
+                            setSelectedAssignmentId(job.hiredProvider.assignmentId);
+                            setSelectedProviderId(job.hiredProvider.userId);
+                            setSelectedProviderName(job.hiredProvider.name);
+                            setIsReviewModalOpen(true);
+                          }}
+                        >
+                          <RiStarLine /> Review
+                        </button>
+                        <button
+                          className="btn btn-outline-danger rounded-pill px-4 py-2 fw-bold d-flex align-items-center gap-2 transition-all"
+                          onClick={() => {
+                            setSelectedAssignmentId(job.hiredProvider.assignmentId);
+                            setSelectedProviderId(job.hiredProvider.userId);
+                            setSelectedProviderName(job.hiredProvider.name);
+                            setIsReportModalOpen(true);
+                          }}
+                        >
+                          <RiFlagLine /> Report Issue
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
-                
-              </div>
             </div>
           </div>
         ) : (
@@ -413,41 +494,69 @@ const UserJobDetailPage: React.FC = () => {
                     </p>
                   </div>
                 </div>
-                <div className="d-flex align-items-center gap-2">
-                  <button
-                    className="btn btn-outline-dark rounded-circle p-3 d-flex align-items-center justify-content-center hover-bg-dark transition-all"
-                    title="Text Provider"
-                    onClick={() => handleTextProvider(assignment.provider.name)}
-                  >
-                    <RiMessage2Line size={20} />
-                  </button>
-                  {assignment.workStatus !== "completed" &&
-                    assignment.workStatus !== "cancelled" && (
+                  <div className="d-flex align-items-center gap-2">
+                    <button
+                      className="btn btn-outline-dark rounded-circle p-3 d-flex align-items-center justify-content-center hover-bg-dark transition-all"
+                      title="Text Provider"
+                      onClick={() => handleTextProvider(assignment.provider.name)}
+                    >
+                      <RiMessage2Line size={20} />
+                    </button>
+                    {assignment.workStatus === "completed" && (
                       <>
                         <button
-                          className="btn btn-outline-warning rounded-circle p-3 d-flex align-items-center justify-content-center transition-all"
-                          title="Report Absence"
+                          className="btn btn-outline-primary rounded-circle p-3 d-flex align-items-center justify-content-center transition-all"
+                          title="Review Provider"
                           onClick={() => {
                             setSelectedAssignmentId(assignment.assignmentId);
+                            setSelectedProviderId(assignment.provider.userId);
                             setSelectedProviderName(assignment.provider.name);
-                            setIsAbsenceModalOpen(true);
+                            setIsReviewModalOpen(true);
                           }}
                         >
-                          <RiErrorWarningLine size={20} />
+                          <RiStarLine size={20} />
                         </button>
                         <button
                           className="btn btn-outline-danger rounded-circle p-3 d-flex align-items-center justify-content-center transition-all"
-                          title="Cancel Assignment"
+                          title="Report Issue"
                           onClick={() => {
                             setSelectedAssignmentId(assignment.assignmentId);
-                            setIsCancelModalOpen(true);
+                            setSelectedProviderId(assignment.provider.userId);
+                            setSelectedProviderName(assignment.provider.name);
+                            setIsReportModalOpen(true);
                           }}
                         >
-                          <RiUserUnfollowLine size={20} />
+                          <RiFlagLine size={20} />
                         </button>
                       </>
                     )}
-                </div>
+                    {assignment.workStatus !== "completed" &&
+                      assignment.workStatus !== "cancelled" && (
+                        <>
+                          <button
+                            className="btn btn-outline-warning rounded-circle p-3 d-flex align-items-center justify-content-center transition-all"
+                            title="Report Absence"
+                            onClick={() => {
+                              setSelectedAssignmentId(assignment.assignmentId);
+                              setSelectedProviderName(assignment.provider.name);
+                              setIsAbsenceModalOpen(true);
+                            }}
+                          >
+                            <RiErrorWarningLine size={20} />
+                          </button>
+                          <button
+                            className="btn btn-outline-danger rounded-circle p-3 d-flex align-items-center justify-content-center transition-all"
+                            title="Cancel Assignment"
+                            onClick={() => {
+                              setSelectedAssignmentId(assignment.assignmentId);
+                              setIsCancelModalOpen(true);
+                            }}
+                          >
+                            <RiUserUnfollowLine size={20} />
+                          </button>
+                        </>
+                      )}
+                  </div>
               </div>
             </div>
           ))}
@@ -478,6 +587,28 @@ const UserJobDetailPage: React.FC = () => {
           setSelectedAssignmentId(null);
         }}
         onSubmit={handleReportAbsence}
+        providerName={selectedProviderName}
+      />
+
+      <ReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={() => {
+          setIsReviewModalOpen(false);
+          setSelectedAssignmentId(null);
+          setSelectedProviderId(null);
+        }}
+        onSubmit={handleReviewSubmit}
+        providerName={selectedProviderName}
+      />
+
+      <ReportIssueModal
+        isOpen={isReportModalOpen}
+        onClose={() => {
+          setIsReportModalOpen(false);
+          setSelectedAssignmentId(null);
+          setSelectedProviderId(null);
+        }}
+        onSubmit={handleReportSubmit}
         providerName={selectedProviderName}
       />
 

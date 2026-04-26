@@ -280,3 +280,35 @@ export const cancelAssignmentByProvider = async (
     );
   }
 };
+
+export const submitReview = async (reviewData: {
+  assignmentId: string;
+  revieweeId: string;
+  rating: number;
+  comment: string;
+  images?: string[];
+  role: "client_to_provider" | "provider_to_client";
+}) => {
+  try {
+    const response = await api.post("/review", reviewData);
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Failed to submit review");
+  }
+};
+
+export const submitReport = async (reportData: {
+  assignmentId: string;
+  reportedUserId: string;
+  reason: string;
+  description: string;
+  images: string[];
+  role: "client_to_provider" | "provider_to_client";
+}) => {
+  try {
+    const response = await api.post("/report", reportData);
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Failed to submit report");
+  }
+};

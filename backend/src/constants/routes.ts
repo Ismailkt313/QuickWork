@@ -1,6 +1,5 @@
 export const API_ROUTES = {
   BASE: "/api/v1",
-
   AUTH: "/auth",
   ADMIN: "/admin",
   PROVIDER: "/provider",
@@ -12,4 +11,6 @@ export const API_ROUTES = {
   JOB: "/job",
   ASSIGNMENT: "/assignment",
   MESSAGES: "/messages",
+  REVIEW: "/review",
+  REPORT: "/report",
 };

@@ -43,28 +43,28 @@ export const mapAssignmentToResponseDTO = async (assignment: any): Promise<Assig
         workStatus: assignment.workStatus,
         type: assignment.type,
         schedule: {
-            startDate: assignment.schedule ? formatDate(assignment.schedule.startDate) : '',
-            endDate: assignment.schedule ? formatDate(assignment.schedule.endDate) : '',
+            startDate: assignment.schedule?.startDate ? assignment.schedule.startDate.toISOString() : '',
+            endDate: assignment.schedule?.endDate ? assignment.schedule.endDate.toISOString() : '',
         },
-        assignedAt: assignment.assignedAt ? formatDate(assignment.assignedAt) : '',
-        invitedAt: assignment.invite && assignment.invite.invitedAt ? formatDate(assignment.invite.invitedAt) : '',
-        respondedAt: assignment.invite && assignment.invite.respondedAt ? formatDate(assignment.invite.respondedAt) : '',
-        startedAt: assignment.startedAt ? formatDate(assignment.startedAt) : '',
-        completedAt: assignment.completedAt ? formatDate(assignment.completedAt) : '',
+        assignedAt: assignment.assignedAt ? assignment.assignedAt.toISOString() : '',
+        invitedAt: assignment.invite?.invitedAt ? assignment.invite.invitedAt.toISOString() : '',
+        respondedAt: assignment.invite?.respondedAt ? assignment.invite.respondedAt.toISOString() : '',
+        startedAt: assignment.startedAt ? assignment.startedAt.toISOString() : '',
+        completedAt: assignment.completedAt ? assignment.completedAt.toISOString() : '',
         isOutOfDistrict: !!assignment.isOutOfDistrict,
         proof: assignment.proof || [],
         proofDescription: assignment.proofDescription || '',
         coWorkers: assignment.coWorkers || [],
         cancellation: assignment.cancellation ? {
             cancelledBy: assignment.cancellation.cancelledBy?.toString() || '',
-            cancelledAt: formatDate(assignment.cancellation.cancelledAt),
+            cancelledAt: assignment.cancellation.cancelledAt ? assignment.cancellation.cancelledAt.toISOString() : '',
             reason: assignment.cancellation.reason,
             isLateCancel: !!assignment.cancellation.isLateCancel,
             notes: assignment.cancellation.notes
         } : undefined,
         absence: assignment.absence ? {
             reportedBy: assignment.absence.reportedBy?.toString() || '',
-            reportedAt: formatDate(assignment.absence.reportedAt),
+            reportedAt: assignment.absence.reportedAt ? assignment.absence.reportedAt.toISOString() : '',
             notes: assignment.absence.notes,
             evidence: assignment.absence.evidence
         } : undefined

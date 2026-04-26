@@ -49,4 +49,6 @@ export const SuccessMessages = {
   SERVICE_REQUEST_PARTIAL_SUCCESS: "Skill approved globally, but requesting provider profile was not found.",
   PROVIDER_DETAILS_FETCHED: "Provider details fetched successfully",
   USER_FETCHED: "User fetched successfully",
+  REVIEW_CREATED: "Review created successfully",
+  REVIEWS_FETCHED: "Reviews fetched successfully",
 };
