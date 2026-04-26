@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { IReport, REPORT_STATUS } from '../interfaces/report.interface';
+import { IReport, REPORT_STATUS, REPORT_ROLE } from '../interfaces/report.interface';
 
 const ReportSchema: Schema = new Schema(
     {
@@ -18,6 +18,11 @@ const ReportSchema: Schema = new Schema(
             ref: 'User', 
             required: true 
         },
+        role: {
+            type: String,
+            enum: Object.values(REPORT_ROLE),
+            required: true
+        },
         reason: { 
             type: String, 
             required: true 
@@ -25,6 +30,9 @@ const ReportSchema: Schema = new Schema(
         description: { 
             type: String 
         },
+        images: [{
+            type: String
+        }],
         status: { 
             type: String, 
             enum: Object.values(REPORT_STATUS), 

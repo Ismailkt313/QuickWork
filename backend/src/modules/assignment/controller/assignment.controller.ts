@@ -188,7 +188,6 @@ export class AssignmentController implements IAssignmentController {
             const userId = req.user?.userId;
             const id = req.params.id as string;
             const { notes, evidence } = req.body;
-
             const updated = await this.assignmentService.reportAbsence(id, userId as string, notes, evidence);
 
             res.status(HttpStatusCode.OK).json({
@@ -197,6 +196,7 @@ export class AssignmentController implements IAssignmentController {
                 data: await mapAssignmentToResponseDTO(updated)
             });
         } catch (error: any) {
+            console.log('error absence', error);
             next(error);
         }
     };

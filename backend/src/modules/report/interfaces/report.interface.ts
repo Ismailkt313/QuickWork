@@ -6,12 +6,19 @@ export enum REPORT_STATUS {
     RESOLVED = 'resolved'
 }
 
+export enum REPORT_ROLE {
+    CLIENT_TO_PROVIDER = 'client_to_provider',
+    PROVIDER_TO_CLIENT = 'provider_to_client'
+}
+
 export interface IReport extends Document {
     assignmentId: Types.ObjectId;
     reporterId: Types.ObjectId;
     reportedUserId: Types.ObjectId;
+    role: REPORT_ROLE;
     reason: string;
     description?: string;
+    images?: string[];
     status: REPORT_STATUS;
     createdAt: Date;
     updatedAt: Date;

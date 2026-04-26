@@ -13,6 +13,8 @@ import {
   RiInformationLine,
   RiAttachmentLine,
   RiCloseLine,
+  RiStarLine,
+  RiErrorWarningLine,
 } from "react-icons/ri";
 import { toast } from "react-toastify";
 import {
@@ -20,7 +22,11 @@ import {
   updateAssignmentStatus,
   submitAssignmentProof,
   cancelAssignmentByProvider,
+  submitReview,
+  submitReport,
 } from "../services/provider.service";
+import ReviewModal from "../components/ReviewModal";
+import ReportIssueModal from "../components/ReportIssueModal";
 import SubmitProofModal from "../components/SubmitProofModal";
 import JobLogModal from "../components/JobLogModal";
 import CancellationModal from "../components/CancellationModal";
@@ -35,6 +41,8 @@ const AssignmentDetailPage: React.FC = () => {
   const [isProofModalOpen, setIsProofModalOpen] = useState(false);
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
   const fetchAssignment = async () => {
@@ -122,6 +130,51 @@ const AssignmentDetailPage: React.FC = () => {
       }
     } catch (error: any) {
       toast.error(error.message || "Failed to cancel assignment");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleReviewSubmit = async (rating: number, comment: string, images: string[]) => {
+    try {
+      setActionLoading(true);
+      const response = await submitReview({
+        assignmentId,
+        revieweeId: job.clientId,
+        rating,
+        comment,
+        images,
+        role: "provider_to_client",
+      });
+      if (response.success) {
+        toast.success(response.message || "Review submitted successfully");
+        fetchAssignment();
+      }
+    } catch (error: any) {
+      console.error("Review Error:", error);
+      toast.error(error.message || "Failed to submit review");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleReportSubmit = async (reason: string, description: string, images: string[]) => {
+    try {
+      setActionLoading(true);
+      const response = await submitReport({
+        assignmentId,
+        reportedUserId: job.clientId,
+        reason,
+        description,
+        images,
+        role: "provider_to_client",
+      });
+      if (response.success) {
+        toast.success(response.message || "Report submitted successfully");
+      }
+    } catch (error: any) {
+      console.error("Report Error:", error);
+      toast.error(error.message || "Failed to submit report");
     } finally {
       setActionLoading(false);
     }
@@ -532,6 +585,20 @@ const AssignmentDetailPage: React.FC = () => {
                   <p className="small text-muted mb-0">
                     Payment verification is pending from the client side.
                   </p>
+                  <div className="d-grid gap-2 mt-4">
+                    <button
+                      className="btn btn-primary py-3 rounded-4 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm"
+                      onClick={() => setIsReviewModalOpen(true)}
+                    >
+                      <RiStarLine size={20} /> Review Client
+                    </button>
+                    <button
+                      className="btn btn-outline-danger py-3 rounded-4 fw-bold d-flex align-items-center justify-content-center gap-2"
+                      onClick={() => setIsReportModalOpen(true)}
+                    >
+                      <RiErrorWarningLine size={20} /> Report Issue
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -574,6 +641,20 @@ const AssignmentDetailPage: React.FC = () => {
           onClose={() => setIsCancelModalOpen(false)}
           onConfirm={handleCancelAssignment}
           type="provider"
+        />
+
+        <ReviewModal
+          isOpen={isReviewModalOpen}
+          onClose={() => setIsReviewModalOpen(false)}
+          onSubmit={handleReviewSubmit}
+          clientName={job.clientName}
+        />
+
+        <ReportIssueModal
+          isOpen={isReportModalOpen}
+          onClose={() => setIsReportModalOpen(false)}
+          onSubmit={handleReportSubmit}
+          clientName={job.clientName}
         />
 
       <style>{`

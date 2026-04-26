@@ -28,7 +28,7 @@ export class ReviewService implements IReviewService {
 
         // 3. Validate job status = COMPLETED
         const job = await JobModel.findById(assignment.jobId);
-        if (!job || job.status !== JOB_STATUS.COMPLETED) {
+        if (!job || assignment.workStatus !== 'completed') {
             throw new AppError("Reviews are only allowed for completed jobs", HttpStatusCode.BAD_REQUEST);
         }
 

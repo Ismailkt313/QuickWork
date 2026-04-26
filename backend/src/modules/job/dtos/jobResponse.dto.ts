@@ -60,6 +60,7 @@ export const mapJobToResponseDTO = async (job: any): Promise<JobResponseDTO> => 
 
     hiredProvider = {
       id: job.hiredProviderId._id?.toString() || job.hiredProviderId.id,
+      userId: job.hiredProviderId.userId?._id?.toString() || job.hiredProviderId.userId?.id || job.hiredProviderId.userId?.toString(),
       name: job.hiredProviderId.userId.name,
       email: job.hiredProviderId.userId.email,
       headline: job.hiredProviderId.headline,

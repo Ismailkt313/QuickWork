@@ -14,21 +14,20 @@ export class ReviewController {
 
     public createReview = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const validationResult = CreateReviewSchema.safeParse(req.body);
+             const validationResult = CreateReviewSchema.safeParse(req.body);
             if (!validationResult.success) {
                 const errorMessage = validationResult.error.issues.map(issue => issue.message).join(', ');
                 throw new AppError(errorMessage, HttpStatusCode.BAD_REQUEST);
             }
-
-            const reviewerId = (req.user as any).userId;
-            const review = await this.reviewService.createReview(reviewerId, validationResult.data);
-
-            res.status(HttpStatusCode.CREATED).json({
+             const reviewerId = (req.user as any).userId;
+             const review = await this.reviewService.createReview(reviewerId, validationResult.data);
+             res.status(HttpStatusCode.CREATED).json({
                 success: true,
                 message: "Review created successfully",
                 data: review
             });
         } catch (error) {
+            console.log("error in review controller",error)
             next(error);
         }
     };
