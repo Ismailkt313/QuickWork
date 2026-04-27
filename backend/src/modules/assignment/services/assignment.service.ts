@@ -4,17 +4,21 @@ import { IJobRepository } from '../../job/interfaces/job.interface';
 import { JOB_STATUS } from '../../../constants/jobStatus';
 import { Types } from 'mongoose';
 import { getObjectId } from '../../../utils/getObjectId';
+import { NotificationService } from '../../notification/services/notification.service';
 
 export class AssignmentService implements IAssignmentService {
     private assignmentRepository: IAssignmentRepository;
     private jobRepository: IJobRepository;
+    private notificationService: NotificationService;
 
     constructor(
         assignmentRepository: IAssignmentRepository,
-        jobRepository: IJobRepository
+        jobRepository: IJobRepository,
+        notificationService: NotificationService
     ) {
         this.assignmentRepository = assignmentRepository;
         this.jobRepository = jobRepository;
+        this.notificationService = notificationService;
     }
 
     async checkOverlap(freelancerId: string, startDate: Date, endDate: Date): Promise<boolean> {
@@ -113,6 +117,18 @@ export class AssignmentService implements IAssignmentService {
         if (updated && status === WORK_STATUS.COMPLETED) {
             const jobId = getObjectId(updated.jobId);
             await this.checkAndCompleteJob(jobId);
+
+            // Send notification to Client
+            const job = await this.jobRepository.findById(jobId);
+            if (job) {
+                await this.notificationService.createNotification({
+                    recipient: (job.userId as any)._id ? (job.userId as any)._id.toString() : job.userId.toString(),
+                    title: 'Work Completed',
+                    message: `A provider has marked their work as completed for: ${job.title}`,
+                    type: 'JOB_STATUS',
+                    link: `/user/jobs/${job._id}`
+                });
+            }
         }
         
         return updated;
@@ -129,6 +145,18 @@ export class AssignmentService implements IAssignmentService {
         if (updated) {
             const jobId = getObjectId(updated.jobId);
             await this.checkAndCompleteJob(jobId);
+
+            // Send notification to Client
+            const job = await this.jobRepository.findById(jobId);
+            if (job) {
+                await this.notificationService.createNotification({
+                    recipient: (job.userId as any)._id ? (job.userId as any)._id.toString() : job.userId.toString(),
+                    title: 'Proof of Work Submitted',
+                    message: `A provider has submitted proof of work for: ${job.title}`,
+                    type: 'PAYMENT', // Usually related to payment release
+                    link: `/user/jobs/${job._id}`
+                });
+            }
         }
 
         return updated;
@@ -191,6 +219,19 @@ export class AssignmentService implements IAssignmentService {
         if (!updated) throw new Error('Failed to update assignment');
 
         await this.handleJobReopening(getObjectId(updated.jobId), providerId);
+
+        // Send notification to Client
+        const jobId = getObjectId(updated.jobId);
+        const job = await this.jobRepository.findById(jobId);
+        if (job) {
+            await this.notificationService.createNotification({
+                recipient: (job.userId as any)._id ? (job.userId as any)._id.toString() : job.userId.toString(),
+                title: 'Assignment Cancelled',
+                message: `A provider has cancelled their assignment for: ${job.title}`,
+                type: 'JOB_STATUS',
+                link: `/user/jobs/${job._id}`
+            });
+        }
 
         return updated;
     }

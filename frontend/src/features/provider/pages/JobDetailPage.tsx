@@ -15,9 +15,10 @@ import ActionErrorModal from "../components/ActionErrorModal";
 import { RiMapPinUserLine, RiMapPinRangeLine } from "react-icons/ri";
 import { toast } from "react-toastify";
 import { useProviderLocation } from "../hooks/useProviderLocation";
-import { acceptJob, getMyProfile } from "../services/provider.service";
+import { acceptJob, getMyProfile, acceptOffer, rejectOffer } from "../services/provider.service";
 import VerificationPendingModal from "../components/VerificationPendingModal";
 import { ClientProfileModal } from "../components/ClientProfileModal";
+import RejectConfirmationModal from "../components/RejectConfirmationModal";
 import Map from "../components/Map";
 
 const JobDetailPage: React.FC = () => {
@@ -40,6 +41,7 @@ const JobDetailPage: React.FC = () => {
     React.useState<string>("pending");
   const [isPendingModalOpen, setIsPendingModalOpen] = React.useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = React.useState(false);
+  const [isRejectModalOpen, setIsRejectModalOpen] = React.useState(false);
 
   const providerLocation = useProviderLocation();
 
@@ -74,13 +76,15 @@ const JobDetailPage: React.FC = () => {
   };
 
   const processAccept = async () => {
-    if (isAccepting) return;
+    if (isAccepting || !job) return;
     setIsAccepting(true);
 
     try {
-      const result = await acceptJob(jobId);
+      const result = job.visibility === 'private' 
+        ? await acceptOffer(jobId)
+        : await acceptJob(jobId);
       if (result.success) {
-        toast.success("Job accepted successfully!");
+        toast.success(job.visibility === 'private' ? "Offer accepted successfully!" : "Job accepted successfully!");
         navigate("/provider/my-jobs");
       }
     } catch (err: any) {
@@ -94,6 +98,29 @@ const JobDetailPage: React.FC = () => {
       });
     } finally {
       setIsAccepting(false);
+    }
+  };
+
+  const handleReject = () => {
+    setIsRejectModalOpen(true);
+  };
+
+  const confirmReject = async () => {
+    if (!job) return;
+    if (isAccepting) return;
+    
+    setIsAccepting(true);
+    try {
+      const result = await rejectOffer(jobId);
+      if (result.success) {
+        toast.info("Offer rejected.");
+        navigate("/provider/requests");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to reject offer");
+    } finally {
+      setIsAccepting(false);
+      setIsRejectModalOpen(false);
     }
   };
 
@@ -236,8 +263,10 @@ const JobDetailPage: React.FC = () => {
             startDate={job.startDate}
             isApplied={job.isApplied || !!job.myApplication}
             isAssigned={job.status === "fully_assigned"}
+            isPrivate={job.visibility === "private"}
             contactNumber={job.clientNumber}
             onAccept={handleAccept}
+            onReject={handleReject}
             onMessage={handleMessage}
           />
         </div>
@@ -308,6 +337,14 @@ const JobDetailPage: React.FC = () => {
           avatarUrl: job.clientAvatarUrl,
           isVerified: job.isClientVerified,
         }}
+      />
+
+      <RejectConfirmationModal
+        isOpen={isRejectModalOpen}
+        onClose={() => setIsRejectModalOpen(false)}
+        onConfirm={confirmReject}
+        jobTitle={job.title}
+        isActionLoading={isAccepting}
       />
 
       <style>{`

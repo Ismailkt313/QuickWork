@@ -30,6 +30,7 @@ import ReportIssueModal from "../components/ReportIssueModal";
 import SubmitProofModal from "../components/SubmitProofModal";
 import JobLogModal from "../components/JobLogModal";
 import CancellationModal from "../components/CancellationModal";
+import { ClientProfileModal } from "../components/ClientProfileModal";
 
 import Map from "../components/Map";
 
@@ -43,6 +44,7 @@ const AssignmentDetailPage: React.FC = () => {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
   const fetchAssignment = async () => {
@@ -491,7 +493,11 @@ const AssignmentDetailPage: React.FC = () => {
             >
               Project Dashboard
             </h5>
-            <div className="p-4 bg-light rounded-4 mb-4 d-flex align-items-center gap-3">
+            <div 
+              className="p-4 bg-light rounded-4 mb-4 d-flex align-items-center gap-3 cursor-pointer hover-bg-light-dark transition-all"
+              onClick={() => setIsProfileModalOpen(true)}
+              style={{ cursor: 'pointer' }}
+            >
               <div
                 className="d-flex align-items-center justify-content-center fw-bold bg-primary text-white"
                 style={{
@@ -510,14 +516,18 @@ const AssignmentDetailPage: React.FC = () => {
                 <p className="mb-0 fw-bold text-dark">
                   {job.clientName || "Anonymous"}
                 </p>
+                <span className="text-primary small fw-bold" style={{ fontSize: '11px' }}>View Profile</span>
               </div>
               <button
                 className="btn btn-primary-subtle ms-auto rounded-pill px-3 py-2 d-flex align-items-center gap-2 text-primary border-0 fw-bold"
-                onClick={handleMessage}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleMessage();
+                }}
                 style={{ fontSize: "13px" }}
               >
                 <RiMessage2Line size={20} />
-                Text Client
+                Text
               </button>
             </div>
 
@@ -657,6 +667,19 @@ const AssignmentDetailPage: React.FC = () => {
           clientName={job.clientName}
         />
 
+        <ClientProfileModal
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+          client={{
+            name: job.clientName,
+            email: job.clientEmail,
+            phone: job.clientNumber,
+            initials: job.clientInitials,
+            avatarUrl: job.clientAvatarUrl,
+            isVerified: job.isClientVerified,
+          }}
+        />
+
       <style>{`
                 .animate-in { animation: fadeIn 0.4s ease-out; }
                 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -670,6 +693,8 @@ const AssignmentDetailPage: React.FC = () => {
                 .border-green-100 { border-color: #dcfce7; }
                 .hover-translate-x:hover { transform: translateX(-4px); }
                 .italic { font-style: italic; }
+                .hover-bg-light-dark:hover { background-color: #f1f5f9 !important; }
+                .cursor-pointer { cursor: pointer; }
             `}</style>
     </div>
   );

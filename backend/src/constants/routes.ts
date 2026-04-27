@@ -13,4 +13,5 @@ export const API_ROUTES = {
   MESSAGES: "/messages",
   REVIEW: "/review",
   REPORT: "/report",
+  NOTIFICATIONS: "/notifications",
 };

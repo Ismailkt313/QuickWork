@@ -11,13 +11,16 @@ import { ErrorMessages } from "../../../constants/messages/errorMessages";
 import { IApiResponse } from "../../../types/api.types";
 import { IUser } from "../../auth/interfaces/auth.interface";
 import { logger } from "../../../utils/logger";
+import { NotificationService } from "../../notification/services/notification.service";
 
 
 export class AdminService implements IAdminService {
     private readonly adminRepository: IAdminRepository;
+    private readonly notificationService: NotificationService;
 
-    constructor(adminRepository: IAdminRepository) {
+    constructor(adminRepository: IAdminRepository, notificationService: NotificationService) {
         this.adminRepository = adminRepository;
+        this.notificationService = notificationService;
     }
 
     public async getUsers(query: IUserListQuery): Promise<IUserListResponse> {
@@ -51,6 +54,17 @@ export class AdminService implements IAdminService {
     public async toggleBlockUser(userId: string): Promise<IApiResponse<{ isBlocked: boolean }>> {
         const user = await this.adminRepository.toggleBlockUser(userId);
         logger.info({ userId, action: user.isBlocked ? "user_blocked" : "user_unblocked" }, `User ${user.isBlocked ? "blocked" : "unblocked"} successfully`);
+
+        await this.notificationService.createNotification({
+            recipient: userId,
+            title: user.isBlocked ? 'Account Blocked' : 'Account Unblocked',
+            message: user.isBlocked 
+                ? 'Your account has been blocked by the administrator due to policy violations.' 
+                : 'Your account has been unblocked. You can now use all platform features.',
+            type: 'SYSTEM',
+            link: '/user/profile'
+        });
+
         return {
             success: true,
             message: user.isBlocked ? SuccessMessages.USER_BLOCKED : SuccessMessages.USER_UNBLOCKED,

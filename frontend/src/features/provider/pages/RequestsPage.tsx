@@ -19,6 +19,7 @@ import {
   getMyProfile,
 } from "../services/provider.service";
 import AcceptConfirmationModal from "../components/AcceptConfirmationModal";
+import RejectConfirmationModal from "../components/RejectConfirmationModal";
 import VerificationPendingModal from "../components/VerificationPendingModal";
 import { api } from "../../../services/api";
 import type { JobDetail } from "../types/job";
@@ -33,6 +34,7 @@ const RequestsPage: React.FC = () => {
   const [filter, setFilter] = useState<FilterType>("pending");
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [actionError, setActionError] = useState<{
     isOpen: boolean;
     title: string;
@@ -126,6 +128,14 @@ const RequestsPage: React.FC = () => {
   };
 
   const handleReject = async (jobId: string) => {
+    setPendingJobId(jobId);
+    setIsRejectModalOpen(true);
+  };
+
+  const confirmReject = async () => {
+    const jobId = pendingJobId;
+    if (!jobId) return;
+
     try {
       setActionLoading(jobId);
       const response = await rejectOffer(jobId);
@@ -137,6 +147,8 @@ const RequestsPage: React.FC = () => {
       toast.error(error.message || "Failed to reject invitation");
     } finally {
       setActionLoading(null);
+      setPendingJobId(null);
+      setIsRejectModalOpen(false);
     }
   };
 
@@ -152,6 +164,9 @@ const RequestsPage: React.FC = () => {
   const pendingCount = requests.filter((r) => r.status === "open").length;
   const acceptedCount = requests.filter(
     (r) => r.status === "fully_assigned",
+  ).length;
+  const rejectedCount = requests.filter(
+    (r) => r.status === "cancelled" || r.status === "rejected",
   ).length;
 
   return (
@@ -217,8 +232,18 @@ const RequestsPage: React.FC = () => {
             icon: <RiMailOpenLine />,
             count: pendingCount,
           },
-          { id: "accepted", label: "Accepted", icon: <RiCheckboxCircleLine /> },
-          { id: "rejected", label: "Rejected", icon: <RiCloseCircleLine /> },
+          {
+            id: "accepted",
+            label: "Accepted",
+            icon: <RiCheckboxCircleLine />,
+            count: acceptedCount,
+          },
+          {
+            id: "rejected",
+            label: "Rejected",
+            icon: <RiCloseCircleLine />,
+            count: rejectedCount,
+          },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -378,6 +403,17 @@ const RequestsPage: React.FC = () => {
       <VerificationPendingModal
         isOpen={isPendingModalOpen}
         onClose={() => setIsPendingModalOpen(false)}
+      />
+
+      <RejectConfirmationModal
+        isOpen={isRejectModalOpen}
+        onClose={() => {
+          setIsRejectModalOpen(false);
+          setPendingJobId(null);
+        }}
+        onConfirm={confirmReject}
+        jobTitle={requests.find((r) => r.id === pendingJobId)?.title}
+        isActionLoading={!!(pendingJobId && actionLoading === pendingJobId)}
       />
 
       <style>{`

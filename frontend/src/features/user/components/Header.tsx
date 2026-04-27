@@ -5,6 +5,9 @@ import { jwtDecode } from "jwt-decode";
 import { api } from "../../../services/api";
 import LocationModal from "../landingPage/components/LocationModal";
 import { CreateJobModal } from "../jobs/components/CreateJobModal";
+import { NotificationModal } from "../../notification/components/NotificationModal";
+import { useNotifications } from "../../notification/hooks/useNotifications";
+import { FaBell } from "react-icons/fa";
 import type { Location } from "../landingPage/services/landingService";
 
 interface HeaderProps {
@@ -24,11 +27,21 @@ const Header: React.FC<HeaderProps> = ({
   const [navOpen, setNavOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const token = localStorage.getItem("token");
   const [profileOpen, setProfileOpen] = useState(false);
   const [user, setUser] = useState<{ name: string; email: string } | null>(
     null,
   );
+
+  const { 
+    notifications, 
+    unreadCount, 
+    loading: notificationsLoading, 
+    markAsRead, 
+    markAllAsRead, 
+    deleteNotification 
+  } = useNotifications();
 
   useEffect(() => {
     if (token) {
@@ -252,10 +265,62 @@ const Header: React.FC<HeaderProps> = ({
               </button>
 
               {token ? (
-                <div
-                  style={{ position: "relative" }}
-                  className="profile-dropdown-container"
-                >
+                <div className="d-flex align-items-center gap-3">
+                  <div style={{ position: "relative" }}>
+                    <button
+                      onClick={() => setIsNotificationOpen(true)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: "20px",
+                        display: "flex",
+                        alignItems: "center",
+                        color: "#64748b",
+                        padding: "8px",
+                        borderRadius: "50%",
+                        transition: "all 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.background = "#f1f5f9";
+                        (e.currentTarget as HTMLButtonElement).style.color = "#3b82f6";
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.background = "none";
+                        (e.currentTarget as HTMLButtonElement).style.color = "#64748b";
+                      }}
+                      aria-label="Notifications"
+                    >
+                      <FaBell />
+                    </button>
+                    {unreadCount > 0 && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: 5,
+                          right: 5,
+                          width: 18,
+                          height: 18,
+                          background: "#ef4444",
+                          color: "#fff",
+                          fontSize: "10px",
+                          fontWeight: 700,
+                          borderRadius: "50%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          border: "2px solid #fff",
+                        }}
+                      >
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
+                  </div>
+
+                  <div
+                    style={{ position: "relative" }}
+                    className="profile-dropdown-container"
+                  >
                   <button
                     onClick={() => setProfileOpen(!profileOpen)}
                     style={{
@@ -424,6 +489,7 @@ const Header: React.FC<HeaderProps> = ({
                     </div>
                   )}
                 </div>
+              </div>
               ) : (
                 <>
                   <button
@@ -474,6 +540,16 @@ const Header: React.FC<HeaderProps> = ({
       <CreateJobModal
         isOpen={isJobModalOpen}
         onClose={() => setIsJobModalOpen(false)}
+      />
+      <NotificationModal
+        isOpen={isNotificationOpen}
+        onClose={() => setIsNotificationOpen(false)}
+        notifications={notifications}
+        unreadCount={unreadCount}
+        loading={notificationsLoading}
+        onMarkRead={markAsRead}
+        onMarkAllRead={markAllAsRead}
+        onDelete={deleteNotification}
       />
     </>
   );

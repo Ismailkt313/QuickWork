@@ -5,6 +5,7 @@ import {
   RiTimeLine,
   RiMessage3Line,
   RiHeartLine,
+  RiCloseLine,
 } from "react-icons/ri";
 
 interface JobLocation {
@@ -22,8 +23,10 @@ interface JobActionPanelProps {
   startDate: string;
   isApplied: boolean;
   isAssigned: boolean;
+  isPrivate?: boolean;
   contactNumber?: string;
   onAccept: () => void;
+  onReject?: () => void;
   onMessage: () => void;
   onSave?: () => void;
 }
@@ -35,8 +38,10 @@ const JobActionPanel: React.FC<JobActionPanelProps> = ({
   startDate,
   isApplied,
   isAssigned,
+  isPrivate,
   contactNumber,
   onAccept,
+  onReject,
   onMessage,
 }) => {
   const isDisabled = isAssigned || isApplied;
@@ -173,8 +178,26 @@ const JobActionPanel: React.FC<JobActionPanelProps> = ({
               ? "Accepted"
               : isAssigned
                 ? "Already Assigned"
-                : "Accept this job"}
+                : isPrivate 
+                  ? "Accept Offer"
+                  : "Accept this job"}
           </button>
+
+          {isPrivate && !isApplied && !isAssigned && (
+            <button
+              className="btn btn-outline-danger w-100 py-3 rounded-3 fw-bold d-flex align-items-center justify-content-center gap-2"
+              onClick={onReject}
+              style={{
+                border: "1.5px solid #fee2e2",
+                color: "#ef4444",
+                fontSize: "15px",
+                backgroundColor: "#fff",
+              }}
+            >
+              <RiCloseLine size={20} />
+              Reject Offer
+            </button>
+          )}
 
           <button
             className="btn btn-outline-light w-100 py-3 rounded-3 fw-bold d-flex align-items-center justify-content-center gap-2"

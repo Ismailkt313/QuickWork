@@ -118,6 +118,7 @@ export const acceptOffer = async (jobId: string) => {
 export const rejectOffer = async (jobId: string) => {
   try {
     const response = await api.put(`/job/offers/${jobId}/reject`);
+    console.log("enthoo error ind ivida",response.data)
     return response.data;
   } catch (error: any) {
     throw new Error(error.response?.data?.message || "Failed to reject offer");

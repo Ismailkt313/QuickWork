@@ -127,6 +127,7 @@ export class JobController implements IJobController {
     rejectOffer = async (req: Request, res: Response, next: any): Promise<void> => {
         try {
             const userId = req.user?.userId;
+
             if (!userId) {
                 throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
             }

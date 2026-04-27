@@ -5,6 +5,7 @@ import { JobResponseDTO, mapJobToResponseDTO } from '../dtos/jobResponse.dto';
 import { Types } from 'mongoose';
 import { IServiceProviderRepository } from '../../serviceProvider/interfaces/serviceProvider.interface';
 import { IAssignmentService } from '../../assignment/interfaces/assignment.interface';
+import { NotificationService } from '../../notification/services/notification.service';
 import { JOB_STATUS } from '../../../constants/jobStatus';
 import { ASSIGNMENT_STATUS, WORK_STATUS, ASSIGNMENT_TYPE } from '../../../constants/assignment';
 import { JOB_VISIBILITY } from '../../../constants/jobVisibility';
@@ -17,17 +18,20 @@ export class JobService implements IJobService {
     private serviceProviderRepository: IServiceProviderRepository;
     private assignmentService: IAssignmentService;
     private locationRepository: ILocationRepository;
+    private notificationService: NotificationService;
 
     constructor(
         jobRepository: IJobRepository,
         serviceProviderRepository: IServiceProviderRepository,
         assignmentService: IAssignmentService,
-        locationRepository: ILocationRepository
+        locationRepository: ILocationRepository,
+        notificationService: NotificationService
     ) {
         this.jobRepository = jobRepository;
         this.serviceProviderRepository = serviceProviderRepository;
         this.assignmentService = assignmentService;
         this.locationRepository = locationRepository;
+        this.notificationService = notificationService;
     }
 
     async createJob(userId: string, dto: CreateJobDTO): Promise<{ success: boolean; message: string; data?: JobResponseDTO }> {
@@ -293,6 +297,15 @@ export class JobService implements IJobService {
             await this.jobRepository.updateStatus(jobId, JOB_STATUS.PARTIALLY_ASSIGNED);
         }
 
+        // Send notification to Client
+        await this.notificationService.createNotification({
+            recipient: updatedJob.userId.toString(),
+            title: 'Job Accepted',
+            message: `${provider.userId?.name || 'A provider'} has accepted your job: ${updatedJob.title}`,
+            type: 'JOB_ASSIGNMENT',
+            link: `/user/jobs/${updatedJob._id}`
+        });
+
         return { success: true, message: SuccessMessages.JOB_ACCEPTED };
     }
 
@@ -362,6 +375,14 @@ export class JobService implements IJobService {
             assignedAt: new Date()
         });
 
+        await this.notificationService.createNotification({
+            recipient: updatedJob.userId.toString(),
+            title: 'Offer Accepted',
+            message: `${provider.userId?.name || 'The provider'} has accepted your direct offer for: ${updatedJob.title}`,
+            type: 'JOB_ASSIGNMENT',
+            link: `/user/jobs/${updatedJob._id}`
+        });
+
         return { success: true, message: SuccessMessages.OFFER_ACCEPTED };
     }
 
@@ -372,7 +393,8 @@ export class JobService implements IJobService {
         }
 
         const job = await this.jobRepository.findById(jobId);
-        if (!job || job.hiredProviderId?.toString() !== provider._id.toString()) {
+        console.log("job", job);
+        if (!job || job.hiredProviderId?._id?.toString() !== provider._id.toString()) {
             return { success: false, message: ErrorMessages.JOB_NOT_FOUND };
         }
 
@@ -380,6 +402,15 @@ export class JobService implements IJobService {
             { _id: jobId },
             { $set: { status: JOB_STATUS.REJECTED, rejectionReason: reason || 'Provider declined the offer' } }
         );
+
+        // Send notification to Client
+        await this.notificationService.createNotification({
+            recipient: (job.userId as any)._id ? (job.userId as any)._id.toString() : job.userId.toString(),
+            title: 'Offer Declined',
+            message: `${provider.userId?.name || 'The provider'} has declined your direct offer for: ${job.title}`,
+            type: 'JOB_ASSIGNMENT',
+            link: `/user/jobs/${job._id}`
+        });
 
         return { success: true, message: SuccessMessages.OFFER_REJECTED };
     }

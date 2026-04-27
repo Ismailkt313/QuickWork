@@ -7,6 +7,7 @@ import {
   reportAbsence,
   submitReview,
   submitReport,
+  cancelJob,
 } from "../services/userJob.service";
 import ReviewModal from "../components/ReviewModal";
 import ReportIssueModal from "../components/ReportIssueModal";
@@ -62,6 +63,24 @@ const UserJobDetailPage: React.FC = () => {
     } finally {
       setLoading(false);
       setSelectedAssignmentId(null);
+    }
+  };
+
+  const handleCancelJob = async () => {
+    if (!jobId) return;
+    if (!window.confirm("Are you sure you want to cancel this job offer?")) return;
+    
+    try {
+      setLoading(true);
+      const response = await cancelJob(jobId);
+      if (response.success) {
+        toast.success("Job offer cancelled successfully");
+        fetchData();
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to cancel job");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -331,11 +350,22 @@ const UserJobDetailPage: React.FC = () => {
                   >
                     Offer Status
                   </span>
-                  {job.status === "open" && (
-                    <span className="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold">
-                      Pending Response
-                    </span>
+              {job.status === "open" && (
+                <div className="d-flex align-items-center gap-2">
+                  <span className="badge bg-warning text-dark rounded-pill px-3 py-2 fw-bold">
+                    Pending Response
+                  </span>
+                  {isDirectHire && (
+                    <button 
+                      className="btn btn-outline-danger btn-sm rounded-pill px-3 py-1-5 fw-bold"
+                      onClick={handleCancelJob}
+                      style={{ fontSize: '11px' }}
+                    >
+                      Cancel Offer
+                    </button>
                   )}
+                </div>
+              )}
                   {["fully_assigned", "in_progress", "completed"].includes(
                     job.status,
                   ) && (
