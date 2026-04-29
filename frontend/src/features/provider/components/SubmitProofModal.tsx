@@ -49,8 +49,9 @@ const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
         setUploadedImages((prev) => [...prev, ...newUrls]);
         toast.success(`${files.length} image(s) uploaded`);
       }
-    } catch (error: any) {
-      toast.error(error.message || "Upload failed");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Upload failed";
+      toast.error(errorMessage);
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -142,7 +143,7 @@ const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
                   if (e.dataTransfer.files) {
                     const event = {
                       target: { files: e.dataTransfer.files },
-                    } as any;
+                    } as unknown as React.ChangeEvent<HTMLInputElement>;
                     handleFileChange(event);
                   }
                 }}

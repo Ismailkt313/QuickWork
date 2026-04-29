@@ -32,7 +32,7 @@ const ProviderDashboardLayout: React.FC<ProviderDashboardLayoutProps> = ({
     if (!initialProvider) {
       const fetchProfile = async () => {
         try {
-          const response = await getMyProfile();
+          const response = await getMyProfile<{ name: string; email: string; profileImage?: string }>();
           if (response.success) {
             setProvider(response.data);
           } else {
@@ -41,7 +41,6 @@ const ProviderDashboardLayout: React.FC<ProviderDashboardLayoutProps> = ({
         } catch (error) {
           console.error("Failed to fetch provider profile:", error);
           setProvider({ name: "Provider", initials: "P" });
-        } finally {
         }
       };
       fetchProfile();

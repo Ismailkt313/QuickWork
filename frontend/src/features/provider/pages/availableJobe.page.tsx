@@ -236,7 +236,7 @@ const AvailableJobsPage: React.FC = () => {
         setLocations(locs.data);
         console.log(sks.data, locs.data);
         setSkills(sks.data);
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("Error loading filters:", err);
       }
     };
@@ -273,8 +273,9 @@ const AvailableJobsPage: React.FC = () => {
           setJobs(response.data);
           setPagination(response.pagination);
         }
-      } catch (error) {
-        console.error("Error fetching jobs:", error);
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "Failed to fetch jobs";
+        console.error(errorMessage);
       } finally {
         setLoading(false);
         setRefreshing(false);
@@ -325,8 +326,8 @@ const AvailableJobsPage: React.FC = () => {
         toast.success(`Applied for job #${jobId.slice(-4)} successfully!`);
         fetchData(currentPage);
       }
-    } catch (err: any) {
-      const errorMessage = err.message || "Failed to apply for job";
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to apply for job";
       setActionError({
         isOpen: true,
         title: errorMessage.toLowerCase().includes("overlap")

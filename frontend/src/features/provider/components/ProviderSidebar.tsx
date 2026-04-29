@@ -161,12 +161,12 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
       try {
         const offersRes = await api.get("/job/offers");
         const pendingCount = (offersRes.data.data || []).filter(
-          (r: any) => r.status === JOB_STATUS.OPEN,
+          (r: { status: string }) => r.status === JOB_STATUS.OPEN,
         ).length;
 
         const assignmentsRes = await api.get("/assignment/my");
         const activeCount = (assignmentsRes.data.data || []).filter(
-          (as: any) =>
+          (as: { workStatus: string }) =>
             as.workStatus === WORK_STATUS.ASSIGNED ||
             as.workStatus === WORK_STATUS.IN_PROGRESS,
         ).length;

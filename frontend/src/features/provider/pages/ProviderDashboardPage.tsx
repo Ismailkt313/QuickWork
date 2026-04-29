@@ -6,14 +6,21 @@ import { getMyProfile } from "../services/provider.service";
 import "./style/DashboardPage.css";
 import { VERIFICATION_STATUS } from "../../../constants/verification";
 
+interface Profile {
+  verificationStatus?: {
+    status: (typeof VERIFICATION_STATUS)[keyof typeof VERIFICATION_STATUS];
+    rejectionReason?: string;
+  };
+}
+
 const ProviderDashboardPage: React.FC = () => {
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async () => {
     try {
-      const response = await getMyProfile();
-      if (response.success) {
+      const response = await getMyProfile<Profile>();
+      if (response.success && response.data) {
         setProfile(response.data);
       }
     } catch (error) {

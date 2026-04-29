@@ -1,8 +1,10 @@
 import React from "react";
 import { formatDistanceToNow } from "date-fns";
 
+import { Conversation } from "../types";
+
 interface ConversationItemProps {
-  conversation: any;
+  conversation: Conversation;
   isActive: boolean;
   onClick: (id: string) => void;
   otherParticipant: { name: string; id: string | null };

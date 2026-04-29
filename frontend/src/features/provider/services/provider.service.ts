@@ -1,5 +1,12 @@
+import { AxiosError } from "axios";
 import { api } from "../../../services/api";
 import { cloudinaryService } from "../../../services/cloudinaryService";
+
+interface BaseResponse<T = unknown> {
+  success: boolean;
+  data?: T;
+  message?: string;
+}
 
 export interface ProviderApplicationPayload {
   headline: string;
@@ -18,13 +25,14 @@ export interface ProviderApplicationPayload {
 
 export const submitProviderApplication = async (
   data: ProviderApplicationPayload,
-): Promise<{ success: boolean; data?: any; message?: string }> => {
+): Promise<BaseResponse<{ accessToken: string; refreshToken: string }>> => {
   try {
     const response = await api.post("/provider/apply", data);
     return response.data;
-  } catch (error: any) {
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
     throw new Error(
-      error.response?.data?.message || "Failed to submit application",
+      err.response?.data?.message || "Failed to submit application",
     );
   }
 };
@@ -51,9 +59,10 @@ export const availableJobs = async (
       },
     });
     return response.data;
-  } catch (error: any) {
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
     throw new Error(
-      error.response?.data?.message || "Failed to fetch available jobs",
+      err.response?.data?.message || "Failed to fetch available jobs",
     );
   }
 };
@@ -62,15 +71,18 @@ export const fetchallskills = async () => {
   try {
     const response = await api.get("/skills");
     return response.data;
-  } catch (error) {}
+  } catch {
+    return { success: false, message: "Failed to fetch all skills" };
+  }
 };
 
 export const fetchSkills = async () => {
   try {
     const response = await api.get("/skills/my/skills");
     return response.data;
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to fetch skills");
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    throw new Error(err.response?.data?.message || "Failed to fetch skills");
   }
 };
 
@@ -78,9 +90,10 @@ export const fetchLocations = async () => {
   try {
     const response = await api.get("/locations/all");
     return response.data;
-  } catch (error: any) {
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
     throw new Error(
-      error.response?.data?.message || "Failed to fetch locations",
+      err.response?.data?.message || "Failed to fetch locations",
     );
   }
 };
@@ -92,9 +105,10 @@ export const acceptJob = async (jobId: string) => {
       throw new Error(response.data.message || "Failed to accept job");
     }
     return response.data;
-  } catch (error: any) {
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
     throw new Error(
-      error.response?.data?.message || error.message || "Failed to accept job",
+      err.response?.data?.message || err.message || "Failed to accept job",
     );
   }
 };
@@ -106,10 +120,11 @@ export const acceptOffer = async (jobId: string) => {
       throw new Error(response.data.message || "Failed to accept offer");
     }
     return response.data;
-  } catch (error: any) {
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
     throw new Error(
-      error.response?.data?.message ||
-        error.message ||
+      err.response?.data?.message ||
+        err.message ||
         "Failed to accept offer",
     );
   }
@@ -118,10 +133,11 @@ export const acceptOffer = async (jobId: string) => {
 export const rejectOffer = async (jobId: string) => {
   try {
     const response = await api.put(`/job/offers/${jobId}/reject`);
-    console.log("enthoo error ind ivida",response.data)
+    console.log("enthoo error ind ivida", response.data);
     return response.data;
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to reject offer");
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    throw new Error(err.response?.data?.message || "Failed to reject offer");
   }
 };
 
@@ -136,9 +152,10 @@ export const getAssignments = async (
       params: { page, limit, search, status },
     });
     return response.data;
-  } catch (error: any) {
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
     throw new Error(
-      error.response?.data?.message || "Failed to fetch assignments",
+      err.response?.data?.message || "Failed to fetch assignments",
     );
   }
 };
@@ -147,9 +164,10 @@ export const getAssignmentById = async (id: string) => {
   try {
     const response = await api.get(`/assignment/${id}`);
     return response.data;
-  } catch (error: any) {
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
     throw new Error(
-      error.response?.data?.message || "Failed to fetch assignment details",
+      err.response?.data?.message || "Failed to fetch assignment details",
     );
   }
 };
@@ -158,8 +176,9 @@ export const updateAssignmentStatus = async (id: string, status: string) => {
   try {
     const response = await api.patch(`/assignment/${id}/status`, { status });
     return response.data;
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to update status");
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    throw new Error(err.response?.data?.message || "Failed to update status");
   }
 };
 
@@ -170,35 +189,34 @@ export const submitAssignmentProof = async (
   try {
     const response = await api.post(`/assignment/${id}/proof`, data);
     return response.data;
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to submit proof");
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    throw new Error(err.response?.data?.message || "Failed to submit proof");
   }
 };
 
-export const getMyProfile = async (): Promise<{
-  success: boolean;
-  data?: any;
-  message?: string;
-}> => {
+export const getMyProfile = async <T = unknown>(): Promise<BaseResponse<T>> => {
   try {
     console.log("Fetching profile...");
     const response = await api.get("/provider/profile");
     console.log(response.data, "response.data");
     return response.data;
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to fetch profile");
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    throw new Error(err.response?.data?.message || "Failed to fetch profile");
   }
 };
 
 export const updateProviderProfile = async (
-  data: any,
-): Promise<{ success: boolean; data?: any; message?: string }> => {
+  data: unknown,
+): Promise<BaseResponse> => {
   try {
     const response = await api.patch("/provider/profile", data);
     return response.data;
-  } catch (error: any) {
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
     throw new Error(
-      error.response?.data?.message || "Failed to update profile",
+      err.response?.data?.message || "Failed to update profile",
     );
   }
 };
@@ -223,8 +241,9 @@ export const uploadImage = async (
         publicId: result.public_id,
       },
     };
-  } catch (error: any) {
-    throw new Error(error.message || "Image upload failed");
+  } catch (error) {
+    const err = error as Error;
+    throw new Error(err.message || "Image upload failed");
   }
 };
 
@@ -247,8 +266,9 @@ export const uploadMultipleImages = async (
         publicId: r.public_id,
       })),
     };
-  } catch (error: any) {
-    throw new Error(error.message || "Multi-image upload failed");
+  } catch (error) {
+    const err = error as Error;
+    throw new Error(err.message || "Multi-image upload failed");
   }
 };
 
@@ -259,9 +279,10 @@ export const resetProviderApplication = async (): Promise<{
   try {
     const response = await api.post("/provider/reset");
     return response.data;
-  } catch (error: any) {
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
     throw new Error(
-      error.response?.data?.message || "Failed to reset application",
+      err.response?.data?.message || "Failed to reset application",
     );
   }
 };
@@ -275,9 +296,10 @@ export const cancelAssignmentByProvider = async (
       notes,
     });
     return response.data;
-  } catch (error: any) {
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
     throw new Error(
-      error.response?.data?.message || "Failed to cancel assignment",
+      err.response?.data?.message || "Failed to cancel assignment",
     );
   }
 };
@@ -293,8 +315,9 @@ export const submitReview = async (reviewData: {
   try {
     const response = await api.post("/review", reviewData);
     return response.data;
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to submit review");
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    throw new Error(err.response?.data?.message || "Failed to submit review");
   }
 };
 
@@ -309,7 +332,8 @@ export const submitReport = async (reportData: {
   try {
     const response = await api.post("/report", reportData);
     return response.data;
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to submit report");
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    throw new Error(err.response?.data?.message || "Failed to submit report");
   }
 };

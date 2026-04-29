@@ -43,7 +43,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
         newImages.push(result.secure_url);
       }
       setImages(newImages);
-    } catch (error) {
+    } catch {
       toast.error("Failed to upload images");
     } finally {
       setUploading(false);
@@ -62,7 +62,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
       setLoading(true);
       await onSubmit(rating, comment, images);
       onClose();
-    } catch (error) {
+    } catch {
       // Error handled in parent
     } finally {
       setLoading(false);

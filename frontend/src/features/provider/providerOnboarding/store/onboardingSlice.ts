@@ -3,7 +3,7 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 const STORAGE_KEY = "provider_onboarding";
 const EXPIRY_TIME = 1000 * 60 * 60;
 
-const saveWithExpiry = (key: string, value: any) => {
+const saveWithExpiry = (key: string, value: unknown) => {
   const item = {
     data: value,
     expiry: Date.now() + EXPIRY_TIME,
@@ -103,10 +103,11 @@ const onboardingSlice = createSlice({
       state,
       action: PayloadAction<{
         field: keyof OnboardingState["formData"];
-        value: any;
+        value: string | number | boolean | Skill[] | PortfolioProject[] | Location | null;
       }>,
     ) => {
-      (state.formData as any)[action.payload.field] = action.payload.value;
+      const { field, value } = action.payload;
+      (state.formData as Record<string, unknown>)[field] = value;
       saveWithExpiry(STORAGE_KEY, state);
     },
 
@@ -142,12 +143,7 @@ const onboardingSlice = createSlice({
 
     setLocation: (
       state,
-      action: PayloadAction<{
-        id: string;
-        name: string;
-        lat?: number;
-        lon?: number;
-      } | null>,
+      action: PayloadAction<Location | null>,
     ) => {
       state.formData.location = action.payload;
       saveWithExpiry(STORAGE_KEY, state);
@@ -173,12 +169,7 @@ const onboardingSlice = createSlice({
 
     addPortfolioProject: (
       state,
-      action: PayloadAction<{
-        id: string;
-        title: string;
-        description: string;
-        images: string[];
-      }>,
+      action: PayloadAction<PortfolioProject>,
     ) => {
       state.formData.portfolio.push(action.payload);
       saveWithExpiry(STORAGE_KEY, state);

@@ -1,171 +1,81 @@
 import React from "react";
-import { RiStarFill, RiVerifiedBadgeFill } from "react-icons/ri";
+import { RiStarFill, RiVerifiedBadgeFill, RiUserLine, RiFileTextLine, RiToolsLine } from "react-icons/ri";
 
 interface JobInfoCardProps {
   description: string;
-  client: {
-    name: string;
-    initials: string;
-    rating?: number;
-    reviewsCount?: number;
-    isVerified?: boolean;
-    avatarUrl?: string;
-  };
+  client: { name: string; initials: string; rating?: number; reviewsCount?: number; isVerified?: boolean; avatarUrl?: string; };
   skills: string[];
   onViewProfile?: () => void;
 }
 
-const JobInfoCard: React.FC<JobInfoCardProps> = ({
-  description,
-  client,
-  skills,
-  onViewProfile,
-}) => {
-  return (
-    <div
-      className="jic-root card border-0 rounded-4 shadow-sm mb-4 overflow-hidden"
-      style={{ backgroundColor: "#fff", border: "1px solid #f1f5f9" }}
-    >
-      <div className="card-body p-4 p-lg-5">
-        <div
-          className="jic-client-bar d-flex align-items-center gap-3 mb-5 p-4 rounded-4"
-          style={{ backgroundColor: "#f8fafc", border: "1px solid #f1f5f9" }}
-        >
-          <div className="jic-avatar position-relative">
-            {client.avatarUrl ? (
-              <img
-                src={client.avatarUrl}
-                alt={client.name}
-                className="rounded-circle shadow-sm"
-                style={{
-                  width: 64,
-                  height: 64,
-                  objectFit: "cover",
-                  border: "3px solid #fff",
-                }}
-              />
-            ) : (
-              <div
-                className="rounded-circle shadow-sm d-flex align-items-center justify-content-center fw-bold text-white bg-primary"
-                style={{
-                  width: 64,
-                  height: 64,
-                  fontSize: "20px",
-                  border: "3px solid #fff",
-                }}
-              >
-                {client.initials}
-              </div>
-            )}
-            {client.isVerified && (
-              <div
-                className="position-absolute bottom-0 end-0 bg-white rounded-circle p-0"
-                style={{ transform: "translate(20%, 20%)", color: "#3b82f6" }}
-              >
-                <RiVerifiedBadgeFill size={24} />
-              </div>
-            )}
-          </div>
-          <div className="flex-grow-1">
-            <h5
-              className="mb-1 fw-bold"
-              style={{
-                color: "#0f172a",
-                fontFamily: "Syne, sans-serif",
-                fontSize: "18px",
-              }}
-            >
-              {client.name}
-            </h5>
-            <div className="d-flex align-items-center gap-3">
-              <div
-                className="d-flex align-items-center text-primary"
-                style={{ fontSize: "14px", fontWeight: 700 }}
-              >
-                <RiStarFill className="text-warning me-1" size={16} />
-                <span>{client.rating || "5.0"}</span>
-              </div>
-              <div
-                className="text-muted"
-                style={{ fontSize: "13px", fontWeight: 600 }}
-              >
-                {client.reviewsCount || 0} Professional Reviews
-              </div>
-            </div>
-          </div>
-          <div className="d-none d-md-block">
-            <button
-              onClick={onViewProfile}
-              className="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold"
-              style={{ fontSize: "12px" }}
-            >
-              View Profile
-            </button>
-          </div>
-        </div>
-        <div className="mb-5">
-          <h4
-            className="mb-4 fw-bold"
-            style={{
-              color: "#0f172a",
-              fontFamily: "Syne, sans-serif",
-              letterSpacing: "-0.5px",
-            }}
-          >
-            About the position
-          </h4>
-          <div
-            className="jic-description text-secondary"
-            style={{
-              lineHeight: "1.8",
-              fontSize: "16px",
-              whiteSpace: "pre-wrap",
-              fontFamily: "DM Sans, sans-serif",
-            }}
-          >
-            {description}
-          </div>
-        </div>
-        <div>
-          <h4
-            className="mb-4 fw-bold"
-            style={{
-              color: "#0f172a",
-              fontFamily: "Syne, sans-serif",
-              letterSpacing: "-0.5px",
-            }}
-          >
-            Expertise wanted
-          </h4>
-          <div className="d-flex flex-wrap gap-2">
-            {skills.map((skill, index) => (
-              <span
-                key={index}
-                className="px-3 py-2 rounded-3"
-                style={{
-                  background: "#f1f5f9",
-                  color: "#475569",
-                  fontSize: "13px",
-                  fontWeight: 700,
-                  border: "1px solid #e2e8f0",
-                  letterSpacing: "0.2px",
-                }}
-              >
-                {skill}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-      <style>{`
-        .jic-description { color: #475569 !important; }
-        @media (max-width: 576px) {
-          .jic-client-bar { padding: 1.5rem !important; }
-          .jic-avatar { transform: scale(0.85); margin-left: -5px; }
-        }
-      `}</style>
+const AVATAR_COLORS = ["linear-gradient(135deg,#6366f1,#8b5cf6)","linear-gradient(135deg,#06b6d4,#0ea5e9)","linear-gradient(135deg,#f97316,#ef4444)","linear-gradient(135deg,#22c55e,#16a34a)","linear-gradient(135deg,#f59e0b,#d97706)"];
+const getColor = (n: string) => AVATAR_COLORS[(n?.charCodeAt(0) ?? 0) % AVATAR_COLORS.length];
+
+const Section: React.FC<{ icon: React.ReactNode; title: string; children: React.ReactNode }> = ({ icon, title, children }) => (
+  <div style={{ background:"#fff", borderRadius:16, border:"1px solid #e8edf4", padding:"22px 24px", marginBottom:16, boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
+    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
+      <div style={{ width:32, height:32, borderRadius:9, background:"#eff6ff", display:"flex", alignItems:"center", justifyContent:"center", color:"#6366f1" }}>{icon}</div>
+      <h4 style={{ margin:0, fontFamily:"Syne,sans-serif", fontSize:16, fontWeight:800, color:"#0f172a" }}>{title}</h4>
     </div>
-  );
-};
+    {children}
+  </div>
+);
+
+const JobInfoCard: React.FC<JobInfoCardProps> = ({ description, client, skills, onViewProfile }) => (
+  <div>
+    {/* Client card */}
+    <Section icon={<RiUserLine size={16}/>} title="About the Client">
+      <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+        <div style={{ position:"relative", flexShrink:0 }}>
+          {client.avatarUrl
+            ? <img src={client.avatarUrl} alt={client.name} style={{ width:60, height:60, borderRadius:14, objectFit:"cover", border:"3px solid #fff", boxShadow:"0 2px 8px rgba(0,0,0,0.1)" }}/>
+            : <div style={{ width:60, height:60, borderRadius:14, background:getColor(client.name), display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontFamily:"Syne,sans-serif", fontWeight:800, fontSize:20, boxShadow:"0 2px 8px rgba(0,0,0,0.12)" }}>{client.initials}</div>
+          }
+          {client.isVerified && (
+            <div style={{ position:"absolute", bottom:-4, right:-4, background:"#fff", borderRadius:"50%", color:"#3b82f6", lineHeight:0 }}>
+              <RiVerifiedBadgeFill size={20}/>
+            </div>
+          )}
+        </div>
+        <div style={{ flex:1 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
+            <span style={{ fontFamily:"Syne,sans-serif", fontWeight:800, fontSize:16, color:"#0f172a" }}>{client.name}</span>
+            {client.isVerified && <span style={{ fontSize:10, fontWeight:700, padding:"2px 7px", borderRadius:10, background:"#eff6ff", color:"#3b82f6", border:"1px solid #bfdbfe", textTransform:"uppercase" }}>Verified</span>}
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:10, fontSize:13 }}>
+            <span style={{ display:"flex", alignItems:"center", gap:3, fontWeight:700, color:"#f59e0b" }}>
+              <RiStarFill size={13}/> {(client.rating || 5).toFixed(1)}
+            </span>
+            <span style={{ color:"#94a3b8" }}>·</span>
+            <span style={{ color:"#64748b" }}>{client.reviewsCount || 0} reviews</span>
+          </div>
+        </div>
+        {onViewProfile && (
+          <button onClick={onViewProfile}
+            style={{ padding:"8px 16px", borderRadius:9, border:"1.5px solid #e2e8f0", background:"#fff", color:"#475569", fontSize:12.5, fontWeight:600, cursor:"pointer", flexShrink:0, transition:"all 0.2s" }}
+            onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.borderColor="#a5b4fc";(e.currentTarget as HTMLButtonElement).style.color="#6366f1";}}
+            onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.borderColor="#e2e8f0";(e.currentTarget as HTMLButtonElement).style.color="#475569";}}
+          >View Profile</button>
+        )}
+      </div>
+    </Section>
+
+    {/* Description */}
+    <Section icon={<RiFileTextLine size={16}/>} title="About the Position">
+      <div style={{ fontSize:15, color:"#475569", lineHeight:1.8, whiteSpace:"pre-wrap", fontFamily:"Inter,sans-serif" }}>{description}</div>
+    </Section>
+
+    {/* Skills */}
+    {skills.length > 0 && (
+      <Section icon={<RiToolsLine size={16}/>} title="Skills Required">
+        <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+          {skills.map((skill, i) => (
+            <span key={i} style={{ padding:"6px 14px", borderRadius:100, fontSize:13, fontWeight:600, background:"#eff6ff", border:"1px solid #bfdbfe", color:"#3b82f6" }}>{skill}</span>
+          ))}
+        </div>
+      </Section>
+    )}
+  </div>
+);
 
 export default JobInfoCard;

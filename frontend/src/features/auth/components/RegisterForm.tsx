@@ -1,3 +1,4 @@
+import { AxiosError } from "axios";
 import { useState, useMemo } from "react";
 import type { RegisterFormProps } from "../types";
 import { sendOtp, login } from "../services/authApi";
@@ -115,9 +116,10 @@ const RegisterForm = ({ mode }: RegisterFormProps) => {
         localStorage.setItem("refreshToken", response.data.refreshToken);
         navigate("/");
       }
-    } catch (err: any) {
-      console.error("Authentication error:", err);
-      setError(err?.response?.data?.message || "Something went wrong");
+    } catch (err) {
+      const axiosError = err as AxiosError<{ message: string }>;
+      console.error("Authentication error:", axiosError);
+      setError(axiosError.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }

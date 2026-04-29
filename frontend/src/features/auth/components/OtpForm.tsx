@@ -1,3 +1,4 @@
+import { AxiosError } from "axios";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { OTP, resendOtp } from "../services/authApi";
@@ -93,8 +94,9 @@ const OtpForm = () => {
       setError(null);
       await OTP({ email, otp: otpValue });
       navigate("/auth/login");
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "OTP verification failed");
+    } catch (err) {
+      const axiosError = err as AxiosError<{ message: string }>;
+      setError(axiosError.response?.data?.message || "OTP verification failed");
     } finally {
       setLoading(false);
     }
@@ -110,8 +112,9 @@ const OtpForm = () => {
       setTimer(OTP_RESEND_COOLDOWN);
       setCanResend(false);
       inputRefs.current[0]?.focus();
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to resend OTP");
+    } catch (err) {
+      const axiosError = err as AxiosError<{ message: string }>;
+      setError(axiosError.response?.data?.message || "Failed to resend OTP");
     } finally {
       setLoading(false);
     }

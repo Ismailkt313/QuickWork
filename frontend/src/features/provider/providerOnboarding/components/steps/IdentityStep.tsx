@@ -49,17 +49,19 @@ const IdentityStep: React.FC = () => {
       const secureImageUrl = response.secure_url;
       setImagePreview(secureImageUrl);
       dispatch(updateField({ field: "profileImage", value: secureImageUrl }));
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to upload image securely.";
       console.error("Upload failed", error);
-      toast.error(
-        error.response?.data?.message || "Failed to upload image securely.",
-      );
+      toast.error(errorMessage);
     } finally {
       setIsUploading(false);
     }
   };
 
-  const handleInputChange = (field: keyof typeof formData, value: any) => {
+  const handleInputChange = (field: keyof typeof formData, value: string | number) => {
     dispatch(updateField({ field, value }));
   };
 

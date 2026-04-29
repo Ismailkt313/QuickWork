@@ -2,14 +2,11 @@ import { useState, useEffect } from "react";
 import { api } from "../../../services/api";
 
 export const useProviderLocation = () => {
-  const [providerLocation, setProviderLocation] = useState<string>("Not Set");
+  const [providerLocation, setProviderLocation] = useState<string>(() => {
+    return localStorage.getItem("providerLocationStr") || "Not Set";
+  });
 
   useEffect(() => {
-    const cachedStr = localStorage.getItem("providerLocationStr");
-    if (cachedStr) {
-      setProviderLocation(cachedStr);
-    }
-
     const fetchLocation = async () => {
       try {
         if (localStorage.getItem("token")) {
@@ -20,7 +17,7 @@ export const useProviderLocation = () => {
             localStorage.setItem("providerLocationStr", locName);
           }
         }
-      } catch (err) {
+      } catch {
         console.error("Failed to fetch provider location");
       }
     };

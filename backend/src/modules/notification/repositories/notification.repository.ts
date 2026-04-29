@@ -1,4 +1,4 @@
-import { NotificationModel, INotification } from '../models/notification.model';
+import { NotificationModel} from '../models/notification.model';
 
 export class NotificationRepository {
     async findByUserId(userId: string, limit: number) {

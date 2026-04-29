@@ -62,8 +62,9 @@ const ReviewStep: React.FC = () => {
         navigate("/provider/status");
         toast.success("Application submitted successfully!");
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to submit application");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Submission failed";
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

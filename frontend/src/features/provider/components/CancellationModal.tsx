@@ -38,9 +38,10 @@ const CancellationModal: React.FC<CancellationModalProps> = ({
     try {
       await onConfirm(notes);
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Cancellation failed", error);
-      toast.error(error.message || ErrorMessages.INTERNAL_SERVER_ERROR);
+      const errorMessage = error instanceof Error ? error.message : ErrorMessages.INTERNAL_SERVER_ERROR;
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

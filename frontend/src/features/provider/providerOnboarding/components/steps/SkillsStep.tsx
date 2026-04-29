@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../../../../app/store";
 import {
@@ -38,30 +38,22 @@ const SkillsStep: React.FC = () => {
     (formData.hourlyRate || 0) > 0 &&
     formData.location !== null;
 
-  const fetchSkills = useCallback(
-    debounce(async (query: string) => {
-      if (!query.trim()) {
-        setSkillResults([]);
+  const fetchSkills = useMemo(
+    () =>
+      debounce(async (query: string) => {
+        if (!query.trim()) {
+          setSkillResults([]);
+          setIsSearchingSkills(false);
+          return;
+        }
+        setIsSearchingSkills(true);
+        const results = await searchSkills(query);
+        setSkillResults(results);
         setIsSearchingSkills(false);
-        return;
-      }
-      setIsSearchingSkills(true);
-      const results = await searchSkills(query);
-      setSkillResults(results);
-      setIsSearchingSkills(false);
-    }, 280),
+      }, 280),
     [],
   );
 
-  useEffect(() => {
-    if (skillQuery.trim()) {
-      setIsSearchingSkills(true);
-      fetchSkills(skillQuery);
-    } else {
-      setSkillResults([]);
-      setIsSearchingSkills(false);
-    }
-  }, [skillQuery, fetchSkills]);
 
   const handleAddSkill = (skill: { id: string; name: string }) => {
     dispatch(addSkill(skill));
@@ -166,7 +158,15 @@ const SkillsStep: React.FC = () => {
                   value={skillQuery}
                   disabled={reachedLimit}
                   onChange={(e) => {
-                    setSkillQuery(e.target.value);
+                    const val = e.target.value;
+                    setSkillQuery(val);
+                    if (val.trim()) {
+                      setIsSearchingSkills(true);
+                      fetchSkills(val);
+                    } else {
+                      setSkillResults([]);
+                      setIsSearchingSkills(false);
+                    }
                     if (!showSkillDropdown) setShowSkillDropdown(true);
                   }}
                   onFocus={() => setShowSkillDropdown(true)}

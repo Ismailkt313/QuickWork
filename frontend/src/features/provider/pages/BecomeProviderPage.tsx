@@ -18,7 +18,7 @@ const BecomeProviderPage: React.FC = () => {
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        const response = await getMyProfile();
+        const response = await getMyProfile<{ verificationStatus: string; rejectionReason?: string }>();
         console.log(response, "ithan ividathe response");
         if (
           response.success &&
@@ -49,8 +49,9 @@ const BecomeProviderPage: React.FC = () => {
         setIsRejected(false);
         // Refreshing the page state is handled by setting isRejected to false
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to reset application");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to reset application";
+      toast.error(errorMessage);
     } finally {
       setResetting(false);
     }

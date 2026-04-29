@@ -1,6 +1,22 @@
 import React, { useState } from "react";
-import { FiCalendar } from "react-icons/fi";
+import {
+  RiMapPinLine,
+  RiTimeLine,
+  RiCalendarLine,
+  RiUserLine,
+  RiGroupLine,
+  RiMoneyDollarCircleLine,
+  RiBookmarkLine,
+  RiBookmarkFill,
+  RiCheckDoubleLine,
+  RiAlertLine,
+  RiEyeLine,
+  RiFlashlightLine,
+  RiMedalLine,
+  RiSparklingLine,
+} from "react-icons/ri";
 import "./style/jobcard.css";
+import { useProviderLocation } from "../hooks/useProviderLocation";
 
 export interface JobLocation {
   address: string;
@@ -24,11 +40,13 @@ export interface Job {
   postedAt: string;
   skills: string[];
   budget: string;
-
+  budgetMin?: number;
+  budgetMax?: number;
   applicants: number;
   startDate: string;
   endDate: string;
   durationType: string;
+  freelancersNeeded?: number;
   visibility: "public" | "private";
   hiredProviderId?: string;
   isUrgent?: boolean;
@@ -46,268 +64,196 @@ interface JobCardProps {
   onSave?: (id: string, saved: boolean) => void;
 }
 
-const StarRating: React.FC<{ rating: number; count?: number }> = ({
-  rating,
-  count,
-}) => (
-  <div className="jc-stars" aria-label={`Rating: ${rating} out of 5`}>
-    {[1, 2, 3, 4, 5].map((s) => (
-      <span
-        key={s}
-        className={`jc-star ${s <= Math.round(rating) ? "filled" : "empty"}`}
-      >
-        ★
-      </span>
-    ))}
-    <span className="jc-rating-num">{rating.toFixed(1)}</span>
-    {count !== undefined && <span className="jc-rating-count">({count})</span>}
-  </div>
-);
-
 const AVATAR_COLORS = [
-  "linear-gradient(135deg,#6c63ff,#9c55f5)",
-  "linear-gradient(135deg,#00d9b8,#0ea5e9)",
+  "linear-gradient(135deg,#6366f1,#8b5cf6)",
+  "linear-gradient(135deg,#06b6d4,#0ea5e9)",
   "linear-gradient(135deg,#f97316,#ef4444)",
   "linear-gradient(135deg,#8b5cf6,#ec4899)",
   "linear-gradient(135deg,#22c55e,#16a34a)",
   "linear-gradient(135deg,#f59e0b,#d97706)",
 ];
-
 const getAvatarColor = (name: string) =>
   AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
 
-const IconPin = () => (
-  <svg
-    width="12"
-    height="12"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" />
-    <circle cx="12" cy="10" r="3" />
-  </svg>
-);
-const IconClock = () => (
-  <svg
-    width="12"
-    height="12"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10" />
-    <polyline points="12 6 12 12 16 14" />
-  </svg>
+const DURATION_LABEL: Record<string, string> = {
+  half_day: "Half Day (~4 hrs)",
+  full_day: "Full Day (8 hrs)",
+  multi_day: "Multiple Days",
+};
+
+const StarRating: React.FC<{ rating: number; count?: number }> = ({ rating, count }) => (
+  <span style={{ display: "inline-flex", alignItems: "center", gap: 2 }}>
+    {[1, 2, 3, 4, 5].map(s => (
+      <span key={s} style={{ fontSize: 11, color: s <= Math.round(rating) ? "#f59e0b" : "#e2e8f0" }}>★</span>
+    ))}
+    <span style={{ fontSize: 11, fontWeight: 700, color: "#475569", marginLeft: 2 }}>{rating.toFixed(1)}</span>
+    {count !== undefined && <span style={{ fontSize: 10, color: "#94a3b8" }}>({count})</span>}
+  </span>
 );
 
-const IconWallet = () => (
-  <svg
-    width="13"
-    height="13"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect x="1" y="4" width="22" height="16" rx="2" />
-    <path d="M1 10h22" />
-  </svg>
-);
-const IconBookmark = ({ filled }: { filled: boolean }) => (
-  <svg
-    width="15"
-    height="15"
-    viewBox="0 0 24 24"
-    fill={filled ? "#ffd166" : "none"}
-    stroke={filled ? "#ffd166" : "currentColor"}
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
-  </svg>
-);
-const IconCheck = () => (
-  <svg
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
-);
-const IconSend = () => (
-  <svg
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="22" y1="2" x2="11" y2="13" />
-    <polygon points="22 2 15 22 11 13 2 9 22 2" />
-  </svg>
-);
-
-const JobCard: React.FC<JobCardProps> = ({
-  job,
-  onApply,
-  onViewDetails,
-  onSave,
-}) => {
+const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }) => {
   const [saved, setSaved] = useState(job.isSaved ?? false);
   const [applied, setApplied] = useState(job.isApplied ?? false);
+  const providerLocation = useProviderLocation();
 
-  React.useEffect(() => {
-    setApplied(job.isApplied ?? false);
-  }, [job.isApplied]);
+  React.useEffect(() => { setApplied(job.isApplied ?? false); }, [job.isApplied]);
 
-  const handleSave = () => {
-    const next = !saved;
-    setSaved(next);
-    onSave?.(job.id, next);
-  };
-
-  const handleApply = () => {
-    if (applied) return;
-    setApplied(true);
-    onApply?.(job.id);
-  };
-
-  const visibleSkills = job.skills.slice(0, 4);
-  const extraSkills = job.skills.length - visibleSkills.length;
+  const handleSave = () => { const n = !saved; setSaved(n); onSave?.(job.id, n); };
+  const handleApply = () => { if (applied) return; setApplied(true); onApply?.(job.id); };
 
   const avatarBg = job.clientAvatarColor ?? getAvatarColor(job.clientName);
+  const visibleSkills = job.skills.slice(0, 5);
+  const extraSkills = job.skills.length - visibleSkills.length;
+
+  // Location match check — compare job's districtName with provider's district
+  const jobDistrict = job.location?.districtName?.toLowerCase().trim() ?? "";
+  const myDistrict = providerLocation?.toLowerCase().trim() ?? "";
+  const isMyArea = myDistrict && myDistrict !== "not set" && jobDistrict
+    ? jobDistrict.includes(myDistrict) || myDistrict.includes(jobDistrict)
+    : null; // null = can't determine
+
+  const isMultiDay = job.startDate !== job.endDate;
 
   return (
     <article
       className={`jc-card${saved ? " saved" : ""}`}
-      style={
-        job.animationDelay
-          ? { animationDelay: `${job.animationDelay}ms` }
-          : undefined
-      }
+      style={job.animationDelay ? { animationDelay: `${job.animationDelay}ms` } : undefined}
       aria-label={`Job: ${job.title}`}
     >
-      {(job.isUrgent || job.isRecommended || job.isNew) && (
-        <div className="jc-badges-row" aria-hidden="true">
-          {job.isUrgent && (
-            <span className="jc-badge jc-badge-urgent">
-              <span className="jc-badge-pulse" /> Urgent
-            </span>
-          )}
-          {job.isRecommended && (
-            <span className="jc-badge jc-badge-recommended">✦ Match</span>
-          )}
-          {job.isNew && !job.isUrgent && !job.isRecommended && (
-            <span className="jc-badge jc-badge-new">New</span>
-          )}
-        </div>
-      )}
+      {/* ── Top accent bar based on urgency ── */}
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: job.isUrgent ? "linear-gradient(90deg,#ef4444,#f97316)" : "linear-gradient(90deg,#6366f1,#8b5cf6)", borderRadius: "16px 16px 0 0" }} />
 
+      {/* ── Badges row ── */}
+      <div className="jc-badges-row" style={{ paddingTop: 4 }}>
+        {job.isUrgent && (
+          <span className="jc-badge jc-badge-urgent">
+            <span className="jc-badge-pulse" /> Urgent
+          </span>
+        )}
+        {job.isRecommended && (
+          <span className="jc-badge jc-badge-recommended">
+            <RiMedalLine size={10} /> Best Match
+          </span>
+        )}
+        {job.isNew && !job.isUrgent && !job.isRecommended && (
+          <span className="jc-badge jc-badge-new">
+            <RiSparklingLine size={10} /> New
+          </span>
+        )}
+        {/* Location match badge */}
+        {isMyArea === true && (
+          <span className="jc-badge" style={{ background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0" }}>
+            <RiMapPinLine size={10} /> Your Area
+          </span>
+        )}
+        {isMyArea === false && (
+          <span className="jc-badge" style={{ background: "#fff7ed", color: "#b45309", border: "1px solid #fde68a" }}>
+            <RiAlertLine size={10} /> Not Your Area
+          </span>
+        )}
+      </div>
+
+      {/* ── Client row ── */}
       <div className="jc-client-row">
-        <div
-          className="jc-avatar"
-          style={{ background: avatarBg }}
-          aria-hidden="true"
-        >
-          {job.clientAvatarUrl ? (
-            <img src={job.clientAvatarUrl} alt={job.clientName} />
-          ) : (
-            (job.clientInitials ?? job.clientName.slice(0, 2).toUpperCase())
-          )}
+        <div className="jc-avatar" style={{ background: avatarBg }}>
+          {job.clientAvatarUrl
+            ? <img src={job.clientAvatarUrl} alt={job.clientName} />
+            : (job.clientInitials ?? job.clientName.slice(0, 2).toUpperCase())}
         </div>
         <div className="jc-client-info">
-          <h3 className="jc-job-title" title={job.title}>
-            {job.title}
-          </h3>
+          <h3 className="jc-job-title" title={job.title}>{job.title}</h3>
           <div className="jc-client-meta">
-            <span className="jc-client-name">{job.clientName}</span>
+            <span className="jc-client-name"><RiUserLine size={11} /> {job.clientName}</span>
             {job.clientRating !== undefined && (
-              <>
-                <span className="jc-meta-sep">•</span>
-                <StarRating
-                  rating={job.clientRating}
-                  count={job.clientReviewCount}
-                />
-              </>
+              <><span className="jc-meta-sep">·</span><StarRating rating={job.clientRating} count={job.clientReviewCount} /></>
             )}
-            <span className="jc-meta-sep">•</span>
-            <span className="jc-location">
-              <IconPin /> {job.location?.address || "Remote"}
-            </span>
-            <span className="jc-meta-sep">•</span>
-            <span className="jc-posted">
-              <IconClock /> {job.postedAt}
-            </span>
-            <span className="jc-meta-sep">•</span>
-            <span
-              className="jc-schedule text-primary fw-bold"
-              style={{ fontSize: "11px" }}
-            >
-              <FiCalendar
-                className="me-1"
-                style={{ verticalAlign: "middle", marginTop: "-2px" }}
-              />
-              {job.startDate === job.endDate
-                ? job.startDate
-                : `${job.startDate} – ${job.endDate}`}
-            </span>
+            <span className="jc-meta-sep">·</span>
+            <span className="jc-posted"><RiTimeLine size={11} /> {job.postedAt}</span>
           </div>
         </div>
       </div>
-      <p className="jc-client-name">{job.description}</p>
-      <div className="jc-skills" aria-label="Required skills">
-        {visibleSkills.map((skill) => (
-          <span
-            key={skill}
-            className="jc-skill-tag"
-            style={{
-              backgroundColor: "rgba(108, 99, 255, 0.08)",
-              border: "1px solid rgba(108, 99, 255, 0.15)",
-              color: "#a09bff",
-              fontSize: "12px",
-              fontWeight: 600,
-              fontFamily: "DM Sans, sans-serif",
-            }}
-          >
-            {skill}
-          </span>
-        ))}
-        {extraSkills > 0 && (
-          <span className="jc-skill-more">+{extraSkills} more</span>
+
+      {/* ── Description ── */}
+      <p className="jc-description">{job.description}</p>
+
+      {/* ── Detail grid ── */}
+      <div className="jc-detail-grid">
+        {/* Location */}
+        <div className="jc-detail-cell">
+          <div className="jc-detail-icon" style={{ background: isMyArea === false ? "#fff7ed" : "#f0fdf4", color: isMyArea === false ? "#b45309" : "#16a34a" }}>
+            <RiMapPinLine size={14} />
+          </div>
+          <div className="jc-detail-body">
+            <div className="jc-detail-label">Location</div>
+            <div className="jc-detail-val" title={job.location?.address}>
+              {job.location?.address || "Not specified"}
+              {isMyArea === false && <span style={{ display: "block", fontSize: 10, color: "#b45309", fontWeight: 600, marginTop: 1 }}>⚠ Outside your area</span>}
+              {isMyArea === true && <span style={{ display: "block", fontSize: 10, color: "#16a34a", fontWeight: 600, marginTop: 1 }}>✓ Your district</span>}
+            </div>
+          </div>
+        </div>
+
+        {/* Schedule */}
+        <div className="jc-detail-cell">
+          <div className="jc-detail-icon" style={{ background: "#fff7ed", color: "#ea580c" }}>
+            <RiCalendarLine size={14} />
+          </div>
+          <div className="jc-detail-body">
+            <div className="jc-detail-label">{isMultiDay ? "Schedule" : "Date"}</div>
+            <div className="jc-detail-val">
+              {isMultiDay ? `${job.startDate} → ${job.endDate}` : job.startDate}
+            </div>
+          </div>
+        </div>
+
+        {/* Duration */}
+        <div className="jc-detail-cell">
+          <div className="jc-detail-icon" style={{ background: "#eff6ff", color: "#3b82f6" }}>
+            <RiTimeLine size={14} />
+          </div>
+          <div className="jc-detail-body">
+            <div className="jc-detail-label">Duration</div>
+            <div className="jc-detail-val">{DURATION_LABEL[job.durationType] ?? job.durationType.replace(/_/g, " ")}</div>
+          </div>
+        </div>
+
+        {/* Providers needed */}
+        {job.freelancersNeeded !== undefined && (
+          <div className="jc-detail-cell">
+            <div className="jc-detail-icon" style={{ background: "#faf5ff", color: "#9333ea" }}>
+              <RiGroupLine size={14} />
+            </div>
+            <div className="jc-detail-body">
+              <div className="jc-detail-label">Providers Needed</div>
+              <div className="jc-detail-val">{job.freelancersNeeded} provider{job.freelancersNeeded > 1 ? "s" : ""}</div>
+            </div>
+          </div>
         )}
       </div>
+
+      {/* ── Skills ── */}
+      {job.skills.length > 0 && (
+        <div className="jc-skills">
+          {visibleSkills.map(skill => (
+            <span key={skill} className="jc-skill-tag">{skill}</span>
+          ))}
+          {extraSkills > 0 && <span className="jc-skill-more">+{extraSkills} more</span>}
+        </div>
+      )}
+
+      {/* ── Bottom info bar ── */}
       <div className="jc-info-row">
         <div className="jc-info-item">
-          <span className="jc-info-icon">
-            <IconWallet />
-          </span>
-          <span className="jc-info-label">Budget:</span>
-          <span className="jc-info-val budget">{job.budget}</span>
+          <div className="jc-info-label"><RiMoneyDollarCircleLine size={11} /> Budget / Provider</div>
+          <div className="jc-info-val budget">{job.budget}</div>
         </div>
-        <div className="jc-info-item ms-auto">
-          <span className="jc-info-val applicants-count">{job.applicants}</span>
-          <span className="jc-info-label"> applicants</span>
+        <div className="jc-info-item" style={{ textAlign: "right" }}>
+          <div className="jc-info-label"><RiGroupLine size={11} /> Applicants</div>
+          <div className="jc-info-val applicants-count">{job.applicants}</div>
         </div>
       </div>
+
+      {/* ── Actions ── */}
       <div className="jc-actions">
         <button
           className={`jc-save-btn${saved ? " saved" : ""}`}
@@ -315,32 +261,25 @@ const JobCard: React.FC<JobCardProps> = ({
           aria-label={saved ? "Unsave job" : "Save job"}
           title={saved ? "Saved" : "Save for later"}
         >
-          <IconBookmark filled={saved} />
+          {saved ? <RiBookmarkFill size={16} /> : <RiBookmarkLine size={16} />}
         </button>
 
         <button
           className="jc-view-btn"
           onClick={() => onViewDetails?.(job.id)}
-          aria-label={`View details for ${job.title}`}
         >
-          View Details
+          <RiEyeLine size={14} /> View Details
         </button>
 
         <button
           className={`jc-apply-btn${applied ? " applied" : ""}`}
           onClick={handleApply}
           disabled={applied}
-          aria-label={applied ? "Already accepted" : `Accept ${job.title}`}
         >
-          {applied ? (
-            <>
-              <IconCheck /> Accepted Job
-            </>
-          ) : (
-            <>
-              <IconSend /> Accept Now
-            </>
-          )}
+          {applied
+            ? <><RiCheckDoubleLine size={15} /> Applied</>
+            : <><RiFlashlightLine size={14} /> Apply Now</>
+          }
         </button>
       </div>
     </article>

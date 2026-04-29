@@ -1,3 +1,4 @@
+import { AxiosError } from "axios";
 import { useState, useMemo, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { resetPassword } from "../services/authApi";
@@ -42,7 +43,8 @@ const ResetPasswordForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const email = (location.state as any)?.email || "";
+  const locationState = location.state as { email?: string } | null;
+  const email = locationState?.email || "";
 
   const strength = useMemo(
     () => getPasswordStrength(newPassword),
@@ -90,9 +92,10 @@ const ResetPasswordForm = () => {
       setTimeout(() => {
         navigate("/auth/login");
       }, 3000);
-    } catch (err: any) {
+    } catch (err) {
+      const axiosError = err as AxiosError<{ message: string }>;
       setError(
-        err?.response?.data?.message ||
+        axiosError.response?.data?.message ||
           "Reset failed. Please verify your code and try again.",
       );
     } finally {

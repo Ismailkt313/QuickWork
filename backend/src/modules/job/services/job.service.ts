@@ -9,7 +9,6 @@ import { NotificationService } from '../../notification/services/notification.se
 import { JOB_STATUS } from '../../../constants/jobStatus';
 import { ASSIGNMENT_STATUS, WORK_STATUS, ASSIGNMENT_TYPE } from '../../../constants/assignment';
 import { JOB_VISIBILITY } from '../../../constants/jobVisibility';
-import { MIN_JOB_WAGE } from '../../../constants/job';
 import { SuccessMessages } from '../../../constants/messages/successMessages';
 import { ErrorMessages } from '../../../constants/messages/errorMessages';
 
@@ -38,7 +37,7 @@ export class JobService implements IJobService {
 
         const district = await this.locationRepository.findById(dto.location.district);
         if (!district) {
-            throw new Error(ErrorMessages.INVALID_DISTRICT);
+            return { success: false, message: ErrorMessages.INVALID_DISTRICT };
         }
 
 
@@ -47,23 +46,39 @@ export class JobService implements IJobService {
         const formattedAddress = dto.location.address.toLowerCase();
 
         if (placeDistrict !== chosenDistrictName && !formattedAddress.includes(chosenDistrictName)) {
-            throw new Error(ErrorMessages.DISTRICT_MISMATCH);
+            return { success: false, message: ErrorMessages.DISTRICT_MISMATCH };
         }
 
         if (!dto.budget || dto.budget.min === undefined || dto.budget.max === undefined) {
-            throw new Error(ErrorMessages.BUDGET_REQUIRED);
+            return { success: false, message: ErrorMessages.BUDGET_REQUIRED };
         }
 
-        if (dto.budget.min < MIN_JOB_WAGE) {
-            throw new Error(ErrorMessages.MIN_BUDGET_ERROR(MIN_JOB_WAGE));
+        let requiredMinBudget = 500;
+        if (dto.durationType === 'half_day') {
+            requiredMinBudget = 500;
+        } else if (dto.durationType === 'full_day') {
+            requiredMinBudget = 1000;
+        } else if (dto.durationType === 'multi_day') {
+            const daysCount = dto.days || 1;
+            requiredMinBudget = 1000 * daysCount;
+        }
+
+        if (dto.budget.min < requiredMinBudget) {
+            if (dto.durationType === 'half_day') {
+                return { success: false, message: "For a half-day job, min budget per provider must be at least ₹500" };
+            } else if (dto.durationType === 'full_day') {
+                return { success: false, message: "For a full-day job, min budget per provider must be at least ₹1000" };
+            } else {
+                return { success: false, message: `For ${dto.days || 1} days, min budget per provider must be at least ₹${requiredMinBudget}` };
+            }
         }
 
         if (dto.budget.max < dto.budget.min) {
-            throw new Error(ErrorMessages.MAX_BUDGET_ERROR);
+            return { success: false, message: ErrorMessages.MAX_BUDGET_ERROR };
         }
 
         if (dto.budget.min <= 0 || dto.budget.max <= 0) {
-            throw new Error(ErrorMessages.BUDGET_POSITIVE);
+            return { success: false, message: ErrorMessages.BUDGET_POSITIVE };
         }
 
         let endDate: Date;

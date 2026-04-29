@@ -1,286 +1,112 @@
 import React from "react";
 import {
-  RiCalendarLine,
-  RiMapPinLine,
-  RiTimeLine,
-  RiMessage3Line,
-  RiHeartLine,
-  RiCloseLine,
+  RiCalendarLine, RiMapPinLine, RiTimeLine, RiMessage3Line,
+  RiCloseLine, RiCheckDoubleLine, RiFlashlightLine,
+  RiMoneyDollarCircleLine, RiPhoneLine, RiGroupLine,
 } from "react-icons/ri";
 
-interface JobLocation {
-  address: string;
-  lat: number;
-  lng: number;
-  districtId: string;
-  districtName?: string;
+interface JobLocation { address: string; lat: number; lng: number; districtId: string; districtName?: string; }
+interface JobActionPanelProps {
+  budget: string; duration: string; location: JobLocation | null;
+  startDate: string; endDate?: string; freelancersNeeded?: number;
+  isApplied: boolean; isAssigned: boolean; isPrivate?: boolean;
+  contactNumber?: string;
+  onAccept: () => void; onReject?: () => void; onMessage: () => void; onSave?: () => void;
 }
 
-interface JobActionPanelProps {
-  budget: string;
-  duration: string;
-  location: JobLocation | null;
-  startDate: string;
-  isApplied: boolean;
-  isAssigned: boolean;
-  isPrivate?: boolean;
-  contactNumber?: string;
-  onAccept: () => void;
-  onReject?: () => void;
-  onMessage: () => void;
-  onSave?: () => void;
-}
+const InfoRow: React.FC<{ icon: React.ReactNode; label: string; value: string; iconBg: string; iconColor: string }> = ({ icon, label, value, iconBg, iconColor }) => (
+  <div style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 14px", borderRadius:10, background:"#f8fafc", border:"1px solid #f1f5f9" }}>
+    <div style={{ width:36, height:36, borderRadius:9, background:iconBg, color:iconColor, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{icon}</div>
+    <div>
+      <div style={{ fontSize:9, fontWeight:700, color:"#94a3b8", textTransform:"uppercase", letterSpacing:"0.07em" }}>{label}</div>
+      <div style={{ fontSize:13.5, fontWeight:600, color:"#1e293b" }}>{value}</div>
+    </div>
+  </div>
+);
 
 const JobActionPanel: React.FC<JobActionPanelProps> = ({
-  budget,
-  duration,
-  location,
-  startDate,
-  isApplied,
-  isAssigned,
-  isPrivate,
-  contactNumber,
-  onAccept,
-  onReject,
-  onMessage,
+  budget, duration, location, startDate, endDate, freelancersNeeded,
+  isApplied, isAssigned, isPrivate, contactNumber,
+  onAccept, onReject, onMessage,
 }) => {
   const isDisabled = isAssigned || isApplied;
 
   return (
-    <div
-      className="card border-0 rounded-4 shadow-sm h-100 overflow-hidden"
-      style={{
-        backgroundColor: "#fff",
-        border: "1px solid #f1f5f9",
-        position: "sticky",
-        top: "2rem",
-      }}
-    >
-      <div className="card-body p-4 d-flex flex-column gap-4">
-        <div
-          className="p-4 rounded-4"
-          style={{
-            background: "linear-gradient(135deg, #f8fafc, #f1f5f9)",
-            border: "1px solid #e2e8f0",
-          }}
-        >
-          <label
-            className="d-block mb-1"
-            style={{
-              fontSize: "10px",
-              fontWeight: 800,
-              textTransform: "uppercase",
-              letterSpacing: "1px",
-              fontFamily: "Syne, sans-serif",
-              color: "#64748b",
-            }}
-          >
-            Estimated Budget
-          </label>
-          <div className="d-flex align-items-center gap-2">
-            <h2
-              className="mb-0 fw-bold"
-              style={{
-                fontFamily: "Syne, sans-serif",
-                fontSize: "32px",
-                letterSpacing: "-1px",
-                color: "#0f172a",
-              }}
-            >
-              {budget}
-            </h2>
-          </div>
+    <div style={{ background:"#fff", borderRadius:16, border:"1px solid #e8edf4", overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.06)", position:"sticky", top:24 }}>
+      {/* Budget hero */}
+      <div style={{ padding:"24px 24px 20px", background:"linear-gradient(135deg,#6366f1,#4f46e5)", color:"#fff" }}>
+        <div style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", opacity:0.75, marginBottom:4 }}>
+          <RiMoneyDollarCircleLine size={11} style={{ verticalAlign:"middle", marginRight:4 }}/>Budget Per Provider
         </div>
-        <div className="d-flex flex-column gap-3">
-          {[
-            {
-              icon: <RiTimeLine size={20} />,
-              label: "Duration",
-              value: duration,
-              color: "#3b82f6",
-            },
-            {
-              icon: <RiMapPinLine size={20} />,
-              label: "Location",
-              value: location?.address || "Remote",
-              color: "#10b981",
-            },
-            {
-              icon: <RiCalendarLine size={20} />,
-              label: "Start Date",
-              value: startDate,
-              color: "#f59e0b",
-            },
-            {
-              icon: <RiMessage3Line size={20} />,
-              label: "WhatsApp / Contact",
-              value: contactNumber || "Not Provided",
-              color: "#16a34a",
-            },
-          ].map((item, idx) => (
-            <div
-              key={idx}
-              className="d-flex align-items-center gap-3 p-2 rounded-3 hover-bg"
-            >
-              <div
-                className="rounded-3 d-flex align-items-center justify-content-center"
-                style={{
-                  backgroundColor: `${item.color}10`,
-                  width: 42,
-                  height: 42,
-                  color: item.color,
-                  border: `1px solid ${item.color}20`,
-                }}
-              >
-                {item.icon}
-              </div>
-              <div>
-                <label
-                  className="d-block"
-                  style={{
-                    fontSize: "10px",
-                    fontWeight: 700,
-                    color: "#94a3b8",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  {item.label}
-                </label>
-                <span
-                  className="fw-bold"
-                  style={{ fontSize: "14px", color: "#334155" }}
-                >
-                  {item.value}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="d-flex flex-column gap-2 mt-2">
-          <button
-            className={`btn btn-primary w-100 py-3 rounded-3 fw-bold shadow-sm ${isDisabled ? "disabled" : ""}`}
-            onClick={onAccept}
-            disabled={isDisabled}
-            style={{
-              background: isApplied
-                ? "#10b981"
-                : "linear-gradient(135deg, #3b82f6, #2563eb)",
-              border: "none",
-              fontSize: "15px",
-              fontFamily: "DM Sans, sans-serif",
-              transition: "all 0.3s ease",
-              boxShadow: isApplied
-                ? "none"
-                : "0 10px 20px -5px rgba(37, 99, 235, 0.3)",
-            }}
-          >
-            {isApplied
-              ? "Accepted"
-              : isAssigned
-                ? "Already Assigned"
-                : isPrivate 
-                  ? "Accept Offer"
-                  : "Accept this job"}
-          </button>
-
-          {isPrivate && !isApplied && !isAssigned && (
-            <button
-              className="btn btn-outline-danger w-100 py-3 rounded-3 fw-bold d-flex align-items-center justify-content-center gap-2"
-              onClick={onReject}
-              style={{
-                border: "1.5px solid #fee2e2",
-                color: "#ef4444",
-                fontSize: "15px",
-                backgroundColor: "#fff",
-              }}
-            >
-              <RiCloseLine size={20} />
-              Reject Offer
-            </button>
-          )}
-
-          <button
-            className="btn btn-outline-light w-100 py-3 rounded-3 fw-bold d-flex align-items-center justify-content-center gap-2"
-            onClick={onMessage}
-            style={{
-              border: "1.5px solid #e2e8f0",
-              color: "#475569",
-              fontSize: "15px",
-              backgroundColor: "#fff",
-            }}
-          >
-            <RiMessage3Line size={20} />
-            Message Client
-          </button>
-
-          <button
-            className="btn btn-link w-100 text-decoration-none fw-bold d-flex align-items-center justify-content-center gap-1"
-            style={{ fontSize: "13px", color: "#94a3b8" }}
-          >
-            <RiHeartLine size={16} />
-            Save job for later
-          </button>
-        </div>
-
+        <div style={{ fontFamily:"Syne,sans-serif", fontSize:36, fontWeight:800, letterSpacing:"-1px", lineHeight:1.1 }}>{budget}</div>
         {isApplied && (
-          <div
-            className="alert border-0 rounded-4 mb-0 py-3 d-flex align-items-center gap-3"
-            style={{
-              fontSize: "13px",
-              backgroundColor: "#f0fdf4",
-              color: "#166534",
-              border: "1px solid #dcfce7",
-              fontWeight: 600,
-            }}
-          >
-            <div
-              className="bg-success rounded-circle"
-              style={{ width: 8, height: 8 }}
-            ></div>
-            You've expressed interest in this job
+          <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:10, padding:"6px 12px", borderRadius:8, background:"rgba(255,255,255,0.15)", fontSize:12, fontWeight:600 }}>
+            <RiCheckDoubleLine size={14}/> You've already applied to this job
           </div>
         )}
       </div>
 
+      {/* Detail rows */}
+      <div style={{ padding:"18px 20px", display:"flex", flexDirection:"column", gap:8 }}>
+        <InfoRow icon={<RiTimeLine size={17}/>}     label="Duration"   value={duration}                        iconBg="#eff6ff" iconColor="#3b82f6"/>
+        <InfoRow icon={<RiMapPinLine size={17}/>}   label="Location"   value={location?.address || "Remote"}   iconBg="#f0fdf4" iconColor="#16a34a"/>
+        <InfoRow icon={<RiCalendarLine size={17}/>} label={endDate && endDate !== startDate ? "Schedule" : "Start Date"} value={endDate && endDate !== startDate ? `${startDate} → ${endDate}` : startDate} iconBg="#fff7ed" iconColor="#ea580c"/>
+        {freelancersNeeded !== undefined && (
+          <InfoRow icon={<RiGroupLine size={17}/>} label="Providers Needed" value={`${freelancersNeeded} provider${freelancersNeeded > 1 ? "s" : ""}`} iconBg="#faf5ff" iconColor="#9333ea"/>
+        )}
+        {contactNumber && (
+          <InfoRow icon={<RiPhoneLine size={17}/>} label="WhatsApp / Contact" value={contactNumber} iconBg="#f0fdf4" iconColor="#16a34a"/>
+        )}
+      </div>
+
+      {/* Action buttons */}
+      <div style={{ padding:"0 20px 20px", display:"flex", flexDirection:"column", gap:8 }}>
+        <button
+          onClick={onAccept}
+          disabled={isDisabled}
+          style={{
+            width:"100%", padding:"13px 20px", borderRadius:11,
+            background: isApplied ? "#f0fdf4" : isDisabled ? "#f1f5f9" : "linear-gradient(135deg,#6366f1,#4f46e5)",
+            color: isApplied ? "#16a34a" : isDisabled ? "#94a3b8" : "#fff",
+            fontWeight:700, fontSize:15, cursor: isDisabled ? "not-allowed" : "pointer",
+            display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+            boxShadow: isDisabled ? "none" : "0 6px 18px rgba(99,102,241,0.35)",
+            border: isApplied ? "1.5px solid #bbf7d0" : "none",
+            transition:"all 0.2s",
+          }}
+        >
+          {isApplied ? <><RiCheckDoubleLine size={18}/> Already Applied</>
+          : isAssigned ? "Already Assigned"
+          : isPrivate  ? <><RiFlashlightLine size={17}/> Accept Offer</>
+          : <><RiFlashlightLine size={17}/> Accept This Job</>}
+        </button>
+
+        {isPrivate && !isApplied && !isAssigned && (
+          <button onClick={onReject}
+            style={{ width:"100%", padding:"12px 20px", borderRadius:11, border:"1.5px solid #fecaca", background:"#fff", color:"#dc2626", fontWeight:700, fontSize:14, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6, transition:"all 0.2s" }}
+            onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.background="#fef2f2";}}
+            onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.background="#fff";}}
+          >
+            <RiCloseLine size={18}/> Reject Offer
+          </button>
+        )}
+
+        <button onClick={onMessage}
+          style={{ width:"100%", padding:"12px 20px", borderRadius:11, border:"1.5px solid #e2e8f0", background:"#fff", color:"#475569", fontWeight:600, fontSize:14, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6, transition:"all 0.2s" }}
+          onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.borderColor="#a5b4fc";(e.currentTarget as HTMLButtonElement).style.color="#6366f1";}}
+          onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.borderColor="#e2e8f0";(e.currentTarget as HTMLButtonElement).style.color="#475569";}}
+        >
+          <RiMessage3Line size={17}/> Message Client
+        </button>
+      </div>
+
+      {/* Mobile sticky override */}
       <style>{`
-        .hover-bg:hover { background-color: #f8fafc; cursor: default; }
         @media (max-width: 991px) {
-          .card.border-0.rounded-4.shadow-sm.h-100 {
-            position: fixed !important;
-            bottom: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            z-index: 1050 !important;
-            border-radius: 24px 24px 0 0 !important;
-            box-shadow: 0 -20px 40px rgba(0,0,0,0.08) !important;
-            top: auto !important;
-            border: none !important;
-            background: rgba(255, 255, 255, 0.95) !important;
-            backdrop-filter: blur(16px);
-          }
-          .card-body.p-4 {
-            padding: 1.25rem !important;
-            flex-direction: row !important;
-            align-items: center !important;
-            justify-content: space-between !important;
-            gap: 16px !important;
-          }
-          .card-body > div:nth-child(1),
-          .card-body > div:nth-child(2) {
-            display: none !important;
-          }
-          .card-body > .mt-2 {
-            margin-top: 0 !important;
-            flex-direction: row !important;
-            gap: 12px !important;
-            flex: 1 !important;
-          }
-          .card-body > .mt-2 button {
-            padding: 1rem !important;
-            font-size: 14px !important;
-          }
-          .card-body > .mt-2 button:nth-child(3) {
-            display: none !important;
+          .job-action-panel-sticky {
+            position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important;
+            z-index: 1050 !important; border-radius: 20px 20px 0 0 !important;
+            box-shadow: 0 -12px 40px rgba(0,0,0,0.1) !important;
           }
         }
       `}</style>

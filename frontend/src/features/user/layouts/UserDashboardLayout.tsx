@@ -30,7 +30,7 @@ const UserDashboardLayout: React.FC = () => {
           console.error("Failed to fetch profile:", error);
 
           try {
-            const decoded: any = jwtDecode(token);
+            const decoded = jwtDecode(token) as { name?: string; email?: string };
             setUser({
               name: decoded.name || "User",
               email: decoded.email || "",

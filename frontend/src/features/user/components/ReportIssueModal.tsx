@@ -50,7 +50,7 @@ const ReportIssueModal: React.FC<ReportIssueModalProps> = ({
       const uploadedUrls = results.map(res => res.secure_url);
       setImages((prev) => [...prev, ...uploadedUrls]);
       toast.success("Images uploaded successfully");
-    } catch (error) {
+    } catch {
       toast.error("Failed to upload images");
     } finally {
       setUploading(false);
@@ -68,7 +68,7 @@ const ReportIssueModal: React.FC<ReportIssueModalProps> = ({
       setLoading(true);
       await onSubmit(reason, description, images);
       onClose();
-    } catch (error) {
+    } catch {
       // Error handled in parent
     } finally {
       setLoading(false);

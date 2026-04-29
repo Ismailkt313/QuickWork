@@ -6,10 +6,11 @@ import { getMe } from "../../auth/services/authApi";
 import { getConversations } from "../../message/api/message.api";
 import { useSearchParams } from "react-router-dom";
 import { Sidebar } from "../../message/components/Sidebar";
+import type { Conversation, Participant } from "../../message/types";
 
 const MessagesPage: React.FC = () => {
-  const [user, setUser] = useState<any>(null);
-  const [conversations, setConversations] = useState<any[]>([]);
+  const [user, setUser] = useState<{ id?: string; _id?: string; name?: string } | null>(null);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversationId, setSelectedConversationId] = useState<
     string | null
   >(null);
@@ -63,13 +64,13 @@ const MessagesPage: React.FC = () => {
 
           placeholders.forEach((ph) => {
             const phTargetId = ph.participants.find(
-              (p: any) =>
+              (p: Participant) =>
                 String(p._id || p.id) !== String(currentUserIdRef.current),
             )?._id;
 
-            const alreadyExists = serverConvs.some((sc: any) =>
+            const alreadyExists = serverConvs.some((sc: Conversation) =>
               sc.participants.some(
-                (p: any) => String(p._id || p.id) === String(phTargetId),
+                (p: Participant) => String(p._id || p.id) === String(phTargetId),
               ),
             );
 
@@ -130,7 +131,7 @@ const MessagesPage: React.FC = () => {
 
     const existingConv = conversations.find((conv) =>
       conv.participants.some(
-        (p: any) => String(p._id || p.id).trim() === stringTargetId,
+        (p: Participant) => String(p._id || p.id).trim() === stringTargetId,
       ),
     );
 
@@ -163,12 +164,18 @@ const MessagesPage: React.FC = () => {
     currentUserId,
     placeholderAdded,
     conversations,
+    user?.name,
   ]);
 
   useEffect(() => {
     if (!socket) return;
 
-    const handleNewConversationMessage = (newMessage: any) => {
+    const handleNewConversationMessage = (newMessage: {
+      sender: string;
+      receiver: string;
+      conversationId: string;
+      message: string;
+    }) => {
       const currentSelectedId = selectedConvIdRef.current;
       const myUserId = currentUserIdRef.current;
 
@@ -188,7 +195,7 @@ const MessagesPage: React.FC = () => {
 
         const updated = prev.map((conv) => {
           const phTargetId = conv.participants.find(
-            (p: any) => String(p._id || p.id) !== String(myUserId),
+            (p: Participant) => String(p._id || p.id) !== String(myUserId),
           )?._id;
           const involvesThisParticipant =
             String(newMessage.sender) === String(phTargetId) ||
@@ -240,7 +247,7 @@ const MessagesPage: React.FC = () => {
     (c) => String(c.id) === String(selectedConversationId),
   );
 
-  const getRecipientDetails = (conversation: any) => {
+  const getRecipientDetails = (conversation: Conversation | null | undefined) => {
     if (!currentUserId || !conversation || !conversation.participants) {
       return { name: "System", id: null };
     }
@@ -248,7 +255,7 @@ const MessagesPage: React.FC = () => {
     const normalizedCurrentId = String(currentUserId).trim();
 
     const recipient = conversation.participants.find(
-      (p: any) => String(p._id || p.id).trim() !== normalizedCurrentId,
+      (p: Participant) => String(p._id || p.id).trim() !== normalizedCurrentId,
     );
 
     const actualRecipient = recipient || conversation.participants[0];

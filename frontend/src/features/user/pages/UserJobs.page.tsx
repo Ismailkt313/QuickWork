@@ -10,12 +10,13 @@ import {
   RiSkipBackLine,
   RiSkipForwardLine,
 } from "react-icons/ri";
-import { getUserJobs, cancelJob } from "../services/userJob.service";
+import { getUserJobs, cancelJob, type UserJob } from "../services/userJob.service";
 import UserJobCard from "../components/UserJobCard";
 import { CreateJobModal } from "../jobs/components/CreateJobModal";
 import { CancelJobModal } from "../components/CancelJobModal";
 import { toast } from "react-hot-toast";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { AxiosError } from "axios";
 
 const JOBS_PER_PAGE = 8;
 
@@ -31,7 +32,7 @@ const UserJobsPage: React.FC = () => {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [jobToCancelId, setJobToCancelId] = useState<string | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
-  const [jobs, setJobs] = useState<any[]>([]);
+  const [jobs, setJobs] = useState<UserJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterTab, setFilterTab] = useState(initialTab);
   const [searchTerm, setSearchTerm] = useState(initialSearch);
@@ -110,8 +111,9 @@ const UserJobsPage: React.FC = () => {
           setCounts(response.counts);
         }
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      toast.error(axiosError.response?.data?.message || (error as Error).message);
     } finally {
       setLoading(false);
     }
@@ -137,8 +139,9 @@ const UserJobsPage: React.FC = () => {
         setJobToCancelId(null);
         fetchJobs();
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      toast.error(axiosError.response?.data?.message || (error as Error).message);
     } finally {
       setIsCancelling(false);
     }

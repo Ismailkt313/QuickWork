@@ -11,6 +11,16 @@ import {
   RiCameraLine,
 } from "react-icons/ri";
 import { uploadToCloudinary } from "../../../utils/cloudinary";
+import { AxiosError } from "axios";
+
+interface UserProfile {
+  name: string;
+  number?: string;
+  profileImage?: {
+    url: string;
+    public_id: string;
+  };
+}
 
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -35,7 +45,7 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 interface UpdateProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
-  user: any;
+  user: UserProfile;
   onSuccess: () => void;
 }
 
@@ -46,9 +56,9 @@ const UpdateProfileModal: React.FC<UpdateProfileModalProps> = ({
   onSuccess,
 }) => {
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = React.useState<string | null>(
-    user?.profileImage?.url || null,
-  );
+  const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
+
+  const displayPreview = selectedFile ? previewUrl : (user?.profileImage?.url || null);
 
   const {
     register,
@@ -69,10 +79,14 @@ const UpdateProfileModal: React.FC<UpdateProfileModalProps> = ({
         name: user.name,
         number: user.number || "",
       });
-      setPreviewUrl(user.profileImage?.url || null);
-      setSelectedFile(null);
     }
   }, [isOpen, user, reset]);
+
+  const handleClose = () => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    onClose();
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -111,10 +125,11 @@ const UpdateProfileModal: React.FC<UpdateProfileModalProps> = ({
         onSuccess();
         onClose();
       }
-    } catch (error: any) {
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
       toast.error(
-        error.response?.data?.message ||
-          error.message ||
+        axiosError.response?.data?.message ||
+          (error as Error).message ||
           "Failed to update profile",
       );
     }
@@ -129,7 +144,7 @@ const UpdateProfileModal: React.FC<UpdateProfileModalProps> = ({
         backgroundColor: "rgba(0,0,0,0.5)",
         backdropFilter: "blur(4px)",
       }}
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+      onClick={(e) => e.target === e.currentTarget && handleClose()}
     >
       <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content border-0 shadow rounded-4 overflow-hidden animate-slide-up">
@@ -138,7 +153,7 @@ const UpdateProfileModal: React.FC<UpdateProfileModalProps> = ({
             <button
               type="button"
               className="btn-close btn-close-white"
-              onClick={onClose}
+              onClick={handleClose}
               aria-label="Close"
             ></button>
           </div>
@@ -150,9 +165,9 @@ const UpdateProfileModal: React.FC<UpdateProfileModalProps> = ({
                     className="overflow-hidden rounded-circle border border-4 border-light shadow-sm bg-light d-flex align-items-center justify-content-center"
                     style={{ width: "100px", height: "100px" }}
                   >
-                    {previewUrl ? (
+                    {displayPreview ? (
                       <img
-                        src={previewUrl}
+                        src={displayPreview}
                         alt="Preview"
                         className="w-100 h-100 object-fit-cover"
                       />
@@ -236,7 +251,7 @@ const UpdateProfileModal: React.FC<UpdateProfileModalProps> = ({
               <button
                 type="button"
                 className="btn btn-light rounded-3 px-4 fw-bold flex-grow-1"
-                onClick={onClose}
+                onClick={handleClose}
                 disabled={isSubmitting}
               >
                 Cancel

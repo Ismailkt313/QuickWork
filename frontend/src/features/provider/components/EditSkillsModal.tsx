@@ -9,12 +9,18 @@ import { updateProviderProfile } from "../services/provider.service";
 import { toast } from "react-toastify";
 import "./Modals.css";
 
+interface Skill {
+  id: string;
+  _id?: string;
+  name: string;
+}
+
 interface EditSkillsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  currentSkills: any[];
-  allSkills: any[];
+  currentSkills: Skill[];
+  allSkills: Skill[];
 }
 
 const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
@@ -54,8 +60,9 @@ const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
         onSuccess();
         onClose();
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update skills");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to update skills";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

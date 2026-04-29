@@ -10,10 +10,25 @@ import {
   RiErrorWarningLine,
 } from "react-icons/ri";
 
+interface LogAssignment {
+  invitedAt: string;
+  respondedAt?: string;
+  startedAt?: string;
+  completedAt?: string;
+  cancellation?: {
+    cancelledAt: string;
+    notes?: string;
+  };
+  absence?: {
+    reportedAt: string;
+    notes?: string;
+  };
+}
+
 interface JobLogModalProps {
   isOpen: boolean;
   onClose: () => void;
-  assignment: any;
+  assignment: LogAssignment | null;
 }
 
 const JobLogModal: React.FC<JobLogModalProps> = ({

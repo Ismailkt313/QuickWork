@@ -22,12 +22,8 @@ export interface ServiceRequest {
 export const getPendingServiceRequests = async (): Promise<
   ServiceRequest[]
 > => {
-  try {
-    const response = await Adminapi.get<IApiResponse<ServiceRequest[]>>("/admin/service-requests");
-    return response.data.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = await Adminapi.get<IApiResponse<ServiceRequest[]>>("/admin/service-requests");
+  return response.data.data;
 };
 
 export const approveServiceRequest = async (

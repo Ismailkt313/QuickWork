@@ -12,7 +12,7 @@ export const getLocations = async (): Promise<{
   try {
     const response = await api.get("/locations/all");
     return response.data;
-  } catch (error) {
+  } catch {
     return { success: false, data: [] };
   }
 };
@@ -33,7 +33,7 @@ export const searchLocation = async (
       params: { search: query },
     });
     return response.data.data;
-  } catch (error) {
+  } catch {
     return [];
   }
 };
@@ -43,10 +43,6 @@ export const selectLocation = async (locationData: {
   lat: number;
   lon: number;
 }): Promise<{ id: string }> => {
-  try {
-    const response = await api.post("/locations", locationData);
-    return { id: response.data.data.id };
-  } catch (error) {
-    throw error;
-  }
+  const response = await api.post("/locations", locationData);
+  return { id: response.data.data.id };
 };

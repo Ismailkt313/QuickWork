@@ -1,5 +1,5 @@
 import React from "react";
-import { RiCloseLine, RiErrorWarningLine, RiCloseCircleLine } from "react-icons/ri";
+import { RiCloseCircleLine } from "react-icons/ri";
 
 interface RejectConfirmationModalProps {
   isOpen: boolean;

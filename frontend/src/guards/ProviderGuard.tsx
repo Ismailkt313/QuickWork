@@ -1,6 +1,6 @@
+import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import { toast } from "react-toastify";
 
 interface TokenPayload {
   role: string;
@@ -10,67 +10,84 @@ interface TokenPayload {
 const ProviderGuard = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem("token");
   const location = useLocation();
+  const [authState, setAuthState] = useState<{
+    isAuthorized: boolean;
+    redirectPath: string;
+    message?: string;
+  } | null>(null);
 
-  if (!token) {
+  useEffect(() => {
+    const checkAuth = () => {
+      if (!token) {
+        setAuthState({
+          isAuthorized: false,
+          redirectPath: "/auth/login",
+          message: "Please login to continue",
+        });
+        return;
+      }
+
+      try {
+        const decoded: TokenPayload = jwtDecode(token);
+
+        if (decoded.exp * 1000 < Date.now()) {
+          localStorage.removeItem("token");
+          setAuthState({
+            isAuthorized: false,
+            redirectPath: "/auth/login",
+            message: "Session expired. Please login again.",
+          });
+          return;
+        }
+
+        // Check role permissions based on current path
+        if (
+          decoded.role === "provider" &&
+          location.pathname === "/provider/become-provider"
+        ) {
+          setAuthState({
+            isAuthorized: false,
+            redirectPath: "/provider/dashboard",
+          });
+          return;
+        }
+
+        if (
+          decoded.role !== "provider" &&
+          location.pathname === "/provider/dashboard"
+        ) {
+          setAuthState({
+            isAuthorized: false,
+            redirectPath: "/provider/become-provider",
+            message: "Please complete provider onboarding first.",
+          });
+          return;
+        }
+
+        setAuthState({ isAuthorized: true, redirectPath: "" });
+      } catch {
+        localStorage.removeItem("token");
+        setAuthState({
+          isAuthorized: false,
+          redirectPath: "/auth/login",
+          message: "Invalid session. Please login again.",
+        });
+      }
+    };
+
+    checkAuth();
+  }, [token, location.pathname]);
+
+  if (!authState) return null;
+
+  if (!authState.isAuthorized) {
     return (
       <Navigate
-        to="/auth/login"
+        to={authState.redirectPath}
         replace
-        state={{ message: "Please login to continue" }}
+        state={authState.message ? { message: authState.message } : undefined}
       />
     );
-  }
-
-  try {
-    const decoded: TokenPayload = jwtDecode(token);
-
-    if (decoded.exp * 1000 < Date.now()) {
-      localStorage.removeItem("token");
-
-      if (!toast.isActive("session-expired")) {
-        toast.error("Session expired. Please login again.", {
-          toastId: "session-expired",
-        });
-      }
-
-      return <Navigate to="/auth/login" replace />;
-    }
-
-    if (
-      decoded.role === "provider" &&
-      location.pathname === "/provider/become-provider"
-    ) {
-      if (!toast.isActive("already-provider")) {
-        toast.info("You are already a provider. Redirecting to dashboard.", {
-          toastId: "already-provider",
-        });
-      }
-
-      return <Navigate to="/provider/dashboard" replace />;
-    }
-
-    if (
-      decoded.role !== "provider" &&
-      location.pathname === "/provider/dashboard"
-    ) {
-      if (!toast.isActive("complete-onboarding")) {
-        toast.warning("Please complete provider onboarding first.", {
-          toastId: "complete-onboarding",
-        });
-      }
-
-      return <Navigate to="/provider/become-provider" replace />;
-    }
-  } catch {
-    localStorage.removeItem("token");
-
-    if (!toast.isActive("invalid-session")) {
-      toast.error("Invalid session. Please login again.", {
-        toastId: "invalid-session",
-      });
-    }
-
-    return <Navigate to="/auth/login" replace />;
   }
 
   return <>{children}</>;

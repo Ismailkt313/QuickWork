@@ -11,8 +11,26 @@ import {
   RiGlobeLine,
 } from "react-icons/ri";
 
+interface UserJob {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  visibility: "public" | "private";
+  budget: {
+    min: number;
+    max: number;
+  };
+  schedule: {
+    startDate: string;
+    endDate: string;
+  };
+  categoryName?: string;
+  locationName?: string;
+}
+
 interface UserJobCardProps {
-  job: any;
+  job: UserJob;
   onCancel?: (id: string) => void;
   onView?: (id: string) => void;
 }
@@ -63,8 +81,7 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView }) => {
   };
 
   const status = getStatusConfig(job.status);
-  const skillName =
-    job.skills && job.skills[0] ? job.skills[0] : "General Service";
+  const skillName = job.categoryName || "General Service";
 
   return (
     <div className="qw-job-card" onClick={() => onView?.(job.id)}>
@@ -136,11 +153,11 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView }) => {
         <div className="qw-info-grid mb-4">
           <div className="qw-info-item">
             <RiMapPinLine className="qw-info-icon" />
-            <span>{job.location?.address || "Remote"}</span>
+            <span>{job.locationName || "Remote"}</span>
           </div>
           <div className="qw-info-item">
             <RiCalendarLine className="qw-info-icon" />
-            <span>{job.startDate || "TBD"}</span>
+            <span>{job.schedule?.startDate ? new Date(job.schedule.startDate).toLocaleDateString() : "TBD"}</span>
           </div>
         </div>
         <div className="qw-card-footer pt-3 d-flex justify-content-between align-items-center">
@@ -148,7 +165,7 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView }) => {
             <span className="qw-footer-label">Budget</span>
             <div className="d-flex align-items-center gap-1 fw-bold text-dark fs-5">
               <RiMoneyDollarCircleLine size={20} className="text-success" />
-              {job.budget}
+              ₹{job.budget.min} - ₹{job.budget.max}
             </div>
           </div>
 

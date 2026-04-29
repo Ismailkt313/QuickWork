@@ -12,12 +12,26 @@ import {
 import { toast } from "react-toastify";
 import "./Modals.css";
 
+interface Location {
+  id: string;
+  name: string;
+}
+
 interface EditProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  provider: any;
-  locations: any[];
+  provider: {
+    name: string;
+    headline?: string;
+    about?: string;
+    hourlyRate?: number;
+    yearsOfExperience?: number;
+    isActive?: boolean;
+    location?: Location;
+    profileImage?: string;
+  };
+  locations: Location[];
 }
 
 const EditProfileModal: React.FC<EditProfileModalProps> = ({
@@ -38,7 +52,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     profileImage: provider.profileImage || "",
   });
 
-  const [errors, setErrors] = useState<any>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -61,15 +75,16 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         }));
         toast.success("Profile image uploaded");
       }
-    } catch (error: any) {
-      toast.error(error.message || "Upload failed");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Upload failed";
+      toast.error(errorMessage);
     } finally {
       setUploading(false);
     }
   };
 
   const validate = () => {
-    const newErrors: any = {};
+    const newErrors: Record<string, string> = {};
     if (!formData.headline.trim()) newErrors.headline = "Headline is required";
     if (formData.about.trim().length < 80)
       newErrors.about = "About must be at least 80 characters long";
@@ -94,8 +109,9 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         onSuccess();
         onClose();
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update profile");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to update profile";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

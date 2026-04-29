@@ -32,7 +32,7 @@ export const searchSkills = async (query: string): Promise<SkillResult[]> => {
     );
 
     return Array.isArray(response.data?.data) ? response.data.data : [];
-  } catch (error) {
+  } catch {
     return [];
   }
 };
@@ -53,7 +53,8 @@ export const requestSkill = async (
     });
 
     return response.data;
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to request skill");
+  } catch (error: unknown) {
+    const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to request skill";
+    throw new Error(errorMessage);
   }
 };

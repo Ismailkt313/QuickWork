@@ -64,9 +64,10 @@ const PortfolioStep: React.FC = () => {
         const imageUrl = response.secure_url;
         dispatch(addPortfolioImage({ projectId, image: imageUrl }));
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to upload image.";
       console.error("Portfolio image upload failed", error);
-      toast.error(error.response?.data?.message || "Failed to upload image.");
+      toast.error(errorMessage);
     } finally {
       setUploadingProjects((prev) => ({ ...prev, [projectId]: false }));
     }

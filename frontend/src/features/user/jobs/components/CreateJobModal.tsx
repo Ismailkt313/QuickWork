@@ -29,7 +29,6 @@ import type {
   ServiceCategory,
   Location,
 } from "../types/job.types";
-import { MIN_JOB_WAGE } from "../constants/jobConstants";
 
 interface CreateJobModalProps {
   isOpen: boolean;
@@ -168,8 +167,24 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
       newErrors.days = "Days must be at least 1";
     }
 
-    if (!formData.minBudget || Number(formData.minBudget) < MIN_JOB_WAGE) {
-      newErrors.minBudget = `Min budget must be at least ₹${MIN_JOB_WAGE}`;
+    let requiredMinBudget = 500;
+    if (formData.durationType === "half_day") {
+      requiredMinBudget = 500;
+    } else if (formData.durationType === "full_day") {
+      requiredMinBudget = 1000;
+    } else if (formData.durationType === "multi_day") {
+      const daysCount = Number(formData.days) || 1;
+      requiredMinBudget = 1000 * daysCount;
+    }
+
+    if (!formData.minBudget || Number(formData.minBudget) < requiredMinBudget) {
+      if (formData.durationType === "half_day") {
+        newErrors.minBudget = "For a half-day job, min budget per provider must be at least ₹500";
+      } else if (formData.durationType === "full_day") {
+        newErrors.minBudget = "For a full-day job, min budget per provider must be at least ₹1000";
+      } else {
+        newErrors.minBudget = `For ${formData.days || 1} days, min budget per provider must be at least ₹${requiredMinBudget} (₹1000/day)`;
+      }
     }
     if (!formData.maxBudget || Number(formData.maxBudget) <= 0) {
       newErrors.maxBudget = "Enter max budget";
@@ -529,7 +544,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
               )}
               <div className="col-md-6">
                 <FormInput
-                  label="Min Budget (₹)"
+                  label="Min Budget Per Provider (₹)"
                   name="minBudget"
                   type="number"
                   value={formData.minBudget}
@@ -542,7 +557,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
               </div>
               <div className="col-md-6">
                 <FormInput
-                  label="Max Budget (₹)"
+                  label="Max Budget Per Provider (₹)"
                   name="maxBudget"
                   type="number"
                   value={formData.maxBudget}
@@ -553,11 +568,32 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
                   required
                 />
               </div>
+              <div className="col-12 mt-3">
+                <div style={{
+                  padding: "16px 20px",
+                  background: "#f8fafc",
+                  borderRadius: "12px",
+                  border: "1px dashed #cbd5e1",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center"
+                }}>
+                  <div>
+                    <span style={{ fontSize: "14px", color: "#64748b", fontWeight: 600 }}>Total Estimated Job Budget</span>
+                    <div style={{ fontSize: "18px", color: "#0f172a", fontWeight: 700 }}>
+                      ₹{(Number(formData.minBudget) || 0) * (Number(formData.freelancersNeeded) || 1)} - ₹{(Number(formData.maxBudget) || 0) * (Number(formData.freelancersNeeded) || 1)}
+                    </div>
+                  </div>
+                  <div style={{ padding: "8px 12px", background: "#e0f2fe", color: "#0369a1", borderRadius: "8px", fontSize: "12px", fontWeight: 700 }}>
+                    For {formData.freelancersNeeded || 1} Provider(s)
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div
               style={{
-                marginTop: 40,
+                marginTop: 32,
                 paddingTop: 24,
                 borderTop: "1px solid #f1f5f9",
                 display: "flex",

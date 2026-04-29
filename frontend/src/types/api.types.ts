@@ -15,4 +15,4 @@ export interface IPaginatedData<T> extends IPaginationMetadata {
   users: T[];
 }
 
-export interface IPaginatedResponse<T> extends IApiResponse<IPaginatedData<T>> {}
+export type IPaginatedResponse<T> = IApiResponse<IPaginatedData<T>>;

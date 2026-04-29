@@ -49,8 +49,9 @@ const ReportAbsenceModal: React.FC<ReportAbsenceModalProps> = ({
         setUploadedImages((prev) => [...prev, ...newUrls]);
         toast.success(`${files.length} image(s) uploaded`);
       }
-    } catch (error: any) {
-      toast.error(error.message || "Upload failed");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Upload failed";
+      toast.error(errorMessage);
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -72,9 +73,10 @@ const ReportAbsenceModal: React.FC<ReportAbsenceModalProps> = ({
     try {
       await onSubmit(notes, uploadedImages);
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Report failed", error);
-      toast.error(error.message || ErrorMessages.INTERNAL_SERVER_ERROR);
+      const errorMessage = error instanceof Error ? error.message : ErrorMessages.INTERNAL_SERVER_ERROR;
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

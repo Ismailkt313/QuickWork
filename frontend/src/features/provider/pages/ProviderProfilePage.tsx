@@ -20,33 +20,63 @@ import EditProfileModal from "../components/EditProfileModal";
 import EditSkillsModal from "../components/EditSkillsModal";
 import EditPortfolioModal from "../components/EditPortfolioModal";
 import RequestSkillModal from "../components/RequestSkillModal";
-import "./ProviderProfilePage.css";
+interface PortfolioItem {
+  title: string;
+  description: string;
+  images: string[];
+}
+
+interface Skill {
+  id: string;
+  name: string;
+}
+
+interface Location {
+  id: string;
+  name: string;
+}
+
+interface ProviderProfile {
+  name: string;
+  profileImage?: string;
+  headline?: string;
+  location: Location;
+  submittedAt: string;
+  isActive: boolean;
+  about?: string;
+  portfolio: PortfolioItem[];
+  hourlyRate: number;
+  yearsOfExperience: number;
+  verificationStatus: string;
+  skills: Skill[];
+}
 
 const ProviderProfilePage: React.FC = () => {
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<ProviderProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [skills, setSkills] = useState<any[]>([]);
-  const [locations, setLocations] = useState<any[]>([]);
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
 
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showEditSkills, setShowEditSkills] = useState(false);
   const [showEditPortfolio, setShowEditPortfolio] = useState(false);
   const [showRequestSkill, setShowRequestSkill] = useState(false);
-  const [editingPortfolioItem, setEditingPortfolioItem] = useState<any>(null);
+  const [editingPortfolioItem, setEditingPortfolioItem] = useState<PortfolioItem | null>(null);
 
   const loadData = async () => {
     try {
       const [profileRes, skillsRes, locationsRes] = await Promise.all([
-        getMyProfile(),
+        getMyProfile<ProviderProfile>(),
         fetchallskills(),
         fetchLocations(),
       ]);
       console.log(profileRes.data, "profileRes.data");
-      if (profileRes.success) setProfile(profileRes.data);
-      if (skillsRes.success) setSkills(skillsRes.data);
-      if (locationsRes.success) setLocations(locationsRes.data);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to load profile data");
+      if (profileRes.success && profileRes.data) setProfile(profileRes.data);
+      if (skillsRes.success && skillsRes.data) setSkills(skillsRes.data);
+      if (locationsRes.success && locationsRes.data) setLocations(locationsRes.data);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to load profile data";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -152,7 +182,7 @@ const ProviderProfilePage: React.FC = () => {
               </button>
             </div>
             <div className="row g-4">
-              {profile.portfolio.map((item: any, idx: number) => (
+              {profile.portfolio.map((item: PortfolioItem, idx: number) => (
                 <div key={idx} className="col-md-6">
                   <div className="qw-portfolio-item h-100">
                     <div className="qw-portfolio-image-wrap">
@@ -233,7 +263,7 @@ const ProviderProfilePage: React.FC = () => {
               </button>
             </div>
             <div className="d-flex flex-wrap gap-2">
-              {profile.skills.map((skill: any) => (
+              {profile.skills.map((skill: Skill) => (
                 <span
                   key={skill.id}
                   className="badge bg-light text-primary border px-3 py-2 rounded-pill font-md"

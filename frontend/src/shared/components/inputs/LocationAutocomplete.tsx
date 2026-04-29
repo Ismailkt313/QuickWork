@@ -64,7 +64,17 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         const data = await response.json();
 
         if (data.features) {
-          const results = data.features.map((f: any) => ({
+          interface GeoapifyFeature {
+            properties: {
+              formatted: string;
+              lat: number;
+              lon: number;
+              district?: string;
+              city?: string;
+              place_id: string;
+            };
+          }
+          const results = data.features.map((f: GeoapifyFeature) => ({
             formatted: f.properties.formatted,
             lat: f.properties.lat,
             lon: f.properties.lon,

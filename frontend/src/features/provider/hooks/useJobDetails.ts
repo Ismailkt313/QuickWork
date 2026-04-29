@@ -16,8 +16,9 @@ export const useJobDetails = (jobId: string | undefined) => {
         const response = await api.get(`/job/${jobId}`);
         setJob(response.data.data);
         setError(null);
-      } catch (err: any) {
-        setError(err.response?.data?.message || "Failed to fetch job details");
+      } catch (err: unknown) {
+        const errorMessage = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to fetch job details";
+        setError(errorMessage);
         setJob(null);
       } finally {
         setLoading(false);

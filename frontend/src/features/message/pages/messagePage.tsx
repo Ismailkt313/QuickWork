@@ -7,10 +7,12 @@ import { getConversations,deleteConversation,deleteMessage } from "../api/messag
 import { useSearchParams } from "react-router-dom";
 import { Sidebar } from "../components/Sidebar";
 import ConfirmModal from "../../../shared/components/ui/ConfirmModal";
+import type { IUser } from "../../../types/user.types";
+import type { Conversation, Participant } from "../types";
 
 const MessagesPage: React.FC = () => {
-  const [user, setUser] = useState<any>(null);
-  const [conversations, setConversations] = useState<any[]>([]);
+  const [user, setUser] = useState<IUser | null>(null);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversationId, setSelectedConversationId] = useState<
     string | null
   >(null);
@@ -91,15 +93,15 @@ const MessagesPage: React.FC = () => {
           const placeholders = prev.filter((c) => c.isPlaceholder);
           const merged = [...serverConvs];
 
-          placeholders.forEach((ph) => {
+          placeholders.forEach((ph: Conversation) => {
             const phTargetId = ph.participants.find(
-              (p: any) =>
+              (p: Participant) =>
                 String(p._id || p.id) !== String(currentUserIdRef.current),
             )?._id;
 
-            const alreadyExists = serverConvs.some((sc: any) =>
+            const alreadyExists = serverConvs.some((sc: Conversation) =>
               sc.participants.some(
-                (p: any) => String(p._id || p.id) === String(phTargetId),
+                (p: Participant) => String(p._id || p.id) === String(phTargetId),
               ),
             );
 
@@ -156,9 +158,9 @@ const executeDeleteMessage = async () => {
     const stringTargetId = String(targetUserId).trim();
     const stringCurrentId = String(currentUserId).trim();
 
-    const existingConv = conversations.find((conv) =>
+    const existingConv = conversations.find((conv: Conversation) =>
       conv.participants.some(
-        (p: any) => String(p._id || p.id).trim() === stringTargetId,
+        (p: Participant) => String(p._id || p.id).trim() === stringTargetId,
       ),
     );
 
@@ -191,13 +193,19 @@ const executeDeleteMessage = async () => {
     currentUserId,
     placeholderAdded,
     conversations,
+    user?.name,
   ]);
 
   useEffect(() => {
     if (!socket) return;
 
     // 1. Define the handler for new messages
-    const handleNewConversationMessage = (newMessage: any) => {
+    const handleNewConversationMessage = (newMessage: {
+      sender: string;
+      receiver: string;
+      conversationId: string;
+      message: string;
+    }) => {
       const currentSelectedId = selectedConvIdRef.current;
       const myUserId = currentUserIdRef.current;
 
@@ -214,9 +222,9 @@ const executeDeleteMessage = async () => {
 
       setConversations((prev) => {
         const convExists = prev.some((c) => c.id === newMessage.conversationId);
-        const updated = prev.map((conv) => {
+        const updated = prev.map((conv: Conversation) => {
           const phTargetId = conv.participants.find(
-            (p: any) => String(p._id || p.id) !== String(myUserId)
+            (p: Participant) => String(p._id || p.id) !== String(myUserId)
           )?._id;
           const involvesThisParticipant =
             String(newMessage.sender) === String(phTargetId) ||
@@ -274,7 +282,7 @@ const executeDeleteMessage = async () => {
     (c) => String(c.id) === String(selectedConversationId),
   );
 
-  const getRecipientDetails = (conversation: any) => {
+  const getRecipientDetails = (conversation: Conversation | null | undefined) => {
     if (!currentUserId || !conversation || !conversation.participants) {
       return { name: "System", id: null };
     }
@@ -282,7 +290,7 @@ const executeDeleteMessage = async () => {
     const normalizedCurrentId = String(currentUserId).trim();
 
     const recipient = conversation.participants.find(
-      (p: any) => String(p._id || p.id).trim() !== normalizedCurrentId,
+      (p: Participant) => String(p._id || p.id).trim() !== normalizedCurrentId,
     );
 
     const actualRecipient = recipient || conversation.participants[0];

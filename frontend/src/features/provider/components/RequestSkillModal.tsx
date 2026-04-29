@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useMemo } from "react";
 import {
   RiCloseLine,
   RiSearchLine,
@@ -29,30 +29,21 @@ const RequestSkillModal: React.FC<RequestSkillModalProps> = ({
   const [isSearching, setIsSearching] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const fetchSkills = useCallback(
-    debounce(async (query: string) => {
-      if (!query.trim()) {
-        setSkillResults([]);
+  const fetchSkills = useMemo(
+    () =>
+      debounce(async (query: string) => {
+        if (!query.trim()) {
+          setSkillResults([]);
+          setIsSearching(false);
+          return;
+        }
+        setIsSearching(true);
+        const results = await searchSkills(query);
+        setSkillResults(results);
         setIsSearching(false);
-        return;
-      }
-      setIsSearching(true);
-      const results = await searchSkills(query);
-      setSkillResults(results);
-      setIsSearching(false);
-    }, 280),
+      }, 280),
     [],
   );
-
-  useEffect(() => {
-    if (skillQuery.trim()) {
-      setIsSearching(true);
-      fetchSkills(skillQuery);
-    } else {
-      setSkillResults([]);
-      setIsSearching(false);
-    }
-  }, [skillQuery, fetchSkills]);
 
   const handleRequest = async () => {
     if (!skillQuery.trim()) return;
@@ -67,8 +58,9 @@ const RequestSkillModal: React.FC<RequestSkillModalProps> = ({
         setSkillQuery("");
         onClose();
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to request skill");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to request skill";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -118,7 +110,17 @@ const RequestSkillModal: React.FC<RequestSkillModalProps> = ({
               className="form-control qw-input ps-5"
               placeholder="e.g. Specialized Welding, Piano Tutoring..."
               value={skillQuery}
-              onChange={(e) => setSkillQuery(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSkillQuery(val);
+                if (val.trim()) {
+                  setIsSearching(true);
+                  fetchSkills(val);
+                } else {
+                  setSkillResults([]);
+                  setIsSearching(false);
+                }
+              }}
               disabled={loading}
             />
             {isSearching && (

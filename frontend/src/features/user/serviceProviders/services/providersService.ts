@@ -35,7 +35,7 @@ export const getProviders = async (params: {
   return response.data;
 };
 
-export const getProviderById = async (id: string): Promise<any> => {
+export const getProviderById = async <T = unknown>(id: string): Promise<{ success: boolean; data: T; message?: string }> => {
   const response = await api.get(`/provider/${id}`);
   return response.data;
 };

@@ -1,3 +1,4 @@
+import { AxiosError } from "axios";
 import { api } from "../../../services/api";
 
 export interface UserJob {
@@ -43,9 +44,10 @@ export const getUserJobs = async (
     const response = await api.get(`/job/my?${params.toString()}`);
     console.log("User Jobs Response:", response.data);
     return response.data;
-  } catch (error: any) {
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message: string }>;
     throw new Error(
-      error.response?.data?.message || "Failed to fetch your jobs",
+      axiosError.response?.data?.message || "Operation failed",
     );
   }
 };
@@ -55,8 +57,9 @@ export const cancelJob = async (jobId: string) => {
     console.log("Cancelling job:", jobId);
     const response = await api.put(`/job/${jobId}/cancel`);
     return response.data;
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to cancel job");
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message: string }>;
+    throw new Error(axiosError.response?.data?.message || "Failed to cancel job");
   }
 };
 
@@ -64,9 +67,10 @@ export const getJobDetails = async (jobId: string) => {
   try {
     const response = await api.get(`/job/${jobId}`);
     return response.data;
-  } catch (error: any) {
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message: string }>;
     throw new Error(
-      error.response?.data?.message || "Failed to fetch job details",
+      axiosError.response?.data?.message || "Failed to fetch job details",
     );
   }
 };
@@ -75,9 +79,10 @@ export const getJobAssignments = async (jobId: string) => {
   try {
     const response = await api.get(`/job/${jobId}/assignments`);
     return response.data;
-  } catch (error: any) {
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message: string }>;
     throw new Error(
-      error.response?.data?.message || "Failed to fetch assignments",
+      axiosError.response?.data?.message || "Failed to fetch assignments",
     );
   }
 };
@@ -86,8 +91,9 @@ export const userProfile = async () => {
   try {
     const response = await api.get("/user/profile");
     return response.data;
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to fetch profile");
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message: string }>;
+    throw new Error(axiosError.response?.data?.message || "Failed to fetch profile");
   }
 };
 export const cancelAssignmentByClient = async (
@@ -100,9 +106,10 @@ export const cancelAssignmentByClient = async (
       { notes },
     );
     return response.data;
-  } catch (error: any) {
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message: string }>;
     throw new Error(
-      error.response?.data?.message || "Failed to cancel assignment",
+      axiosError.response?.data?.message || "Failed to cancel assignment",
     );
   }
 };
@@ -118,9 +125,10 @@ export const reportAbsence = async (
       evidence,
     });
     return response.data;
-  } catch (error: any) {
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message: string }>;
     throw new Error(
-      error.response?.data?.message || "Failed to report absence",
+      axiosError.response?.data?.message || "Failed to report absence",
     );
   }
 };
@@ -136,8 +144,9 @@ export const submitReview = async (reviewData: {
   try {
     const response = await api.post("/review", reviewData);
     return response.data;
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to submit review");
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message: string }>;
+    throw new Error(axiosError.response?.data?.message || "Failed to submit review");
   }
 };
 
@@ -152,7 +161,8 @@ export const submitReport = async (reportData: {
   try {
     const response = await api.post("/report", reportData);
     return response.data;
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to submit report");
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message: string }>;
+    throw new Error(axiosError.response?.data?.message || "Failed to submit report");
   }
 };

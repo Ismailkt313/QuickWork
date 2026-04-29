@@ -28,14 +28,15 @@ export interface CreateJobData {
 export class JobRepository {
   static async createJob(
     jobData: CreateJobData,
-  ): Promise<{ success: boolean; message: string; data?: any }> {
+  ): Promise<{ success: boolean; message: string; data?: unknown }> {
     try {
       const response = await apiClient.post("/job", jobData);
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to create job";
       return {
         success: false,
-        message: error.response?.data?.message || "Failed to create job",
+        message: errorMessage,
       };
     }
   }

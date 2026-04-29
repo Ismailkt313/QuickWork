@@ -36,8 +36,9 @@ export const fetchAssignments = createAsyncThunk(
     try {
       const response = await getAssignments();
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to fetch assignments";
+      return rejectWithValue(message);
     }
   },
 );
@@ -51,8 +52,9 @@ export const cancelByProvider = createAsyncThunk(
     try {
       const response = await cancelAssignmentByProvider(id, notes);
       return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to cancel assignment";
+      return rejectWithValue(message);
     }
   },
 );

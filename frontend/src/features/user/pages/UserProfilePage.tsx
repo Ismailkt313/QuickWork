@@ -13,8 +13,20 @@ import UpdatePasswordModal from "../components/UpdatePasswordModal";
 import { format } from "date-fns";
 import { toast } from "react-hot-toast";
 
+interface IUser {
+  name: string;
+  email: string;
+  number?: string;
+  role: string;
+  createdAt: string;
+  profileImage?: {
+    url: string;
+    public_id: string;
+  };
+}
+
 const UserProfilePage: React.FC = () => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<IUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isUpdateProfileOpen, setIsUpdateProfileOpen] = useState(false);
   const [isUpdatePasswordOpen, setIsUpdatePasswordOpen] = useState(false);

@@ -52,10 +52,8 @@ const UpdatePasswordModal: React.FC<UpdatePasswordModalProps> = ({
         reset();
         onClose();
       }
-    } catch (error: any) {
-      const errorMessage =
-        error.message ||
-        (typeof error === "string" ? error : "Failed to change password");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to change password";
 
       if (errorMessage.toLowerCase().includes("current password")) {
         setError("currentPassword", { type: "manual", message: errorMessage });

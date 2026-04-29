@@ -63,7 +63,7 @@ const UserManagement = () => {
       setUsers(res.data.data.users);
       setTotal(res.data.data.total);
       setTotalPages(res.data.data.totalPages);
-    } catch (_error) {
+    } catch {
       setUsers([]);
     } finally {
       setLoading(false);

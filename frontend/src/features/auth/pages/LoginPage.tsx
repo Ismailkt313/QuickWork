@@ -10,24 +10,27 @@ const LoginPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [modalType, setModalType] = useState<
     "restricted" | "expired" | "blocked" | null
-  >(null);
+  >(() => {
+    const params = new URLSearchParams(window.location.search);
+    const errorParam = params.get("error");
+    if (errorParam === "session_expired") return "expired";
+    if (errorParam === "blocked") return "blocked";
+    // Derived from search params or initial location state
+    if (location.state?.fromRestricted) return "restricted";
+    return null;
+  });
 
   useEffect(() => {
     if (location.state?.message) {
       toast.warning(location.state.message);
     }
+  }, [location.state?.message]);
 
-    const errorParam = searchParams.get("error");
-    if (errorParam === "session_expired") {
-      setModalType("expired");
+  useEffect(() => {
+    if (searchParams.has("error")) {
       setSearchParams({}, { replace: true });
-    } else if (errorParam === "blocked") {
-      setModalType("blocked");
-      setSearchParams({}, { replace: true });
-    } else if (location.state?.fromRestricted) {
-      setModalType("restricted");
     }
-  }, [location.state, searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams]);
 
   return (
     <div className="auth-page">

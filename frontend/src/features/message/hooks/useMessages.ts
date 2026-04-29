@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
+import { Socket } from "socket.io-client";
 import type { Message } from "../types/message.types";
 import { getMessages as fetchMessagesApi, createMessage } from "../api/message.api";
 
 export const useMessages = (
-  socket: any,
+  socket: Socket | null,
   activeConversationId: string | null,
 ) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -12,7 +13,18 @@ export const useMessages = (
   useEffect(() => {
     if (!socket) return;
 
-    const handleNewMessage = (newMessage: any) => {
+    const handleNewMessage = (newMessage: {
+      id?: string;
+      _id?: string;
+      sender: string;
+      receiver: string;
+      text?: string;
+      message?: string;
+      image?: string;
+      messageType?: "text" | "image" | string;
+      conversationId: string;
+      createdAt: string;
+    }) => {
       const matchesPlaceholder =
         activeConversationId?.startsWith("new-") &&
         (String(activeConversationId) === `new-${newMessage.sender}` ||
@@ -54,7 +66,14 @@ export const useMessages = (
     try {
       const response = await fetchMessagesApi(conversationId);
       if (response.success) {
-        const mappedMessages = response.data.map((m: any) => ({
+        const mappedMessages = response.data.map((m: {
+          id?: string;
+          _id?: string;
+          text?: string;
+          message?: string;
+          image?: string;
+          [key: string]: unknown;
+        }) => ({
           ...m,
           _id: m.id || m._id,
           message: m.text || m.message,
@@ -77,7 +96,12 @@ export const useMessages = (
     async (receiverId: string | null, message: string, imageUrl?: string) => {
       if (receiverId && (message.trim() || imageUrl)) {
         try {
-          const dataToAPI: any = { receiverId };
+          const dataToAPI: {
+            receiverId: string;
+            text?: string;
+            image?: string;
+            conversationId?: string;
+          } = { receiverId };
           if (message.trim()) dataToAPI.text = message;
           if (imageUrl) dataToAPI.image = imageUrl;
 

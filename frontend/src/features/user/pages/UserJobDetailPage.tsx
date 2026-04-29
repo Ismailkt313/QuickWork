@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   getJobDetails,
@@ -28,11 +28,44 @@ import {
 } from "react-icons/ri";
 import CancellationModal from "../../provider/components/CancellationModal";
 import ReportAbsenceModal from "../../provider/components/ReportAbsenceModal";
+import { AxiosError } from "axios";
+
+interface JobDetail {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  visibility: "public" | "private";
+  location: { address: string } | null;
+  budget: string;
+  startDate: string;
+  durationType: string;
+  rejectionReason?: string;
+  hiredProvider?: {
+    userId: string;
+    name: string;
+    headline: string;
+    profileImage: string;
+    workStatus: string;
+    assignmentId: string;
+  };
+}
+
+interface Assignment {
+  assignmentId: string;
+  workStatus: string;
+  provider: {
+    userId: string;
+    name: string;
+    headline: string;
+    profileImage: string;
+  };
+}
 
 const UserJobDetailPage: React.FC = () => {
   const { jobId } = useParams<{ jobId: string }>();
-  const [job, setJob] = useState<any>(null);
-  const [assignments, setAssignments] = useState<any[]>([]);
+  const [job, setJob] = useState<JobDetail | null>(null);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
 //   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isAbsenceModalOpen, setIsAbsenceModalOpen] = useState(false);
@@ -43,11 +76,6 @@ const UserJobDetailPage: React.FC = () => {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (jobId) {
-      fetchData();
-    }
-  }, [jobId]);
 
   const handleCancelAssignment = async (notes: string) => {
     if (!selectedAssignmentId) return;
@@ -58,8 +86,9 @@ const UserJobDetailPage: React.FC = () => {
         toast.success("Assignment cancelled successfully");
         fetchData();
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to cancel assignment");
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      toast.error(axiosError.response?.data?.message || "Failed to cancel assignment");
     } finally {
       setLoading(false);
       setSelectedAssignmentId(null);
@@ -77,8 +106,9 @@ const UserJobDetailPage: React.FC = () => {
         toast.success("Job offer cancelled successfully");
         fetchData();
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to cancel job");
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      toast.error(axiosError.response?.data?.message || "Failed to cancel job");
     } finally {
       setLoading(false);
     }
@@ -93,8 +123,9 @@ const UserJobDetailPage: React.FC = () => {
         toast.success("Absence reported successfully");
         fetchData();
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to report absence");
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      toast.error(axiosError.response?.data?.message || "Failed to report absence");
     } finally {
       setLoading(false);
       setSelectedAssignmentId(null);
@@ -117,9 +148,9 @@ const UserJobDetailPage: React.FC = () => {
 
       toast.success(response.message || "Review submitted successfully");
       fetchData();
-    } catch (error: any) {
-      console.error("Review Error:", error);
-      toast.error(error.message || "An unexpected error occurred during review");
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      toast.error(axiosError.response?.data?.message || "An unexpected error occurred during review");
     } finally {
       setLoading(false);
     }
@@ -138,15 +169,15 @@ const UserJobDetailPage: React.FC = () => {
         role: "client_to_provider",
       });
       toast.success(response.message || "Report submitted successfully");
-    } catch (error: any) {
-      console.error("Report Error:", error);
-      toast.error(error.message || "An unexpected error occurred during report");
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      toast.error(axiosError.response?.data?.message || "An unexpected error occurred during report");
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const jobRes = await getJobDetails(jobId!);
@@ -159,12 +190,19 @@ const UserJobDetailPage: React.FC = () => {
           }
         }
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      toast.error(axiosError.response?.data?.message || "Failed to load data");
     } finally {
       setLoading(false);
     }
-  };
+  }, [jobId]);
+
+  useEffect(() => {
+    if (jobId) {
+      fetchData();
+    }
+  }, [jobId, fetchData]);
 
   const handleTextProvider = (providerName: string) => {
     toast.success(`Chat with ${providerName} coming soon!`);
@@ -339,114 +377,108 @@ const UserJobDetailPage: React.FC = () => {
       </h3>
 
       {isDirectHire ? (
-        job.hiredProvider ? (
-          <div className="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 outline-hover transition-all">
-            <div className="card-body p-4 p-md-5">
-              <div className="d-flex justify-content-between align-items-sm-start flex-column flex-sm-row gap-3 mb-3">
-                <div className="d-flex align-items-center gap-2">
-                  <span
-                    className="text-muted fw-bold text-uppercase"
-                    style={{ fontSize: "11px", letterSpacing: "0.5px" }}
-                  >
-                    Offer Status
-                  </span>
-              {job.status === "open" && (
-                <div className="d-flex align-items-center gap-2">
-                  <span className="badge bg-warning text-dark rounded-pill px-3 py-2 fw-bold">
-                    Pending Response
-                  </span>
-                  {isDirectHire && (
-                    <button 
-                      className="btn btn-outline-danger btn-sm rounded-pill px-3 py-1-5 fw-bold"
-                      onClick={handleCancelJob}
-                      style={{ fontSize: '11px' }}
+        job.hiredProvider ? (() => {
+          const hp = job.hiredProvider;
+          return (
+            <div className="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 outline-hover transition-all">
+              <div className="card-body p-4 p-md-5">
+                <div className="d-flex justify-content-between align-items-sm-start flex-column flex-sm-row gap-3 mb-3">
+                  <div className="d-flex align-items-center gap-2">
+                    <span
+                      className="text-muted fw-bold text-uppercase"
+                      style={{ fontSize: "11px", letterSpacing: "0.5px" }}
                     >
-                      Cancel Offer
-                    </button>
-                  )}
-                </div>
-              )}
-                  {["fully_assigned", "in_progress", "completed"].includes(
-                    job.status,
-                  ) && (
-                    <div className="d-flex align-items-center gap-2">
-                      <span className="badge bg-success rounded-pill px-3 py-1 fw-bold">
-                        Accepted
-                      </span>
-                      <span
-                        className={`badge rounded-pill px-3 py-1 fw-bold text-uppercase`}
-                        style={{
-                          fontSize: "10px",
-                          backgroundColor:
-                            job.hiredProvider?.workStatus === "completed"
-                              ? "#ecfdf5"
-                              : job.hiredProvider?.workStatus === "in_progress"
-                                ? "#fffbeb"
-                                : "#eef2ff",
-                          color:
-                            job.hiredProvider?.workStatus === "completed"
-                              ? "#10b981"
-                              : job.hiredProvider?.workStatus === "in_progress"
-                                ? "#f59e0b"
-                                : "#6366f1",
-                          border: `1px solid ${
-                            job.hiredProvider?.workStatus === "completed"
-                              ? "#d1fae5"
-                              : job.hiredProvider?.workStatus === "in_progress"
-                                ? "#fef3c7"
-                                : "#dbeafe"
-                          }`,
-                        }}
-                      >
-                        {job.hiredProvider?.workStatus?.replace("_", " ") ||
-                          "Assigned"}
-                      </span>
-                    </div>
-                  )}
-                  {job.status === "rejected" && (
-                    <span className="badge bg-danger rounded-pill px-3 py-1 fw-bold">
-                      Declined
+                      Offer Status
                     </span>
-                  )}
-                  {job.status === "cancelled" && (
-                    <span className="badge bg-secondary rounded-pill px-3 py-1 fw-bold">
-                      Job Cancelled
-                    </span>
-                  )}
+                    {job.status === "open" && (
+                      <div className="d-flex align-items-center gap-2">
+                        <span className="badge bg-warning text-dark rounded-pill px-3 py-2 fw-bold">
+                          Pending Response
+                        </span>
+                        {isDirectHire && (
+                          <button 
+                            className="btn btn-outline-danger btn-sm rounded-pill px-3 py-1-5 fw-bold"
+                            onClick={handleCancelJob}
+                            style={{ fontSize: '11px' }}
+                          >
+                            Cancel Offer
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    {["fully_assigned", "in_progress", "completed"].includes(
+                      job.status,
+                    ) && (
+                      <div className="d-flex align-items-center gap-2">
+                        <span className="badge bg-success rounded-pill px-3 py-1 fw-bold">
+                          Accepted
+                        </span>
+                        <span
+                          className={`badge rounded-pill px-3 py-1 fw-bold text-uppercase`}
+                          style={{
+                            fontSize: "10px",
+                            backgroundColor:
+                              hp.workStatus === "completed"
+                                ? "#ecfdf5"
+                                : hp.workStatus === "in_progress"
+                                  ? "#fffbeb"
+                                  : "#eef2ff",
+                            color:
+                              hp.workStatus === "completed"
+                                ? "#10b981"
+                                : hp.workStatus === "in_progress"
+                                  ? "#f59e0b"
+                                  : "#6366f1",
+                            border: `1px solid ${
+                              hp.workStatus === "completed"
+                                ? "#d1fae5"
+                                : hp.workStatus === "in_progress"
+                                  ? "#fef3c7"
+                                  : "#dbeafe"
+                            }`,
+                          }}
+                        >
+                          {hp.workStatus?.replace("_", " ") || "Assigned"}
+                        </span>
+                      </div>
+                    )}
+                    {job.status === "rejected" && (
+                      <span className="badge bg-danger rounded-pill px-3 py-1 fw-bold">
+                        Declined
+                      </span>
+                    )}
+                    {job.status === "cancelled" && (
+                      <span className="badge bg-secondary rounded-pill px-3 py-1 fw-bold">
+                        Job Cancelled
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="d-flex align-items-center gap-4 flex-wrap">
-                <img
-                  src={
-                    job.hiredProvider.profileImage ||
-                    "https://via.placeholder.com/150"
-                  }
-                  alt={job.hiredProvider.name}
-                  style={{
-                    width: "96px",
-                    height: "96px",
-                    objectFit: "cover",
-                    borderRadius: "50%",
-                  }}
-                  className="shadow-sm border border-4 border-white"
-                />
+                <div className="d-flex align-items-center gap-4 flex-wrap">
+                  <img
+                    src={hp.profileImage || "https://via.placeholder.com/150"}
+                    alt={hp.name}
+                    style={{
+                      width: "96px",
+                      height: "96px",
+                      objectFit: "cover",
+                      borderRadius: "50%",
+                    }}
+                    className="shadow-sm border border-4 border-white"
+                  />
                   <div className="flex-grow-1">
-                    <h4 className="fw-bold mb-1 text-dark">
-                      {job.hiredProvider.name}
-                    </h4>
-                    <p className="text-muted mb-0">
-                      {job.hiredProvider.headline}
-                    </p>
+                    <h4 className="fw-bold mb-1 text-dark">{hp.name}</h4>
+                    <p className="text-muted mb-0">{hp.headline}</p>
                   </div>
                   <div className="d-flex align-items-center gap-2">
-                    {job.hiredProvider.workStatus === "completed" && (
+                    {hp.workStatus === "completed" && (
                       <>
                         <button
                           className="btn btn-primary rounded-pill px-4 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm transition-all"
                           onClick={() => {
-                            setSelectedAssignmentId(job.hiredProvider.assignmentId);
-                            setSelectedProviderId(job.hiredProvider.userId);
-                            setSelectedProviderName(job.hiredProvider.name);
+                            setSelectedAssignmentId(hp.assignmentId);
+                            setSelectedProviderId(hp.userId);
+                            setSelectedProviderName(hp.name);
                             setIsReviewModalOpen(true);
                           }}
                         >
@@ -455,9 +487,9 @@ const UserJobDetailPage: React.FC = () => {
                         <button
                           className="btn btn-outline-danger rounded-pill px-4 py-2 fw-bold d-flex align-items-center gap-2 transition-all"
                           onClick={() => {
-                            setSelectedAssignmentId(job.hiredProvider.assignmentId);
-                            setSelectedProviderId(job.hiredProvider.userId);
-                            setSelectedProviderName(job.hiredProvider.name);
+                            setSelectedAssignmentId(hp.assignmentId);
+                            setSelectedProviderId(hp.userId);
+                            setSelectedProviderName(hp.name);
                             setIsReportModalOpen(true);
                           }}
                         >
@@ -467,16 +499,17 @@ const UserJobDetailPage: React.FC = () => {
                     )}
                   </div>
                 </div>
+              </div>
             </div>
-          </div>
-        ) : (
+          );
+        })() : (
           <div className="p-5 text-center bg-white rounded-4 shadow-sm border text-muted">
             Provider details unavailable.
           </div>
         )
       ) : assignments.length > 0 ? (
         <div className="row g-4">
-          {assignments.map((assignment: any) => (
+          {assignments.map((assignment) => (
             <div key={assignment.assignmentId} className="col-12 col-xl-6">
               <div className="card border-0 shadow-sm rounded-4 h-100 outline-hover p-4 d-flex flex-row align-items-center gap-4 transition-all">
                 <img

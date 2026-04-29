@@ -42,8 +42,7 @@ const ProviderDetailPage: React.FC = () => {
 
   useEffect(() => {
     if (!providerId) return;
-    setLoading(true);
-    getProviderById(providerId)
+    getProviderById<ProviderDetail>(providerId)
       .then((res) => {
         if (res.success) setProvider(res.data);
         else setError(res.message || "Provider not found");
@@ -530,7 +529,7 @@ const ProviderDetailPage: React.FC = () => {
       <DirectHireModal
         isOpen={isHireModalOpen}
         onClose={() => setIsHireModalOpen(false)}
-        providerId={provider.id || (provider as any)._id}
+        providerId={provider._id || provider.id}
         providerName={provider.headline}
         providerSkills={provider.skills}
       />

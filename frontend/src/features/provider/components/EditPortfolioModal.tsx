@@ -13,12 +13,18 @@ import {
 import { toast } from "react-toastify";
 import "./Modals.css";
 
+interface PortfolioItem {
+  title: string;
+  description: string;
+  images: string[];
+}
+
 interface EditPortfolioModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  portfolio: any[];
-  itemToEdit: any | null;
+  portfolio: PortfolioItem[];
+  itemToEdit: PortfolioItem | null;
 }
 
 const EditPortfolioModal: React.FC<EditPortfolioModalProps> = ({
@@ -35,12 +41,12 @@ const EditPortfolioModal: React.FC<EditPortfolioModalProps> = ({
     images: itemToEdit?.images || [],
   });
 
-  const [errors, setErrors] = useState<any>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   const validate = () => {
-    const newErrors: any = {};
+    const newErrors: Record<string, string> = {};
     if (!formData.title.trim()) newErrors.title = "Project title is required";
     if (formData.images.length === 0)
       newErrors.images = "At least one project image is required";
@@ -68,8 +74,9 @@ const EditPortfolioModal: React.FC<EditPortfolioModalProps> = ({
         }));
         toast.success("Image uploaded");
       }
-    } catch (error: any) {
-      toast.error(error.message || "Upload failed");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Upload failed";
+      toast.error(errorMessage);
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -77,7 +84,7 @@ const EditPortfolioModal: React.FC<EditPortfolioModalProps> = ({
   };
 
   const removeImage = (index: number) => {
-    setFormData((prev: any) => ({
+    setFormData((prev) => ({
       ...prev,
       images: prev.images.filter((_: string, i: number) => i !== index),
     }));
@@ -89,7 +96,7 @@ const EditPortfolioModal: React.FC<EditPortfolioModalProps> = ({
 
     setLoading(true);
     try {
-      let updatedPortfolio: any[];
+      let updatedPortfolio: PortfolioItem[];
       if (itemToEdit) {
         // Update existing item
         updatedPortfolio = portfolio.map((item) =>
@@ -108,8 +115,9 @@ const EditPortfolioModal: React.FC<EditPortfolioModalProps> = ({
         onSuccess();
         onClose();
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update portfolio");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to update portfolio";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -138,8 +146,9 @@ const EditPortfolioModal: React.FC<EditPortfolioModalProps> = ({
         onSuccess();
         onClose();
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to delete project");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to delete project";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

@@ -1,3 +1,4 @@
+import { AxiosError } from "axios";
 import { api } from "../../../../services/api";
 
 export interface ProviderApplicationPayload {
@@ -17,13 +18,14 @@ export interface ProviderApplicationPayload {
 
 export const submitProviderApplication = async (
   data: ProviderApplicationPayload,
-): Promise<{ success: boolean; data?: any; message?: string }> => {
+): Promise<{ success: boolean; data?: unknown; message?: string }> => {
   try {
     const response = await api.post("/provider/apply", data);
     return response.data;
-  } catch (error: any) {
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message: string }>;
     throw new Error(
-      error.response?.data?.message || "Failed to submit application",
+      axiosError.response?.data?.message || "Failed to submit application",
     );
   }
 };

@@ -1,3 +1,4 @@
+import { AxiosError } from "axios";
 import { api } from "../../../../services/api";
 import { SKILL_STATUS } from "../../../../constants/skill";
 
@@ -32,7 +33,7 @@ export const searchSkills = async (query: string): Promise<SkillResult[]> => {
     );
 
     return Array.isArray(response.data?.data) ? response.data.data : [];
-  } catch (error) {
+  } catch {
     return [];
   }
 };
@@ -53,7 +54,10 @@ export const requestSkill = async (
     });
 
     return response.data;
-  } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Failed to request skill");
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message: string }>;
+    throw new Error(
+      axiosError.response?.data?.message || "Failed to request skill",
+    );
   }
 };

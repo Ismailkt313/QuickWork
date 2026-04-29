@@ -1,3 +1,4 @@
+import { AxiosError } from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { forgotPassword } from "../services/authApi";
@@ -24,9 +25,10 @@ const ForgotPasswordForm = () => {
       setTimeout(() => {
         navigate("/auth/reset-password", { state: { email } });
       }, 2000);
-    } catch (err: any) {
+    } catch (err) {
+      const axiosError = err as AxiosError<{ message: string }>;
       setError(
-        err?.response?.data?.message ||
+        axiosError.response?.data?.message ||
           "Something went wrong. Please try again.",
       );
     } finally {
