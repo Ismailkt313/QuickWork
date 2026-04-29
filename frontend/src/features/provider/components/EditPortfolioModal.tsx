@@ -127,6 +127,8 @@ const EditPortfolioModal: React.FC<EditPortfolioModalProps> = ({
     if (!window.confirm("Are you sure you want to delete this project?"))
       return;
 
+    if (!itemToEdit) return;
+
     setLoading(true);
     try {
       const updatedPortfolio = portfolio.filter(

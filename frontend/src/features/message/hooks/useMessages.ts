@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Socket } from "socket.io-client";
 import type { Message } from "../types/message.types";
+import { MESSAGE_TYPE } from "../../../constants/message";
 import { getMessages as fetchMessagesApi, createMessage } from "../api/message.api";
 
 export const useMessages = (
@@ -37,12 +38,12 @@ export const useMessages = (
         return;
 
       const normalizedMessage: Message = {
-        _id: newMessage.id || newMessage._id,
+        _id: (newMessage.id || newMessage._id || "") as string,
         sender: newMessage.sender,
         receiver: newMessage.receiver,
         message: newMessage.text || newMessage.message,
         image: newMessage.image,
-        messageType: newMessage.messageType || (newMessage.image ? "image" : "text"),
+        messageType: (newMessage.messageType || (newMessage.image ? "image" : "text")) as MESSAGE_TYPE,
         createdAt: newMessage.createdAt,
       };
       setMessages((prev) => [...prev, normalizedMessage]);

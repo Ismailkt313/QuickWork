@@ -87,7 +87,7 @@ const ResetPasswordForm = () => {
     try {
       setLoading(true);
       setError(null);
-      await resetPassword({ email, otp: otpValue, newPassword });
+      await resetPassword({ email, token: otpValue, password: newPassword });
       setSuccess(true);
       setTimeout(() => {
         navigate("/auth/login");

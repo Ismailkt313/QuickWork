@@ -2,7 +2,7 @@ import React from "react";
 import { RiMessage2Line, RiSearchLine } from "react-icons/ri";
 import { ConversationItem } from "./ConversationItem";
 
-import { Conversation } from "../types";
+import type { Conversation } from "../types";
 
 interface SidebarProps {
   conversations: Conversation[];

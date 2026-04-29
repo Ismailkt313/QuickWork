@@ -93,7 +93,7 @@ const JobLogModal: React.FC<JobLogModalProps> = ({
     },
   ]
     .filter((e) => e.isDone)
-    .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+    .sort((a, b) => new Date(b.time || "").getTime() - new Date(a.time || "").getTime());
 
   return (
     <div className="qw-modal-overlay" onClick={onClose}>
@@ -165,7 +165,7 @@ const JobLogModal: React.FC<JobLogModalProps> = ({
                     <h6 className="fw-bold text-dark mb-0">{event.title}</h6>
                     <span className="text-muted small d-flex align-items-center gap-1">
                       <RiTimeLine size={14} />{" "}
-                      {new Date(event.time).toLocaleDateString()}
+                      {new Date(event.time || "").toLocaleDateString()}
                     </span>
                   </div>
                   <p
@@ -178,7 +178,7 @@ const JobLogModal: React.FC<JobLogModalProps> = ({
                     className="text-primary fw-bold mt-1 d-inline-block"
                     style={{ fontSize: "11px" }}
                   >
-                    {new Date(event.time).toLocaleTimeString([], {
+                    {new Date(event.time || "").toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}

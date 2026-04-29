@@ -33,7 +33,7 @@ const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
   console.log(currentSkills, "currentSkills in edit skills modal");
   console.log(allSkills, "allSkills in edit skills modal");
   const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>(
-    currentSkills.map((s) => s.id || s._id),
+    currentSkills.map((s) => s.id || s._id || "").filter(Boolean),
   );
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -96,12 +96,12 @@ const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
 
         <div className="qw-skills-grid mb-4">
           {filteredSkills.map((skill) => {
-            const isSelected = selectedSkillIds.includes(skill.id || skill._id);
+            const isSelected = selectedSkillIds.includes(skill.id || skill._id || "");
             return (
               <div
-                key={skill.id || skill._id}
+                key={skill.id || skill._id || ""}
                 className={`qw-skill-option p-3 ${isSelected ? "selected" : ""}`}
-                onClick={() => toggleSkill(skill.id || skill._id)}
+                onClick={() => toggleSkill(skill.id || skill._id || "")}
               >
                 <div className="d-flex align-items-center justify-content-between">
                   <span className="fw-600">{skill.name}</span>
