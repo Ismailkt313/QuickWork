@@ -22,6 +22,7 @@ export interface UserJob {
     endDate: string;
   };
   categoryName?: string;
+  skills?: string[];
   locationName?: string;
   hasPendingPayment?: boolean;
   providers?: {

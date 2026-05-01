@@ -60,9 +60,9 @@ const UserManagement = () => {
     try {
       const res = await getUsers({ page, limit, search: search || undefined });
       console.log("Fetched users:", res.data);
-      setUsers(res.data.data.users);
-      setTotal(res.data.data.total);
-      setTotalPages(res.data.data.totalPages);
+      setUsers(res.data.data);
+      setTotal(res.data.pagination.total);
+      setTotalPages(res.data.pagination.totalPages);
     } catch {
       setUsers([]);
     } finally {

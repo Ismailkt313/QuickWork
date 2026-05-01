@@ -24,8 +24,11 @@ export const adminLogin = (data: { email: string; password: string }): Promise<A
   return Adminapi.post("/auth/admin/login", data);
 };
 
-export const getPendingProviders = (): Promise<AxiosResponse<IPaginatedResponse<IUserListItem>>> => {
-  return Adminapi.get("/admin/providers/pending");
+export const getPendingProviders = (params?: {
+  page?: number;
+  limit?: number;
+}): Promise<AxiosResponse<IPaginatedResponse<IUserListItem>>> => {
+  return Adminapi.get("/admin/providers/pending", { params });
 };
 
 export const approveProvider = (id: string): Promise<AxiosResponse<IApiResponse<void>>> => {

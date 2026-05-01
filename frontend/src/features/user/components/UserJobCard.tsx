@@ -71,7 +71,7 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView, onRefr
   };
 
   const status = getStatusConfig(job.status);
-  const skillName = job.categoryName || "General Service";
+  const skillName = (job.skills && job.skills.length > 0) ? job.skills[0] : (job.categoryName || "General Service");
 
   return (
     <div className="qw-job-card" onClick={() => onView?.(job.id)}>

@@ -30,6 +30,10 @@ const ProviderManagement = () => {
   const [loading, setLoading] = useState(true);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const limit = 4;
 
   const [modal, setModal] = useState<ModalState>({
     mode: null,
@@ -54,11 +58,13 @@ const ProviderManagement = () => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const fetchProviders = useCallback(async () => {
+  const fetchProviders = useCallback(async (pageToFetch: number) => {
     setLoading(true);
     try {
-      const res = await getPendingProviders();
-      setProviders(res.data.data.users);
+      const res = await getPendingProviders({ page: pageToFetch, limit });
+      setProviders(res.data.data);
+      setTotal(res.data.pagination.total);
+      setTotalPages(res.data.pagination.totalPages);
     } catch {
       setProviders([]);
       showToast("error", "Failed to load pending providers.");
@@ -68,8 +74,8 @@ const ProviderManagement = () => {
   }, []);
 
   useEffect(() => {
-    fetchProviders();
-  }, [fetchProviders]);
+    fetchProviders(page);
+  }, [fetchProviders, page]);
 
   const openModal = (
     mode: ModalMode,
@@ -277,7 +283,7 @@ const ProviderManagement = () => {
         </div>
         <button
           className="btn btn-invite"
-          onClick={fetchProviders}
+          onClick={() => fetchProviders(page)}
           disabled={loading}
         >
           <i className={`bi bi-arrow-clockwise ${loading ? "spin" : ""}`}></i>
@@ -293,7 +299,7 @@ const ProviderManagement = () => {
               className="bi bi-hourglass-split"
               style={{ fontSize: "1.25rem", marginRight: 8 }}
             ></i>
-            {loading ? "—" : providers.length}
+            {loading ? "—" : total}
           </div>
         </div>
       </div>
@@ -310,7 +316,8 @@ const ProviderManagement = () => {
             <div>No pending provider applications</div>
           </div>
         ) : (
-          <table className="admin-table">
+          <>
+            <table className="admin-table">
             <thead>
               <tr>
                 <th>Provider Name</th>
@@ -388,8 +395,28 @@ const ProviderManagement = () => {
               ))}
             </tbody>
           </table>
-        )}
-      </div>
+          <div className="admin-table-footer">
+            <div className="admin-pagination">
+              <button disabled={page <= 1} onClick={() => setPage(page - 1)}>
+                <i className="bi bi-chevron-left" style={{ fontSize: "0.75rem" }}></i>
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  className={p === page ? "active" : ""}
+                  onClick={() => setPage(p)}
+                >
+                  {p}
+                </button>
+              ))}
+              <button disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+                <i className="bi bi-chevron-right" style={{ fontSize: "0.75rem" }}></i>
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
 
       {detailModalOpen && selectedProvider && (
         <ProviderProfileModal

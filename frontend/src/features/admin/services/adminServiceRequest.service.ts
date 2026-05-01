@@ -19,10 +19,27 @@ export interface ServiceRequest {
   updatedAt: string;
 }
 
-export const getPendingServiceRequests = async (): Promise<
-  ServiceRequest[]
-> => {
-  const response = await Adminapi.get<IApiResponse<ServiceRequest[]>>("/admin/service-requests");
+export const getPendingServiceRequests = async (params?: {
+  page?: number;
+  limit?: number;
+}): Promise<{
+  data: ServiceRequest[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}> => {
+  const response = await Adminapi.get<IApiResponse<{
+    data: ServiceRequest[];
+    pagination: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  }>>("/admin/service-requests", { params });
   return response.data.data;
 };
 

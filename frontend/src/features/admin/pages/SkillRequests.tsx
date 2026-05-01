@@ -27,6 +27,10 @@ const SkillRequests: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const limit = 5;
 
   const [modal, setModal] = useState<ModalState>({
     mode: null,
@@ -47,11 +51,13 @@ const SkillRequests: React.FC = () => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const fetchRequests = useCallback(async () => {
+  const fetchRequests = useCallback(async (pageToFetch: number) => {
     setIsLoading(true);
     try {
-      const data = await getPendingServiceRequests();
-      setRequests(data || []);
+      const result = await getPendingServiceRequests({ page: pageToFetch, limit });
+      setRequests(result.data || []);
+      setTotal(result.pagination.total);
+      setTotalPages(result.pagination.totalPages);
     } catch (error) {
       console.error("Failed to fetch skills", error);
       showToast("error", "Failed to load pending skill requests.");
@@ -61,8 +67,8 @@ const SkillRequests: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    fetchRequests();
-  }, [fetchRequests]);
+    fetchRequests(page);
+  }, [fetchRequests, page]);
 
   const openModal = (
     mode: ModalMode,
@@ -241,7 +247,7 @@ const SkillRequests: React.FC = () => {
         </div>
         <button
           className="btn-invite"
-          onClick={fetchRequests}
+          onClick={() => fetchRequests(page)}
           disabled={isLoading}
         >
           <i className={`bi bi-arrow-clockwise ${isLoading ? "spin" : ""}`}></i>
@@ -264,7 +270,8 @@ const SkillRequests: React.FC = () => {
             </p>
           </div>
         ) : (
-          <table className="admin-table">
+          <>
+            <table className="admin-table">
             <thead>
               <tr>
                 <th>Requested Skill</th>
@@ -349,8 +356,28 @@ const SkillRequests: React.FC = () => {
               ))}
             </tbody>
           </table>
-        )}
-      </div>
+          <div className="admin-table-footer">
+            <div className="admin-pagination">
+              <button disabled={page <= 1} onClick={() => setPage(page - 1)}>
+                <i className="bi bi-chevron-left" style={{ fontSize: "0.75rem" }}></i>
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <button
+                  key={p}
+                  className={p === page ? "active" : ""}
+                  onClick={() => setPage(p)}
+                >
+                  {p}
+                </button>
+              ))}
+              <button disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+                <i className="bi bi-chevron-right" style={{ fontSize: "0.75rem" }}></i>
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
 
       <style
         dangerouslySetInnerHTML={{

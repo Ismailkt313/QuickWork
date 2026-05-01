@@ -26,6 +26,7 @@ import {
   RiStarLine,
   RiFlagLine,
   RiCheckboxCircleLine,
+  RiFocus2Line,
 } from "react-icons/ri";
 import CancellationModal from "../../provider/components/CancellationModal";
 import ReportAbsenceModal from "../../provider/components/ReportAbsenceModal";
@@ -41,6 +42,7 @@ interface JobDetail {
   visibility: "public" | "private";
   location: { address: string } | null;
   budget: string;
+  skills: string[];
   startDate: string;
   durationType: string;
   rejectionReason?: string;
@@ -350,11 +352,17 @@ const UserJobDetailPage: React.FC = () => {
               </span>
             </div>
             <h1
-              className="fw-bold text-dark mb-3"
+              className="fw-bold text-dark mb-1"
               style={{ fontFamily: "Syne, sans-serif", letterSpacing: "-1px" }}
             >
               {job.title}
             </h1>
+            <div className="d-flex align-items-center gap-2 mb-3">
+               <RiFocus2Line className="text-primary" size={18} />
+               <span className="fw-bold text-primary small text-uppercase letter-spacing-1">
+                 {job.skills && job.skills.length > 0 ? job.skills[0] : "General Service"}
+               </span>
+            </div>
             <p
               className="text-muted fs-5 mb-0"
               style={{ maxWidth: "800px", lineHeight: "1.6" }}
