@@ -11,14 +11,14 @@ import { ErrorMessages } from "../../../constants/messages/errorMessages";
 import { IApiResponse } from "../../../types/api.types";
 import { IUser } from "../../auth/interfaces/auth.interface";
 import { logger } from "../../../utils/logger";
-import { NotificationService } from "../../notification/services/notification.service";
+import { INotificationService } from "../../notification/interfaces/notification.interface";
 
 
 export class AdminService implements IAdminService {
     private readonly adminRepository: IAdminRepository;
-    private readonly notificationService: NotificationService;
+    private readonly notificationService: INotificationService;
 
-    constructor(adminRepository: IAdminRepository, notificationService: NotificationService) {
+    constructor(adminRepository: IAdminRepository, notificationService: INotificationService) {
         this.adminRepository = adminRepository;
         this.notificationService = notificationService;
     }

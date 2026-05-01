@@ -1,7 +1,8 @@
 import { getIo } from '../../../chat/socket';
 import { NotificationRepository } from '../repositories/notification.repository';
+import { INotificationService } from '../interfaces/notification.interface';
 
-export class NotificationService {
+export class NotificationService implements INotificationService {
     constructor(private notificationRepository: NotificationRepository) {}
 
     async getNotifications(userId: string, limit: number = 20) {

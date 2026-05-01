@@ -1,6 +1,7 @@
 import { NotificationModel} from '../models/notification.model';
+import { INotificationRepository } from '../interfaces/notification.interface';
 
-export class NotificationRepository {
+export class NotificationRepository implements INotificationRepository {
     async findByUserId(userId: string, limit: number) {
         return await NotificationModel.find({ recipient: userId })
             .sort({ createdAt: -1 })

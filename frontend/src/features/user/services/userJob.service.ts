@@ -7,10 +7,7 @@ export interface UserJob {
   description: string;
   skillId: string;
   locationId: string;
-  budget: {
-    min: number;
-    max: number;
-  };
+  budget: string;
   status:
     | "open"
     | "partially_assigned"
@@ -26,6 +23,15 @@ export interface UserJob {
   };
   categoryName?: string;
   locationName?: string;
+  hasPendingPayment?: boolean;
+  providers?: {
+    providerId: string;
+    finalStatus: string;
+    payment: {
+      status: string;
+      totalAmount: number;
+    };
+  }[];
 }
 
 export const getUserJobs = async (
@@ -164,5 +170,15 @@ export const submitReport = async (reportData: {
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;
     throw new Error(axiosError.response?.data?.message || "Failed to submit report");
+  }
+};
+
+export const markAsPaidByCash = async (assignmentId: string) => {
+  try {
+    const response = await api.post(`/assignment/${assignmentId}/payment/mark-as-paid-cash`);
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message: string }>;
+    throw new Error(axiosError.response?.data?.message || "Failed to mark as paid");
   }
 };

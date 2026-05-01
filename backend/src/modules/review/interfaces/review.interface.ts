@@ -29,3 +29,12 @@ export interface IReviewService {
     getReviewsForUser(userId: string): Promise<IReview[]>;
     getReviewsForAssignment(assignmentId: string): Promise<IReview[]>;
 }
+
+import { Request, Response, NextFunction } from 'express';
+
+export interface IReviewController {
+    createReview(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getReviewsForUser(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getReviewsForAssignment(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getMyReviews(req: Request, res: Response, next: NextFunction): Promise<void>;
+}

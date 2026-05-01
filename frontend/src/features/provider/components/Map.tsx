@@ -20,7 +20,7 @@ type props = {
 
 const Map = ({ lat, lng, address }: props) => {
   if (!lat || !lng) {
-    return null;
+    return <div style={{ height: "300px", display: "flex", alignItems: "center", justifyContent: "center", background: "#f8fafc", color: "#94a3b8", fontSize: "14px" }}>Map coordinates missing</div>;
   }
 
   return (
@@ -28,7 +28,7 @@ const Map = ({ lat, lng, address }: props) => {
       <MapContainer
         center={[lat, lng]}
         zoom={15}
-        style={{ height: "300px", width: "100%" }}
+        style={{ height: "300px", width: "100%", zIndex: 1 }}
       >
         <TileLayer url={"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"} />
         <Marker position={[lat, lng]}>

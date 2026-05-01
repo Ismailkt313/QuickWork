@@ -105,12 +105,12 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
   const visibleSkills = job.skills.slice(0, 5);
   const extraSkills = job.skills.length - visibleSkills.length;
 
-  // Location match check — compare job's districtName with provider's district
+  
   const jobDistrict = job.location?.districtName?.toLowerCase().trim() ?? "";
   const myDistrict = providerLocation?.toLowerCase().trim() ?? "";
   const isMyArea = myDistrict && myDistrict !== "not set" && jobDistrict
     ? jobDistrict.includes(myDistrict) || myDistrict.includes(jobDistrict)
-    : null; // null = can't determine
+    : null; 
 
   const isMultiDay = job.startDate !== job.endDate;
 
@@ -120,10 +120,10 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
       style={job.animationDelay ? { animationDelay: `${job.animationDelay}ms` } : undefined}
       aria-label={`Job: ${job.title}`}
     >
-      {/* ── Top accent bar based on urgency ── */}
+      {}
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: job.isUrgent ? "linear-gradient(90deg,#ef4444,#f97316)" : "linear-gradient(90deg,#6366f1,#8b5cf6)", borderRadius: "16px 16px 0 0" }} />
 
-      {/* ── Badges row ── */}
+      {}
       <div className="jc-badges-row" style={{ paddingTop: 4 }}>
         {job.isUrgent && (
           <span className="jc-badge jc-badge-urgent">
@@ -140,7 +140,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
             <RiSparklingLine size={10} /> New
           </span>
         )}
-        {/* Location match badge */}
+        {}
         {isMyArea === true && (
           <span className="jc-badge" style={{ background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0" }}>
             <RiMapPinLine size={10} /> Your Area
@@ -153,7 +153,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
         )}
       </div>
 
-      {/* ── Client row ── */}
+      {}
       <div className="jc-client-row">
         <div className="jc-avatar" style={{ background: avatarBg }}>
           {job.clientAvatarUrl
@@ -173,12 +173,12 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
         </div>
       </div>
 
-      {/* ── Description ── */}
+      {}
       <p className="jc-description">{job.description}</p>
 
-      {/* ── Detail grid ── */}
+      {}
       <div className="jc-detail-grid">
-        {/* Location */}
+        {}
         <div className="jc-detail-cell">
           <div className="jc-detail-icon" style={{ background: isMyArea === false ? "#fff7ed" : "#f0fdf4", color: isMyArea === false ? "#b45309" : "#16a34a" }}>
             <RiMapPinLine size={14} />
@@ -193,7 +193,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
           </div>
         </div>
 
-        {/* Schedule */}
+        {}
         <div className="jc-detail-cell">
           <div className="jc-detail-icon" style={{ background: "#fff7ed", color: "#ea580c" }}>
             <RiCalendarLine size={14} />
@@ -206,7 +206,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
           </div>
         </div>
 
-        {/* Duration */}
+        {}
         <div className="jc-detail-cell">
           <div className="jc-detail-icon" style={{ background: "#eff6ff", color: "#3b82f6" }}>
             <RiTimeLine size={14} />
@@ -217,7 +217,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
           </div>
         </div>
 
-        {/* Providers needed */}
+        {}
         {job.freelancersNeeded !== undefined && (
           <div className="jc-detail-cell">
             <div className="jc-detail-icon" style={{ background: "#faf5ff", color: "#9333ea" }}>
@@ -231,7 +231,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
         )}
       </div>
 
-      {/* ── Skills ── */}
+      {}
       {job.skills.length > 0 && (
         <div className="jc-skills">
           {visibleSkills.map(skill => (
@@ -241,7 +241,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
         </div>
       )}
 
-      {/* ── Bottom info bar ── */}
+      {}
       <div className="jc-info-row">
         <div className="jc-info-item">
           <div className="jc-info-label"><RiMoneyDollarCircleLine size={11} /> Budget / Provider</div>
@@ -253,7 +253,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
         </div>
       </div>
 
-      {/* ── Actions ── */}
+      {}
       <div className="jc-actions">
         <button
           className={`jc-save-btn${saved ? " saved" : ""}`}

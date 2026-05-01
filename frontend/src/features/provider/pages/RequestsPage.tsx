@@ -145,7 +145,7 @@ const RequestsPage: React.FC = () => {
   return (
     <div style={{ minHeight: "100vh", background: "#f1f5f9", padding: "32px 32px 48px" }}>
 
-      {/* ── Page Header ── */}
+      {}
       <div style={{ marginBottom: 28 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
           <div>
@@ -162,7 +162,7 @@ const RequestsPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Quick stats */}
+          {}
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
             {[
               { label: "Pending", count: pendingCount, bg: "#eff6ff", color: "#3b82f6", border: "#bfdbfe" },
@@ -178,7 +178,7 @@ const RequestsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Tab Filter ── */}
+      {}
       <div style={{ display: "flex", gap: 6, marginBottom: 20, background: "#fff", borderRadius: 10, padding: "4px", border: "1px solid #e8edf4", width: "fit-content" }}>
         {TABS.map(tab => {
           const count = tabCount(tab.id);
@@ -200,7 +200,7 @@ const RequestsPage: React.FC = () => {
         })}
       </div>
 
-      {/* ── Content ── */}
+      {}
       {loading ? (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 0", gap: 16 }}>
           <div style={{ width: 52, height: 52, borderRadius: 14, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 14px rgba(0,0,0,0.08)" }}>
@@ -241,7 +241,7 @@ const RequestsPage: React.FC = () => {
         </div>
       )}
 
-      {/* ── Modals ── */}
+      {}
       <UniversalActionModal
         isOpen={isLocationModalOpen}
         onClose={() => { setIsLocationModalOpen(false); setPendingJobId(null); }}

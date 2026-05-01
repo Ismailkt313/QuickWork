@@ -41,7 +41,7 @@ const ReviewSchema: Schema = new Schema(
     }
 );
 
-// Unique compound index on (assignmentId + role)
+
 ReviewSchema.index({ assignmentId: 1, role: 1 }, { unique: true });
 ReviewSchema.index({ reviewerId: 1 });
 ReviewSchema.index({ revieweeId: 1 });

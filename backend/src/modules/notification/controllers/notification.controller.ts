@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { NotificationService } from '../services/notification.service';
+import { INotificationController, INotificationService } from '../interfaces/notification.interface';
 
-export class NotificationController {
-    constructor(private notificationService: NotificationService) {}
+export class NotificationController implements INotificationController {
+    constructor(private notificationService: INotificationService) {}
 
     getNotifications = async (req: Request, res: Response) => {
         try {

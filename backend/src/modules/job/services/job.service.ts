@@ -5,32 +5,36 @@ import { JobResponseDTO, mapJobToResponseDTO } from '../dtos/jobResponse.dto';
 import { Types } from 'mongoose';
 import { IServiceProviderRepository } from '../../serviceProvider/interfaces/serviceProvider.interface';
 import { IAssignmentService } from '../../assignment/interfaces/assignment.interface';
-import { NotificationService } from '../../notification/services/notification.service';
+import { INotificationService } from '../../notification/interfaces/notification.interface';
 import { JOB_STATUS } from '../../../constants/jobStatus';
 import { ASSIGNMENT_STATUS, WORK_STATUS, ASSIGNMENT_TYPE } from '../../../constants/assignment';
 import { JOB_VISIBILITY } from '../../../constants/jobVisibility';
 import { SuccessMessages } from '../../../constants/messages/successMessages';
 import { ErrorMessages } from '../../../constants/messages/errorMessages';
+import { IWorkHistoryRepository } from '../../finance/interfaces/finance.interface';
 
 export class JobService implements IJobService {
     private jobRepository: IJobRepository;
     private serviceProviderRepository: IServiceProviderRepository;
     private assignmentService: IAssignmentService;
     private locationRepository: ILocationRepository;
-    private notificationService: NotificationService;
+    private notificationService: INotificationService;
+    private workHistoryRepository: IWorkHistoryRepository;
 
     constructor(
         jobRepository: IJobRepository,
         serviceProviderRepository: IServiceProviderRepository,
         assignmentService: IAssignmentService,
         locationRepository: ILocationRepository,
-        notificationService: NotificationService
+        notificationService: INotificationService,
+        workHistoryRepository: IWorkHistoryRepository
     ) {
         this.jobRepository = jobRepository;
         this.serviceProviderRepository = serviceProviderRepository;
         this.assignmentService = assignmentService;
         this.locationRepository = locationRepository;
         this.notificationService = notificationService;
+        this.workHistoryRepository = workHistoryRepository;
     }
 
     async createJob(userId: string, dto: CreateJobDTO): Promise<{ success: boolean; message: string; data?: JobResponseDTO }> {
@@ -39,7 +43,6 @@ export class JobService implements IJobService {
         if (!district) {
             return { success: false, message: ErrorMessages.INVALID_DISTRICT };
         }
-
 
         const placeDistrict = dto.location.districtName.toLowerCase();
         const chosenDistrictName = district.name.toLowerCase();
@@ -127,13 +130,20 @@ export class JobService implements IJobService {
             applicantsCount: 0
         });
 
-
         const job = await this.jobRepository.findById(newJob._id.toString());
+        
+        let assignmentData = null;
+        if (job && job.hiredProviderId) {
+             assignmentData = await this.assignmentService.getAssignmentByJobAndFreelancer(
+                job._id.toString(),
+                job.hiredProviderId._id.toString()
+            );
+        }
 
         return {
             success: true,
             message: SuccessMessages.JOB_CREATED,
-            data: job ? await mapJobToResponseDTO(job) : undefined
+            data: job ? await mapJobToResponseDTO(job, assignmentData) : undefined
         };
     }
 
@@ -148,9 +158,35 @@ export class JobService implements IJobService {
             this.jobRepository.countByUserGrouped(userId)
         ]);
 
+        const mappedJobs = await Promise.all(jobs.map(async (j) => {
+            let assignmentData = null;
+            if (j.hiredProviderId) {
+                assignmentData = await this.assignmentService.getAssignmentByJobAndFreelancer(
+                    j._id.toString(),
+                    j.hiredProviderId._id.toString()
+                );
+            }
+            const dto = await mapJobToResponseDTO(j, assignmentData);
+            
+            const workHistories = await this.workHistoryRepository.findByJobAndStatus(j._id.toString(), 'COMPLETED');
+
+            dto.providers = workHistories.map(wh => ({
+                providerId: wh.providerId.toString(),
+                finalStatus: wh.finalStatus,
+                payment: {
+                    status: wh.payment.status,
+                    totalAmount: wh.payment.totalAmount
+                }
+            }));
+            
+            dto.hasPendingPayment = workHistories.some(wh => wh.payment.status !== 'completed');
+            
+            return dto;
+        }));
+
         return {
             success: true,
-            data: await Promise.all(jobs.map(mapJobToResponseDTO)),
+            data: mappedJobs,
             pagination: {
                 total,
                 page,
@@ -163,7 +199,6 @@ export class JobService implements IJobService {
 
     async availableJobs(page: number = 1, limit: number = 10, filters: any = {}, userId?: string): Promise<import('../interfaces/job.interface').IJobPaginationResponse> {
         
-        
         const assignedJobIds = new Set<string>();
             const provider = await this.serviceProviderRepository.findByUserId(userId as string);
             if (provider) {
@@ -174,15 +209,12 @@ export class JobService implements IJobService {
                 });
             }
             const skills:string[] = await provider.skills.map((a: any) => a._id.toString())
-            const { jobs, total } = await this.jobRepository.findAllOpen(page, limit, filters, skills);
- 
-
+            const { jobs, total } = await this.jobRepository.findAllOpen(page, limit, filters, skills, Array.from(assignedJobIds));
 
         const mappedJobs = await Promise.all(jobs.map(async j => {
             const dto = await mapJobToResponseDTO(j);
             dto.isApplied = assignedJobIds.has(dto.id);
             
-
             dto.applicants = await this.assignmentService.getAssignmentCountByJob(dto.id);
             
             return dto;
@@ -206,7 +238,15 @@ export class JobService implements IJobService {
             return { success: false, message: ErrorMessages.JOB_NOT_FOUND };
         }
 
-        const dto = await mapJobToResponseDTO(job);
+        let assignmentData = null;
+        if (job.hiredProviderId) {
+             assignmentData = await this.assignmentService.getAssignmentByJobAndFreelancer(
+                job._id.toString(),
+                job.hiredProviderId._id.toString()
+            );
+        }
+
+        const dto = await mapJobToResponseDTO(job, assignmentData);
         
         dto.applicants = await this.assignmentService.getAssignmentCountByJob(jobId);
 
@@ -231,9 +271,17 @@ export class JobService implements IJobService {
         }
 
         const jobs = await this.jobRepository.findByProvider(provider._id.toString());
+        const mappedJobs = await Promise.all(jobs.map(async j => {
+             const assignmentData = await this.assignmentService.getAssignmentByJobAndFreelancer(
+                j._id.toString(),
+                provider._id.toString()
+            );
+            return mapJobToResponseDTO(j, assignmentData);
+        }));
+
         return {
             success: true,
-            data: await Promise.all(jobs.map(mapJobToResponseDTO))
+            data: mappedJobs
         };
     }
 
@@ -312,7 +360,6 @@ export class JobService implements IJobService {
             await this.jobRepository.updateStatus(jobId, JOB_STATUS.PARTIALLY_ASSIGNED);
         }
 
-        // Send notification to Client
         await this.notificationService.createNotification({
             recipient: updatedJob.userId.toString(),
             title: 'Job Accepted',
@@ -342,7 +389,6 @@ export class JobService implements IJobService {
         if (job.hiredProviderId?._id.toString() !== provider._id.toString()) {
             return { success: false, message: ErrorMessages.OFFER_NOT_FOR_USER };
         }
-
 
         const hasOverlap = await this.assignmentService.checkOverlap(
             provider._id.toString(),
@@ -408,7 +454,6 @@ export class JobService implements IJobService {
         }
 
         const job = await this.jobRepository.findById(jobId);
-        console.log("job", job);
         if (!job || job.hiredProviderId?._id?.toString() !== provider._id.toString()) {
             return { success: false, message: ErrorMessages.JOB_NOT_FOUND };
         }
@@ -418,7 +463,6 @@ export class JobService implements IJobService {
             { $set: { status: JOB_STATUS.REJECTED, rejectionReason: reason || 'Provider declined the offer' } }
         );
 
-        // Send notification to Client
         await this.notificationService.createNotification({
             recipient: (job.userId as any)._id ? (job.userId as any)._id.toString() : job.userId.toString(),
             title: 'Offer Declined',

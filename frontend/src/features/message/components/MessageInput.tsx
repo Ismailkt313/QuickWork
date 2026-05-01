@@ -46,7 +46,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         const formData = new FormData();
         formData.append("image", selectedFile);
         
-        // This calls our backend, which is now configured to upload to S3
+        
         const response = await apiClient.post("/upload/chat-image", formData, {
           headers: {
             "Content-Type": "multipart/form-data",

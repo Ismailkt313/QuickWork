@@ -44,6 +44,11 @@ interface MyJobCardProps {
     assignedAt: string;
     isOutOfDistrict: boolean;
     type: "open" | "direct";
+    payment?: {
+      status: string;
+      method?: string;
+      amount: number;
+    };
   };
   onViewDetails?: (id: string) => void;
   onMessage?: (clientId: string, clientName: string) => void;
@@ -95,18 +100,18 @@ const MyJobCard: React.FC<MyJobCardProps> = ({ assignment, onViewDetails, onMess
         (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
       }}
     >
-      {/* Color accent bar */}
+      {}
       <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: 3, background: `linear-gradient(90deg, ${status.text}, ${status.text}88)` }} />
 
       <div style={{ padding: "20px 24px 0" }}>
-        {/* Top row: badges + budget */}
+        {}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {/* Status badge */}
+            {}
             <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700, background: status.bg, color: status.text, border: `1px solid ${status.border}`, textTransform: "uppercase", letterSpacing: "0.05em" }}>
               {status.icon} {status.label}
             </span>
-            {/* Type badge */}
+            {}
             {type === "direct" && (
               <span style={{ padding: "4px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700, background: "#faf5ff", color: "#9333ea", border: "1px solid #e9d5ff", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                 Direct Hire
@@ -122,18 +127,28 @@ const MyJobCard: React.FC<MyJobCardProps> = ({ assignment, onViewDetails, onMess
                 <RiMapPinRangeLine /> Out of Zone
               </span>
             )}
+            {}
+            {workStatus === "completed" && assignment.payment?.status !== "completed" && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700, background: "#fff7ed", color: "#ea580c", border: "1px solid #fed7aa", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                <RiMoneyDollarCircleLine size={13} /> Payment Pending
+              </span>
+            )}
           </div>
-          {/* Budget */}
+          {}
           <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>
               <RiMoneyDollarCircleLine size={16} color="#6366f1" />
-              <span style={{ fontSize: 17, fontWeight: 800, color: "#0f172a", fontFamily: "Syne, sans-serif" }}>{job.budget}</span>
+              <span style={{ fontSize: 17, fontWeight: 800, color: "#0f172a", fontFamily: "Syne, sans-serif" }}>
+                ₹{assignment.payment?.amount ?? job.budget}
+              </span>
             </div>
-            <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 1 }}>Per Provider</div>
+            <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 1 }}>
+              {assignment.payment?.amount ? "Total Payment" : "Est. Per Provider"}
+            </div>
           </div>
         </div>
 
-        {/* Title + Client */}
+        {}
         <div style={{ marginBottom: 14 }}>
           <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: "#0f172a", fontFamily: "Syne, sans-serif", lineHeight: 1.3 }}>
             <RiBriefcaseLine style={{ marginRight: 6, color: "#6366f1", verticalAlign: "middle", fontSize: 16 }} />
@@ -144,9 +159,9 @@ const MyJobCard: React.FC<MyJobCardProps> = ({ assignment, onViewDetails, onMess
           </p>
         </div>
 
-        {/* Info Grid */}
+        {}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10, background: "#f8fafc", borderRadius: 12, padding: "12px 14px", marginBottom: 16, border: "1px solid #f1f5f9" }}>
-          {/* Client */}
+          {}
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ width: 32, height: 32, borderRadius: 8, background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", color: "#3b82f6", fontSize: 15, flexShrink: 0 }}>
               <RiUser3Line />
@@ -156,7 +171,7 @@ const MyJobCard: React.FC<MyJobCardProps> = ({ assignment, onViewDetails, onMess
               <div style={{ fontSize: 12.5, fontWeight: 600, color: "#1e293b" }}>{job.clientName}</div>
             </div>
           </div>
-          {/* Location */}
+          {}
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ width: 32, height: 32, borderRadius: 8, background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", color: "#16a34a", fontSize: 15, flexShrink: 0 }}>
               <RiMapPinLine />
@@ -166,7 +181,7 @@ const MyJobCard: React.FC<MyJobCardProps> = ({ assignment, onViewDetails, onMess
               <div style={{ fontSize: 12.5, fontWeight: 600, color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 140 }}>{job.location?.address || "Not specified"}</div>
             </div>
           </div>
-          {/* Schedule */}
+          {}
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ width: 32, height: 32, borderRadius: 8, background: "#fff7ed", display: "flex", alignItems: "center", justifyContent: "center", color: "#ea580c", fontSize: 15, flexShrink: 0 }}>
               <RiCalendarLine />
@@ -178,7 +193,7 @@ const MyJobCard: React.FC<MyJobCardProps> = ({ assignment, onViewDetails, onMess
               </div>
             </div>
           </div>
-          {/* Duration */}
+          {}
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ width: 32, height: 32, borderRadius: 8, background: "#faf5ff", display: "flex", alignItems: "center", justifyContent: "center", color: "#9333ea", fontSize: 15, flexShrink: 0 }}>
               <RiTimeLine />
@@ -194,7 +209,7 @@ const MyJobCard: React.FC<MyJobCardProps> = ({ assignment, onViewDetails, onMess
         </div>
       </div>
 
-      {/* Footer actions */}
+      {}
       <div style={{ padding: "0 24px 20px", display: "flex", gap: 10 }}>
         <button
           onClick={() => onMessage?.(job.clientId, job.clientName)}

@@ -11,14 +11,17 @@ import { toast } from "react-toastify";
 import {
   getAssignmentById, updateAssignmentStatus, submitAssignmentProof,
   cancelAssignmentByProvider, submitReview, submitReport,
+  confirmPayment, providerMarkAsPaid, rejectPayment,
 } from "../services/provider.service";
 import ReviewModal from "../components/ReviewModal";
 import ReportIssueModal from "../components/ReportIssueModal";
 import SubmitProofModal from "../components/SubmitProofModal";
 import JobLogModal from "../components/JobLogModal";
 import CancellationModal from "../components/CancellationModal";
+import UniversalActionModal from "../components/UniversalActionModal";
 import { ClientProfileModal } from "../components/ClientProfileModal";
 import Map from "../components/Map";
+import ProviderPaymentSection from "../../finance/components/ProviderPaymentSection";
 
 const STATUS_CFG: Record<string, { color: string; bg: string; border: string; label: string; icon: React.ReactNode }> = {
   assigned:    { color:"#6366f1", bg:"#eef2ff", border:"#c7d2fe", label:"Assigned",    icon:<RiCheckboxCircleLine/> },
@@ -30,7 +33,6 @@ const STATUS_CFG: Record<string, { color: string; bg: string; border: string; la
 
 const DURATION: Record<string,string> = { half_day:"Half Day (~4 hrs)", full_day:"Full Day (8 hrs)", multi_day:"Multiple Days" };
 
-/* ── tiny helpers ── */
 const InfoCell: React.FC<{ icon: React.ReactNode; label: string; value: string; bg: string; color: string }> = ({ icon, label, value, bg, color }) => (
   <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 14px", borderRadius:10, background:"#f8fafc", border:"1px solid #f1f5f9" }}>
     <div style={{ width:34, height:34, borderRadius:9, background:bg, color, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{icon}</div>
@@ -103,6 +105,13 @@ interface Assignment {
   }[];
   proof?: string[];
   proofDescription?: string;
+  payment?: {
+    status: string;
+    method?: string;
+    amount: number;
+    paidAt?: string;
+    transactionId?: string;
+  };
 }
 
 const AssignmentDetailPage: React.FC = () => {
@@ -117,6 +126,7 @@ const AssignmentDetailPage: React.FC = () => {
   const [isReviewModalOpen,  setIsReviewModalOpen]  = useState(false);
   const [isReportModalOpen,  setIsReportModalOpen]  = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; type: "confirm_receipt" | "mark_paid" | "reject" } | null>(null);
 
   const fetch = useCallback(async () => {
     try {
@@ -163,6 +173,57 @@ const AssignmentDetailPage: React.FC = () => {
     if (r.success) { toast.success("Report submitted!"); setIsReportModalOpen(false); }
   });
 
+  const handleConfirmPayment = async () => {
+    if (actionLoading) return;
+    try {
+      setActionLoading(true);
+      const res = await confirmPayment(assignmentId);
+      if (res.success) {
+        toast.success("Payment confirmed!");
+        fetch();
+      }
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      toast.error(error.message || "Failed to confirm payment");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleMarkAsPaid = async () => {
+    if (actionLoading) return;
+    try {
+      setActionLoading(true);
+      const res = await providerMarkAsPaid(assignmentId);
+      if (res.success) {
+        toast.success("Marked as paid by cash!");
+        fetch();
+      }
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      toast.error(error.message || "Failed to mark as paid");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRejectPayment = async () => {
+    if (actionLoading) return;
+    try {
+      setActionLoading(true);
+      const res = await rejectPayment(assignmentId);
+      if (res.success) {
+        toast.success("Payment confirmation rejected.");
+        fetch();
+      }
+    } catch (err: unknown) {
+      const error = err as { message?: string };
+      toast.error(error.message || "Failed to reject payment");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   if (loading) return (
     <div style={{ minHeight:"80vh", display:"flex", alignItems:"center", justifyContent:"center", background:"#f1f5f9" }}>
       <RiLoader4Line size={40} color="#6366f1" style={{ animation:"spin 1s linear infinite" }}/>
@@ -181,7 +242,6 @@ const AssignmentDetailPage: React.FC = () => {
 
   return (
     <div style={{ background:"#f1f5f9", minHeight:"100vh", padding:"28px 28px 60px" }}>
-      {/* Top bar */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24, flexWrap:"wrap", gap:12 }}>
         <button onClick={() => navigate("/provider/my-jobs")}
           style={{ display:"inline-flex", alignItems:"center", gap:7, padding:"8px 16px", borderRadius:9, border:"1.5px solid #e2e8f0", background:"#fff", color:"#64748b", fontSize:13.5, fontWeight:600, cursor:"pointer" }}>
@@ -193,13 +253,10 @@ const AssignmentDetailPage: React.FC = () => {
       </div>
 
       <div className="adp-grid" style={{ display:"grid", gridTemplateColumns:"1fr 320px", gap:20, alignItems:"start" }}>
-        {/* ── Left ── */}
         <div>
-          {/* Hero card */}
           <div style={{ background:"#fff", borderRadius:16, border:"1px solid #e8edf4", overflow:"hidden", marginBottom:16, boxShadow:"0 1px 4px rgba(0,0,0,0.04)", position:"relative" }}>
             <div style={{ position:"absolute", top:0, left:0, width:"100%", height:3, background:`linear-gradient(90deg,${sc.color},${sc.color}66)` }}/>
             <div style={{ padding:"22px 24px" }}>
-              {/* Badges */}
               <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:14 }}>
                 {job.isUrgent && <span style={{ padding:"3px 9px", borderRadius:20, fontSize:10, fontWeight:700, background:"#fef2f2", color:"#dc2626", border:"1px solid #fecaca", textTransform:"uppercase" as const }}><RiFlashlightLine size={10} style={{ verticalAlign:"middle" }}/> Urgent</span>}
                 <span style={{ padding:"3px 9px", borderRadius:20, fontSize:10, fontWeight:700, background:"#eff6ff", color:"#3b82f6", border:"1px solid #bfdbfe", textTransform:"uppercase" as const }}>{job.durationType ? (DURATION[job.durationType] ?? job.durationType.replace(/_/g," ")) : "—"}</span>
@@ -208,10 +265,9 @@ const AssignmentDetailPage: React.FC = () => {
 
               <h1 style={{ fontFamily:"Syne,sans-serif", fontWeight:800, fontSize:26, color:"#0f172a", letterSpacing:"-0.5px", margin:"0 0 18px" }}>{job.title}</h1>
 
-              {/* Info grid */}
               <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))", gap:8, marginBottom:16 }}>
                 <InfoCell icon={<RiMapPinLine size={16}/>}           label="Location"  value={job.location?.address || "Remote"} bg="#f0fdf4" color="#16a34a"/>
-                <InfoCell icon={<RiMoneyDollarCircleLine size={16}/>} label="Budget / Provider" value={job.budget} bg="#eff6ff" color="#6366f1"/>
+                <InfoCell icon={<RiMoneyDollarCircleLine size={16}/>} label={assignment.payment?.amount ? "Total Payment" : "Budget / Provider"} value={assignment.payment?.amount ? `₹${assignment.payment.amount}` : job.budget} bg="#eff6ff" color="#6366f1"/>
                 <InfoCell icon={<RiCalendarLine size={16}/>}          label={isMulti ? "Schedule" : "Date"} value={isMulti ? `${startFmt} → ${endFmt}` : startFmt} bg="#fff7ed" color="#ea580c"/>
                 <InfoCell icon={<RiTimeLine size={16}/>}              label="Duration"  value={DURATION[job.durationType] ?? job.durationType?.replace(/_/g," ") ?? "—"} bg="#faf5ff" color="#9333ea"/>
                 {job.freelancersNeeded && <InfoCell icon={<RiGroupLine size={16}/>} label="Providers Needed" value={`${job.freelancersNeeded} provider${job.freelancersNeeded>1?"s":""}`} bg="#f0fdf4" color="#16a34a"/>}
@@ -219,14 +275,12 @@ const AssignmentDetailPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Map */}
-          {job.location?.lat && job.location?.lng && (
-            <div style={{ borderRadius:16, overflow:"hidden", border:"1px solid #e8edf4", marginBottom:16, boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
+          {job.location && (
+            <div style={{ borderRadius:16, overflow:"hidden", border:"1px solid #e8edf4", marginBottom:16, boxShadow:"0 1px 4px rgba(0,0,0,0.04)", position: "relative", zIndex: 0 }}>
               <Map lat={job.location.lat} lng={job.location.lng} address={job.location.address}/>
             </div>
           )}
 
-          {/* Description */}
           <div style={{ background:"#fff", borderRadius:16, border:"1px solid #e8edf4", padding:"22px 24px", marginBottom:16, boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
             <h4 style={{ fontFamily:"Syne,sans-serif", fontWeight:800, fontSize:15, color:"#0f172a", margin:"0 0 14px", display:"flex", alignItems:"center", gap:8 }}>
               <span style={{ width:28, height:28, borderRadius:8, background:"#eff6ff", color:"#6366f1", display:"flex", alignItems:"center", justifyContent:"center" }}><RiInformationLine size={15}/></span>
@@ -234,14 +288,12 @@ const AssignmentDetailPage: React.FC = () => {
             </h4>
             <p style={{ fontSize:14.5, color:"#475569", lineHeight:1.8, margin:0, whiteSpace:"pre-wrap" }}>{job.description}</p>
 
-            {/* Additional details */}
             {job.additionalDetails && (
               <div style={{ marginTop:14, padding:"12px 14px", borderRadius:10, background:"#fffbeb", border:"1px solid #fde68a", fontSize:13, color:"#92400e" }}>
                 <strong>Additional Notes:</strong> {job.additionalDetails}
               </div>
             )}
 
-            {/* Skills */}
             {job.skills?.length > 0 && (
               <div style={{ marginTop:16 }}>
                 <div style={{ fontSize:11, fontWeight:700, color:"#94a3b8", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:8 }}>Skills Required</div>
@@ -254,7 +306,6 @@ const AssignmentDetailPage: React.FC = () => {
             )}
           </div>
 
-          {/* Proof section */}
           {workStatus === "completed" && proof && proof.length > 0 && (
             <div style={{ background:"#fff", borderRadius:16, border:"1px solid #e8edf4", padding:"22px 24px", marginBottom:16, boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
               <h4 style={{ fontFamily:"Syne,sans-serif", fontWeight:800, fontSize:15, color:"#0f172a", margin:"0 0 14px", display:"flex", alignItems:"center", gap:8 }}>
@@ -270,7 +321,6 @@ const AssignmentDetailPage: React.FC = () => {
             </div>
           )}
 
-          {/* Co-workers */}
           {coWorkers && coWorkers.length > 0 && (
             <div style={{ background:"#fff", borderRadius:16, border:"1px solid #e8edf4", padding:"22px 24px", boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
               <h4 style={{ fontFamily:"Syne,sans-serif", fontWeight:800, fontSize:15, color:"#0f172a", margin:"0 0 14px", display:"flex", alignItems:"center", gap:8 }}>
@@ -305,9 +355,7 @@ const AssignmentDetailPage: React.FC = () => {
           )}
         </div>
 
-        {/* ── Right panel ── */}
         <div style={{ position:"sticky", top:24 }}>
-          {/* Client card */}
           <div style={{ background:"#fff", borderRadius:16, border:"1px solid #e8edf4", padding:"18px 20px", marginBottom:14, boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
             <div style={{ fontSize:10, fontWeight:700, color:"#94a3b8", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:12 }}>Client</div>
             <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:14, cursor:"pointer" }} onClick={() => setIsProfileModalOpen(true)}>
@@ -329,7 +377,6 @@ const AssignmentDetailPage: React.FC = () => {
             </button>
           </div>
 
-          {/* Actions card */}
           <div style={{ background:"#fff", borderRadius:16, border:"1px solid #e8edf4", padding:"18px 20px", boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
             <div style={{ fontSize:10, fontWeight:700, color:"#94a3b8", textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:14 }}>Actions</div>
             <div style={{ display:"flex", flexDirection:"column", gap:9 }}>
@@ -353,11 +400,11 @@ const AssignmentDetailPage: React.FC = () => {
               </>}
 
               {workStatus === "completed" && (
-                <div style={{ padding:"14px", borderRadius:12, background:"#f0fdf4", border:"1px solid #bbf7d0", textAlign:"center", marginBottom:6 }}>
-                  <RiCheckboxCircleLine size={28} color="#16a34a" style={{ marginBottom:6 }}/>
-                  <div style={{ fontWeight:800, color:"#15803d", fontSize:14, fontFamily:"Syne,sans-serif" }}>Job Completed!</div>
-                  <div style={{ fontSize:11.5, color:"#64748b", marginTop:4 }}>Awaiting client payment confirmation.</div>
-                </div>
+                <ProviderPaymentSection 
+                  assignmentId={assignmentId}
+                  jobTitle={assignment.job.title}
+                  clientName={assignment.job.clientName}
+                />
               )}
 
               {workStatus === "completed" && <>
@@ -383,7 +430,6 @@ const AssignmentDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Modals */}
       <SubmitProofModal  isOpen={isProofModalOpen}   onClose={() => setIsProofModalOpen(false)}   onSubmit={handleProof}    jobTitle={job.title}/>
       <JobLogModal       isOpen={isLogModalOpen}      onClose={() => setIsLogModalOpen(false)}      assignment={assignment}/>
       <CancellationModal isOpen={isCancelModalOpen}   onClose={() => setIsCancelModalOpen(false)}   onConfirm={handleCancel}  type="provider"/>
@@ -391,6 +437,32 @@ const AssignmentDetailPage: React.FC = () => {
       <ReportIssueModal  isOpen={isReportModalOpen}   onClose={() => setIsReportModalOpen(false)}   onSubmit={handleReport}   clientName={job.clientName}/>
       <ClientProfileModal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)}
         client={{ name:job.clientName, email:job.clientEmail, phone:job.clientNumber, initials:job.clientInitials, avatarUrl:job.clientAvatarUrl, isVerified:job.isClientVerified }}/>
+
+      <UniversalActionModal
+        isOpen={!!confirmModal?.isOpen}
+        onClose={() => setConfirmModal(null)}
+        onConfirm={() => {
+          if (confirmModal?.type === "confirm_receipt") handleConfirmPayment();
+          if (confirmModal?.type === "mark_paid") handleMarkAsPaid();
+          if (confirmModal?.type === "reject") handleRejectPayment();
+        }}
+        title={
+          confirmModal?.type === "confirm_receipt" ? "Confirm Payment Receipt" :
+          confirmModal?.type === "mark_paid" ? "Mark as Paid by Cash" :
+          "Reject Payment Confirmation"
+        }
+        message={
+          confirmModal?.type === "confirm_receipt" ? "Are you sure you have received the cash payment from the client?" :
+          confirmModal?.type === "mark_paid" ? "Are you sure you want to mark this job as paid by cash? This will finalize the payment." :
+          "Are you sure you want to reject this payment confirmation? The payment status will return to pending."
+        }
+        confirmLabel={
+          confirmModal?.type === "confirm_receipt" ? "Yes, Received" :
+          confirmModal?.type === "mark_paid" ? "Yes, Mark Paid" :
+          "Yes, Reject"
+        }
+        iconType={confirmModal?.type === "reject" ? "warning" : "success"}
+      />
 
       <style>{`
         @keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }

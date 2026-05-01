@@ -200,5 +200,74 @@ export class AssignmentController implements IAssignmentController {
             next(error);
         }
     };
+
+    markAsPaidByCash = async (req: Request, res: Response, next: any): Promise<void> => {
+        try {
+            const userId = req.user?.userId;
+            const id = req.params.id as string;
+            const updated = await this.assignmentService.markAsPaidByCash(id, userId as string);
+            res.status(HttpStatusCode.OK).json({
+                success: true,
+                message: 'Payment marked as paid by cash',
+                data: await mapAssignmentToResponseDTO(updated)
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    confirmPayment = async (req: Request, res: Response, next: any): Promise<void> => {
+        try {
+            const userId = req.user?.userId;
+            const id = req.params.id as string;
+            const provider = await this.serviceProviderRepository.findByUserId(userId as string);
+            if (!provider) throw new AppError('Provider not found', HttpStatusCode.NOT_FOUND);
+
+            const updated = await this.assignmentService.confirmPayment(id, provider._id.toString());
+            res.status(HttpStatusCode.OK).json({
+                success: true,
+                message: 'Payment confirmed',
+                data: await mapAssignmentToResponseDTO(updated)
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    providerMarkAsPaid = async (req: Request, res: Response, next: any): Promise<void> => {
+        try {
+            const userId = req.user?.userId;
+            const id = req.params.id as string;
+            const provider = await this.serviceProviderRepository.findByUserId(userId as string);
+            if (!provider) throw new AppError('Provider not found', HttpStatusCode.NOT_FOUND);
+
+            const updated = await this.assignmentService.providerMarkAsPaid(id, provider._id.toString());
+            res.status(HttpStatusCode.OK).json({
+                success: true,
+                message: 'Payment marked as received by hand',
+                data: await mapAssignmentToResponseDTO(updated)
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    rejectPayment = async (req: Request, res: Response, next: any): Promise<void> => {
+        try {
+            const userId = req.user?.userId;
+            const id = req.params.id as string;
+            const provider = await this.serviceProviderRepository.findByUserId(userId as string);
+            if (!provider) throw new AppError('Provider not found', HttpStatusCode.NOT_FOUND);
+
+            const updated = await this.assignmentService.rejectPayment(id, provider._id.toString());
+            res.status(HttpStatusCode.OK).json({
+                success: true,
+                message: 'Payment confirmation rejected',
+                data: await mapAssignmentToResponseDTO(updated)
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
 }
 

@@ -2,14 +2,14 @@ import cloudinary from '../../../config/cloudinary';
 import { config } from '../../../config';
 import { ErrorMessages } from '../../../constants/messages/errorMessages';
 import { logger } from '../../../utils/logger';
-import { S3Service } from './s3.service';
 import { randomUUID } from 'crypto';
+import { IUploadService, IS3Service } from '../interfaces/upload.interface';
 
-export class UploadService {
-    private s3Service: S3Service;
+export class UploadService implements IUploadService {
+    private s3Service: IS3Service;
 
-    constructor() {
-        this.s3Service = new S3Service();
+    constructor(s3Service: IS3Service) {
+        this.s3Service = s3Service;
     }
 
     async uploadProfileImage(fileBuffer: Buffer, _mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
@@ -81,7 +81,7 @@ export class UploadService {
     }
 
     async deleteImage(publicId: string): Promise<any> {
-        // Smart routing for deletion
+        
         if (publicId.includes('/') && !publicId.startsWith('quickwork')) {
             return this.s3Service.deleteFile(publicId);
         }

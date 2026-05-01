@@ -37,6 +37,10 @@ const UserSchema: Schema<IUser> = new Schema<IUser>(
             type: Boolean,
             default: false,
         },
+        warningCount: {
+            type: Number,
+            default: 0,
+        },
         profileImage: {
             url: { type: String, default: null },
             public_id: { type: String, default: null },

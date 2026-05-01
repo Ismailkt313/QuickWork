@@ -5,6 +5,10 @@ import { ServiceProviderModel } from '../../serviceProvider/models/serviceProvid
 
 export class SkillRepository implements ISkillRepository {
 
+    async findById(id: string): Promise<ISkill | null> {
+        return await SkillModel.findById(id);
+    }
+
     async findByName(name: string): Promise<ISkill | null> {
         return await SkillModel.findOne({ name: name.toLowerCase().trim() });
     }

@@ -14,4 +14,6 @@ export const API_ROUTES = {
   REVIEW: "/review",
   REPORT: "/report",
   NOTIFICATIONS: "/notifications",
+  PAYMENTS: "/payments",
+  WALLET: "/wallet",
 };

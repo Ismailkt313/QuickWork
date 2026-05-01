@@ -1,6 +1,6 @@
 import { IConversation, IConversationResponse, IConversationRepository } from "../interface/message.interface";
-import { Conversation } from "../modals/conversation.modal";
-import { Message } from "../modals/message.modals";
+import { Conversation } from "../models/conversation.model";
+import { Message } from "../models/message.model";
 import { logger } from "../../../utils/logger";
 
 export class ConversationRepository implements IConversationRepository {
@@ -16,7 +16,7 @@ export class ConversationRepository implements IConversationRepository {
                 .populate("participants", "name email _id")
                 .sort({ updatedAt: -1 });
             
-            return conversations.map(c => c.toObject() as unknown as IConversationResponse);
+            return conversations.map((c: any) => c.toObject() as unknown as IConversationResponse);
         } catch (error: any) {
             logger.error({ error, userId }, "Error fetching conversations in repository");
             throw error;

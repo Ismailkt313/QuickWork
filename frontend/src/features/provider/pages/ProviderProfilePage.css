@@ -1,213 +1,304 @@
 /* ProviderProfilePage.css */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
-.qw-profile-container {
-  max-width: 1200px;
-  margin: 0 auto;
+.qw-profile-page {
+  font-family: 'Inter', sans-serif;
+  color: #0f172a;
+  background-color: #f8fafc;
+  min-height: 100vh;
 }
 
-.qw-card {
-  background: var(--qw-surface);
-  border: 1px solid var(--qw-border);
-  border-radius: var(--qw-radius);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-  transition: transform var(--qw-transition), box-shadow var(--qw-transition);
-}
-
-/* Header Card */
-.qw-profile-header {
+.qw-profile-hero {
+  position: relative;
+  border-radius: 32px;
+  background: #fff;
   overflow: hidden;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.qw-hero-banner {
+  height: 200px;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
   position: relative;
 }
 
-.qw-profile-bg {
-  height: 120px;
-  background: linear-gradient(135deg, var(--qw-accent) 0%, var(--qw-accent-2) 100%);
-  opacity: 0.15;
+.qw-hero-banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 86c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zm66-3c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zm-46-43c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zm20-27c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+  opacity: 0.4;
 }
 
-.qw-profile-header-content {
+.qw-hero-content {
+  padding: 0 40px 40px;
   margin-top: -60px;
   position: relative;
-  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  gap: 32px;
 }
 
-.qw-profile-avatar-wrap {
+.qw-profile-image-container {
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: 160px;
+  height: 160px;
 }
 
-.qw-profile-avatar {
+.qw-profile-image {
   width: 100%;
   height: 100%;
-  border-radius: 24px;
+  border-radius: 40px;
   object-fit: cover;
-  border: 4px solid var(--qw-surface);
-  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  border: 6px solid #fff;
+  background: #f1f5f9;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
-.qw-profile-avatar.initials {
-  background: linear-gradient(135deg, var(--qw-accent) 0%, var(--qw-accent-2) 100%);
-  color: #fff;
+.qw-initials-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 40px;
+  background: #f1f5f9;
+  color: #6366f1;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 42px;
+  font-size: 48px;
   font-weight: 800;
-  font-family: var(--qw-font-display);
+  border: 6px solid #fff;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
 .qw-verified-badge {
   position: absolute;
-  bottom: -5px;
-  right: -5px;
+  bottom: 8px;
+  right: 8px;
+  background: #3b82f6;
+  color: #fff;
   width: 32px;
   height: 32px;
-  background: #fff;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--qw-accent);
-  font-size: 24px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-
-.qw-h1 {
-  font-family: var(--qw-font-display);
-  font-weight: 800;
-  font-size: 28px;
-  color: var(--qw-text);
-}
-
-.qw-headline {
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.qw-meta {
-  font-size: 13px;
-  color: var(--qw-muted);
-}
-
-.qw-icon-sm {
-  width: 16px;
-  height: 16px;
-}
-
-.qw-about-text {
-  line-height: 1.7;
-  color: #475569;
-  font-size: 15px;
-}
-
-/* Portfolio */
-.qw-portfolio-item {
-  border: 1px solid var(--qw-border);
-  border-radius: 16px;
-  overflow: hidden;
-  background: #fff;
-}
-
-.qw-portfolio-image-wrap {
-  position: relative;
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
-}
-
-.qw-portfolio-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.5s ease;
-}
-
-.qw-portfolio-item:hover .qw-portfolio-image {
-  transform: scale(1.05);
-}
-
-.qw-portfolio-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.qw-portfolio-item:hover .qw-portfolio-overlay {
-  opacity: 1;
-}
-
-/* Quick Stats */
-.qw-stat-item {
-  padding: 12px;
-  border-radius: 12px;
-  background: #f8fafc;
-  transition: background 0.2s ease;
-}
-
-.qw-stat-item:hover {
-  background: #f1f5f9;
-}
-
-.qw-stat-icon {
-  width: 44px;
-  height: 44px;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  border: 3px solid #fff;
+  font-size: 18px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-.qw-stat-icon.red { background: #fef2f2; color: #ef4444; }
-.qw-stat-icon.blue { background: #eff6ff; color: #3b82f6; }
-.qw-stat-icon.green { background: #f0fdf4; color: #22c55e; }
+.qw-profile-info-main {
+  flex: 1;
+  padding-bottom: 10px;
+}
 
-.qw-stat-label {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
+.qw-profile-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 32px;
+  margin-bottom: 4px;
+}
+
+.qw-profile-headline {
+  font-size: 18px;
+  color: #64748b;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.qw-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.qw-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
   color: #94a3b8;
-  margin: 0;
-  letter-spacing: 0.5px;
+  font-weight: 600;
 }
 
-.qw-stat-value {
-  font-size: 17px;
-  font-weight: 700;
-  margin: 0;
-  color: var(--qw-text);
+.qw-meta-item svg {
+  color: #6366f1;
 }
 
-.btn-ghost-primary {
-  color: var(--qw-accent);
-  background: transparent;
+.qw-btn-edit-profile {
+  background: #0f172a;
+  color: #fff;
   border: none;
+  padding: 10px 24px;
+  border-radius: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.2);
 }
-.btn-ghost-primary:hover {
-  background: rgba(99, 102, 241, 0.08);
+
+.qw-btn-edit-profile:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
 }
+
+.qw-section-card {
+  background: #fff;
+  border-radius: 28px;
+  padding: 32px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+}
+
+.qw-section-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.qw-about-text {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #475569;
+}
+
+.qw-portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.qw-portfolio-item {
+  border-radius: 20px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #f1f5f9;
+  transition: all 0.3s;
+}
+
+.qw-portfolio-item:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.qw-portfolio-image-box {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: #f8fafc;
+}
+
+.qw-portfolio-image-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.qw-portfolio-details {
+  padding: 20px;
+}
+
+.qw-portfolio-details h4 {
+  font-weight: 700;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.qw-portfolio-details p {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.qw-stat-card {
+  padding: 24px;
+  background: #f8fafc;
+  border-radius: 20px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.qw-stat-card:hover {
+  background: #fff;
+  border-color: #e2e8f0;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04);
+}
+
+.qw-stat-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.qw-stat-icon-box.purple { background: #f5f3ff; color: #8b5cf6; }
+.qw-stat-icon-box.blue { background: #eff6ff; color: #3b82f6; }
+.qw-stat-icon-box.green { background: #f0fdf4; color: #22c55e; }
+
+.qw-stat-info p { margin: 0; }
+.qw-stat-label { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+.qw-stat-value { font-size: 18px; font-weight: 800; color: #0f172a; }
+
+.qw-skill-badge {
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  color: #475569;
+  padding: 8px 18px;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.qw-skill-badge:hover {
+  border-color: #6366f1;
+  color: #6366f1;
+  background: #f5f3ff;
+}
+
+.qw-btn-add {
+  background: #eff6ff;
+  color: #3b82f6;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.qw-btn-add:hover { background: #dbeafe; }
 
 @media (max-width: 768px) {
-  .qw-profile-header-content {
-    margin-top: -40px;
+  .qw-hero-content {
+    flex-direction: column;
+    align-items: center;
     text-align: center;
+    padding: 0 20px 40px;
   }
-  .qw-profile-avatar-wrap {
-    margin: 0 auto;
-  }
-  .d-flex.flex-wrap.gap-4.align-items-end {
-    justify-content: center;
-    flex-direction: column;
-    align-items: center !important;
-  }
-  .qw-profile-basic-info .d-flex.justify-content-between {
-    flex-direction: column;
-    gap: 20px;
-    align-items: center !important;
-  }
+  .qw-meta-row { justify-content: center; }
+  .qw-profile-info-main { margin-top: 16px; }
 }

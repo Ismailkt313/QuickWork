@@ -33,7 +33,7 @@ const JobActionPanel: React.FC<JobActionPanelProps> = ({
 
   return (
     <div style={{ background:"#fff", borderRadius:16, border:"1px solid #e8edf4", overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.06)", position:"sticky", top:24 }}>
-      {/* Budget hero */}
+      {}
       <div style={{ padding:"24px 24px 20px", background:"linear-gradient(135deg,#6366f1,#4f46e5)", color:"#fff" }}>
         <div style={{ fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.1em", opacity:0.75, marginBottom:4 }}>
           <RiMoneyDollarCircleLine size={11} style={{ verticalAlign:"middle", marginRight:4 }}/>Budget Per Provider
@@ -46,7 +46,7 @@ const JobActionPanel: React.FC<JobActionPanelProps> = ({
         )}
       </div>
 
-      {/* Detail rows */}
+      {}
       <div style={{ padding:"18px 20px", display:"flex", flexDirection:"column", gap:8 }}>
         <InfoRow icon={<RiTimeLine size={17}/>}     label="Duration"   value={duration}                        iconBg="#eff6ff" iconColor="#3b82f6"/>
         <InfoRow icon={<RiMapPinLine size={17}/>}   label="Location"   value={location?.address || "Remote"}   iconBg="#f0fdf4" iconColor="#16a34a"/>
@@ -59,7 +59,7 @@ const JobActionPanel: React.FC<JobActionPanelProps> = ({
         )}
       </div>
 
-      {/* Action buttons */}
+      {}
       <div style={{ padding:"0 20px 20px", display:"flex", flexDirection:"column", gap:8 }}>
         <button
           onClick={onAccept}
@@ -100,7 +100,7 @@ const JobActionPanel: React.FC<JobActionPanelProps> = ({
         </button>
       </div>
 
-      {/* Mobile sticky override */}
+      {}
       <style>{`
         @media (max-width: 991px) {
           .job-action-panel-sticky {

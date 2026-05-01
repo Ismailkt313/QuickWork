@@ -66,4 +66,12 @@ export class AssignmentRepository implements IAssignmentRepository {
     async count(query: any): Promise<number> {
         return await AssignmentModel.countDocuments(query);
     }
+
+    async findWithFreelancer(jobId: string): Promise<IAssignment[]> {
+        return await AssignmentModel.find({ jobId })
+            .populate({
+                path: 'freelancerId',
+                populate: { path: 'userId', select: 'name email profileImage headline' }
+            });
+    }
 }

@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
 import { IServiceProvider, IServiceProviderRepository, IServiceProviderService, ProviderListResult } from '../interfaces/serviceProvider.interface';
 import { SubmitApplicationDTO } from '../dtos/submitApplication.dto';
-import { SkillModel } from '../../skill/models/skill.model';
+import { ISkillRepository } from '../../skill/interfaces/skill.interface';
 import { IAuthRepository } from '../../auth/interfaces/auth.interface';
 import { generateAccessToken, generateRefreshToken } from '../../../utils/jwt.util';
 import { ROLES } from '../../../constants/roles';
@@ -15,10 +15,12 @@ const MAX_LIMIT = 50;
 export class ServiceProviderService implements IServiceProviderService {
     private providerRepository: IServiceProviderRepository;
     private authRepository: IAuthRepository;
+    private skillRepository: ISkillRepository;
 
-    constructor(providerRepository: IServiceProviderRepository, authRepository: IAuthRepository) {
+    constructor(providerRepository: IServiceProviderRepository, authRepository: IAuthRepository, skillRepository: ISkillRepository) {
         this.providerRepository = providerRepository;
         this.authRepository = authRepository;
+        this.skillRepository = skillRepository;
     }
 
     async submitApplication(userId: string, providerData: SubmitApplicationDTO): Promise<{ success: boolean; data?: any; message?: string }> {
@@ -85,7 +87,8 @@ export class ServiceProviderService implements IServiceProviderService {
             return { success: false, message: ErrorMessages.MISSING_REQUIRED_FIELDS };
         }
 
-        const skillExists = await SkillModel.exists({ _id: skillId });
+        const skillExists = await this.skillRepository.findById(skillId);
+ 
         if (!skillExists) {
             return { success: false, message: ErrorMessages.SKILL_NOT_FOUND };
         }

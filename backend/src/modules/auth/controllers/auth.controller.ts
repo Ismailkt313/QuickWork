@@ -10,7 +10,9 @@ import { HttpStatusCode } from "../../../constants/httpStatusCode"
 import { ErrorMessages } from "../../../constants/messages/errorMessages";
 import { SuccessMessages } from "../../../constants/messages/successMessages";
 
-export class AuthController {
+import { IAuthController } from '../interfaces/auth.interface';
+
+export class AuthController implements IAuthController {
     private readonly authService: IAuthService;
 
     constructor(authService: IAuthService) {

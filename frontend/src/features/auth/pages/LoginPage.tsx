@@ -15,7 +15,7 @@ const LoginPage = () => {
     const errorParam = params.get("error");
     if (errorParam === "session_expired") return "expired";
     if (errorParam === "blocked") return "blocked";
-    // Derived from search params or initial location state
+    
     if (location.state?.fromRestricted) return "restricted";
     return null;
   });

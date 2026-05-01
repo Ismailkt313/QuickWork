@@ -8,6 +8,7 @@ export interface ISkill extends Document {
 }
 
 export interface ISkillRepository {
+    findById(id: string): Promise<ISkill | null>;
     findByName(name: string): Promise<ISkill | null>
     findBySlug(slug: string): Promise<ISkill | null>;
     create(skillData: Partial<ISkill>, session?: any): Promise<ISkill>;

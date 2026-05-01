@@ -23,7 +23,7 @@ const Section: React.FC<{ icon: React.ReactNode; title: string; children: React.
 
 const JobInfoCard: React.FC<JobInfoCardProps> = ({ description, client, skills, onViewProfile }) => (
   <div>
-    {/* Client card */}
+    {}
     <Section icon={<RiUserLine size={16}/>} title="About the Client">
       <div style={{ display:"flex", alignItems:"center", gap:14 }}>
         <div style={{ position:"relative", flexShrink:0 }}>
@@ -60,12 +60,12 @@ const JobInfoCard: React.FC<JobInfoCardProps> = ({ description, client, skills, 
       </div>
     </Section>
 
-    {/* Description */}
+    {}
     <Section icon={<RiFileTextLine size={16}/>} title="About the Position">
       <div style={{ fontSize:15, color:"#475569", lineHeight:1.8, whiteSpace:"pre-wrap", fontFamily:"Inter,sans-serif" }}>{description}</div>
     </Section>
 
-    {/* Skills */}
+    {}
     {skills.length > 0 && (
       <Section icon={<RiToolsLine size={16}/>} title="Skills Required">
         <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>

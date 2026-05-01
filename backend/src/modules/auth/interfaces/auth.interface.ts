@@ -1,3 +1,4 @@
+import { Request, Response, NextFunction } from "express";
 import { Document } from "mongoose";
 import type { UserResponseDTO } from "../dtos/userResponse.dto";
 import { ROLES } from "../../../constants/roles";
@@ -15,6 +16,7 @@ export interface    IUser extends Document {
         public_id: string;
     };
     isBlocked: boolean;
+    warningCount: number;
     createdAt: Date;
 }
 
@@ -76,6 +78,18 @@ export interface IForgotPasswordInput {
 export interface IForgotPasswordResponse {
     success: boolean;
     message: string;
+}
+
+export interface IAuthController {
+    sendOtp(req: Request, res: Response, next: NextFunction): Promise<void>;
+    verifyOtp(req: Request, res: Response, next: NextFunction): Promise<void>;
+    resendOtp(req: Request, res: Response, next: NextFunction): Promise<void>;
+    login(req: Request, res: Response, next: NextFunction): Promise<void>;
+    refreshToken(req: Request, res: Response, next: NextFunction): Promise<void>;
+    adminLogin(req: Request, res: Response, next: NextFunction): Promise<void>;
+    logout(req: Request, res: Response, next: NextFunction): Promise<void>;
+    forgotPassword(req: Request, res: Response, next: NextFunction): Promise<void>;
+    resetPassword(req: Request, res: Response, next: NextFunction): Promise<void>;
 }
 
 export interface IResetPasswordInput {
@@ -163,6 +177,8 @@ export interface IAuthRepository {
     updatePassword(userId: string, hashedPassword: string): Promise<void>;
     updateUserRole(userId: string, role: ROLES): Promise<void>;
     updateUser(userId: string, data: Partial<IUser>): Promise<IUser | null>;
+    incrementWarningCount(userId: string): Promise<void>;
+    blockUser(userId: string): Promise<void>;
 }
 
 export interface IAuthService {

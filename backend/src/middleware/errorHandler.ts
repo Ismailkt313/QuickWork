@@ -12,7 +12,7 @@ export const errorHandler = (
 ): void => {
     const log = (req as any).log || logger;
 
-    // Structure the error log
+    
     const errorDetails = {
         message: err.message,
         stack: process.env.NODE_ENV === "production" ? undefined : err.stack,
@@ -67,7 +67,7 @@ export const errorHandler = (
         return;
     }
 
-    // Unexpected errors
+    
     log.error({ ...errorDetails, msg: "Unhandled Exception" });
     res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,

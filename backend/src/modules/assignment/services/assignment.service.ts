@@ -1,28 +1,32 @@
 import { IAssignment, IAssignmentRepository, IAssignmentService } from '../interfaces/assignment.interface';
 import { ASSIGNMENT_STATUS, WORK_STATUS } from '../../../constants/assignment';
+import { PAYMENT_STATUS, PAYMENT_METHOD } from '../../../constants/payment';
 import { IJobRepository } from '../../job/interfaces/job.interface';
 import { JOB_STATUS } from '../../../constants/jobStatus';
 import { Types } from 'mongoose';
 import { getObjectId } from '../../../utils/getObjectId';
-import { NotificationService } from '../../notification/services/notification.service';
+import { INotificationService } from '../../notification/interfaces/notification.interface';
+import { IWorkHistoryService } from '../../finance/interfaces/finance.interface';
 
 export class AssignmentService implements IAssignmentService {
     private assignmentRepository: IAssignmentRepository;
     private jobRepository: IJobRepository;
-    private notificationService: NotificationService;
+    private notificationService: INotificationService;
+    private workHistoryService: IWorkHistoryService;
 
     constructor(
         assignmentRepository: IAssignmentRepository,
         jobRepository: IJobRepository,
-        notificationService: NotificationService
+        notificationService: INotificationService,
+        workHistoryService: IWorkHistoryService
     ) {
         this.assignmentRepository = assignmentRepository;
         this.jobRepository = jobRepository;
         this.notificationService = notificationService;
+        this.workHistoryService = workHistoryService;
     }
 
     async checkOverlap(freelancerId: string, startDate: Date, endDate: Date): Promise<boolean> {
-
         const query = {
             freelancerId,
             workStatus: { $in: [WORK_STATUS.ASSIGNED, WORK_STATUS.IN_PROGRESS] },
@@ -36,6 +40,18 @@ export class AssignmentService implements IAssignmentService {
     }
 
     async createAssignment(data: Partial<IAssignment>): Promise<IAssignment> {
+        if (data.jobId) {
+            const jobId = data.jobId.toString();
+            const job = await this.jobRepository.findById(jobId);
+            
+            if (job && job.budget) {
+                const amount = (job.budget.min + job.budget.max) / 2;
+                data.payment = {
+                    status: PAYMENT_STATUS.PENDING,
+                    amount: amount
+                };
+            }
+        }
         return await this.assignmentRepository.create(data);
     }
 
@@ -47,7 +63,6 @@ export class AssignmentService implements IAssignmentService {
             'invite.status': ASSIGNMENT_STATUS.ACCEPTED
         };
 
-        // Handle status filtering
         if (status === 'active') {
             query.workStatus = { $in: [WORK_STATUS.ASSIGNED, WORK_STATUS.IN_PROGRESS] };
         } else if (status === 'completed') {
@@ -55,12 +70,10 @@ export class AssignmentService implements IAssignmentService {
         } else if (status === 'cancelled') {
             query.workStatus = WORK_STATUS.CANCELLED;
         } else {
-            // all
             query.workStatus = { $in: [WORK_STATUS.ASSIGNED, WORK_STATUS.IN_PROGRESS, WORK_STATUS.COMPLETED, WORK_STATUS.CANCELLED, WORK_STATUS.ABSENT] };
         }
 
         if (search) {
-            // Find jobs matching search
             const matchingJobs = await this.jobRepository.find({
                 $or: [
                     { title: { $regex: search, $options: 'i' } },
@@ -118,7 +131,8 @@ export class AssignmentService implements IAssignmentService {
             const jobId = getObjectId(updated.jobId);
             await this.checkAndCompleteJob(jobId);
 
-            // Send notification to Client
+            await this.workHistoryService.createFromAssignment(updated);
+
             const job = await this.jobRepository.findById(jobId);
             if (job) {
                 await this.notificationService.createNotification({
@@ -146,14 +160,15 @@ export class AssignmentService implements IAssignmentService {
             const jobId = getObjectId(updated.jobId);
             await this.checkAndCompleteJob(jobId);
 
-            // Send notification to Client
+            await this.workHistoryService.createFromAssignment(updated);
+
             const job = await this.jobRepository.findById(jobId);
             if (job) {
                 await this.notificationService.createNotification({
                     recipient: (job.userId as any)._id ? (job.userId as any)._id.toString() : job.userId.toString(),
                     title: 'Proof of Work Submitted',
                     message: `A provider has submitted proof of work for: ${job.title}`,
-                    type: 'PAYMENT', // Usually related to payment release
+                    type: 'PAYMENT', 
                     link: `/user/jobs/${job._id}`
                 });
             }
@@ -218,9 +233,10 @@ export class AssignmentService implements IAssignmentService {
 
         if (!updated) throw new Error('Failed to update assignment');
 
+        await this.workHistoryService.createFromAssignment(updated);
+
         await this.handleJobReopening(getObjectId(updated.jobId), providerId);
 
-        // Send notification to Client
         const jobId = getObjectId(updated.jobId);
         const job = await this.jobRepository.findById(jobId);
         if (job) {
@@ -269,6 +285,8 @@ export class AssignmentService implements IAssignmentService {
 
         if (!updated) throw new Error('Failed to update assignment');
 
+        await this.workHistoryService.createFromAssignment(updated);
+
         const freelancerId = getObjectId(assignment.freelancerId);
         await this.handleJobReopening(getObjectId(updated.jobId), freelancerId);
 
@@ -309,6 +327,8 @@ export class AssignmentService implements IAssignmentService {
 
         if (!updated) throw new Error('Failed to update assignment');
 
+        await this.workHistoryService.createFromAssignment(updated);
+
         const freelancerId = getObjectId(assignment.freelancerId);
         await this.handleJobReopening(getObjectId(updated.jobId), freelancerId);
 
@@ -344,5 +364,129 @@ export class AssignmentService implements IAssignmentService {
         }
 
         await this.jobRepository.findByConditionAndUpdate({ _id: jobId }, { $set: updateData });
+    }
+
+    async markAsPaidByCash(id: string, clientId: string): Promise<IAssignment> {
+        const assignment = await this.assignmentRepository.findById(id);
+        if (!assignment) throw new Error('Assignment not found');
+
+        const job = await this.jobRepository.findById(getObjectId(assignment.jobId));
+        if (!job || getObjectId(job.userId) !== clientId) {
+            throw new Error('Unauthorized: Only the job owner can mark as paid');
+        }
+
+        if (assignment.workStatus !== WORK_STATUS.COMPLETED) {
+            throw new Error('Payment can only be marked after work is completed');
+        }
+
+        const updated = await this.assignmentRepository.update(id, {
+            payment: {
+                ...assignment.payment!,
+                status: PAYMENT_STATUS.AWAITING_PROVIDER_CONFIRMATION,
+                method: PAYMENT_METHOD.OFFLINE
+            }
+        });
+
+        if (!updated) throw new Error('Failed to update assignment');
+
+        await this.notificationService.createNotification({
+            recipient: (assignment.freelancerId as any).userId?._id?.toString() || (assignment.freelancerId as any).userId?.toString() || '',
+            title: 'Payment Marked as Paid',
+            message: `The client has marked your work as paid by cash. Please confirm receipt.`,
+            type: 'PAYMENT',
+            link: `/provider/assignment/${id}`
+        });
+
+        return updated;
+    }
+
+    async confirmPayment(id: string, providerId: string): Promise<IAssignment> {
+        const assignment = await this.assignmentRepository.findById(id);
+        if (!assignment) throw new Error('Assignment not found');
+
+        if (getObjectId(assignment.freelancerId) !== providerId) {
+            throw new Error('Unauthorized: Only the assigned provider can confirm payment');
+        }
+
+        const updated = await this.assignmentRepository.update(id, {
+            payment: {
+                ...assignment.payment!,
+                status: PAYMENT_STATUS.PAID,
+                paidAt: new Date()
+            }
+        });
+
+        if (!updated) throw new Error('Failed to update assignment');
+
+        return updated;
+    }
+
+    async providerMarkAsPaid(id: string, providerId: string): Promise<IAssignment> {
+        const assignment = await this.assignmentRepository.findById(id);
+        if (!assignment) throw new Error('Assignment not found');
+
+        if (getObjectId(assignment.freelancerId) !== providerId) {
+            throw new Error('Unauthorized: Only the assigned provider can mark as paid');
+        }
+
+        const updated = await this.assignmentRepository.update(id, {
+            payment: {
+                ...assignment.payment!,
+                status: PAYMENT_STATUS.PAID,
+                method: PAYMENT_METHOD.OFFLINE,
+                paidAt: new Date()
+            }
+        });
+
+        if (!updated) throw new Error('Failed to update assignment');
+
+        const job = await this.jobRepository.findById(getObjectId(assignment.jobId));
+        if (job) {
+            await this.notificationService.createNotification({
+                recipient: getObjectId(job.userId),
+                title: 'Payment Confirmed by Provider',
+                message: `The provider has confirmed receiving the payment in cash.`,
+                type: 'PAYMENT',
+                link: `/user/jobs/${getObjectId(assignment.jobId)}`
+            });
+        }
+
+        return updated;
+    }
+
+    async rejectPayment(id: string, providerId: string): Promise<IAssignment> {
+        const assignment = await this.assignmentRepository.findById(id);
+        if (!assignment) throw new Error('Assignment not found');
+
+        if (getObjectId(assignment.freelancerId) !== providerId) {
+            throw new Error('Unauthorized: Only the assigned provider can reject payment');
+        }
+
+        const updated = await this.assignmentRepository.update(id, {
+            payment: {
+                ...assignment.payment!,
+                status: PAYMENT_STATUS.PENDING,
+                method: undefined
+            }
+        });
+
+        if (!updated) throw new Error('Failed to update assignment');
+
+        const job = await this.jobRepository.findById(getObjectId(assignment.jobId));
+        if (job) {
+            await this.notificationService.createNotification({
+                recipient: getObjectId(job.userId),
+                title: 'Payment Rejected by Provider',
+                message: `The provider has rejected the cash payment confirmation. Payment is back to pending.`,
+                type: 'PAYMENT',
+                link: `/user/jobs/${getObjectId(assignment.jobId)}`
+            });
+        }
+
+        return updated;
+    }
+
+    async getAssignmentByJobAndFreelancer(jobId: string, freelancerId: string): Promise<IAssignment | null> {
+        return await this.assignmentRepository.findOne({ jobId, freelancerId, 'invite.status': ASSIGNMENT_STATUS.ACCEPTED });
     }
 }

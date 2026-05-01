@@ -69,7 +69,7 @@ const ReportIssueModal: React.FC<ReportIssueModalProps> = ({
       await onSubmit(reason, description, images);
       onClose();
     } catch {
-      // Error handled in parent
+      toast.error("Failed to submit report");
     } finally {
       setLoading(false);
     }

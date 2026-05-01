@@ -271,6 +271,7 @@ const UserJobsPage: React.FC = () => {
                 job={job}
                 onCancel={triggerCancelJob}
                 onView={(id) => navigate(`/user/jobs/${id}`)}
+                onRefresh={fetchJobs}
               />
             </div>
           ))

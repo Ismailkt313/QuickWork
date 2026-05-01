@@ -55,10 +55,10 @@ const MessagesPage: React.FC = () => {
       const response = await getConversations();
       if (response.success) {
         setConversations((prev) => {
-          // Normalize existing conversations for merging
+          
           const serverConvs = response.data || [];
 
-          // Re-incorporate any placeholders currently in use
+          
           const placeholders = prev.filter((c) => c.isPlaceholder);
           const merged = [...serverConvs];
 
@@ -94,7 +94,7 @@ const MessagesPage: React.FC = () => {
     fetchConversations();
   }, [fetchUser, fetchConversations]);
 
-  // Normalize user ID — getMe() returns .id, conversations use ._id
+  
   const currentUserId = user?.id || user?._id || "";
 
   useEffect(() => {
@@ -104,7 +104,7 @@ const MessagesPage: React.FC = () => {
     }
   }, [currentUserId]);
 
-  // Handle auto-selection from query params (run when user and conversations are ready)
+  
   useEffect(() => {
     if (
       placeholderAdded ||
@@ -124,7 +124,7 @@ const MessagesPage: React.FC = () => {
     const stringTargetId = String(targetUserId).trim();
     const stringCurrentId = String(currentUserId).trim();
 
-    // Check for self-messaging for debugging purposes
+    
     if (stringTargetId === stringCurrentId) {
       console.warn("DEBUG: Provider is attempting to message themselves!");
     }

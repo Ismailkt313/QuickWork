@@ -4,8 +4,9 @@ import { CreateReviewSchema, mapReviewToResponseDTO } from '../dtos/review.dto';
 import { HttpStatusCode } from '../../../constants/httpStatusCode';
 import { SuccessMessages } from '../../../constants/messages/successMessages';
 import { AppError } from '../../../utils/AppError';
+import { IReviewController } from '../interfaces/review.interface';
 
-export class ReviewController {
+export class ReviewController implements IReviewController {
     private reviewService: IReviewService;
 
     constructor(reviewService: IReviewService) {
@@ -54,6 +55,21 @@ export class ReviewController {
             res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: "Reviews for assignment fetched successfully",
+                data: reviews.map(mapReviewToResponseDTO)
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    public getMyReviews = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const userId = (req.user as any).userId;
+            const reviews = await this.reviewService.getReviewsForUser(userId as string);
+            
+            res.status(HttpStatusCode.OK).json({
+                success: true,
+                message: "Your reviews fetched successfully",
                 data: reviews.map(mapReviewToResponseDTO)
             });
         } catch (error) {

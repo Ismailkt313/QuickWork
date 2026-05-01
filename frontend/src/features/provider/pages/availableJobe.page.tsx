@@ -195,8 +195,8 @@ const AvailableJobsPage: React.FC = () => {
     }[]
   >([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState(""); // Stores _id
-  const [selectedCategory, setSelectedCategory] = useState(""); // Stores _id
+  const [selectedLocation, setSelectedLocation] = useState(""); 
+  const [selectedCategory, setSelectedCategory] = useState(""); 
   const [budget, setBudget] = useState("Any Budget");
 
   const [sortBy, setSortBy] = useState("newest");

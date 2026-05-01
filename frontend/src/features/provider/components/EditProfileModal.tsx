@@ -1,9 +1,11 @@
 import React, { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
   RiCloseLine,
   RiSaveLine,
   RiCameraLine,
   RiLoader4Line,
+  RiEditLine,
 } from "react-icons/ri";
 import {
   updateProviderProfile,
@@ -119,235 +121,198 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="qw-modal-backdrop animate__animated animate__fadeIn">
-      <div className="qw-modal-content edit-profile p-4 animate__animated animate__zoomIn">
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h2 className="qw-h2 m-0 text-primary">Edit Basic Profile</h2>
-          <button className="btn btn-ghost btn-icon btn-sm" onClick={onClose}>
+  return createPortal(
+    <div className="qw-modal-overlay">
+      <div className="qw-modal-container" style={{ maxWidth: '600px' }}>
+        <div className="qw-modal-header">
+          <div className="qw-modal-header-icon-box blue">
+            <RiEditLine size={24} />
+          </div>
+          <div className="qw-modal-header-text">
+            <h2 className="qw-modal-title">Edit Professional Profile</h2>
+            <p className="qw-modal-subtitle">Update your public identity and service details</p>
+          </div>
+          <button className="qw-modal-close" onClick={onClose}>
             <RiCloseLine size={24} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="row g-3">
-            <div className="col-12 mb-3">
-              <div className="d-flex align-items-center gap-4">
-                <div
-                  className="qw-edit-avatar-wrap"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  {formData.profileImage ? (
-                    <img
-                      src={formData.profileImage}
-                      alt="Profile"
-                      className="qw-edit-avatar"
-                    />
-                  ) : (
-                    <div className="qw-edit-avatar initials">
-                      {provider.name
-                        .split(" ")
-                        .map((n: string) => n[0])
-                        .join("")
-                        .toUpperCase()}
-                    </div>
-                  )}
-                  <div className="qw-edit-avatar-overlay">
-                    {uploading ? (
-                      <RiLoader4Line className="animate-spin" />
+        <div className="qw-modal-body p-4">
+          <form id="editProfileForm" onSubmit={handleSubmit}>
+            <div className="row g-4">
+              {}
+              <div className="col-12">
+                <div className="qw-image-upload-area p-3 border rounded-3 d-flex align-items-center gap-4">
+                   <div 
+                    className="qw-avatar-upload-preview" 
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{
+                      width: '100px',
+                      height: '100px',
+                      borderRadius: '24px',
+                      overflow: 'hidden',
+                      position: 'relative',
+                      cursor: 'pointer',
+                      border: '4px solid #f1f5f9'
+                    }}
+                  >
+                    {formData.profileImage ? (
+                      <img src={formData.profileImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                      <RiCameraLine size={24} />
+                      <div className="d-flex align-items-center justify-content-center h-100 bg-light text-primary fw-bold">
+                        {provider.name[0].toUpperCase()}
+                      </div>
                     )}
+                    <div className="qw-avatar-upload-overlay" style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'rgba(0,0,0,0.4)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#fff',
+                      opacity: uploading ? 1 : 0,
+                      transition: 'opacity 0.2s'
+                    }}>
+                      {uploading ? <RiLoader4Line className="animate-spin" /> : <RiCameraLine size={24} />}
+                    </div>
                   </div>
+                  <div>
+                    <h5 className="mb-1">Profile Photo</h5>
+                    <p className="text-muted small mb-2">JPG, PNG or GIF. Max size of 2MB.</p>
+                    <button 
+                      type="button" 
+                      className="btn btn-outline-primary btn-sm rounded-pill"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      Choose New Photo
+                    </button>
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" hidden />
+                  </div>
+                </div>
+              </div>
+
+              {}
+              <div className="col-12">
+                <label className="qw-field-label">Professional Headline</label>
+                <input
+                  type="text"
+                  className={`form-control qw-modal-input ${errors.headline ? 'is-invalid' : ''}`}
+                  value={formData.headline}
+                  onChange={(e) => setFormData({ ...formData, headline: e.target.value })}
+                  placeholder="e.g. Expert Home Maintenance Specialist"
+                />
+                {errors.headline && <div className="invalid-feedback">{errors.headline}</div>}
+              </div>
+
+              {}
+              <div className="col-12">
+                <label className="qw-field-label">About Me (Bio)</label>
+                <textarea
+                  className={`form-control qw-modal-input ${errors.about ? 'is-invalid' : ''}`}
+                  rows={4}
+                  value={formData.about}
+                  onChange={(e) => setFormData({ ...formData, about: e.target.value })}
+                  placeholder="Tell clients about your expertise and why they should hire you..."
+                />
+                <div className="d-flex justify-content-between mt-1">
+                  <span className="small text-muted">{formData.about.length} characters</span>
+                  {errors.about && <span className="text-danger small">{errors.about}</span>}
+                </div>
+              </div>
+
+              {}
+              <div className="col-md-6">
+                <label className="qw-field-label">Hourly Rate (₹)</label>
+                <div className="input-group">
+                  <span className="input-group-text bg-white border-end-0">₹</span>
                   <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    accept="image/*"
-                    hidden
+                    type="number"
+                    className={`form-control qw-modal-input border-start-0 ${errors.hourlyRate ? 'is-invalid' : ''}`}
+                    value={formData.hourlyRate}
+                    onChange={(e) => setFormData({ ...formData, hourlyRate: Number(e.target.value) })}
                   />
                 </div>
-                <div>
-                  <h4 className="qw-h4 mb-1">Profile Photo</h4>
-                  <p className="text-muted small mb-0">
-                    Recommended: Square image, max 2MB
-                  </p>
-                  <button
-                    type="button"
-                    className="btn btn-link btn-sm p-0 text-primary fw-600 mt-1"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    Change Photo
-                  </button>
-                </div>
               </div>
-            </div>
 
-            {/* Headline */}
-            <div className="col-12">
-              <label className="form-label font-md fw-600">Headline</label>
-              <input
-                type="text"
-                className={`form-control qw-input ${errors.headline ? "is-invalid" : ""}`}
-                value={formData.headline}
-                onChange={(e) =>
-                  setFormData({ ...formData, headline: e.target.value })
-                }
-                placeholder="e.g. Professional Plumber & Senior Technician"
-              />
-              {errors.headline && (
-                <div className="invalid-feedback">{errors.headline}</div>
-              )}
-            </div>
-
-            {/* About */}
-            <div className="col-12">
-              <label className="form-label font-md fw-600">
-                About (Min 80 chars)
-              </label>
-              <textarea
-                className={`form-control qw-input ${errors.about ? "is-invalid" : ""}`}
-                rows={4}
-                value={formData.about}
-                onChange={(e) =>
-                  setFormData({ ...formData, about: e.target.value })
-                }
-                placeholder="Describe your services, approach and expertise..."
-              />
-              <div className="d-flex justify-content-between mt-1">
-                {errors.about && (
-                  <div className="text-danger small">{errors.about}</div>
-                )}
-                <div
-                  className={`ms-auto small ${formData.about.length < 80 ? "text-muted" : "text-success"}`}
-                >
-                  {formData.about.length} characters
-                </div>
-              </div>
-            </div>
-
-            {/* Rate & Experience */}
-            <div className="col-md-6">
-              <label className="form-label font-md fw-600">
-                Hourly Rate ($)
-              </label>
-              <input
-                type="number"
-                className={`form-control qw-input ${errors.hourlyRate ? "is-invalid" : ""}`}
-                value={formData.hourlyRate}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    hourlyRate: Number(e.target.value),
-                  })
-                }
-              />
-              {errors.hourlyRate && (
-                <div className="invalid-feedback">{errors.hourlyRate}</div>
-              )}
-            </div>
-
-            <div className="col-md-6">
-              <label className="form-label font-md fw-600">
-                Years of Experience
-              </label>
-              <input
-                type="number"
-                className={`form-control qw-input ${errors.yearsOfExperience ? "is-invalid" : ""}`}
-                value={formData.yearsOfExperience}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    yearsOfExperience: Number(e.target.value),
-                  })
-                }
-              />
-              {errors.yearsOfExperience && (
-                <div className="invalid-feedback">
-                  {errors.yearsOfExperience}
-                </div>
-              )}
-            </div>
-
-            {/* Location */}
-            <div className="col-12">
-              <label className="form-label font-md fw-600">
-                Primary Location
-              </label>
-              <select
-                className={`form-select qw-input ${errors.location ? "is-invalid" : ""}`}
-                value={formData.location.id}
-                onChange={(e) => {
-                  const selected = locations.find(
-                    (l) => l.id === e.target.value,
-                  );
-                  if (selected)
-                    setFormData({
-                      ...formData,
-                      location: { id: selected.id, name: selected.name },
-                    });
-                }}
-              >
-                <option value="">Select a location</option>
-                {locations.map((loc) => (
-                  <option key={loc.id} value={loc.id}>
-                    {loc.name}
-                  </option>
-                ))}
-              </select>
-              {errors.location && (
-                <div className="invalid-feedback">{errors.location}</div>
-              )}
-            </div>
-            <div className="col-12">
-              <div className="form-check form-switch p-3 bg-light rounded border">
+              <div className="col-md-6">
+                <label className="qw-field-label">Years of Experience</label>
                 <input
-                  className="form-check-input"
-                  type="checkbox"
-                  id="isActiveToggle"
-                  checked={formData.isActive}
-                  onChange={(e) =>
-                    setFormData({ ...formData, isActive: e.target.checked })
-                  }
+                  type="number"
+                  className={`form-control qw-modal-input ${errors.yearsOfExperience ? 'is-invalid' : ''}`}
+                  value={formData.yearsOfExperience}
+                  onChange={(e) => setFormData({ ...formData, yearsOfExperience: Number(e.target.value) })}
                 />
-                <label
-                  className="form-check-label fw-600 ms-2"
-                  htmlFor="isActiveToggle"
+              </div>
+
+              {}
+              <div className="col-12">
+                <label className="qw-field-label">Primary Service Location</label>
+                <select
+                  className={`form-select qw-modal-input ${errors.location ? 'is-invalid' : ''}`}
+                  value={formData.location.id}
+                  onChange={(e) => {
+                    const selected = locations.find(l => l.id === e.target.value);
+                    if (selected) setFormData({ ...formData, location: { id: selected.id, name: selected.name } });
+                  }}
                 >
-                  Show my profile as Active
-                </label>
-                <p className="small text-muted mb-0 ms-2 mt-1">
-                  If inactive, clients cannot find you in search results.
-                </p>
+                  <option value="">Select Location</option>
+                  {locations.map(loc => <option key={loc.id} value={loc.id}>{loc.name}</option>)}
+                </select>
+              </div>
+
+              {}
+              <div className="col-12">
+                <div className="qw-status-toggle-card p-3 rounded-4 bg-light d-flex align-items-center justify-content-between">
+                  <div>
+                    <h6 className="mb-1">Availability Status</h6>
+                    <p className="small text-muted mb-0">Switch off when you're not accepting new jobs</p>
+                  </div>
+                  <div className="form-check form-switch">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      checked={formData.isActive}
+                      onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                      style={{ width: '45px', height: '24px' }}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          </form>
+        </div>
 
-          <div className="d-flex gap-3 mt-5">
-            <button
-              type="button"
-              className="btn btn-light rounded-pill flex-grow-1"
-              onClick={onClose}
-              disabled={loading}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="btn btn-primary rounded-pill flex-grow-1 d-flex align-items-center justify-content-center gap-2"
-              disabled={loading}
-            >
-              {loading ? (
-                <span className="spinner-border spinner-border-sm" />
-              ) : (
-                <RiSaveLine />
-              )}
-              Save Changes
-            </button>
-          </div>
-        </form>
+        <div className="qw-modal-footer">
+          <button className="qw-modal-btn-cancel" onClick={onClose} disabled={loading}>
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            form="editProfileForm" 
+            className="qw-modal-submit-btn" 
+            disabled={loading || uploading}
+          >
+            {loading ? <RiLoader4Line className="animate-spin" size={20} /> : <RiSaveLine size={20} />}
+            <span>{loading ? "Saving Changes..." : "Save Profile"}</span>
+          </button>
+        </div>
       </div>
-    </div>
+      
+      <style>{`
+        .qw-avatar-upload-preview:hover .qw-avatar-upload-overlay {
+          opacity: 1 !important;
+        }
+        .animate-spin {
+          animation: qw-spin 1s linear infinite;
+        }
+        @keyframes qw-spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>,
+    document.body
   );
 };
 

@@ -96,7 +96,7 @@ export interface IJobRepository {
         completed: number;
         cancelled: number;
     }>;
-    findAllOpen(page: number, limit: number, filters: any , skill:string[]): Promise<{ jobs: IJob[], total: number }>;
+    findAllOpen(page: number, limit: number, filters: any , skill:string[], excludeJobIds?: string[]): Promise<{ jobs: IJob[], total: number }>;
     findById(id: string): Promise<IJob | null>;
     findByProvider(providerId: string): Promise<IJob[]>;
     updateStatus(id: string, status: JOB_STATUS): Promise<IJob | null>;

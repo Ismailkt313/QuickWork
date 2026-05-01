@@ -1,5 +1,15 @@
 import React, { useState, useRef } from "react";
-import { RiStarFill, RiStarLine, RiCloseLine, RiChat3Line, RiImageAddLine, RiDeleteBin7Line, RiLoader4Line } from "react-icons/ri";
+import { createPortal } from "react-dom";
+import { 
+  RiStarFill, 
+  RiStarLine, 
+  RiCloseLine, 
+  RiChat3Line, 
+  RiImageAddLine, 
+  RiDeleteBin7Line, 
+  RiLoader4Line,
+  RiFeedbackLine
+} from "react-icons/ri";
 import { cloudinaryService } from "../../../services/cloudinaryService";
 import { toast } from "react-toastify";
 
@@ -63,23 +73,28 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
       await onSubmit(rating, comment, images);
       onClose();
     } catch {
-      // Error handled in parent
+      toast.error("Failed to submit review");
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="qw-modal-overlay">
-      <div className="qw-modal-content premium-review-modal">
-        <div className="qw-modal-header d-flex justify-content-between align-items-center mb-4">
-          <div>
-            <h4 className="fw-bold mb-1" style={{ fontFamily: "Syne, sans-serif" }}>Review Provider</h4>
-            <p className="text-muted small mb-0">Share your experience with {providerName}</p>
+  return createPortal(
+    <div className="qw-modal-overlay" onClick={onClose}>
+      <div className="qw-modal-content animate-pop-in" onClick={(e) => e.stopPropagation()}>
+        <div className="qw-modal-header mb-4">
+          <div className="d-flex align-items-center gap-3">
+            <div className="qw-header-icon-box review">
+              <RiFeedbackLine size={24} />
+            </div>
+            <div className="flex-grow-1">
+              <h4 className="qw-modal-title">Review Provider</h4>
+              <p className="qw-modal-subtitle">Experience with {providerName}</p>
+            </div>
+            <button className="qw-modal-close-btn" onClick={onClose}>
+              <RiCloseLine size={24} />
+            </button>
           </div>
-          <button className="btn btn-light rounded-circle p-2" onClick={onClose}>
-            <RiCloseLine size={24} />
-          </button>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -93,7 +108,6 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
                   onClick={() => setRating(star)}
                   onMouseEnter={() => setHover(star)}
                   onMouseLeave={() => setHover(0)}
-                  style={{ transition: "transform 0.2s ease" }}
                 >
                   {(hover || rating) >= star ? (
                     <RiStarFill
@@ -117,33 +131,31 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
           </div>
 
           <div className="mb-4">
-            <label className="form-label fw-bold small text-uppercase mb-2">
-              <RiChat3Line className="me-2" /> Your Feedback
+            <label className="qw-field-label">
+              <RiChat3Line /> Your Feedback
             </label>
             <textarea
-              className="form-control rounded-4 p-3 border-light shadow-sm"
+              className="qw-textarea"
               rows={4}
               placeholder="Tell us what you liked or what could be improved..."
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              style={{ resize: "none", backgroundColor: "#f8fafc" }}
+              required
             />
           </div>
 
           <div className="mb-4">
-            <label className="form-label fw-bold small text-uppercase mb-2">
-              <RiImageAddLine className="me-2" /> Project Images (Optional)
+            <label className="qw-field-label d-flex justify-content-between align-items-center">
+              <span className="d-flex align-items-center gap-2">
+                <RiImageAddLine /> Project Images
+              </span>
+              <span className="count">{images.length}/5</span>
             </label>
-            <div className="d-flex flex-wrap gap-3 mb-2">
+            <div className="qw-image-upload-grid">
               {images.map((img, index) => (
-                <div key={index} className="position-relative rounded-3 overflow-hidden shadow-sm" style={{ width: 80, height: 80 }}>
-                  <img src={img} alt="review" className="w-100 h-100 object-fit-cover" />
-                  <button
-                    type="button"
-                    className="btn btn-danger btn-sm position-absolute top-0 end-0 p-1 m-1 rounded-circle"
-                    onClick={() => removeImage(index)}
-                    style={{ width: 24, height: 24, fontSize: 10 }}
-                  >
+                <div key={index} className="qw-uploaded-image">
+                  <img src={img} alt="review" />
+                  <button type="button" className="qw-img-remove" onClick={() => removeImage(index)}>
                     <RiDeleteBin7Line />
                   </button>
                 </div>
@@ -151,17 +163,16 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
               {images.length < 5 && (
                 <button
                   type="button"
-                  className="btn btn-outline-dashed rounded-3 d-flex flex-column align-items-center justify-content-center gap-1 border-2"
-                  style={{ width: 80, height: 80, borderStyle: "dashed" }}
+                  className="qw-img-add-btn"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
                 >
                   {uploading ? (
-                    <RiLoader4Line className="animate-spin text-primary" size={20} />
+                    <RiLoader4Line className="qw-spin" size={24} />
                   ) : (
                     <>
-                      <RiImageAddLine size={20} />
-                      <span style={{ fontSize: 10 }}>Add</span>
+                      <RiImageAddLine size={24} />
+                      <span>Add</span>
                     </>
                   )}
                 </button>
@@ -175,19 +186,14 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
               multiple
               onChange={handleImageUpload}
             />
-            <p className="text-muted small mb-0">Upload images of the work done.</p>
           </div>
 
           <button
             type="submit"
-            className="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2"
+            className="qw-modal-submit-btn primary"
             disabled={!rating || loading || uploading}
           >
-            {loading ? (
-              <span className="spinner-border spinner-border-sm" />
-            ) : (
-              "Submit Review"
-            )}
+            {loading ? <RiLoader4Line className="qw-spin" /> : "Submit Review"}
           </button>
         </form>
       </div>
@@ -195,66 +201,182 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
       <style>{`
         .qw-modal-overlay {
           position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(15, 23, 42, 0.6);
-          backdrop-filter: blur(8px);
+          inset: 0;
+          background: rgba(15, 23, 42, 0.5);
+          backdrop-filter: blur(12px);
           display: flex;
           align-items: center;
           justify-content: center;
-          z-index: 1050;
-          animation: qwFadeIn 0.3s ease;
+          padding: 24px;
+          z-index: 999999;
         }
+
         .qw-modal-content {
-          background: white;
-          padding: 2.5rem;
-          border-radius: 2rem;
+          background: #fff;
           width: 100%;
           max-width: 500px;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-          animation: qwSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+          padding: 40px;
+          border-radius: 32px;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+          position: relative;
         }
-        .star-button:hover {
-          transform: scale(1.15);
+
+        .qw-modal-title {
+          font-family: 'Syne', sans-serif;
+          font-weight: 800;
+          font-size: 22px;
+          margin: 0;
+          color: #0f172a;
         }
-        .rating-text {
-          font-size: 1.1rem;
-          height: 1.5rem;
+
+        .qw-modal-subtitle {
+          color: #64748b;
+          font-size: 13px;
+          margin: 2px 0 0;
         }
-        .form-control:focus {
-          border-color: #4f46e5;
-          box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
-          background-color: white !important;
+
+        .qw-header-icon-box {
+          width: 48px;
+          height: 48px;
+          border-radius: 14px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
-        .btn-outline-dashed {
-          color: #94a3b8;
-          border-color: #e2e8f0;
-          background: transparent;
-        }
-        .btn-outline-dashed:hover {
+
+        .qw-header-icon-box.review { background: #eff6ff; color: #3b82f6; }
+        .qw-header-icon-box.report { background: #fef2f2; color: #ef4444; }
+
+        .qw-modal-close-btn {
+          border: none;
           background: #f8fafc;
+          width: 36px;
+          height: 36px;
+          border-radius: 12px;
+          color: #94a3b8;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+
+        .qw-modal-close-btn:hover { background: #f1f5f9; color: #0f172a; }
+
+        .star-button { transition: transform 0.2s; }
+        .star-button:hover { transform: scale(1.1); }
+
+        .qw-field-label {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 12px;
+          font-weight: 700;
+          text-transform: uppercase;
+          color: #475569;
+          margin-bottom: 12px;
+        }
+
+        .qw-field-label .count { color: #94a3b8; font-variant-numeric: tabular-nums; }
+
+        .qw-textarea {
+          width: 100%;
+          border-radius: 18px;
+          padding: 16px;
+          border: 1.5px solid #e2e8f0;
+          background: #f8fafc;
+          font-size: 14px;
+          transition: all 0.2s;
+          resize: none;
+        }
+
+        .qw-textarea:focus {
+          outline: none;
           border-color: #6366f1;
-          color: #6366f1;
+          background: #fff;
+          box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
         }
-        .animate-spin {
-          animation: spin 1s linear infinite;
+
+        .qw-image-upload-grid {
+          display: grid;
+          grid-template-columns: repeat(5, 1fr);
+          gap: 10px;
         }
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+
+        .qw-uploaded-image {
+          aspect-ratio: 1;
+          border-radius: 12px;
+          overflow: hidden;
+          position: relative;
+          border: 1px solid #e2e8f0;
         }
-        @keyframes qwFadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
+
+        .qw-uploaded-image img { width: 100%; height: 100%; object-fit: cover; }
+
+        .qw-img-remove {
+          position: absolute;
+          top: 4px;
+          right: 4px;
+          background: #ef4444;
+          color: #fff;
+          border: none;
+          width: 20px;
+          height: 20px;
+          border-radius: 6px;
+          font-size: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
-        @keyframes qwSlideUp {
-          from { transform: translateY(20px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
+
+        .qw-img-add-btn {
+          aspect-ratio: 1;
+          border: 2px dashed #e2e8f0;
+          border-radius: 12px;
+          background: #f8fafc;
+          color: #94a3b8;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          transition: all 0.2s;
+        }
+
+        .qw-img-add-btn:hover { border-color: #6366f1; color: #6366f1; background: #eff6ff; }
+        .qw-img-add-btn span { font-size: 10px; font-weight: 700; }
+
+        .qw-modal-submit-btn {
+          width: 100%;
+          height: 52px;
+          border-radius: 16px;
+          border: none;
+          font-weight: 700;
+          font-size: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          transition: all 0.2s;
+          cursor: pointer;
+        }
+
+        .qw-modal-submit-btn.primary { background: #0f172a; color: #fff; box-shadow: 0 10px 20px rgba(15, 23, 42, 0.15); }
+        .qw-modal-submit-btn.danger { background: #ef4444; color: #fff; box-shadow: 0 10px 20px rgba(239, 68, 68, 0.15); }
+
+        .qw-modal-submit-btn:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.1); }
+        .qw-modal-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .qw-spin { animation: qw-spin 1s linear infinite; }
+        @keyframes qw-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .animate-pop-in { animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes popIn {
+          from { opacity: 0; transform: scale(0.95) translateY(10px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
         }
       `}</style>
-    </div>
+    </div>,
+    document.body
   );
 };
 

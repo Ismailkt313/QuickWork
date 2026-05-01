@@ -102,7 +102,7 @@ const UserSidebar: React.FC<UserSidebarProps> = ({
 
       <aside className={`qw-sidebar${showOnMobile ? " open" : ""}`}>
         <Link
-          to="/user/services"
+          to="/"
           className="qw-logo-area"
           onClick={handleNavClick}
         >

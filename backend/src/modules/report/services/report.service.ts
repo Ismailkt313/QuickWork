@@ -1,30 +1,29 @@
 import { IReport, IReportRepository, IReportService, REPORT_STATUS } from '../interfaces/report.interface';
 import { Types } from 'mongoose';
-import { AssignmentModel } from '../../assignment/models/assignment.model';
+import { IAssignmentRepository } from '../../assignment/interfaces/assignment.interface';
 import { AppError } from '../../../utils/AppError';
 import { HttpStatusCode } from '../../../constants/httpStatusCode';
 import { CreateReportDTO } from '../dtos/report.dto';
 
 export class ReportService implements IReportService {
     private reportRepository: IReportRepository;
+    private assignmentRepository: IAssignmentRepository;
 
-    constructor(reportRepository: IReportRepository) {
+    constructor(reportRepository: IReportRepository, assignmentRepository: IAssignmentRepository) {
         this.reportRepository = reportRepository;
+        this.assignmentRepository = assignmentRepository;
     }
 
     async createReport(reporterId: string, data: CreateReportDTO): Promise<IReport> {
-        // 1. Prevent self-report
         if (reporterId === data.reportedUserId) {
             throw new AppError("You cannot report yourself", HttpStatusCode.BAD_REQUEST);
         }
 
-        // 2. Validate assignment exists
-        const assignment = await AssignmentModel.findById(data.assignmentId);
+        const assignment = await this.assignmentRepository.findById(data.assignmentId);
         if (!assignment) {
             throw new AppError("Assignment not found", HttpStatusCode.NOT_FOUND);
         }
 
-        // 3. Create report
         return await this.reportRepository.create({
             ...data,
             assignmentId: new Types.ObjectId(data.assignmentId) as any,

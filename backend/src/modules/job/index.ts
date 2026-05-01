@@ -6,13 +6,18 @@ import { ServiceProviderRepository } from '../serviceProvider/repositories/servi
 import { assignmentService } from '../assignment';
 import { LocationRepository } from '../location/repositories/location.repository';
 import { notificationService } from '../notification';
+import { AssignmentRepository } from '../assignment/repositories/assignment.repository';
+
+import { WorkHistoryRepository } from "../finance/repositories/workHistory.repository";
 
 const jobRepository = new JobRepository();
 const serviceProviderRepository = new ServiceProviderRepository();
 const locationRepository = new LocationRepository();
+const assignmentRepository = new AssignmentRepository();
+const workHistoryRepository = new WorkHistoryRepository();
 
-const jobService = new JobService(jobRepository, serviceProviderRepository, assignmentService, locationRepository, notificationService);
-const jobController = new JobController(jobService);
+const jobService = new JobService(jobRepository, serviceProviderRepository, assignmentService, locationRepository, notificationService, workHistoryRepository);
+const jobController = new JobController(jobService, assignmentRepository);
 
 const jobRouter = createJobRouter(jobController);
 

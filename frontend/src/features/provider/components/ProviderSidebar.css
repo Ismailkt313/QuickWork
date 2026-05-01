@@ -266,13 +266,13 @@
 
 .qw-profile-info { flex: 1; min-width: 0; }
 .qw-profile-name {
-  font-size: 12px; font-weight: 700;
+  font-size: 13.5px; font-weight: 700;
   color: var(--qw-text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   font-family: var(--qw-font-display);
 }
 .qw-profile-role {
-  font-size: 10px;
+  font-size: 10.5px;
   color: var(--qw-accent);
   font-weight: 500;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;

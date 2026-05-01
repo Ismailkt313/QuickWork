@@ -32,5 +32,13 @@ export class AuthRepository implements IAuthRepository {
     public async updateUser(userId: string, data: Partial<IUser>): Promise<IUser | null> {
         return UserModel.findByIdAndUpdate(userId, data, { new: true });
     }
+
+    public async incrementWarningCount(userId: string): Promise<void> {
+        await UserModel.findByIdAndUpdate(userId, { $inc: { warningCount: 1 } });
+    }
+
+    public async blockUser(userId: string): Promise<void> {
+        await UserModel.findByIdAndUpdate(userId, { isBlocked: true });
+    }
 }
 

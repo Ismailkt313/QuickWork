@@ -53,7 +53,7 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       try {
         let url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(text)}&apiKey=${GEOAPIFY_API_KEY}&limit=5`;
 
-        // Apply circle filter if center is available (within 20km of district center)
+        
         if (center) {
           const [lng, lat] = center;
           url += `&filter=circle:${lng},${lat},20000`;

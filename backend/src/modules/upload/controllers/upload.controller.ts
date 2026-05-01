@@ -1,13 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
-import { UploadService } from '../services/upload.service';
+import { IUploadController, IUploadService } from '../interfaces/upload.interface';
 import { AppError } from '../../../utils/AppError';
-import { HttpStatusCode } from "../../../constants/httpStatusCode"
+import { HttpStatusCode } from "../../../constants/httpStatusCode";
 
+export class UploadController implements IUploadController {
+    private uploadService: IUploadService;
 
-export class UploadController {
-    private uploadService: UploadService;
-
-    constructor(uploadService: UploadService) {
+    constructor(uploadService: IUploadService) {
         this.uploadService = uploadService;
     }
 

@@ -132,7 +132,8 @@ export class JobRepository implements IJobRepository {
         page: number,
         limit: number,
         filters: any,
-        skill: string[]
+        skill: string[],
+        excludeJobIds?: string[]
     ): Promise<{ jobs: IJob[], total: number }> {
 
         const query: any = {
@@ -140,6 +141,10 @@ export class JobRepository implements IJobRepository {
             visibility: 'public',
             skillId: { $in: skill }
         };
+
+        if (excludeJobIds && excludeJobIds.length > 0) {
+            query._id = { $nin: excludeJobIds.map(id => new mongoose.Types.ObjectId(id)) };
+        }
 
 
         if (filters.skillId) {

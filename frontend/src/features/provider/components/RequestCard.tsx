@@ -58,7 +58,7 @@ export const RequestCard: React.FC<RequestCardProps> = ({
 
   const providerLocation = useProviderLocation();
 
-  // Location match check
+  
   const jobDistrict = request.location?.districtName?.toLowerCase().trim() ?? "";
   const myDistrict  = providerLocation?.toLowerCase().trim() ?? "";
   const isMyArea = myDistrict && myDistrict !== "not set" && jobDistrict
@@ -96,12 +96,12 @@ export const RequestCard: React.FC<RequestCardProps> = ({
         (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
       }}
     >
-      {/* Top accent stripe */}
+      {}
       <div style={{ height: 3, background: `linear-gradient(90deg, ${accentColor}, ${accentColor}77)` }} />
 
       <div style={{ padding: "18px 20px 0" }}>
 
-        {/* ── Status badges row ── */}
+        {}
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
           <span style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "3px 9px", borderRadius: 20, fontSize: 10, fontWeight: 700, background: "#faf5ff", color: "#9333ea", border: "1px solid #e9d5ff", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>
             <RiFlashlightLine size={10} /> Direct Invite
@@ -121,7 +121,7 @@ export const RequestCard: React.FC<RequestCardProps> = ({
               <RiCloseCircleLine size={10} /> Declined
             </span>
           )}
-          {/* Location match */}
+          {}
           {isMyArea === true && (
             <span style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "3px 9px", borderRadius: 20, fontSize: 10, fontWeight: 700, background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0", textTransform: "uppercase" as const }}>
               <RiMapPinLine size={10} /> Your Area
@@ -134,16 +134,16 @@ export const RequestCard: React.FC<RequestCardProps> = ({
           )}
         </div>
 
-        {/* ── Header: client info + budget ── */}
+        {}
         <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 12 }}>
-          {/* Avatar */}
+          {}
           <div style={{ width: 44, height: 44, borderRadius: 11, background: avatarBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#fff", fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 14, boxShadow: "0 2px 6px rgba(0,0,0,0.12)" }}>
             {request.clientAvatarUrl
               ? <img src={request.clientAvatarUrl} alt={request.clientName} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 11 }} />
               : initials}
           </div>
 
-          {/* Title + client info */}
+          {}
           <div style={{ flex: 1, minWidth: 0 }}>
             <h3 style={{ margin: "0 0 4px", fontSize: 15, fontWeight: 800, color: "#0f172a", fontFamily: "Syne, sans-serif", lineHeight: 1.3, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const }}>
               {request.title}
@@ -164,7 +164,7 @@ export const RequestCard: React.FC<RequestCardProps> = ({
             </div>
           </div>
 
-          {/* Budget pill */}
+          {}
           <div style={{ textAlign: "right", flexShrink: 0, background: "#f8fafc", border: "1px solid #f1f5f9", borderRadius: 12, padding: "8px 12px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 3, justifyContent: "flex-end" }}>
               <RiMoneyDollarCircleLine size={13} color="#6366f1" />
@@ -174,16 +174,16 @@ export const RequestCard: React.FC<RequestCardProps> = ({
           </div>
         </div>
 
-        {/* ── Description ── */}
+        {}
         <p style={{ margin: "0 0 12px", fontSize: 13, color: "#64748b", lineHeight: 1.55, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>
           <RiFileTextLine style={{ marginRight: 4, verticalAlign: "middle", color: "#94a3b8" }} />
           {request.description}
         </p>
 
-        {/* ── Detail grid ── */}
+        {}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, background: "#f8fafc", borderRadius: 12, padding: "10px 12px", marginBottom: 16, border: "1px solid #f1f5f9" }}>
 
-          {/* Location */}
+          {}
           <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
             <div style={{ width: 28, height: 28, borderRadius: 7, background: isMyArea === false ? "#fff7ed" : "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", color: isMyArea === false ? "#b45309" : "#16a34a", fontSize: 13, flexShrink: 0, marginTop: 1 }}>
               <RiMapPinLine />
@@ -198,7 +198,7 @@ export const RequestCard: React.FC<RequestCardProps> = ({
             </div>
           </div>
 
-          {/* Duration */}
+          {}
           <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
             <div style={{ width: 28, height: 28, borderRadius: 7, background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", color: "#3b82f6", fontSize: 13, flexShrink: 0, marginTop: 1 }}>
               <RiTimeLine />
@@ -211,7 +211,7 @@ export const RequestCard: React.FC<RequestCardProps> = ({
             </div>
           </div>
 
-          {/* Schedule */}
+          {}
           <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
             <div style={{ width: 28, height: 28, borderRadius: 7, background: "#fff7ed", display: "flex", alignItems: "center", justifyContent: "center", color: "#ea580c", fontSize: 13, flexShrink: 0, marginTop: 1 }}>
               <RiCalendarEventLine />
@@ -226,7 +226,7 @@ export const RequestCard: React.FC<RequestCardProps> = ({
             </div>
           </div>
 
-          {/* Providers needed */}
+          {}
           <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
             <div style={{ width: 28, height: 28, borderRadius: 7, background: "#faf5ff", display: "flex", alignItems: "center", justifyContent: "center", color: "#9333ea", fontSize: 13, flexShrink: 0, marginTop: 1 }}>
               <RiGroupLine />
@@ -240,7 +240,7 @@ export const RequestCard: React.FC<RequestCardProps> = ({
           </div>
         </div>
 
-        {/* ── Skills ── */}
+        {}
         {request.skills?.length > 0 && (
           <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 16 }}>
             {request.skills.slice(0, 5).map(skill => (
@@ -257,7 +257,7 @@ export const RequestCard: React.FC<RequestCardProps> = ({
         )}
       </div>
 
-      {/* ── Action footer ── */}
+      {}
       <div style={{ padding: "0 20px 18px", display: "flex", gap: 8, alignItems: "center" }}>
         {isPending ? (
           <>

@@ -1,12 +1,13 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { config } from "../../../config";
 import { logger } from "../../../utils/logger";
+import { IS3Service } from '../interfaces/upload.interface';
 
-export class S3Service {
+export class S3Service implements IS3Service {
     private s3Client: S3Client;
 
     constructor() {
-        // Redacted log to verify config is being read
+        
         logger.info({ 
             region: config.AWS_REGION, 
             bucket: config.AWS_BUCKET_NAME,

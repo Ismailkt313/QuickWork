@@ -133,7 +133,7 @@ const executeDeleteMessage = async () => {
   setDeleteMsgModal(prev => ({ ...prev, loading: true }));
   try {
     await deleteMessage(deleteMsgModal.messageId);
-    // UI updates via socket listener in useMessages hook
+    
   } catch (error) {
     console.error("Failed to delete message:", error);
   } finally {
@@ -199,7 +199,7 @@ const executeDeleteMessage = async () => {
   useEffect(() => {
     if (!socket) return;
 
-    // 1. Define the handler for new messages
+    
     const handleNewConversationMessage = (newMessage: {
       sender: string;
       receiver: string;
@@ -252,7 +252,7 @@ const executeDeleteMessage = async () => {
       });
     };
 
-    // 2. Define the handler for deleted conversations
+    
     const handleConversationDeleted = ({ conversationId }: { conversationId: string }) => {
       setConversations((prev) => prev.filter((c) => c.id !== conversationId));
       if (selectedConvIdRef.current === conversationId) {
@@ -260,11 +260,11 @@ const executeDeleteMessage = async () => {
       }
     };
 
-    // 3. Attach both listeners
+    
     socket.on("receiveMessage", handleNewConversationMessage);
     socket.on("conversationDeleted", handleConversationDeleted);
 
-    // 4. Clean up both listeners when the component unmounts
+    
     return () => {
       socket.off("receiveMessage", handleNewConversationMessage);
       socket.off("conversationDeleted", handleConversationDeleted);

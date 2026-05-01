@@ -3,8 +3,9 @@ import { IReportService } from '../interfaces/report.interface';
 import { CreateReportSchema, UpdateReportStatusSchema, mapReportToResponseDTO } from '../dtos/report.dto';
 import { HttpStatusCode } from '../../../constants/httpStatusCode';
 import { AppError } from '../../../utils/AppError';
+import { IReportController } from '../interfaces/report.interface';
 
-export class ReportController {
+export class ReportController implements IReportController {
     private reportService: IReportService;
 
     constructor(reportService: IReportService) {

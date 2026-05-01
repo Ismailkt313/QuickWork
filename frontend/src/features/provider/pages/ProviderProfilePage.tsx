@@ -8,6 +8,9 @@ import {
   RiAddLine,
   RiBriefcaseLine,
   RiAddCircleLine,
+  RiInformationLine,
+  RiStarFill,
+  RiGlobalLine
 } from "react-icons/ri";
 import {
   getMyProfile,
@@ -20,6 +23,8 @@ import EditProfileModal from "../components/EditProfileModal";
 import EditSkillsModal from "../components/EditSkillsModal";
 import EditPortfolioModal from "../components/EditPortfolioModal";
 import RequestSkillModal from "../components/RequestSkillModal";
+import "./ProviderProfilePage.css";
+
 interface PortfolioItem {
   title: string;
   description: string;
@@ -70,7 +75,6 @@ const ProviderProfilePage: React.FC = () => {
         fetchallskills(),
         fetchLocations(),
       ]);
-      console.log(profileRes.data, "profileRes.data");
       if (profileRes.success && profileRes.data) setProfile(profileRes.data);
       if (skillsRes.success && skillsRes.data) setSkills(skillsRes.data);
       if (locationsRes.success && locationsRes.data) setLocations(locationsRes.data);
@@ -89,199 +93,168 @@ const ProviderProfilePage: React.FC = () => {
   if (loading) return <FallbackScreen />;
   if (!profile) return <div className="p-5 text-center">Profile not found</div>;
 
-  const creationDate = new Date(profile.submittedAt).toLocaleDateString(
-    "en-US",
-    {
-      month: "long",
-      year: "numeric",
-    },
-  );
+  const joinedDate = new Date(profile.submittedAt).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
 
   return (
-    <div className="qw-profile-container container-fluid py-4 animate__animated animate__fadeIn">
-      <div className="row g-4">
-        <div className="col-lg-8">
-          <div className="qw-card qw-profile-header mb-4">
-            <div className="qw-profile-bg" />
-            <div className="qw-profile-header-content p-4">
-              <div className="d-flex flex-wrap gap-4 align-items-end">
-                <div className="qw-profile-avatar-wrap">
-                  {profile.profileImage ? (
-                    <img
-                      src={profile.profileImage}
-                      alt={profile.name}
-                      className="qw-profile-avatar"
-                    />
-                  ) : (
-                    <div className="qw-profile-avatar initials">
-                      {profile.name
-                        .split(" ")
-                        .map((n: string) => n[0])
-                        .join("")
-                        .toUpperCase()}
-                    </div>
-                  )}
-                  {profile.verificationStatus === "verified" && (
-                    <span
-                      className="qw-verified-badge"
-                      title="Verified Provider"
-                    >
-                      <RiVerifiedBadgeFill />
-                    </span>
-                  )}
+    <div className="qw-profile-page animate-fade-in">
+      <div className="container py-5">
+        {}
+        <div className="qw-profile-hero mb-5">
+          <div className="qw-hero-banner" />
+          <div className="qw-hero-content">
+            <div className="qw-profile-image-container">
+              {profile.profileImage ? (
+                <img src={profile.profileImage} alt={profile.name} className="qw-profile-image" />
+              ) : (
+                <div className="qw-initials-avatar">
+                  {profile.name.split(" ").map(n => n[0]).join("").toUpperCase()}
                 </div>
-                <div className="qw-profile-basic-info flex-grow-1">
-                  <div className="d-flex justify-content-between align-items-start">
-                    <div>
-                      <h1 className="qw-h1 mb-1">{profile.name}</h1>
-                      <p className="qw-headline text-muted mb-2">
-                        {profile.headline || "No headline set"}
-                      </p>
-                      <div className="d-flex flex-wrap gap-3 qw-meta">
-                        <span className="d-flex align-items-center gap-1">
-                          <RiMapPinLine className="qw-icon-sm" />{" "}
-                          {profile.location.name}
-                        </span>
-                        <span className="d-flex align-items-center gap-1">
-                          <RiTimeLine className="qw-icon-sm" /> Joined{" "}
-                          {creationDate}
-                        </span>
-                        <span
-                          className={`badge ${profile.isActive ? "bg-success-subtle text-success" : "bg-secondary-subtle text-muted"}`}
-                        >
-                          {profile.isActive ? "Active" : "Away"}
-                        </span>
-                      </div>
-                    </div>
-                    <button
-                      className="btn btn-outline-primary btn-sm rounded-pill d-flex align-items-center gap-2"
-                      onClick={() => setShowEditProfile(true)}
-                    >
-                      <RiEditLine /> Edit Profile
-                    </button>
-                  </div>
+              )}
+              {profile.verificationStatus === "verified" && (
+                <div className="qw-verified-badge" title="Verified Provider">
+                  <RiVerifiedBadgeFill />
                 </div>
-              </div>
-            </div>
-          </div>
-          <div className="qw-card p-4 mb-4">
-            <h3 className="qw-h3 mb-3">About Me</h3>
-            <p className="qw-about-text">{profile.about}</p>
-          </div>
-          <div className="qw-card p-4">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-              <h3 className="qw-h3 m-0">Portfolio</h3>
-              <button
-                className="btn btn-primary btn-sm rounded-pill d-flex align-items-center gap-2"
-                onClick={() => {
-                  setEditingPortfolioItem(null);
-                  setShowEditPortfolio(true);
-                }}
-              >
-                <RiAddLine /> Add Project
-              </button>
-            </div>
-            <div className="row g-4">
-              {profile.portfolio.map((item: PortfolioItem, idx: number) => (
-                <div key={idx} className="col-md-6">
-                  <div className="qw-portfolio-item h-100">
-                    <div className="qw-portfolio-image-wrap">
-                      <img
-                        src={item.images[0]}
-                        alt={item.title}
-                        className="qw-portfolio-image"
-                      />
-                      <div className="qw-portfolio-overlay">
-                        <button
-                          className="btn btn-light btn-sm rounded-circle"
-                          onClick={() => {
-                            setEditingPortfolioItem(item);
-                            setShowEditPortfolio(true);
-                          }}
-                        >
-                          <RiEditLine />
-                        </button>
-                      </div>
-                    </div>
-                    <div className="p-3">
-                      <h4 className="qw-h4 mb-1">{item.title}</h4>
-                      <p className="small text-muted mb-0">
-                        {item.description}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-        <div className="col-lg-4">
-          <div className="qw-card p-4 mb-4">
-            <h3 className="qw-h3 mb-4">Service Details</h3>
-            <div className="qw-stat-item d-flex align-items-center gap-3 mb-4">
-              <div className="qw-stat-icon red">
-                <RiMoneyDollarCircleLine />
-              </div>
-              <div>
-                <p className="qw-stat-label">Hourly Rate</p>
-                <p className="qw-stat-value">${profile.hourlyRate}/hr</p>
-              </div>
-            </div>
-            <div className="qw-stat-item d-flex align-items-center gap-3 mb-4">
-              <div className="qw-stat-icon blue">
-                <RiBriefcaseLine />
-              </div>
-              <div>
-                <p className="qw-stat-label">Experience</p>
-                <p className="qw-stat-value">
-                  {profile.yearsOfExperience} Years
-                </p>
-              </div>
-            </div>
-            <div className="qw-stat-item d-flex align-items-center gap-3">
-              <div className="qw-stat-icon green">
-                <RiVerifiedBadgeFill />
-              </div>
-              <div>
-                <p className="qw-stat-label">Status</p>
-                <p
-                  className={`qw-stat-value text-capitalize ${profile.verificationStatus === "verified" ? "text-success" : "text-warning"}`}
-                >
-                  {profile.verificationStatus}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="qw-card p-4">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-              <h3 className="qw-h3 m-0">Skills</h3>
-              <button
-                className="btn btn-ghost-primary btn-icon btn-sm"
-                onClick={() => setShowEditSkills(true)}
-              >
-                <RiEditLine />
-              </button>
-            </div>
-            <div className="d-flex flex-wrap gap-2">
-              {profile.skills.map((skill: Skill) => (
-                <span
-                  key={skill.id}
-                  className="badge bg-light text-primary border px-3 py-2 rounded-pill font-md"
-                >
-                  {skill.name}
-                </span>
-              ))}
-              {profile.skills.length === 0 && (
-                <p className="text-muted small">No skills added yet.</p>
               )}
             </div>
-            <div className="mt-4 pt-3 border-top">
-              <button
-                className="btn btn-link p-0 text-primary small text-decoration-none d-flex align-items-center gap-2 fw-600"
-                onClick={() => setShowRequestSkill(true)}
-              >
-                <RiAddCircleLine size={18} /> Request New Skill
-              </button>
+            <div className="qw-profile-info-main">
+              <h1 className="qw-profile-name">{profile.name}</h1>
+              <p className="qw-profile-headline">{profile.headline || "Professional Provider"}</p>
+              <div className="qw-meta-row">
+                <div className="qw-meta-item">
+                  <RiMapPinLine /> {profile.location.name}
+                </div>
+                <div className="qw-meta-item">
+                  <RiTimeLine /> Joined {joinedDate}
+                </div>
+                <div className="qw-meta-item">
+                  <RiGlobalLine /> {profile.isActive ? "Available Now" : "Currently Away"}
+                </div>
+              </div>
+            </div>
+            <button className="qw-btn-edit-profile" onClick={() => setShowEditProfile(true)}>
+              <RiEditLine size={18} />
+              <span>Edit Profile</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="row g-5">
+          {}
+          <div className="col-lg-8">
+            {}
+            <div className="qw-section-card">
+              <h3 className="qw-section-title">
+                <div className="d-flex align-items-center gap-2">
+                  <RiInformationLine className="text-primary" />
+                  About Me
+                </div>
+              </h3>
+              <p className="qw-about-text">
+                {profile.about || "This provider hasn't shared their story yet. They are dedicated to providing high-quality services to all clients."}
+              </p>
+            </div>
+
+            {}
+            <div className="qw-section-card">
+              <div className="qw-section-title">
+                <div className="d-flex align-items-center gap-2">
+                  <RiStarFill className="text-warning" />
+                  Portfolio Projects
+                </div>
+                <button className="qw-btn-add" onClick={() => { setEditingPortfolioItem(null); setShowEditPortfolio(true); }}>
+                  <RiAddLine /> Add Project
+                </button>
+              </div>
+              {profile.portfolio.length === 0 ? (
+                <div className="text-center py-5 text-muted">
+                  <RiBriefcaseLine size={48} className="mb-3 opacity-25" />
+                  <p>No projects added to portfolio yet.</p>
+                </div>
+              ) : (
+                <div className="qw-portfolio-grid">
+                  {profile.portfolio.map((item, idx) => (
+                    <div key={idx} className="qw-portfolio-item">
+                      <div className="qw-portfolio-image-box">
+                        <img src={item.images[0]} alt={item.title} />
+                        <div className="qw-portfolio-overlay">
+                          <button className="btn btn-light btn-sm rounded-pill" onClick={() => { setEditingPortfolioItem(item); setShowEditPortfolio(true); }}>
+                            <RiEditLine /> Edit
+                          </button>
+                        </div>
+                      </div>
+                      <div className="qw-portfolio-details">
+                        <h4>{item.title}</h4>
+                        <p>{item.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {}
+          <div className="col-lg-4">
+            {}
+            <div className="qw-section-card">
+              <h3 className="qw-section-title">Service Details</h3>
+              <div className="qw-stat-card">
+                <div className="qw-stat-icon-box purple">
+                  <RiMoneyDollarCircleLine />
+                </div>
+                <div className="qw-stat-info">
+                  <p className="qw-stat-label">Hourly Rate</p>
+                  <p className="qw-stat-value">₹{profile.hourlyRate}/hr</p>
+                </div>
+              </div>
+              <div className="qw-stat-card">
+                <div className="qw-stat-icon-box blue">
+                  <RiBriefcaseLine />
+                </div>
+                <div className="qw-stat-info">
+                  <p className="qw-stat-label">Experience</p>
+                  <p className="qw-stat-value">{profile.yearsOfExperience} Years</p>
+                </div>
+              </div>
+              <div className="qw-stat-card">
+                <div className="qw-stat-icon-box green">
+                  <RiVerifiedBadgeFill />
+                </div>
+                <div className="qw-stat-info">
+                  <p className="qw-stat-label">Verification</p>
+                  <p className={`qw-stat-value text-capitalize ${profile.verificationStatus === "verified" ? "text-success" : "text-warning"}`}>
+                    {profile.verificationStatus}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {}
+            <div className="qw-section-card">
+              <div className="qw-section-title">
+                Skills
+                <button className="qw-btn-add" onClick={() => setShowEditSkills(true)}>
+                  <RiEditLine /> Edit
+                </button>
+              </div>
+              <div className="d-flex flex-wrap gap-2">
+                {profile.skills.map((skill: Skill) => (
+                  <div key={skill.id} className="qw-skill-badge">
+                    {skill.name}
+                  </div>
+                ))}
+                {profile.skills.length === 0 && (
+                  <p className="text-muted small">No skills added yet.</p>
+                )}
+              </div>
+              <div className="mt-4 pt-3 border-top">
+                <button className="btn btn-link p-0 text-primary small text-decoration-none d-flex align-items-center gap-2 fw-600" onClick={() => setShowRequestSkill(true)}>
+                  <RiAddCircleLine size={18} /> Request New Skill
+                </button>
+              </div>
             </div>
           </div>
         </div>

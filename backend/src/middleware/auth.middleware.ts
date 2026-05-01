@@ -5,15 +5,13 @@ import { UserModel } from "../modules/auth/models/user.model";
 import { HttpStatusCode } from "../constants/httpStatusCode";
 import { ITokenPayload } from "../modules/auth/interfaces/auth.interface";
 
-/* eslint-disable @typescript-eslint/no-namespace */
-/* eslint-disable @typescript-eslint/no-empty-object-type */
-declare global {
-    namespace Express {
-        interface User extends ITokenPayload { }
+
+
+declare module "express-serve-static-core" {
+    interface Request {
+        user?: ITokenPayload;
     }
 }
-/* eslint-enable @typescript-eslint/no-namespace */
-/* eslint-enable @typescript-eslint/no-empty-object-type */
 
 export const authMiddleware = async (
     req: Request,

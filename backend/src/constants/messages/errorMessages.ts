@@ -69,14 +69,14 @@ export const ErrorMessages = {
   PROVIDER_NOT_AVAILABLE: "Provider is not available",
   RESET_NOT_ALLOWED: "Only rejected applications can be reset",
 
-  // Service Request Specific
+  
   SKILL_ALREADY_EXISTS: "Skill already exists in the system",
   PENDING_REQUEST_EXISTS: "A pending request for this skill already exists",
   SERVICE_REQUEST_NOT_FOUND: "Service request not found",
   SERVICE_REQUEST_ID_REQUIRED: "Service request ID is required",
   REQUEST_ALREADY_REVIEWED: (status: string) => `Request is already ${status}`,
 
-  // Job DTO Specific
+  
   INVALID_COORD_RANGE: "Invalid coordinate range",
   MAX_MIN_BUDGET_ERROR: "Max must be >= min",
   PRIVATE_JOB_FREELANCER_LIMIT: "Private jobs must have only 1 freelancer",

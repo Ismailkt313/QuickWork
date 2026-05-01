@@ -4,11 +4,9 @@ import {
   RiDashboardLine,
   RiBriefcaseLine,
   RiSearchLine,
-  RiCheckboxCircleLine,
   RiMessage3Line,
   RiStarLine,
   RiWalletLine,
-  RiFileListLine,
   RiSettings3Line,
   RiLogoutBoxLine,
   RiArrowRightSLine,
@@ -79,12 +77,6 @@ const PRIMARY_NAV: NavItem[] = [
     badgeVariant: "warning",
   },
   {
-    id: "completed-jobs",
-    label: "Completed Jobs",
-    icon: <RiCheckboxCircleLine />,
-    href: "/provider/completed-jobs",
-  },
-  {
     id: "messages",
     label: "Messages",
     icon: <RiMessage3Line />,
@@ -105,19 +97,13 @@ const SECONDARY_NAV: NavItem[] = [
     id: "earnings",
     label: "Earnings",
     icon: <RiWalletLine />,
-    href: "/provider/earnings",
-  },
-  {
-    id: "applications",
-    label: "My Applications",
-    icon: <RiFileListLine />,
-    href: "/provider/applications",
+    href: "/provider/wallet",
   },
   {
     id: "settings",
     label: "Settings",
     icon: <RiSettings3Line />,
-    href: "/provider/settings",
+    href: "/provider/profile",
   },
 ];
 
@@ -220,7 +206,7 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
 
   return (
     <>
-      {/* Mobile backdrop */}
+      {}
       {showOnMobile && (
         <div
           className="qw-backdrop visible"
@@ -234,7 +220,7 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
         aria-label="Provider navigation"
         role="navigation"
       >
-        {/* ── Brand ── */}
+        {}
         <Link
           to="/provider/dashboard"
           className="qw-logo-area"
@@ -250,7 +236,7 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
           </div>
         </Link>
 
-        {/* ── Scrollable Nav ── */}
+        {}
         <nav className="qw-nav-scroll" aria-label="Main navigation">
           <p className="qw-nav-label">Overview</p>
           {navItems.map((item) => (
@@ -273,9 +259,9 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
           ))}
         </nav>
 
-        {/* ── Fixed Bottom ── */}
+        {}
         <div className="qw-sidebar-bottom">
-          {/* Profile card */}
+          {}
           {!provider ? (
             <div className="qw-profile-card loading">
               <div className="qw-avatar-wrap">
@@ -316,17 +302,11 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
                 <span className="qw-avatar-status" aria-label="Online" />
               </div>
               <div className="qw-profile-info">
-                <div
-                  className="qw-profile-name text-truncate"
-                  style={{ maxWidth: "120px" }}
-                >
+                <div className="qw-profile-name">
                   {provider.name || "Provider"}
                 </div>
                 {(provider.role || provider.headline) && (
-                  <div
-                    className="qw-profile-role text-truncate"
-                    style={{ maxWidth: "120px" }}
-                  >
+                  <div className="qw-profile-role">
                     {provider.role || provider.headline || "Top Rated"}
                   </div>
                 )}

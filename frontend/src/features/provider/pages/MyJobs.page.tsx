@@ -44,6 +44,13 @@ export interface IAssignment {
   assignedAt: string;
   isOutOfDistrict: boolean;
   type: "open" | "direct";
+  payment?: {
+    status: string;
+    method?: string;
+    amount: number;
+    paidAt?: string;
+    transactionId?: string;
+  };
 }
 
 type TabType = "active" | "completed" | "cancelled" | "all";
@@ -103,7 +110,7 @@ const MyJobsPage: React.FC = () => {
   return (
     <div style={{ minHeight: "100vh", background: "#f1f5f9", padding: "32px 32px 48px" }}>
 
-      {/* ── Page Header ── */}
+      {}
       <div style={{ marginBottom: 28 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
           <div>
@@ -120,7 +127,7 @@ const MyJobsPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Search + CTA */}
+          {}
           <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
             <div style={{ position: "relative" }}>
               <RiSearchLine style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#94a3b8", fontSize: 16 }} />
@@ -142,7 +149,7 @@ const MyJobsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Stats Row ── */}
+      {}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 24 }}>
         {TABS.map(tab => (
           <div
@@ -161,7 +168,7 @@ const MyJobsPage: React.FC = () => {
         ))}
       </div>
 
-      {/* ── Filter strip ── */}
+      {}
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18, background: "#fff", borderRadius: 10, padding: "4px", border: "1px solid #e8edf4", alignSelf: "flex-start", width: "fit-content" }}>
         {TABS.map(tab => (
           <button
@@ -177,7 +184,7 @@ const MyJobsPage: React.FC = () => {
         ))}
       </div>
 
-      {/* ── Content ── */}
+      {}
       <div>
         {loading ? (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 0", gap: 16 }}>
@@ -223,7 +230,7 @@ const MyJobsPage: React.FC = () => {
           </div>
         )}
 
-        {/* Pagination */}
+        {}
         {totalPages > 1 && (
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, marginTop: 32 }}>
             {[

@@ -1,6 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 import { IAssignment } from '../interfaces/assignment.interface';
 import { ASSIGNMENT_STATUS, WORK_STATUS, ASSIGNMENT_TYPE } from '../../../constants/assignment';
+import { PAYMENT_STATUS, PAYMENT_METHOD } from '../../../constants/payment';
 
 const AssignmentSchema: Schema = new Schema(
     {
@@ -36,13 +37,19 @@ const AssignmentSchema: Schema = new Schema(
             reportedAt: { type: Date },
             notes: { type: String },
             evidence: [{ type: String }]
+        },
+        payment: {
+            status: { type: String, enum: Object.values(PAYMENT_STATUS), default: PAYMENT_STATUS.PENDING },
+            method: { type: String, enum: Object.values(PAYMENT_METHOD) },
+            amount: { type: Number },
+            paidAt: { type: Date },
+            transactionId: { type: String }
         }
     },
     { 
         timestamps: true 
     }
 );
-
 AssignmentSchema.index({ freelancerId: 1 });
 AssignmentSchema.index({ jobId: 1 });
 AssignmentSchema.index({ workStatus: 1 });

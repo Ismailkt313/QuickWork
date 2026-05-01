@@ -45,6 +45,7 @@ export interface JobDetail {
   isApplied?: boolean;
 
   freelancersNeeded: number;
+  acceptedFreelancers: number;
   myApplication?: {
     status: string;
     appliedAt: string;

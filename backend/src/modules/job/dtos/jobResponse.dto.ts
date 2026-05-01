@@ -1,4 +1,5 @@
 import { formatBudget, formatDate, getInitials, getRelativeTime } from "../../../utils/mapper.utils";
+import { VERIFICATION_STATUS } from "../../../constants/verification";
 
 export interface JobLocation {
   address: string;
@@ -33,31 +34,32 @@ export interface JobResponseDTO {
   hiredProvider?: any;
   rejectionReason?: string;
   isApplied?: boolean;
+  freelancersNeeded: number;
+  acceptedFreelancers: number;
+  hasPendingPayment?: boolean;
   createdAt: Date;
   updatedAt: Date;
   schedule?: {
     startDate: Date;
     endDate: Date;
   };
+  providers?: {
+    providerId: string;
+    finalStatus: string;
+    payment: {
+      status: string;
+      totalAmount: number;
+    };
+  }[];
 }
 
-export const mapJobToResponseDTO = async (job: any): Promise<JobResponseDTO> => {
+export const mapJobToResponseDTO = async (job: any, assignmentData?: any): Promise<JobResponseDTO> => {
   const user = job.userId || {};
   const skill = job.skillId || {};
-
+ 
   let hiredProvider = undefined;
-
+ 
   if (job.hiredProviderId?.userId) {
-    let assignmentData: any = null;
-    try {
-      const { AssignmentModel } = require('../../assignment/models/assignment.model');
-      assignmentData = await AssignmentModel.findOne({
-        jobId: job._id,
-        freelancerId: job.hiredProviderId._id
-      }).lean();
-    } catch (e) {
-    }
-
     hiredProvider = {
       id: job.hiredProviderId._id?.toString() || job.hiredProviderId.id,
       userId: job.hiredProviderId.userId?._id?.toString() || job.hiredProviderId.userId?.id || job.hiredProviderId.userId?.toString(),
@@ -65,6 +67,7 @@ export const mapJobToResponseDTO = async (job: any): Promise<JobResponseDTO> => 
       email: job.hiredProviderId.userId.email,
       headline: job.hiredProviderId.headline,
       profileImage: job.hiredProviderId.profileImage,
+      isVerified: job.hiredProviderId.verification?.status === VERIFICATION_STATUS.VERIFIED,
       assignmentId: assignmentData?._id?.toString() || null,
       workStatus: assignmentData?.workStatus || null,
       cancellation: assignmentData?.cancellation ? {
@@ -77,6 +80,13 @@ export const mapJobToResponseDTO = async (job: any): Promise<JobResponseDTO> => 
         reportedAt: assignmentData.absence.reportedAt,
         notes: assignmentData.absence.notes,
         evidence: assignmentData.absence.evidence,
+      } : null,
+      payment: assignmentData?.payment ? {
+        status: assignmentData.payment.status,
+        method: assignmentData.payment.method,
+        amount: assignmentData.payment.amount,
+        paidAt: assignmentData.payment.paidAt,
+        transactionId: assignmentData.payment.transactionId
       } : null,
     };
   }
@@ -139,6 +149,9 @@ export const mapJobToResponseDTO = async (job: any): Promise<JobResponseDTO> => 
 
     hiredProvider,
     rejectionReason: job.rejectionReason,
+
+    freelancersNeeded: job.freelancersNeeded || 1,
+    acceptedFreelancers: job.acceptedFreelancers || 0,
 
     createdAt: job.createdAt,
     updatedAt: job.updatedAt,

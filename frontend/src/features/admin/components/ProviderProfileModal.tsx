@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import type { IServiceProviderDetails } from "../types/admin.types";
 import { VERIFICATION_STATUS } from "../../../constants/verification";
 
-// Removed local ProviderDetails in favor of IServiceProviderDetails
+
 
 interface ProviderProfileModalProps {
   provider: IServiceProviderDetails;
@@ -144,7 +144,7 @@ const ProviderProfileModal: React.FC<ProviderProfileModalProps> = ({
           </div>
         </div>
 
-        {/* Content Section */}
+        {}
         <div style={{ padding: "32px", overflowY: "auto", flexGrow: 1 }}>
           <div
             style={{

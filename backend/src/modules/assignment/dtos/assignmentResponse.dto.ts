@@ -1,5 +1,4 @@
 import { JobResponseDTO, mapJobToResponseDTO } from "../../job/dtos/jobResponse.dto";
-import { formatDate } from "../../../utils/mapper.utils";
 
 export interface AssignmentResponseDTO {
     id: string;
@@ -32,6 +31,13 @@ export interface AssignmentResponseDTO {
         reportedAt: string;
         notes?: string;
         evidence?: string[];
+    };
+    payment?: {
+        status: string;
+        method?: string;
+        amount: number;
+        paidAt?: string;
+        transactionId?: string;
     };
 }
 
@@ -67,7 +73,13 @@ export const mapAssignmentToResponseDTO = async (assignment: any): Promise<Assig
             reportedAt: assignment.absence.reportedAt ? assignment.absence.reportedAt.toISOString() : '',
             notes: assignment.absence.notes,
             evidence: assignment.absence.evidence
+        } : undefined,
+        payment: assignment.payment ? {
+            status: assignment.payment.status,
+            method: assignment.payment.method,
+            amount: assignment.payment.amount,
+            paidAt: assignment.payment.paidAt ? assignment.payment.paidAt.toISOString() : '',
+            transactionId: assignment.payment.transactionId
         } : undefined
     };
 };
-

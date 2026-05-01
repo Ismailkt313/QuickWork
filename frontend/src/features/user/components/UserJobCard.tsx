@@ -10,32 +10,17 @@ import {
   RiLockLine,
   RiGlobeLine,
 } from "react-icons/ri";
-
-interface UserJob {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-  visibility: "public" | "private";
-  budget: {
-    min: number;
-    max: number;
-  };
-  schedule: {
-    startDate: string;
-    endDate: string;
-  };
-  categoryName?: string;
-  locationName?: string;
-}
+import type { UserJob } from "../services/userJob.service";
+import PayForJobButton from "./PayForJobButton";
 
 interface UserJobCardProps {
   job: UserJob;
   onCancel?: (id: string) => void;
   onView?: (id: string) => void;
+  onRefresh: () => void;
 }
 
-const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView }) => {
+const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView, onRefresh }) => {
   const isPrivate = job.visibility === "private";
 
   const getStatusConfig = (status: string) => {
@@ -53,11 +38,16 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView }) => {
           bg: "rgba(245, 158, 11, 0.1)",
         };
       case "fully_assigned":
+        return {
+          label: "Fully Assigned",
+          color: "#10b981",
+          bg: "rgba(16, 185, 129, 0.1)",
+        };
       case "in_progress":
         return {
-          label: "Ongoing",
-          color: "#0ea5e9",
-          bg: "rgba(14, 165, 233, 0.1)",
+          label: "In Progress",
+          color: "#3b82f6",
+          bg: "rgba(59, 130, 246, 0.1)",
         };
       case "completed":
         return {
@@ -74,8 +64,8 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView }) => {
       default:
         return {
           label: status,
-          color: "#6b7280",
-          bg: "rgba(107, 114, 128, 0.1)",
+          color: "#64748b",
+          bg: "rgba(100, 116, 139, 0.1)",
         };
     }
   };
@@ -87,7 +77,7 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView }) => {
     <div className="qw-job-card" onClick={() => onView?.(job.id)}>
       <div className="qw-card-accent" style={{ background: status.color }} />
 
-      <div className="p-4">
+      <div className="p-4 d-flex flex-column flex-grow-1">
         <div className="d-flex justify-content-between align-items-start mb-4">
           <div className="d-flex flex-wrap gap-2">
             <div
@@ -109,39 +99,54 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView }) => {
                 <RiGlobeLine size={12} /> Public
               </div>
             )}
+            {job.hasPendingPayment && (
+              <div
+                className="qw-visibility-badge"
+                style={{
+                  background: "#fff7ed",
+                  color: "#ea580c",
+                  border: "1px solid #fed7aa",
+                }}
+              >
+                <RiMoneyDollarCircleLine size={14} /> Payment Pending
+              </div>
+            )}
           </div>
 
-          <div className="dropdown" onClick={(e) => e.stopPropagation()}>
-            <button className="qw-more-btn" data-bs-toggle="dropdown">
-              <RiMore2Fill size={20} />
-            </button>
-            <ul className="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2">
-              <li>
-                <button
-                  className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 rounded-3"
-                  onClick={() => onView?.(job.id)}
-                >
-                  <RiEyeLine size={18} /> View Details
-                </button>
-              </li>
-              {(job.status === "open" ||
-                job.status === "partially_assigned" ||
-                job.status === "fully_assigned" ||
-                job.status === "in_progress") && (
+          <div className="qw-job-card-actions">
+            <div className="dropdown" onClick={(e) => e.stopPropagation()}>
+              <button className="qw-more-btn" data-bs-toggle="dropdown">
+                <RiMore2Fill size={20} />
+              </button>
+              <ul className="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2">
                 <li>
                   <button
-                    className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 rounded-3 text-danger"
-                    onClick={() => onCancel?.(job.id)}
+                    className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 rounded-3"
+                    onClick={() => onView?.(job.id)}
                   >
-                    <RiCloseCircleLine size={18} /> Cancel Job
+                    <RiEyeLine size={18} /> View Details
                   </button>
                 </li>
-              )}
-            </ul>
+                {(job.status === "open" ||
+                  job.status === "partially_assigned" ||
+                  job.status === "fully_assigned" ||
+                  job.status === "in_progress") && (
+                  <li>
+                    <button
+                      className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 rounded-3 text-danger"
+                      onClick={() => onCancel?.(job.id)}
+                    >
+                      <RiCloseCircleLine size={18} /> Cancel Job
+                    </button>
+                  </li>
+                )}
+              </ul>
+            </div>
           </div>
         </div>
-        <div className="mb-4">
-          <h5 className="qw-job-title mb-2">{job.title}</h5>
+
+        <div className="mb-4" style={{ minHeight: '60px' }}>
+          <h5 className="qw-job-title mb-2 text-truncate">{job.title}</h5>
           <div
             className="d-flex align-items-center gap-2 text-muted"
             style={{ fontSize: "13px", fontWeight: 500 }}
@@ -150,48 +155,48 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView }) => {
             {skillName}
           </div>
         </div>
+
         <div className="qw-info-grid mb-4">
           <div className="qw-info-item">
             <RiMapPinLine className="qw-info-icon" />
-            <span>{job.locationName || "Remote"}</span>
+            <span className="text-truncate">{job.locationName || "Remote"}</span>
           </div>
           <div className="qw-info-item">
             <RiCalendarLine className="qw-info-icon" />
             <span>{job.schedule?.startDate ? new Date(job.schedule.startDate).toLocaleDateString() : "TBD"}</span>
           </div>
         </div>
-        <div className="qw-card-footer pt-3 d-flex justify-content-between align-items-center">
-          <div className="d-flex flex-column">
-            <span className="qw-footer-label">Budget</span>
-            <div className="d-flex align-items-center gap-1 fw-bold text-dark fs-5">
-              <RiMoneyDollarCircleLine size={20} className="text-success" />
-              ₹{job.budget.min} - ₹{job.budget.max}
+
+        <div className="qw-card-footer pt-3 mt-auto">
+          <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div className="d-flex flex-column">
+              <span className="qw-footer-label">Budget</span>
+              <div className="d-flex align-items-center gap-1 fw-bold text-dark fs-5">
+                <RiMoneyDollarCircleLine size={20} className="text-success" />
+                {job.budget}
+              </div>
+            </div>
+
+            <div className="d-flex align-items-center gap-2">
+              <PayForJobButton job={job} onSuccess={onRefresh} />
+              
+              {["completed", "cancelled", "rejected"].includes(job.status) ? (
+                <div className="qw-status-display">
+                  {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
+                </div>
+              ) : (
+                <button
+                  className="qw-cancel-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCancel?.(job.id);
+                  }}
+                >
+                  Cancel
+                </button>
+              )}
             </div>
           </div>
-
-          {["completed", "cancelled", "rejected"].includes(job.status) ? (
-            <div
-              className="qw-manage-btn"
-              style={{
-                opacity: 0.6,
-                cursor: "default",
-                background: "#f8fafc",
-                color: "#94a3b8",
-              }}
-            >
-              {job.status === "completed" ? "Completed" : "Cancelled"}
-            </div>
-          ) : (
-            <button
-              className="qw-cancel-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                onCancel?.(job.id);
-              }}
-            >
-              Cancel Job
-            </button>
-          )}
         </div>
       </div>
 
@@ -205,6 +210,7 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView }) => {
           overflow: hidden;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           cursor: pointer;
+          min-height: 420px;
         }
 
         .qw-job-card:hover {
@@ -219,7 +225,7 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView }) => {
           left: 0;
           right: 0;
           height: 4px;
-          opacity: 0.6;
+          opacity: 0.8;
         }
 
         .qw-status-badge {
@@ -243,7 +249,7 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView }) => {
         .qw-visibility-badge {
           display: flex;
           align-items: center;
-          gap: 5px;
+          gap: 4px;
           padding: 6px 12px;
           border-radius: 20px;
           font-size: 11px;
@@ -253,33 +259,83 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView }) => {
         .qw-visibility-badge.private { background: #0f172a; color: white; }
         .qw-visibility-badge.public { background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0; }
 
+        .qw-job-card-actions {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .qw-pay-all-btn {
+          background: #4f46e5;
+          color: white;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 12px;
+          font-weight: 700;
+          font-size: 13px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          cursor: pointer;
+          transition: all 0.2s;
+          box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+
+        .qw-pay-all-btn:hover:not(:disabled) {
+          background: #4338ca;
+          transform: translateY(-1px);
+          box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
+        }
+
+        .qw-pay-all-btn:disabled {
+          background: #94a3b8;
+          cursor: not-allowed;
+          box-shadow: none;
+          opacity: 0.8;
+        }
+
+        .qw-badge-count {
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+          font-size: 10px;
+          font-weight: 800;
+          padding: 1px 6px;
+          border-radius: 6px;
+        }
+
         .qw-more-btn {
           background: #f8fafc;
           border: 1px solid #f1f5f9;
-          width: 36px;
-          height: 36px;
-          border-radius: 10px;
+          width: 40px;
+          height: 40px;
+          border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #94a3b8;
+          color: #64748b;
           transition: all 0.2s;
         }
 
-        .qw-more-btn:hover { background: #f1f5f9; color: #0f172a; }
+        .qw-more-btn:hover {
+          background: #f1f5f9;
+          color: #0f172a;
+        }
 
         .qw-job-title {
           font-family: 'Syne', sans-serif;
           font-weight: 800;
           color: #0f172a;
-          letter-spacing: -0.02em;
+          font-size: 17px;
           margin: 0;
+          height: 24px;
+          line-height: 24px;
         }
 
         .qw-info-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 12px;
+          height: 38px;
         }
 
         .qw-info-item {
@@ -311,37 +367,33 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView }) => {
           letter-spacing: 0.05em;
         }
 
-        .qw-manage-btn {
-          background: #f1f5f9;
-          color: #0f172a;
-          border: none;
-          padding: 10px 18px;
-          border-radius: 14px;
+        .qw-manage-btn, .qw-status-display {
+          background: #f8fafc;
+          color: #94a3b8;
+          border: 1px solid #f1f5f9;
+          padding: 8px 16px;
+          border-radius: 12px;
           font-weight: 700;
           font-size: 13px;
           display: flex;
           align-items: center;
-          gap: 4px;
-          transition: all 0.2s;
-        }
-
-        .qw-manage-btn:hover {
-          background: #0f172a;
-          color: white;
+          justify-content: center;
+          min-width: 100px;
         }
 
         .qw-cancel-btn {
           background: #fee2e2;
           color: #ef4444;
           border: none;
-          padding: 10px 18px;
-          border-radius: 14px;
+          padding: 8px 16px;
+          border-radius: 12px;
           font-weight: 700;
           font-size: 13px;
           display: flex;
           align-items: center;
           gap: 4px;
           transition: all 0.2s;
+          min-width: 100px;
         }
 
         .qw-cancel-btn:hover {

@@ -11,8 +11,9 @@ import { jobRouter } from "./modules/job";
 import { assignmentRouter } from "./modules/assignment";
 import messageRouter from "./modules/message";
 import { reviewRouter } from "./modules/review";
-import { reportRouter } from "./modules/report";
+import { reportRouter, moderationRouter } from "./modules/report";
 import { notificationRouter } from "./modules/notification";
+import { paymentRouter, walletRouter, adminFinanceRouter } from "./modules/finance";
 import { API_ROUTES } from "./constants/routes";
 
 export const registerdRoutes = (app: Application) => {
@@ -20,6 +21,8 @@ export const registerdRoutes = (app: Application) => {
     app.use(BASE_URL + API_ROUTES.AUTH, authRouter);
     app.use(BASE_URL + API_ROUTES.ADMIN, adminRouter);
     app.use(BASE_URL + API_ROUTES.ADMIN, adminServiceRequestRouter);
+    app.use(BASE_URL + API_ROUTES.ADMIN + '/finance', adminFinanceRouter);
+    app.use(BASE_URL + API_ROUTES.ADMIN + '/reports', moderationRouter);
     app.use(BASE_URL + API_ROUTES.PROVIDER, serviceProviderRouter);
     app.use(BASE_URL + API_ROUTES.SERVICE_REQUEST, serviceRequestRouter);
     app.use(BASE_URL + API_ROUTES.LOCATIONS, locationRouter);
@@ -32,4 +35,6 @@ export const registerdRoutes = (app: Application) => {
     app.use(BASE_URL + API_ROUTES.REVIEW, reviewRouter);
     app.use(BASE_URL + API_ROUTES.REPORT, reportRouter);
     app.use(BASE_URL + API_ROUTES.NOTIFICATIONS, notificationRouter);
+    app.use(BASE_URL + API_ROUTES.PAYMENTS, paymentRouter);
+    app.use(BASE_URL + API_ROUTES.WALLET, walletRouter);
 }

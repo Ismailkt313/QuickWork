@@ -38,19 +38,19 @@ import { mapUserToResponseDTO, UserResponseDTO } from "../dtos/userResponse.dto"
 import { SuccessMessages } from "../../../constants/messages/successMessages";
 import { ErrorMessages } from "../../../constants/messages/errorMessages";
 import { HttpStatusCode } from "../../../constants/httpStatusCode";
-import { UploadService } from "../../upload/services/upload.service";
+import { IUploadService } from "../../upload/interfaces/upload.interface";
 import { logger } from "../../../utils/logger";
 
  
 export class AuthService implements IAuthService {
     private readonly authRepository: IAuthRepository;
     private readonly otpRepository: IOtpRepository;
-    private readonly uploadService: UploadService;
+    private readonly uploadService: IUploadService;
 
     constructor(
         authRepository: IAuthRepository,
         otpRepository: IOtpRepository,
-        uploadService: UploadService
+        uploadService: IUploadService
     ) {
         this.authRepository = authRepository;
         this.otpRepository = otpRepository;

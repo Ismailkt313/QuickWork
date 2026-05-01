@@ -337,3 +337,33 @@ export const submitReport = async (reportData: {
     throw new Error(err.response?.data?.message || "Failed to submit report");
   }
 };
+
+export const confirmPayment = async (id: string) => {
+  try {
+    const response = await api.post(`/assignment/${id}/payment/confirm-cash`);
+    return response.data;
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    throw new Error(err.response?.data?.message || "Failed to confirm payment");
+  }
+};
+
+export const providerMarkAsPaid = async (id: string) => {
+  try {
+    const response = await api.post(`/assignment/${id}/payment/provider-mark-paid`);
+    return response.data;
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    throw new Error(err.response?.data?.message || "Failed to mark as paid");
+  }
+};
+
+export const rejectPayment = async (id: string) => {
+  try {
+    const response = await api.post(`/assignment/${id}/payment/reject`);
+    return response.data;
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    throw new Error(err.response?.data?.message || "Failed to reject payment");
+  }
+};

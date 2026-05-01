@@ -63,7 +63,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
       await onSubmit(rating, comment, images);
       onClose();
     } catch {
-      // Error handled in parent
+      toast.error("Failed to submit review");
     } finally {
       setLoading(false);
     }

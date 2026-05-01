@@ -26,7 +26,7 @@ const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({ title, isUrgent, isNe
 
   return (
     <div style={{ marginBottom: 28 }}>
-      {/* Badges */}
+      {}
       <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:14 }}>
         {isUrgent && badge("#fef2f2","#dc2626","#fecaca", <RiFlashlightLine size={11}/>, "Urgent Hire")}
         {isNew    && badge("#eff6ff","#3b82f6","#bfdbfe", <RiSparklingLine size={11}/>, "New Post")}
@@ -35,12 +35,12 @@ const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({ title, isUrgent, isNe
         {isMyArea === false && badge("#fff7ed","#b45309","#fde68a", <RiAlertLine  size={11}/>, "Not Your Area")}
       </div>
 
-      {/* Title */}
+      {}
       <h1 style={{ fontFamily:"Syne,sans-serif", fontWeight:800, fontSize:32, color:"#0f172a", letterSpacing:"-0.8px", lineHeight:1.2, margin:"0 0 14px" }}>
         {title}
       </h1>
 
-      {/* Meta row */}
+      {}
       <div style={{ display:"flex", flexWrap:"wrap", gap:20, alignItems:"center" }}>
         <div style={{ display:"flex", alignItems:"center", gap:6, fontSize:14, color:"#64748b" }}>
           <RiTimeLine size={16} color="#6366f1" />

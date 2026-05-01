@@ -1,11 +1,12 @@
 import React, { useState, useRef } from "react";
 import {
-  RiImageAddLine,
   RiCloseLine,
-  RiCheckFill,
+  RiCheckboxCircleLine,
   RiInformationLine,
   RiArrowRightLine,
   RiLoader4Line,
+  RiCameraLine,
+  RiDeleteBinLine,
 } from "react-icons/ri";
 import { uploadMultipleImages } from "../services/provider.service";
 import { toast } from "react-toastify";
@@ -83,232 +84,403 @@ const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
   };
 
   return (
-    <div
-      className="qw-modal-overlay"
-      onClick={isSubmitting ? undefined : onClose}
-    >
-      <div
-        className="qw-modal-content animate-pop-in"
-        style={{ maxWidth: "540px" }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          className="qw-modal-close-btn"
-          onClick={onClose}
-          disabled={isSubmitting}
-        >
-          <RiCloseLine size={24} />
-        </button>
-
-        <div className="mb-4">
-          <div className="d-flex align-items-center gap-3 mb-2">
-            <div className="p-3 bg-primary-subtle rounded-4 text-primary">
-              <RiCheckFill size={24} />
-            </div>
-            <div>
-              <h3
-                className="fw-bold text-dark mb-0"
-                style={{ fontFamily: "Syne, sans-serif" }}
-              >
-                Mark as Completed
-              </h3>
-              <p className="text-muted mb-0 small">
-                Please provide proof of work for "{jobTitle}"
-              </p>
-            </div>
+    <div className="qw-proof-overlay" onClick={isSubmitting ? undefined : onClose}>
+      <div className="qw-proof-modal animate-proof-in" onClick={(e) => e.stopPropagation()}>
+        {}
+        <div className="qw-proof-header">
+          <div className="qw-proof-icon-box">
+            <RiCheckboxCircleLine size={24} />
           </div>
+          <div className="qw-proof-title-area">
+            <h3>Complete Assignment</h3>
+            <p>Upload proof for <span>{jobTitle}</span></p>
+          </div>
+          <button className="qw-proof-close" onClick={onClose} disabled={isSubmitting}>
+            <RiCloseLine size={20} />
+          </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label
-              className="fw-bold text-dark mb-2 small text-uppercase"
-              style={{ letterSpacing: "0.05em" }}
-            >
-              Proof Images ({uploadedImages.length}/5)
-            </label>
-
-            {uploadedImages.length < 5 && (
-              <div
-                className={`p-4 rounded-5 border-2 border-dashed d-flex flex-column align-items-center justify-content-center transition-all mb-3 ${dragActive ? "border-primary bg-primary-subtle" : "border-light bg-light"}`}
-                style={{ cursor: "pointer", minHeight: "140px" }}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setDragActive(true);
-                }}
-                onDragLeave={() => setDragActive(false)}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  setDragActive(false);
-                  if (e.dataTransfer.files) {
-                    const event = {
-                      target: { files: e.dataTransfer.files },
-                    } as unknown as React.ChangeEvent<HTMLInputElement>;
-                    handleFileChange(event);
-                  }
-                }}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  accept="image/*"
-                  multiple
-                  hidden
-                />
-                {isUploading ? (
-                  <RiLoader4Line
-                    size={32}
-                    className="animate-spin text-primary mb-2"
-                  />
-                ) : (
-                  <RiImageAddLine size={32} className="text-primary mb-2" />
-                )}
-                <p className="fw-bold mb-0 text-dark small">
-                  Click or drag photos
-                </p>
-              </div>
-            )}
-
-            {uploadedImages.length > 0 && (
-              <div className="d-flex flex-wrap gap-2 mb-3">
+        {}
+        <div className="qw-proof-body">
+          <form id="proof-form" onSubmit={handleSubmit}>
+            {}
+            <div className="qw-proof-section">
+              <label className="qw-section-label">Proof of Work Photos <span>({uploadedImages.length}/5)</span></label>
+              
+              <div className="qw-image-grid">
                 {uploadedImages.map((url, index) => (
-                  <div
-                    key={index}
-                    className="position-relative"
-                    style={{ width: "80px", height: "80px" }}
-                  >
-                    <img
-                      src={url}
-                      alt={`Proof ${index}`}
-                      className="w-100 h-100 object-fit-cover rounded-3 border"
-                    />
-                    <button
-                      type="button"
-                      className="position-absolute top-0 end-0 bg-danger text-white border-0 rounded-circle d-flex align-items-center justify-content-center"
-                      style={{
-                        width: "20px",
-                        height: "20px",
-                        marginTop: "-8px",
-                        marginRight: "-8px",
-                      }}
-                      onClick={() => removeImage(url)}
-                    >
-                      <RiCloseLine size={14} />
+                  <div key={index} className="qw-image-item animate-pop">
+                    <img src={url} alt="Proof" />
+                    <button type="button" className="qw-image-remove" onClick={() => removeImage(url)}>
+                      <RiDeleteBinLine size={14} />
                     </button>
                   </div>
                 ))}
+
+                {uploadedImages.length < 5 && (
+                  <div 
+                    className={`qw-upload-box ${dragActive ? 'active' : ''} ${isUploading ? 'loading' : ''}`}
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+                    onDragLeave={() => setDragActive(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setDragActive(false);
+                      if (e.dataTransfer.files) {
+                        const event = { target: { files: e.dataTransfer.files } } as unknown as React.ChangeEvent<HTMLInputElement>;
+                        handleFileChange(event);
+                      }
+                    }}
+                  >
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" multiple hidden />
+                    {isUploading ? <RiLoader4Line className="qw-spin" size={24} /> : <RiCameraLine size={24} />}
+                    <span>{isUploading ? 'Uploading...' : 'Add Photo'}</span>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-          <div className="mb-4">
-            <label
-              className="fw-bold text-dark mb-2 small text-uppercase"
-              style={{ letterSpacing: "0.05em" }}
-            >
-              Work Details
-            </label>
-            <textarea
-              className="form-control rounded-4 p-3 border-light bg-light"
-              rows={4}
-              placeholder="Describe what was done and any relevant notes..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              disabled={isSubmitting}
-              style={{ fontSize: "15px", resize: "none" }}
-              required
-            />
-          </div>
+              <p className="qw-upload-tip text-muted">Upload up to 5 clear photos of the completed work</p>
+            </div>
 
-          <div className="p-3 bg-blue-50 rounded-4 border border-blue-100 d-flex gap-3 align-items-start mb-4">
-            <RiInformationLine
-              className="text-blue-500 flex-shrink-0 mt-0-5"
-              size={20}
-            />
-            <p className="small text-blue-800 mb-0" style={{ lineHeight: 1.5 }}>
-              Submitting this will notify the client and initiate the payment
-              verification process. Ensure all details are accurate.
-            </p>
-          </div>
+            {}
+            <div className="qw-proof-section">
+              <label className="qw-section-label">Work Description</label>
+              <textarea 
+                className="qw-proof-textarea"
+                placeholder="Briefly describe the work you completed..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                disabled={isSubmitting}
+                required
+              />
+            </div>
 
-          <div className="d-grid">
-            <button
-              type="submit"
-              className="btn-action-primary d-flex align-items-center justify-content-center gap-2"
-              disabled={isSubmitting || !description.trim()}
-            >
-              {isSubmitting ? (
-                <>
-                  <RiLoader4Line className="animate-spin" /> Submitting...
-                </>
-              ) : (
-                <>
-                  Complete Task <RiArrowRightLine />
-                </>
-              )}
-            </button>
-          </div>
-        </form>
+            {}
+            <div className="qw-proof-info">
+              <RiInformationLine size={18} />
+              <p>Submitting this proof will notify the client and initiate the payment clearance process.</p>
+            </div>
+          </form>
+        </div>
+
+        {}
+        <div className="qw-proof-footer">
+          <button className="qw-btn-cancel" onClick={onClose} disabled={isSubmitting}>Cancel</button>
+          <button 
+            type="submit" 
+            form="proof-form" 
+            className="qw-btn-submit" 
+            disabled={isSubmitting || !description.trim() || uploadedImages.length === 0}
+          >
+            {isSubmitting ? <RiLoader4Line className="qw-spin" /> : <RiArrowRightLine />}
+            {isSubmitting ? 'Submitting Proof...' : 'Complete & Finish'}
+          </button>
+        </div>
       </div>
 
       <style>{`
-        .qw-modal-overlay {
+        .qw-proof-overlay {
           position: fixed;
           inset: 0;
-          background: rgba(15, 23, 42, 0.4);
-          backdrop-filter: blur(12px);
+          background: rgba(15, 23, 42, 0.6);
+          backdrop-filter: blur(8px);
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 20px;
-          z-index: 5000;
+          z-index: 999999;
         }
-        .qw-modal-content {
+
+        .leaflet-container {
+          z-index: 0 !important;
+        }
+
+        .qw-proof-modal {
           background: #ffffff;
           width: 100%;
-          padding: 48px 40px;
-          border-radius: 42px;
-          box-shadow: 0 30px 60px -12px rgba(15, 23, 42, 0.2);
+          max-width: 580px;
+          max-height: 90vh;
+          border-radius: 32px;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+          overflow: hidden;
           position: relative;
         }
-        .qw-modal-close-btn {
-          position: absolute;
-          top: 24px;
-          right: 24px;
-          background: #f8fafc;
-          border: 1px solid #f1f5f9;
-          width: 40px;
-          height: 40px;
+
+        .qw-proof-header {
+          padding: 24px 32px;
+          border-bottom: 1px solid #f1f5f9;
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          position: relative;
+        }
+
+        .qw-proof-icon-box {
+          width: 48px;
+          height: 48px;
+          background: #f0fdf4;
+          color: #16a34a;
+          border-radius: 14px;
           display: flex;
           align-items: center;
           justify-content: center;
-          border-radius: 12px;
+        }
+
+        .qw-proof-title-area h3 {
+          font-family: 'Syne', sans-serif;
+          font-weight: 800;
+          font-size: 20px;
+          margin: 0;
+          color: #0f172a;
+        }
+
+        .qw-proof-title-area p {
+          margin: 4px 0 0;
+          font-size: 13px;
+          color: #64748b;
+        }
+
+        .qw-proof-title-area p span {
+          color: #6366f1;
+          font-weight: 600;
+        }
+
+        .qw-proof-close {
+          position: absolute;
+          top: 24px;
+          right: 24px;
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          border: 1px solid #f1f5f9;
+          background: #fff;
           color: #94a3b8;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           cursor: pointer;
           transition: all 0.2s;
         }
-        .qw-modal-close-btn:hover { background: #ef4444; color: white; }
-        .btn-action-primary {
-          background: #0f172a;
-          color: white;
-          border: none;
-          height: 60px;
-          border-radius: 18px;
+
+        .qw-proof-close:hover {
+          background: #fee2e2;
+          color: #ef4444;
+          border-color: #fecaca;
+        }
+
+        .qw-proof-body {
+          padding: 32px;
+          overflow-y: auto;
+          flex: 1;
+        }
+
+        .qw-proof-section {
+          margin-bottom: 24px;
+        }
+
+        .qw-section-label {
+          display: block;
+          font-size: 11px;
           font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: #94a3b8;
+          margin-bottom: 12px;
+        }
+
+        .qw-section-label span {
+          color: #6366f1;
+        }
+
+        .qw-image-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+          gap: 12px;
+        }
+
+        .qw-image-item {
+          aspect-ratio: 1;
+          position: relative;
+          border-radius: 16px;
+          overflow: hidden;
+          border: 1px solid #e2e8f0;
+        }
+
+        .qw-image-item img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .qw-image-remove {
+          position: absolute;
+          top: 6px;
+          right: 6px;
+          width: 24px;
+          height: 24px;
+          background: rgba(220, 38, 38, 0.9);
+          color: #fff;
+          border: none;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          opacity: 0;
+          transform: translateY(-5px);
           transition: all 0.2s;
         }
-        .btn-action-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .bg-blue-50 { background-color: #eff6ff; }
-        .border-blue-100 { border-color: #dbeafe; }
-        .text-blue-500 { color: #3b82f6; }
-        .text-blue-800 { color: #1e40af; }
-        .animate-spin { animation: spin 1s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        .animate-pop-in { animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        @keyframes popIn {
-          from { opacity: 0; transform: scale(0.95) translateY(10px); }
-          to { opacity: 1; transform: scale(1) translateY(0); }
+
+        .qw-image-item:hover .qw-image-remove {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        .qw-upload-box {
+          aspect-ratio: 1;
+          background: #f8fafc;
+          border: 2px dashed #e2e8f0;
+          border-radius: 16px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .qw-upload-box:hover {
+          border-color: #6366f1;
+          background: #f5f3ff;
+          color: #6366f1;
+        }
+
+        .qw-upload-box.active {
+          border-color: #6366f1;
+          background: #eff6ff;
+        }
+
+        .qw-upload-box span {
+          font-size: 11px;
+          font-weight: 700;
+        }
+
+        .qw-upload-tip {
+          font-size: 11px;
+          margin-top: 10px;
+          text-align: center;
+        }
+
+        .qw-proof-textarea {
+          width: 100%;
+          min-height: 120px;
+          padding: 16px;
+          border-radius: 16px;
+          border: 1px solid #e2e8f0;
+          background: #f8fafc;
+          font-size: 14px;
+          line-height: 1.6;
+          resize: none;
+          transition: all 0.2s;
+        }
+
+        .qw-proof-textarea:focus {
+          outline: none;
+          border-color: #6366f1;
+          background: #fff;
+          box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .qw-proof-info {
+          display: flex;
+          gap: 12px;
+          padding: 16px;
+          background: #eff6ff;
+          border-radius: 16px;
+          color: #1e40af;
+          margin-top: 8px;
+        }
+
+        .qw-proof-info p {
+          margin: 0;
+          font-size: 12px;
+          line-height: 1.5;
+        }
+
+        .qw-proof-footer {
+          padding: 24px 32px;
+          border-top: 1px solid #f1f5f9;
+          display: flex;
+          justify-content: flex-end;
+          gap: 12px;
+          background: #f8fafc;
+        }
+
+        .qw-btn-cancel {
+          padding: 12px 24px;
+          border-radius: 12px;
+          border: 1px solid #e2e8f0;
+          background: #fff;
+          font-weight: 600;
+          font-size: 14px;
+          color: #64748b;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .qw-btn-cancel:hover {
+          background: #f1f5f9;
+          color: #0f172a;
+        }
+
+        .qw-btn-submit {
+          padding: 12px 28px;
+          border-radius: 12px;
+          border: none;
+          background: linear-gradient(135deg, #6366f1, #4f46e5);
+          color: #fff;
+          font-weight: 700;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          cursor: pointer;
+          transition: all 0.2s;
+          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .qw-btn-submit:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .qw-btn-submit:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+          box-shadow: none;
+        }
+
+        .qw-spin { animation: qw-spin 1s linear infinite; }
+        @keyframes qw-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .animate-proof-in { animation: proofIn 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes proofIn {
+          from { opacity: 0; transform: translateY(20px) scale(0.98); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .animate-pop { animation: pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes pop {
+          from { transform: scale(0.8); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+
+        @media (max-width: 640px) {
+          .qw-proof-modal { border-radius: 0; max-height: 100vh; }
+          .qw-proof-header, .qw-proof-body, .qw-proof-footer { padding: 20px; }
+          .qw-btn-submit { flex: 1; justify-content: center; }
         }
       `}</style>
     </div>

@@ -4,14 +4,15 @@ import { AppError } from '../../../utils/AppError';
 import { IJobController, IJobService } from '../interfaces/job.interface';
 import { mapProviderToResponseDTO } from '../../serviceProvider/dtos/providerResponse.dto';
 import {HttpStatusCode} from "../../../constants/httpStatusCode"
-import { AssignmentModel } from '../../assignment/models/assignment.model';
-
+import { IAssignmentRepository } from '../../assignment/interfaces/assignment.interface';
 
 export class JobController implements IJobController {
     private jobService: IJobService;
+    private assignmentRepo: IAssignmentRepository;
 
-    constructor(jobService: IJobService) {
+    constructor(jobService: IJobService, assignmentRepo: IAssignmentRepository) {
         this.jobService = jobService;
+        this.assignmentRepo = assignmentRepo;
     }
     createJob = async (req: Request, res: Response, next: any): Promise<void> => {
         try {
@@ -177,11 +178,7 @@ export class JobController implements IJobController {
             if (!userId) throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
 
             const jobId = req.params.jobId as string;
-            const assignments = await AssignmentModel.find({ jobId })
-                .populate({
-                    path: 'freelancerId',
-                    populate: { path: 'userId', select: 'name email profileImage headline' }
-                });
+            const assignments = await this.assignmentRepo.findWithFreelancer(jobId);
 
             const providers = assignments.map((a: any) => ({
                 assignmentId: a._id.toString(),

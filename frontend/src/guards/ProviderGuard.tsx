@@ -40,7 +40,7 @@ const ProviderGuard = ({ children }: { children: React.ReactNode }) => {
           return;
         }
 
-        // Check role permissions based on current path
+        
         if (
           decoded.role === "provider" &&
           location.pathname === "/provider/become-provider"

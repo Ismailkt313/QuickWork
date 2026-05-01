@@ -1,5 +1,6 @@
 import { Document, Types } from 'mongoose';
 import { ASSIGNMENT_STATUS, WORK_STATUS, ASSIGNMENT_TYPE } from '../../../constants/assignment';
+import { PAYMENT_STATUS, PAYMENT_METHOD } from '../../../constants/payment';
 
 export interface IAssignment extends Document {
     jobId: Types.ObjectId;
@@ -35,6 +36,13 @@ export interface IAssignment extends Document {
         notes?: string;
         evidence?: string[];
     };
+    payment?: {
+        status: PAYMENT_STATUS;
+        method?: PAYMENT_METHOD;
+        amount: number;
+        paidAt?: Date;
+        transactionId?: string;
+    };
     createdAt: Date;
     updatedAt: Date;
 }
@@ -48,6 +56,7 @@ export interface IAssignmentRepository {
     updateByJobId(jobId: string, data: Partial<IAssignment>): Promise<any>;
     exists(query: any): Promise<boolean>;
     count(query: any): Promise<number>;
+    findWithFreelancer(jobId: string): Promise<IAssignment[]>;
 }
 
 export interface IAssignmentService {
@@ -63,6 +72,11 @@ export interface IAssignmentService {
     cancelByProvider(id: string, providerId: string, notes?: string): Promise<IAssignment>;
     cancelByClient(id: string, clientId: string, notes?: string): Promise<IAssignment>;
     reportAbsence(id: string, clientId: string, notes?: string, evidence?: string[]): Promise<IAssignment>;
+    markAsPaidByCash(id: string, clientId: string): Promise<IAssignment>;
+    confirmPayment(id: string, providerId: string): Promise<IAssignment>;
+    providerMarkAsPaid(id: string, providerId: string): Promise<IAssignment>;
+    rejectPayment(id: string, providerId: string): Promise<IAssignment>;
+    getAssignmentByJobAndFreelancer(jobId: string, freelancerId: string): Promise<IAssignment | null>;
 }
 
 export interface IAssignmentController {
@@ -73,5 +87,9 @@ export interface IAssignmentController {
     cancelByProvider(req: any, res: any, next: any): Promise<void>;
     cancelByClient(req: any, res: any, next: any): Promise<void>;
     reportAbsence(req: any, res: any, next: any): Promise<void>;
+    markAsPaidByCash(req: any, res: any, next: any): Promise<void>;
+    confirmPayment(req: any, res: any, next: any): Promise<void>;
+    providerMarkAsPaid(req: any, res: any, next: any): Promise<void>;
+    rejectPayment(req: any, res: any, next: any): Promise<void>;
 }
 

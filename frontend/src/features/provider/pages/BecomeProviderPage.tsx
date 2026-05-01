@@ -28,7 +28,7 @@ const BecomeProviderPage: React.FC = () => {
           setRejectionReason(response.data.rejectionReason || "");
         }
       } catch (error) {
-        // If 404, it means no profile exists yet, which is fine for new onboarding
+        
         console.log(
           "No existing provider profile or error fetching profile:",
           error,
@@ -47,7 +47,7 @@ const BecomeProviderPage: React.FC = () => {
       if (response.success) {
         toast.success("Application reset. You can now start fresh.");
         setIsRejected(false);
-        // Refreshing the page state is handled by setting isRejected to false
+        
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Failed to reset application";

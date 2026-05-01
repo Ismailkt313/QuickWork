@@ -98,7 +98,7 @@ const JobDetailPage: React.FC = () => {
 
   return (
     <div style={{ background:"#f1f5f9", minHeight:"100vh", padding:"28px 32px 60px" }}>
-      {/* Back button */}
+      {}
       <button onClick={() => navigate(-1)}
         style={{ display:"inline-flex", alignItems:"center", gap:7, padding:"8px 16px", borderRadius:9, border:"1.5px solid #e2e8f0", background:"#fff", color:"#64748b", fontSize:13.5, fontWeight:600, cursor:"pointer", marginBottom:24, transition:"all 0.2s" }}
         onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.color="#6366f1";(e.currentTarget as HTMLButtonElement).style.borderColor="#a5b4fc";}}
@@ -108,9 +108,9 @@ const JobDetailPage: React.FC = () => {
       </button>
 
       <div style={{ display:"grid", gridTemplateColumns:"1fr 340px", gap:24, alignItems:"start", maxWidth:1200 }}>
-        {/* ── Left column ── */}
+        {}
         <div>
-          {/* Header */}
+          {}
           <div style={{ background:"#fff", borderRadius:16, border:"1px solid #e8edf4", padding:"24px 28px", marginBottom:16, boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
             <JobDetailHeader
               title={job.title}
@@ -121,10 +121,10 @@ const JobDetailPage: React.FC = () => {
               isNew={isNew}
             />
 
-            {/* Stats pills */}
+            {}
             <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginTop:16, paddingTop:16, borderTop:"1px solid #f1f5f9" }}>
               {[
-                { icon:<RiUserAddLine size={14}/>, label:`${job.freelancersNeeded || 1} Openings`, bg:"#eff6ff", color:"#3b82f6" },
+                { icon:<RiUserAddLine size={14}/>, label:`${job.acceptedFreelancers} of ${job.freelancersNeeded} Hired`, bg:"#eff6ff", color:"#3b82f6" },
                 { icon:<RiGroupLine size={14}/>,   label:`${job.applicants} Applicants`,           bg:"#f0fdf4", color:"#16a34a" },
               ].map((p, i) => (
                 <div key={i} style={{ display:"flex", alignItems:"center", gap:6, padding:"6px 14px", borderRadius:20, background:p.bg, color:p.color, fontSize:12.5, fontWeight:700 }}>
@@ -134,14 +134,14 @@ const JobDetailPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Map */}
+          {}
           {job.location?.lat && job.location?.lng && (
             <div style={{ borderRadius:16, overflow:"hidden", border:"1px solid #e8edf4", marginBottom:16, boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
               <Map lat={job.location.lat} lng={job.location.lng} address={job.location.address}/>
             </div>
           )}
 
-          {/* Info card (description + client + skills) */}
+          {}
           <JobInfoCard
             description={job.description}
             client={{ name: job.clientName, initials: job.clientInitials, rating: job.clientRating, reviewsCount: job.clientReviewsCount, isVerified: job.isClientVerified, avatarUrl: job.clientAvatarUrl }}
@@ -150,7 +150,7 @@ const JobDetailPage: React.FC = () => {
           />
         </div>
 
-        {/* ── Right column ── */}
+        {}
         <div>
           <JobActionPanel
             budget={job.budget}
@@ -170,7 +170,7 @@ const JobDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Modals */}
+      {}
       {job && (
         <UniversalActionModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} onConfirm={processAccept} title="Location Mismatch" message="This job is outside your default work zone. Confirm you can travel." iconType="location">
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginTop:12 }}>

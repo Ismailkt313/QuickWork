@@ -16,5 +16,11 @@ export function createAssignmentRouter(controller: IAssignmentController): Route
   router.post('/:id/cancel-by-client', authMiddleware, authorizeRoles(ROLES.USER,ROLES.PROVIDER), controller.cancelByClient);
   router.post('/:id/absence', authMiddleware, authorizeRoles(ROLES.USER,ROLES.PROVIDER), controller.reportAbsence);
 
+  
+  router.post('/:id/payment/mark-as-paid-cash', authMiddleware, authorizeRoles(ROLES.USER,ROLES.PROVIDER), controller.markAsPaidByCash);
+  router.post('/:id/payment/confirm-cash', authMiddleware, authorizeRoles(ROLES.PROVIDER), controller.confirmPayment);
+  router.post('/:id/payment/provider-mark-paid', authMiddleware, authorizeRoles(ROLES.PROVIDER), controller.providerMarkAsPaid);
+  router.post('/:id/payment/reject', authMiddleware, authorizeRoles(ROLES.PROVIDER), controller.rejectPayment);
+
   return router;
 }
