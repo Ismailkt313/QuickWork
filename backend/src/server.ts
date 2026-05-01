@@ -12,17 +12,19 @@ const startServer = async (): Promise<void> => {
         await mongoose.connect(config.MONGO_URI);
         logger.info('Database connected successfully');
         const httpServer = http.createServer(app);
-        const io = new Server(httpServer,{
-            cors:{
-                origin: [
-          config.FRONTEND_URL,
-          "https://quick-work-lemon.vercel.app"
-        ],
-                credentials:true,
-                methods:["GET","POST"],
-            }
+        const io = new Server(httpServer, {
+            cors: {
+                origin: true,
+                credentials: true,
+                methods: ["GET", "POST"],
+            },
+            transports: ["websocket", "polling"],
+            allowEIO3: true,
+            pingTimeout: 60000,
+            pingInterval: 25000
         });
         setupSocket(io);
+        app.set("io", io);
         httpServer.listen(config.PORT, () => {
             logger.info(`Server connected on port ${config.PORT}`);
         });

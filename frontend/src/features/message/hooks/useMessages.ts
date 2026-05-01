@@ -14,18 +14,7 @@ export const useMessages = (
   useEffect(() => {
     if (!socket) return;
 
-    const handleNewMessage = (newMessage: {
-      id?: string;
-      _id?: string;
-      sender: string;
-      receiver: string;
-      text?: string;
-      message?: string;
-      image?: string;
-      messageType?: "text" | "image" | string;
-      conversationId: string;
-      createdAt: string;
-    }) => {
+    const handleNewMessage = (newMessage: any) => {
       const matchesPlaceholder =
         activeConversationId?.startsWith("new-") &&
         (String(activeConversationId) === `new-${newMessage.sender}` ||
@@ -38,15 +27,19 @@ export const useMessages = (
         return;
 
       const normalizedMessage: Message = {
-        _id: (newMessage.id || newMessage._id || "") as string,
-        sender: newMessage.sender,
-        receiver: newMessage.receiver,
-        message: newMessage.text || newMessage.message,
+        _id: String(newMessage.id || newMessage._id || Date.now()),
+        sender: String(newMessage.sender),
+        receiver: String(newMessage.receiver),
+        message: newMessage.text || newMessage.message || "",
         image: newMessage.image,
         messageType: (newMessage.messageType || (newMessage.image ? "image" : "text")) as MESSAGE_TYPE,
-        createdAt: newMessage.createdAt,
+        createdAt: newMessage.createdAt || new Date().toISOString(),
       };
-      setMessages((prev) => [...prev, normalizedMessage]);
+      
+      setMessages((prev) => {
+        if (prev.some((m) => m._id === normalizedMessage._id)) return prev;
+        return [...prev, normalizedMessage];
+      });
     };
 
     const handleMessageDeleted = ({ messageId }: { messageId: string }) => {
@@ -63,35 +56,31 @@ export const useMessages = (
   }, [socket, activeConversationId]);
 
   const loadMessages = useCallback(async (conversationId: string) => {
-    setLoading(true);
-    try {
-      const response = await fetchMessagesApi(conversationId);
-      if (response.success) {
-        const mappedMessages = response.data.map((m: {
-          id?: string;
-          _id?: string;
-          text?: string;
-          message?: string;
-          image?: string;
-          [key: string]: unknown;
-        }) => ({
-          ...m,
-          _id: m.id || m._id,
-          message: m.text || m.message,
-          image: m.image
-        }));
-        setMessages(mappedMessages);
+    if (!conversationId.startsWith("new-")) {
+      setLoading(true);
+      setMessages([]); 
+      try {
+        const response = await fetchMessagesApi(conversationId);
+        if (response.success) {
+          const mappedMessages = response.data.map((m: any) => ({
+            ...m,
+            _id: m.id || m._id,
+            message: m.text || m.message,
+            image: m.image
+          }));
+          setMessages(mappedMessages);
+        }
+      } catch (error) {
+        console.error("Failed to load messages:", error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Failed to load messages:", error);
-    } finally {
-      setLoading(false);
+    } else {
+      setMessages([]);
     }
   }, []);
 
-  useEffect(() => {
-    setMessages([]);
-  }, [activeConversationId]);
+  // Removed separate useEffect for clearing messages
 
   const sendMessage = useCallback(
     async (receiverId: string | null, message: string, imageUrl?: string) => {

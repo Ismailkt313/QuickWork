@@ -200,14 +200,12 @@ const executeDeleteMessage = async () => {
     if (!socket) return;
 
     
-    const handleNewConversationMessage = (newMessage: {
-      sender: string;
-      receiver: string;
-      conversationId: string;
-      message: string;
-    }) => {
+    const handleNewConversationMessage = (newMessage: any) => {
+      console.log("DEBUG: Received socket message in MessagesPage:", newMessage);
       const currentSelectedId = selectedConvIdRef.current;
       const myUserId = currentUserIdRef.current;
+
+      const messageText = newMessage.text || newMessage.message || (newMessage.image ? "Sent an image" : "New message");
 
       if (currentSelectedId?.startsWith("new-")) {
         const placeholderTargetId = currentSelectedId.replace("new-", "");
@@ -238,7 +236,7 @@ const executeDeleteMessage = async () => {
               ...conv,
               id: newMessage.conversationId,
               isPlaceholder: false,
-              lastMessage: newMessage.message,
+              lastMessage: messageText,
               lastMessageAt: new Date(),
             };
           }

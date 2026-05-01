@@ -36,10 +36,13 @@ export class MessageController implements IMessageController {
                 isRead: false
             });
 
-            const io = getIo();
+            const io = req.app.get("io");
             if (io) {
-                io.to(dto.receiverId).emit("receiveMessage", result);
-                io.to(senderId).emit("receiveMessage", result);
+                const receiverRoom = String(dto.receiverId);
+                const senderRoom = String(senderId);
+                
+                io.to(receiverRoom).emit("receiveMessage", result);
+                io.to(senderRoom).emit("receiveMessage", result);
             }
 
             res.status(HttpStatusCode.CREATED).json({
@@ -95,10 +98,18 @@ export class MessageController implements IMessageController {
         try {
             const dto = MessageIdDto.create(req.query);
             const result = await this.messageService.deleteMessage(dto.messageId);
-            const io = getIo();
+            const io = req.app.get("io");
             if (io && result){
-                io.to(result.sender.toString()).emit("messageDeleted", { messageId:dto.messageId });
-                io.to(result.receiver.toString()).emit("messageDeleted", { messageId:dto.messageId });
+                const senderRoom = String(result.sender);
+                const receiverRoom = String(result.receiver);
+
+                (req as any).log.info({ senderRoom, receiverRoom, messageId: dto.messageId }, "DEBUG: Emitting messageDeleted");
+
+                // Temporary broadcast for debugging
+                io.emit("messageDeleted", { messageId: dto.messageId });
+                
+                io.to(senderRoom).emit("messageDeleted", { messageId: dto.messageId });
+                io.to(receiverRoom).emit("messageDeleted", { messageId: dto.messageId });
             }
             res.status(HttpStatusCode.OK).json({ success: true, message: SuccessMessages.MESSAGE_DELETED, data: result });
         } catch (error: any) {
@@ -111,11 +122,15 @@ export class MessageController implements IMessageController {
             const dto = ConversationIdDto.create(req.query);
             const conversation = await this.messageService.getConversation(dto.conversationId);
             const result = await this.messageService.deleteConversation(dto.conversationId);
-            const io = getIo();
+            const io = req.app.get("io");
             if (io && conversation && conversation.participants) {
+                // Temporary broadcast for debugging
+                io.emit("conversationDeleted", { conversationId: dto.conversationId });
+
                 conversation.participants.forEach((p: any) => {
-                    const participantId = p._id || p.id || p;
-                    io.to(participantId.toString()).emit("conversationDeleted", { 
+                    const participantId = String(p._id || p.id || p);
+                    (req as any).log.info({ participantId, conversationId: dto.conversationId }, "DEBUG: Emitting conversationDeleted");
+                    io.to(participantId).emit("conversationDeleted", { 
                         conversationId: dto.conversationId 
                     });
                 });

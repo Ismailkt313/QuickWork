@@ -25,6 +25,9 @@ export class UploadService implements IUploadService {
     }
 
     async uploadChatMessage(fileBuffer: Buffer, mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
+        if (!config.AWS_ACCESS_KEY_ID || !config.AWS_SECRET_ACCESS_KEY || !config.AWS_BUCKET_NAME) {
+            return this.uploadImage(fileBuffer, 'quickwork/chat-images');
+        }
         const fileName = `chat/${randomUUID()}-${Date.now()}`;
         return this.s3Service.uploadFile(fileBuffer, fileName, mimetype);
     }

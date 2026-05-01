@@ -39,7 +39,8 @@ export const loggerMiddleware = (req: Request, res: Response, next: NextFunction
     
     res.on("finish", () => {
         const duration = Date.now() - startTime;
-        const userId = (req as any).user?.id || (req as any).user?._id;
+        const user = (req as any).user;
+        const userId = user?.userId || user?.id || user?._id || user?.sub;
 
         childLogger.info({
             msg: "Request Completed",
