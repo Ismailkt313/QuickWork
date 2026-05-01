@@ -28,7 +28,8 @@ export interface IReport extends Document {
 
 export interface IReportRepository {
     create(data: Partial<IReport>): Promise<IReport>;
-    findAll(): Promise<IReport[]>;
+    findAll(page: number, limit: number): Promise<IReport[]>;
+    getCount(): Promise<number>;
     findById(id: string): Promise<IReport | null>;
     updateStatus(id: string, status: REPORT_STATUS): Promise<IReport | null>;
     findWithFilters(query: { status?: string; page?: number; limit?: number }): Promise<{
@@ -41,7 +42,13 @@ export interface IReportRepository {
 
 export interface IReportService {
     createReport(reporterId: string, data: any): Promise<IReport>;
-    getAllReports(): Promise<IReport[]>;
+    getAllReports(page: number, limit: number): Promise<{
+        reports: IReport[];
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    }>;
     updateReportStatus(id: string, status: REPORT_STATUS): Promise<IReport | null>;
 }
 

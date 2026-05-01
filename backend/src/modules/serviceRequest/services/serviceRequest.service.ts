@@ -59,9 +59,31 @@ export class ServiceRequestService implements IServiceRequestService {
         return { success: true, data: requests };
     }
 
-    async getPendingRequests(): Promise<{ success: boolean; data: IServiceRequest[] }> {
-        const requests = await this.serviceRequestRepository.findAllPending();
-        return { success: true, data: requests };
+    async getPendingRequests(page: number, limit: number): Promise<{ 
+        success: boolean; 
+        data: IServiceRequest[]; 
+        pagination: {
+            total: number;
+            page: number;
+            limit: number;
+            totalPages: number;
+        };
+    }> {
+        const [requests, total] = await Promise.all([
+            this.serviceRequestRepository.findAllPending(page, limit),
+            this.serviceRequestRepository.getPendingCount()
+        ]);
+        
+        return { 
+            success: true, 
+            data: requests,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
+        };
     }
 
     async approveRequest(

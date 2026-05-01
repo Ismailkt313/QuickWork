@@ -50,7 +50,11 @@ export class AdminController implements IAdminController {
         next: NextFunction
     ): Promise<void> => {
         try {
-            const result = await this.adminService.getPendingProviders();
+            const query: IUserListQuery = {
+                page: Math.max(1, parseInt(req.query.page as string) || 1),
+                limit: Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 10)),
+            };
+            const result = await this.adminService.getPendingProviders(query);
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);

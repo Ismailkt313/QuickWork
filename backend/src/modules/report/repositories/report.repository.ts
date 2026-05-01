@@ -7,11 +7,18 @@ export class ReportRepository implements IReportRepository {
         return await report.save();
     }
 
-    async findAll(): Promise<IReport[]> {
+    async findAll(page: number, limit: number): Promise<IReport[]> {
+        const skip = (page - 1) * limit;
         return await ReportModel.find()
             .populate('reporterId', 'name email profileImage')
             .populate('reportedUserId', 'name email profileImage isBlocked warningCount')
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+    }
+
+    async getCount(): Promise<number> {
+        return await ReportModel.countDocuments();
     }
 
     async findById(id: string): Promise<IReport | null> {

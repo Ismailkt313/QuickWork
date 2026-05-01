@@ -19,9 +19,17 @@ export class ServiceRequestRepository implements IServiceRequestRepository {
         return await ServiceRequestModel.find({ requestedBy: userId }).sort({ createdAt: -1 });
     }
 
-    async findAllPending(): Promise<IServiceRequest[]> {
-        const val =  await ServiceRequestModel.find({ status: 'pending' }).populate('requestedBy', 'name email').sort({ createdAt: -1 });
-        return val
+    async findAllPending(page: number, limit: number): Promise<IServiceRequest[]> {
+        const skip = (page - 1) * limit;
+        return await ServiceRequestModel.find({ status: 'pending' })
+            .populate('requestedBy', 'name email')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+    }
+
+    async getPendingCount(): Promise<number> {
+        return await ServiceRequestModel.countDocuments({ status: 'pending' });
     }
 
     async findById(id: string): Promise<IServiceRequest | null> {

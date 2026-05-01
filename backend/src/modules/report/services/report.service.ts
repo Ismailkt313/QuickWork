@@ -33,8 +33,25 @@ export class ReportService implements IReportService {
         });
     }
 
-    async getAllReports(): Promise<IReport[]> {
-        return await this.reportRepository.findAll();
+    async getAllReports(page: number, limit: number): Promise<{
+        reports: IReport[];
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+    }> {
+        const [reports, total] = await Promise.all([
+            this.reportRepository.findAll(page, limit),
+            this.reportRepository.getCount()
+        ]);
+
+        return {
+            reports,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit)
+        };
     }
 
     async updateReportStatus(id: string, status: REPORT_STATUS): Promise<IReport | null> {

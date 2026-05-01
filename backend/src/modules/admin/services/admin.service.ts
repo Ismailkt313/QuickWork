@@ -34,15 +34,15 @@ export class AdminService implements IAdminService {
         return {
             success: true,
             message: SuccessMessages.USERS_FETCHED,
-            data: {
-                users: users.map((user) => ({
-                    id: user._id.toString(),
-                    name: user.name,
-                    email: user.email,
-                    role: user.role,
-                    isBlocked: user.isBlocked,
-                    createdAt: user.createdAt,
-                })),
+            data: users.map((user) => ({
+                id: user._id.toString(),
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                isBlocked: user.isBlocked,
+                createdAt: user.createdAt,
+            })),
+            pagination: {
                 total,
                 page: query.page,
                 limit: query.limit,
@@ -73,24 +73,30 @@ export class AdminService implements IAdminService {
     }
 
     
-    public async getPendingProviders(): Promise<IUserListResponse> {
-        const providers = await this.adminRepository.getPendingProviders();
+    public async getPendingProviders(query: IUserListQuery): Promise<IUserListResponse> {
+        const [providers, total] = await Promise.all([
+            this.adminRepository.getPendingProviders(query),
+            this.adminRepository.getPendingProviderCount()
+        ]);
+        
+        const totalPages = Math.ceil(total / query.limit);
+
         return {
             success: true,
             message: SuccessMessages.PENDING_PROVIDERS_FETCHED,
-            data: {
-                users: providers.map((provider) => ({
-                    id: provider._id.toString(),
-                    name: provider.userId.name,
-                    email: provider.userId.email,
-                    role: ROLES.PROVIDER,
-                    isBlocked: false,
-                    createdAt: provider.createdAt,
-                })),
-                total: providers.length,
-                page: 1,
-                limit: providers.length,
-                totalPages: 1,
+            data: providers.map((provider) => ({
+                id: provider._id.toString(),
+                name: provider.userId.name,
+                email: provider.userId.email,
+                role: ROLES.PROVIDER,
+                isBlocked: false,
+                createdAt: provider.createdAt,
+            })),
+            pagination: {
+                total,
+                page: query.page,
+                limit: query.limit,
+                totalPages,
             },
         };
     }

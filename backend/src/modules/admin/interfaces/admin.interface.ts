@@ -42,7 +42,8 @@ export interface IAdminRepository {
     getUsers(query: IUserListQuery): Promise<IUser[]>;
     getUserCount(search?: string): Promise<number>;
     toggleBlockUser(userId: string): Promise<IUser>;
-    getPendingProviders():Promise<IServiceProviderWithUser[]>;
+    getPendingProviders(query: IUserListQuery):Promise<IServiceProviderWithUser[]>;
+    getPendingProviderCount(): Promise<number>;
     approveProvider(providerId: string): Promise<void>;
     rejectProvider(providerId: string, reason: string): Promise<void>;
     getProviderDetails(providerId: string): Promise<IServiceProviderDetails>;
@@ -52,7 +53,7 @@ export interface IAdminRepository {
 export interface IAdminService {
     getUsers(query: IUserListQuery): Promise<IUserListResponse>;
     toggleBlockUser(userId: string): Promise<IApiResponse<{ isBlocked: boolean }>>;
-    getPendingProviders(): Promise<IUserListResponse>;
+    getPendingProviders(query: IUserListQuery): Promise<IUserListResponse>;
     approveProvider(providerId: string): Promise<IApiResponse<void>>;
     rejectProvider(providerId: string, reason: string): Promise<IApiResponse<void>>;
     getProviderDetails(providerId: string): Promise<IApiResponse<IServiceProviderDetails>>;

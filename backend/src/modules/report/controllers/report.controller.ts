@@ -35,12 +35,21 @@ export class ReportController implements IReportController {
 
     public getAllReports = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const reports = await this.reportService.getAllReports();
+            const page = Math.max(1, parseInt(req.query.page as string) || 1);
+            const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 10));
+            
+            const result = await this.reportService.getAllReports(page, limit);
             
             res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: "Reports fetched successfully",
-                data: reports.map(mapReportToResponseDTO)
+                data: result.reports.map(mapReportToResponseDTO),
+                pagination: {
+                    total: result.total,
+                    page: result.page,
+                    limit: result.limit,
+                    totalPages: result.totalPages
+                }
             });
         } catch (error) {
             next(error);

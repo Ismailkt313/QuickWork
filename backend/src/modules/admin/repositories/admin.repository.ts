@@ -48,10 +48,17 @@ export class AdminRepository implements IAdminRepository {
         await user.save();
         return user;
     }
-    public async getPendingProviders(): Promise<IServiceProviderWithUser[]> {
+    public async getPendingProviders(query: IUserListQuery): Promise<IServiceProviderWithUser[]> {
+        const skip = (query.page - 1) * query.limit;
         return ServiceProviderModel.find({ 'verification.status': VERIFICATION_STATUS.PENDING })
             .populate('userId', 'name email')
+            .skip(skip)
+            .limit(query.limit)
             .lean<IServiceProviderWithUser[]>();
+    }
+
+    public async getPendingProviderCount(): Promise<number> {
+        return ServiceProviderModel.countDocuments({ 'verification.status': VERIFICATION_STATUS.PENDING });
     }
 
     public async approveProvider(providerId: string): Promise<void> {

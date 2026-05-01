@@ -11,8 +11,6 @@ export interface IPaginationMetadata {
     totalPages: number;
 }
 
-export interface IPaginatedData<T> extends IPaginationMetadata {
-    users: T[];
+export interface IPaginatedResponse<T> extends IApiResponse<T[]> {
+    pagination: IPaginationMetadata;
 }
-
-export type IPaginatedResponse<T> = IApiResponse<IPaginatedData<T>>;

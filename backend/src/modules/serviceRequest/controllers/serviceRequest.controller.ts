@@ -51,7 +51,9 @@ export class ServiceRequestController implements IServiceRequestController {
 
     getPendingRequests = async (req: Request, res: Response, next: any): Promise<void> => {
         try {
-            const result = await this.serviceRequestService.getPendingRequests();
+            const page = Math.max(1, parseInt(req.query.page as string) || 1);
+            const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 10));
+            const result = await this.serviceRequestService.getPendingRequests(page, limit);
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
