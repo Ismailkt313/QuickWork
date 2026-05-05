@@ -26,6 +26,9 @@ const UserProfilePage = lazy(
 const MessagesPage = lazy(
   () => import("../../features/message/pages/messagePage"),
 );
+const PaymentHistoryPage = lazy(
+  () => import("../../features/finance/pages/PaymentHistoryPage"),
+);
 
 const UserRouter = () => {
   return (
@@ -44,6 +47,7 @@ const UserRouter = () => {
             <Route path="profile" element={<UserProfilePage />} />
             <Route path="security" element={<UserProfilePage />} />
             <Route path="messages" element={<MessagesPage />} />
+            <Route path="payment-history" element={<PaymentHistoryPage />} />
             <Route
               path="saved"
               element={

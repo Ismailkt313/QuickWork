@@ -239,6 +239,7 @@ export class AssignmentController implements IAssignmentController {
             const userId = req.user?.userId;
             const id = req.params.id as string;
             const provider = await this._serviceProviderRepository.findByUserId(userId as string);
+            console.log('Provider found', provider);
             if (!provider) throw new AppError('Provider not found', HttpStatusCode.NOT_FOUND);
 
             const updated = await this._assignmentService.providerMarkAsPaid(id, provider._id.toString());

@@ -1,14 +1,14 @@
 export const PAYMENT_STATUS = {
     PENDING: 'pending',
-    AWAITING_PROVIDER_CONFIRMATION: 'awaiting_provider_confirmation',
-    PAID: 'paid',
+    AWAITING_CONFIRMATION: 'awaiting_confirmation',
+    COMPLETED: 'completed',
     FAILED: 'failed',
     REFUNDED: 'refunded'
 } as const;
 
 export const PAYMENT_METHOD = {
-    ONLINE: 'online',
-    OFFLINE: 'offline',
+    ONLINE: 'ONLINE',
+    CASH: 'CASH',
 } as const;
 
 export type PAYMENT_STATUS = typeof PAYMENT_STATUS[keyof typeof PAYMENT_STATUS];

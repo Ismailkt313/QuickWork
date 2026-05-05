@@ -161,7 +161,7 @@ const AcceptConfirmationModal: React.FC<AcceptConfirmationModalProps> = ({
           align-items: center;
           justify-content: center;
           padding: 20px;
-          z-index: 5000;
+          z-index: 1000;
           transition: all 0.3s ease;
         }
         

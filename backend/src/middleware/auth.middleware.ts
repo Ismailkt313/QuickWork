@@ -27,8 +27,7 @@ export const authMiddleware = async (
 
         const token = authHeader.split(" ")[1];
         const decoded = verifyAccessToken(token);
-
-        const user = await UserModel.findById(decoded.userId).select("isBlocked");
+         const user = await UserModel.findById(decoded.userId).select("isBlocked");
         if (!user) {
             throw new AppError("User not found", HttpStatusCode.UNAUTH0RIZED);
         }

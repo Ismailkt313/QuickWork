@@ -32,6 +32,21 @@ export interface WorkHistory {
   endedAt: string;
 }
 
+export interface IInvoice {
+  description: string;
+  _id: string;
+  invoiceNumber: string;
+  jobId: { _id: string; title: string };
+  client: { name: string; email: string };
+  provider: { name: string; email: string };
+  total: number;
+  paymentMethod: string;
+  paymentStatus: string;
+  paidAt: string;
+  createdAt: string;
+}
+
+
 export const financeService = {
   markAsPaidCash: async (workHistoryId: string) => {
     const response = await api.post(ENDPOINTS.FINANCE.PAYMENTS_CASH(workHistoryId));
@@ -107,4 +122,22 @@ export const financeService = {
     const response = await api.post(ENDPOINTS.FINANCE.PAYMENTS_JOB_VERIFY, data);
     return response.data;
   },
+  
+  getInvoices: async (params?: { page?: number; limit?: number; role?: "client" | "provider" }) => {
+    const response = await api.get(ENDPOINTS.FINANCE.INVOICES, { params });
+    return response.data;
+  },
+
+  getInvoiceById: async (id: string) => {
+    const response = await api.get(ENDPOINTS.FINANCE.INVOICE_DETAIL(id));
+    return response.data;
+  },
+
+  downloadInvoicePdf: async (id: string) => {
+    const response = await api.get(ENDPOINTS.FINANCE.INVOICE_PDF(id), {
+      responseType: 'blob'
+    });
+    return response.data;
+  },
 };
+

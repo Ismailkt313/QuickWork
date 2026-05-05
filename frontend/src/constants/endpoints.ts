@@ -84,6 +84,9 @@ export const ENDPOINTS = {
     PAYMENTS_CONFIRM: (id: string) => `/payments/confirm/${id}`,
     PAYMENTS_REJECT: (id: string) => `/payments/reject/${id}`,
     PAYMENTS_HISTORY_ASSIGNMENT: (id: string) => `/payments/history/assignment/${id}`,
+    INVOICES: "/invoices",
+    INVOICE_DETAIL: (id: string) => `/invoices/${id}`,
+    INVOICE_PDF: (id: string) => `/invoices/${id}/pdf`,
   },
   REVIEW: {
     ME: "/review/me",

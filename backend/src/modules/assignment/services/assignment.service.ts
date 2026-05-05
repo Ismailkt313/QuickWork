@@ -43,7 +43,7 @@ export class AssignmentService implements IAssignmentService {
         if (data.jobId) {
             const jobId = data.jobId.toString();
             const job = await this._jobRepository.findById(jobId);
-            
+
             if (job && job.budget) {
                 const amount = (job.budget.min + job.budget.max) / 2;
                 data.payment = {
@@ -57,7 +57,7 @@ export class AssignmentService implements IAssignmentService {
 
     async getAssignmentsByProvider(providerId: string, options?: { page?: number, limit?: number, search?: string, status?: string }): Promise<{ assignments: IAssignment[], total: number, counts: { active: number, completed: number, cancelled: number, all: number } }> {
         const { page = 1, limit = 10, search = '', status = 'all' } = options || {};
-        
+
         const query: any = {
             freelancerId: providerId,
             'invite.status': ASSIGNMENT_STATUS.ACCEPTED
@@ -93,8 +93,8 @@ export class AssignmentService implements IAssignmentService {
             this._assignmentRepository.count({ freelancerId: providerId, 'invite.status': ASSIGNMENT_STATUS.ACCEPTED, workStatus: WORK_STATUS.CANCELLED })
         ]);
 
-        return { 
-            assignments, 
+        return {
+            assignments,
             total,
             counts: {
                 all: allCount,
@@ -124,9 +124,9 @@ export class AssignmentService implements IAssignmentService {
         } else if (status === WORK_STATUS.COMPLETED) {
             updateData.completedAt = new Date();
         }
-        
+
         const updated = await this._assignmentRepository.update(id, updateData);
-        
+
         if (updated && status === WORK_STATUS.COMPLETED) {
             const jobId = getObjectId(updated.jobId);
             await this._checkAndCompleteJob(jobId);
@@ -144,7 +144,7 @@ export class AssignmentService implements IAssignmentService {
                 });
             }
         }
-        
+
         return updated;
     }
 
@@ -168,7 +168,7 @@ export class AssignmentService implements IAssignmentService {
                     recipient: (job.userId as any)._id ? (job.userId as any)._id.toString() : job.userId.toString(),
                     title: 'Proof of Work Submitted',
                     message: `A provider has submitted proof of work for: ${job.title}`,
-                    type: 'PAYMENT', 
+                    type: 'PAYMENT',
                     link: `/user/jobs/${job._id}`
                 });
             }
@@ -191,9 +191,9 @@ export class AssignmentService implements IAssignmentService {
 
         if (job.status === JOB_STATUS.COMPLETED || job.status === JOB_STATUS.CANCELLED) return;
 
-        const allAssignments = await this._assignmentRepository.find({ 
-            jobId, 
-            'invite.status': ASSIGNMENT_STATUS.ACCEPTED 
+        const allAssignments = await this._assignmentRepository.find({
+            jobId,
+            'invite.status': ASSIGNMENT_STATUS.ACCEPTED
         });
 
         const completedCount = allAssignments.filter(a => a.workStatus === WORK_STATUS.COMPLETED).length;
@@ -258,9 +258,9 @@ export class AssignmentService implements IAssignmentService {
 
         const jobId = getObjectId(assignment.jobId);
         const job = await this._jobRepository.findById(jobId);
-        
+
         if (!job) throw new Error('Job not found');
-        
+
         const jobOwnerId = getObjectId(job.userId);
         if (jobOwnerId !== clientId) {
             throw new Error('Unauthorized: Only the job owner can cancel this assignment');
@@ -342,17 +342,19 @@ export class AssignmentService implements IAssignmentService {
         if (job.visibility === 'private') {
             await this._jobRepository.findByConditionAndUpdate(
                 { _id: jobId },
-                { $set: { 
-                    status: JOB_STATUS.CANCELLED, 
-                    acceptedFreelancers: 0,
-                    hiredProviderId: null 
-                }}
+                {
+                    $set: {
+                        status: JOB_STATUS.CANCELLED,
+                        acceptedFreelancers: 0,
+                        hiredProviderId: null
+                    }
+                }
             );
             return;
         }
 
         const newAcceptedCount = Math.max(0, (job.acceptedFreelancers || 1) - 1);
-        
+
         const updateData: any = {
             acceptedFreelancers: newAcceptedCount,
             status: newAcceptedCount === 0 ? JOB_STATUS.OPEN : JOB_STATUS.PARTIALLY_ASSIGNED
@@ -382,8 +384,8 @@ export class AssignmentService implements IAssignmentService {
         const updated = await this._assignmentRepository.update(id, {
             payment: {
                 ...assignment.payment!,
-                status: PAYMENT_STATUS.AWAITING_PROVIDER_CONFIRMATION,
-                method: PAYMENT_METHOD.OFFLINE
+                status: PAYMENT_STATUS.AWAITING_CONFIRMATION,
+                method: PAYMENT_METHOD.CASH
             }
         });
 
@@ -411,7 +413,7 @@ export class AssignmentService implements IAssignmentService {
         const updated = await this._assignmentRepository.update(id, {
             payment: {
                 ...assignment.payment!,
-                status: PAYMENT_STATUS.PAID,
+                status: PAYMENT_STATUS.COMPLETED,
                 paidAt: new Date()
             }
         });
@@ -432,8 +434,8 @@ export class AssignmentService implements IAssignmentService {
         const updated = await this._assignmentRepository.update(id, {
             payment: {
                 ...assignment.payment!,
-                status: PAYMENT_STATUS.PAID,
-                method: PAYMENT_METHOD.OFFLINE,
+                status: PAYMENT_STATUS.COMPLETED,
+                method: PAYMENT_METHOD.CASH,
                 paidAt: new Date()
             }
         });

@@ -13,7 +13,7 @@ import messageRouter from "./modules/message";
 import { reviewRouter } from "./modules/review";
 import { reportRouter, moderationRouter } from "./modules/report";
 import { notificationRouter } from "./modules/notification";
-import { paymentRouter, walletRouter, adminFinanceRouter } from "./modules/finance";
+import { paymentRouter, walletRouter, adminFinanceRouter, invoiceRouter } from "./modules/finance";
 import { API_ROUTES } from "./constants/routes";
 
 export const registerdRoutes = (app: Application) => {
@@ -37,4 +37,5 @@ export const registerdRoutes = (app: Application) => {
     app.use(BASE_URL + API_ROUTES.NOTIFICATIONS, notificationRouter);
     app.use(BASE_URL + API_ROUTES.PAYMENTS, paymentRouter);
     app.use(BASE_URL + API_ROUTES.WALLET, walletRouter);
+    app.use(BASE_URL + API_ROUTES.INVOICES, invoiceRouter);
 }

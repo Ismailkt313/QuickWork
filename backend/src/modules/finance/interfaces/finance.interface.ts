@@ -35,6 +35,44 @@ export interface IWalletTransaction extends Document {
     createdAt: Date;
 }
 
+export interface IInvoice extends Document {
+    invoiceNumber: string;
+    workHistoryId: Types.ObjectId;
+    jobId: Types.ObjectId;
+    assignmentId: Types.ObjectId;
+    client: {
+        userId: Types.ObjectId;
+        name: string;
+        email: string;
+    };
+    provider: {
+        providerId: Types.ObjectId;
+        name: string;
+        email: string;
+    };
+    items: {
+        description: string;
+        quantity: number;
+        rate: number;
+        amount: number;
+    }[];
+    subtotal: number;
+    platformFee: number;
+    platformFeePercent: number;
+    total: number;
+    providerPayout: number;
+    paymentMethod: 'CASH' | 'ONLINE';
+    paymentStatus: 'paid';
+    paidAt: Date;
+    razorpayPaymentId?: string;
+    issuedAt: Date;
+    dueDate: Date;
+    status: 'issued';
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+
 import { Request, Response, NextFunction } from 'express';
 
 export interface IWalletController {
@@ -60,6 +98,13 @@ export interface IAdminFinanceController {
     getOverview(req: Request, res: Response, next?: NextFunction): Promise<any>;
     getTransactions(req: Request, res: Response, next?: NextFunction): Promise<any>;
 }
+
+export interface IInvoiceController {
+    getMyInvoices(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getInvoiceById(req: Request, res: Response, next: NextFunction): Promise<void>;
+    downloadInvoicePdf(req: Request, res: Response, next: NextFunction): Promise<void>;
+}
+
 
 export interface IWalletService {
     getOrCreateWallet(providerId: string): Promise<IWallet>;
@@ -97,6 +142,15 @@ export interface IAdminFinanceService {
     getTransactions(query: any): Promise<any>;
 }
 
+export interface IInvoiceService {
+    generateInvoice(workHistoryId: string): Promise<IInvoice>;
+    getInvoiceById(id: string): Promise<IInvoice | null>;
+    getClientInvoices(clientId: string, page: number, limit: number): Promise<{ invoices: IInvoice[], total: number }>;
+    getProviderInvoices(providerId: string, page: number, limit: number): Promise<{ invoices: IInvoice[], total: number }>;
+    generateInvoicePdf(id: string): Promise<Buffer>;
+}
+
+
 export interface IWalletRepository {
     findByProviderId(providerId: string): Promise<IWallet | null>;
     create(providerId: string, balance: number): Promise<IWallet>;
@@ -125,3 +179,13 @@ export interface IWorkHistoryRepository {
     create(data: any): Promise<IWorkHistory>;
     getByProvider(providerId: string): Promise<IWorkHistory[]>;
 }
+
+export interface IInvoiceRepository {
+    create(data: Partial<IInvoice>): Promise<IInvoice>;
+    findById(id: string): Promise<IInvoice | null>;
+    findByInvoiceNumber(number: string): Promise<IInvoice | null>;
+    findByClient(clientId: string, skip: number, limit: number): Promise<[IInvoice[], number]>;
+    findByProvider(providerId: string, skip: number, limit: number): Promise<[IInvoice[], number]>;
+    getNextInvoiceNumber(): Promise<string>;
+}
+

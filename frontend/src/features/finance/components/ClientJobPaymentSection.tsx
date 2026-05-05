@@ -81,8 +81,9 @@ const ClientJobPaymentSection: React.FC<Props> = ({
         
         const res = await financeService.getWorkHistoryByAssignmentId(assignmentId);
         setHistory(res.data);
-      } catch {
-        toast.error("Failed to mark as paid");
+      } catch(error: any) {
+        console.log(error);
+        toast.error(error.response?.data?.message || "Failed to mark as paid");
       }
     } else {
       

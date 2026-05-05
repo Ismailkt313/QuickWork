@@ -12,6 +12,7 @@ import { IApiResponse } from "../../../types/api.types";
 import { IUser } from "../../auth/interfaces/auth.interface";
 import { logger } from "../../../utils/logger";
 import { INotificationService } from "../../notification/interfaces/notification.interface";
+import { getIo } from "../../../chat/socket";
 
 
 export class AdminService implements IAdminService {
@@ -64,6 +65,13 @@ export class AdminService implements IAdminService {
             type: 'SYSTEM',
             link: '/user/profile'
         });
+
+        if (user.isBlocked) {
+            const io = getIo();
+            if (io) {
+                io.to(userId).emit('user_blocked');
+            }
+        }
 
         return {
             success: true,

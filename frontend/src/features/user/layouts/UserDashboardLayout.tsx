@@ -10,9 +10,11 @@ import "../../provider/components/ProviderSidebar.css";
 
 const UserDashboardLayout: React.FC = () => {
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
-  const [user, setUser] = useState<{ name: string; email: string } | null>(
-    null,
-  );
+  const [user, setUser] = useState<{
+    name: string;
+    email: string;
+    profileImage?: { url: string; public_id: string };
+  } | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,6 +28,7 @@ const UserDashboardLayout: React.FC = () => {
             setUser({
               name: result.data.name,
               email: result.data.email,
+              profileImage: result.data.profileImage,
             });
           }
         } catch (error) {
@@ -80,6 +83,7 @@ const UserDashboardLayout: React.FC = () => {
           name: user?.name || "User",
           email: user?.email,
           initials: user?.name ? user.name.slice(0, 1).toUpperCase() : "U",
+          profileImage: user?.profileImage,
         }}
       />
       <main className="qw-main-content">

@@ -8,6 +8,10 @@ export interface UserResponseDTO {
     number?: string;
     role: ROLES;
     isBlocked: boolean;
+    profileImage?: {
+        url: string;
+        public_id: string;
+    };
     createdAt: Date;
 }
 
@@ -19,6 +23,7 @@ export const mapUserToResponseDTO = (user: IUser): UserResponseDTO => {
         number: user.number,
         role: user.role,
         isBlocked: user.isBlocked,
+        profileImage: user.profileImage,
         createdAt: user.createdAt,
     };
 };

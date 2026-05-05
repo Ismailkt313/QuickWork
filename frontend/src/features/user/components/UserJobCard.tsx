@@ -131,15 +131,15 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView, onRefr
                   job.status === "partially_assigned" ||
                   job.status === "fully_assigned" ||
                   job.status === "in_progress") && (
-                  <li>
-                    <button
-                      className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 rounded-3 text-danger"
-                      onClick={() => onCancel?.(job.id)}
-                    >
-                      <RiCloseCircleLine size={18} /> Cancel Job
-                    </button>
-                  </li>
-                )}
+                    <li>
+                      <button
+                        className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 rounded-3 text-danger"
+                        onClick={() => onCancel?.(job.id)}
+                      >
+                        <RiCloseCircleLine size={18} /> Cancel Job
+                      </button>
+                    </li>
+                  )}
               </ul>
             </div>
           </div>
@@ -172,15 +172,14 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView, onRefr
           <div className="qw-payment-row mb-3" onClick={(e) => e.stopPropagation()}>
             {job.providers.filter(p => p.finalStatus === "COMPLETED").map((p, i) => (
               <div key={i} className="qw-pay-chip-item">
-                <span className={`qw-pay-chip ${
-                  p.payment.status === "completed" ? "paid" : 
-                  p.payment.status === "awaiting_confirmation" || p.payment.status === "awaiting_provider_confirmation" ? "awaiting" : "unpaid"
-                }`}>
+                <span className={`qw-pay-chip ${p.payment.status === "completed" ? "paid" :
+                    p.payment.status === "awaiting_confirmation" ? "awaiting" : "unpaid"
+                  }`}>
                   <RiMoneyDollarCircleLine size={12} />
-                  ₹{p.payment.totalAmount.toLocaleString()} 
+                  ₹{p.payment.totalAmount.toLocaleString()}
                   <span className="qw-pay-chip-label">
-                    {p.payment.status === "completed" ? "Paid" : 
-                     p.payment.status?.includes("awaiting") ? "Awaiting" : "Unpaid"}
+                    {p.payment.status === "completed" ? "Paid" :
+                      p.payment.status?.includes("awaiting") ? "Awaiting" : "Unpaid"}
                   </span>
                 </span>
               </div>
@@ -200,7 +199,7 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView, onRefr
 
             <div className="d-flex align-items-center gap-2">
               <PayForJobButton job={job} onSuccess={onRefresh} />
-              
+
               {["completed", "cancelled", "rejected"].includes(job.status) ? (
                 <div className="qw-status-display">
                   {job.status.charAt(0).toUpperCase() + job.status.slice(1)}

@@ -1,6 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { verifyAccessToken } from "../utils/jwt.util";
 import { logger } from "../utils/logger";
+import { UserModel } from "../modules/auth/models/user.model";
 
 
 let io: Server;
@@ -8,7 +9,7 @@ let io: Server;
 export const setupSocket = (socketIo: Server) => {
   try {
       io = socketIo;
-    io.use((socket: Socket, next) => {
+    io.use(async (socket: Socket, next) => {
         const token = socket.handshake.auth.token;
         if (!token) {
             return next(new Error("Authentication error"));
@@ -17,6 +18,15 @@ export const setupSocket = (socketIo: Server) => {
             const rawToken = token as string;
             const cleanToken = rawToken.startsWith("Bearer ") ? rawToken.split(" ")[1] : rawToken;
             const decoded = verifyAccessToken(cleanToken.trim());
+            
+            const user = await UserModel.findById(decoded.userId).select("isBlocked");
+            if (!user) {
+                return next(new Error("User not found"));
+            }
+            if (user.isBlocked) {
+                return next(new Error("Your account has been blocked"));
+            }
+
             socket.data.user = decoded;
             next();
         } catch (error:any) {

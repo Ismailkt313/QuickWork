@@ -11,11 +11,16 @@ import {
   RiSearchLine,
   RiMoneyDollarCircleLine,
   RiBankCardLine,
-  RiAlertLine
+  RiAlertLine,
+  RiBillLine,
+  RiCloseLine,
+  RiDownload2Line,
+  RiExternalLinkLine
 } from "react-icons/ri";
-import { financeService, type WorkHistory } from "../services/finance.service";
+import { financeService, type WorkHistory, type IInvoice } from "../services/finance.service";
 import { confirmPayment, rejectPayment } from "../store/paymentSlice";
 import { toast } from "react-toastify";
+import InvoiceDetailModal from "../components/InvoiceDetailModal";
 
 const ProviderEarningsPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -26,11 +31,17 @@ const ProviderEarningsPage: React.FC = () => {
   const [pendingLoading, setPendingLoading] = useState(true);
   
   const [allHistory, setAllHistory] = useState<WorkHistory[]>([]);
+  const [invoices, setInvoices] = useState<IInvoice[]>([]);
+  const [invoicePagination, setInvoicePagination] = useState<{ total: number; page: number; pages: number } | null>(null);
+  const [invoicePage, setInvoicePage] = useState(1);
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<IInvoice | null>(null);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
 
   const [pendingPage, setPendingPage] = useState(1);
   const [transactionPage, setTransactionPage] = useState(1);
 
-  const [filter, setFilter] = useState<"all" | "completed" | "pending" | "withdrawal" | "charge">("all");
+  const [filter, setFilter] = useState<"all" | "completed" | "pending" | "withdrawal" | "charge" | "invoices">("all");
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -54,19 +65,33 @@ const ProviderEarningsPage: React.FC = () => {
     };
     fetchPending();
   }, [pendingPage]);
-
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await financeService.getProviderHistory({ page: 1, limit: 100 });
+        const res = await financeService.getProviderHistory({ limit: 1000 }); // Get all for stats
         setAllHistory(res.data);
       } catch (err) {
-        console.error("Failed to fetch history", err);
-        toast.error("Failed to load earning history");
+        console.error("Failed to fetch history for stats", err);
       }
     };
     fetchHistory();
   }, []);
+
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        setInvoiceLoading(true);
+        const res = await financeService.getInvoices({ page: invoicePage, limit: 6, role: "provider" });
+        setInvoices(res.data);
+        setInvoicePagination(res.pagination);
+      } catch (err) {
+        console.error("Failed to fetch invoices", err);
+      } finally {
+        setInvoiceLoading(false);
+      }
+    };
+    fetchInvoices();
+  }, [invoicePage]);
 
   const stats = useMemo(() => {
     const totalEarned = allHistory
@@ -106,8 +131,41 @@ const ProviderEarningsPage: React.FC = () => {
         const res = await financeService.getProviderHistory({ page: 1, limit: 100 });
         setAllHistory(res.data);
     };
+    const fetchInvoicesData = async () => {
+        const res = await financeService.getInvoices({ page: invoicePage, limit: 6 });
+        setInvoices(res.data);
+        setInvoicePagination(res.pagination);
+    };
     fetchPendingData();
     fetchHistoryData();
+    fetchInvoicesData();
+  };
+
+  const handleDownloadInvoice = async (id: string, invoiceNumber: string) => {
+    try {
+      const blob = await financeService.downloadInvoicePdf(id);
+      const url = window.URL.createObjectURL(new Blob([blob]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `invoice-${invoiceNumber}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode?.removeChild(link);
+    } catch (err) {
+      console.error("Download failed", err);
+      toast.error("Failed to download invoice");
+    }
+  };
+
+  const openInvoiceDetails = async (id: string) => {
+    try {
+      const res = await financeService.getInvoiceById(id);
+      setSelectedInvoice(res.data);
+      setIsInvoiceModalOpen(true);
+    } catch (err) {
+      console.error("Failed to fetch invoice details", err);
+      toast.error("Could not load invoice details");
+    }
   };
 
   const handleConfirm = async (id: string) => {
@@ -264,13 +322,67 @@ const ProviderEarningsPage: React.FC = () => {
               <div className="qw-filter-tabs">
                 <button className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>All</button>
                 <button className={filter === "completed" ? "active" : ""} onClick={() => setFilter("completed")}>Earnings</button>
+                <button className={filter === "invoices" ? "active" : ""} onClick={() => setFilter("invoices")}>Invoices</button>
                 <button className={filter === "withdrawal" ? "active" : ""} onClick={() => setFilter("withdrawal")}>Withdrawals</button>
                 <button className={filter === "charge" ? "active" : ""} onClick={() => setFilter("charge")}>Platform Fees</button>
               </div>
             </div>
 
             <div className="qw-table-wrapper">
-              <table className="qw-earnings-table">
+              {filter === "invoices" ? (
+                <>
+                <table className="qw-earnings-table">
+                  <thead>
+                    <tr>
+                      <th>Invoice Info</th>
+                      <th>Client</th>
+                      <th>Total Amount</th>
+                      <th>Date</th>
+                      <th className="text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {invoiceLoading ? (
+                      <tr><td colSpan={5} className="text-center py-5">Loading...</td></tr>
+                    ) : invoices.length === 0 ? (
+                      <tr><td colSpan={5} className="text-center py-5">No invoices found</td></tr>
+                    ) : (
+                      invoices.map(inv => (
+                        <tr key={inv._id}>
+                          <td>
+                            <div className="qw-td-info">
+                              <div className="qw-td-icon credit"><RiBillLine /></div>
+                              <div>
+                                <span className="qw-td-title">{inv.invoiceNumber}</span>
+                                <span className="qw-td-sub">{inv.jobId?.title}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td>{inv.client.name}</td>
+                          <td><span className="qw-td-amount credit">₹{inv.total.toLocaleString()}</span></td>
+                          <td>{new Date(inv.paidAt).toLocaleDateString()}</td>
+                          <td className="text-right">
+                            <div className="action-group" style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                              <button className="qw-icon-btn" onClick={() => openInvoiceDetails(inv._id)} title="View Detail"><RiExternalLinkLine /></button>
+                              <button className="qw-icon-btn" onClick={() => handleDownloadInvoice(inv._id, inv.invoiceNumber)} title="Download PDF"><RiDownload2Line /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+                {invoicePagination && invoicePagination.pages > 1 && (
+                  <div className="qw-pagination mt-4">
+                      <button disabled={invoicePage === 1} onClick={() => setInvoicePage(p => p - 1)}>Previous</button>
+                      <span>Page {invoicePage} of {invoicePagination.pages}</span>
+                      <button disabled={invoicePage === invoicePagination.pages} onClick={() => setInvoicePage(p => p + 1)}>Next</button>
+                  </div>
+                )}
+                </>
+              ) : (
+                <table className="qw-earnings-table">
+
                 <thead>
                   <tr>
                     <th>Transaction Details</th>
@@ -312,7 +424,9 @@ const ProviderEarningsPage: React.FC = () => {
                   )}
                 </tbody>
               </table>
+              )}
             </div>
+
             {transactionPagination && transactionPagination.pages > 1 && (
                 <div className="qw-pagination mt-4">
                     <button 
@@ -329,6 +443,14 @@ const ProviderEarningsPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Invoice Detail Modal */}
+      <InvoiceDetailModal 
+        isOpen={isInvoiceModalOpen}
+        onClose={() => setIsInvoiceModalOpen(false)}
+        invoice={selectedInvoice}
+        onDownload={handleDownloadInvoice}
+      />
 
       <style>{`
         .qw-earnings-container {
@@ -773,7 +895,26 @@ const ProviderEarningsPage: React.FC = () => {
           color: #0f172a;
         }
 
+        .qw-icon-btn {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          border: 1px solid #e2e8f0;
+          background: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s;
+          color: #64748b;
+        }
+
+        .qw-icon-btn:hover { border-color: #3b82f6; color: #3b82f6; background: #f0f7ff; }
+
+        .text-right { text-align: right; }
+
         .animate-fade-in { animation: fadeIn 0.6s ease-out; }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
     </div>

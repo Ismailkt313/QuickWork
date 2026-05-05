@@ -217,8 +217,8 @@ export class AuthController implements IAuthController {
     ): Promise<void> => {
         try {
             const userId = (req.user as any).userId;
-            const { name, number } = req.body;
-            const result = await this._authService.updateProfile(userId, { name, number });
+            const { name, number, profileImage } = req.body;
+            const result = await this._authService.updateProfile(userId, { name, number, profileImage });
             res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: SuccessMessages.PROFILE_UPDATED,

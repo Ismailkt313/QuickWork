@@ -208,7 +208,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
           align-items: center;
           justify-content: center;
           padding: 24px;
-          z-index: 999999;
+          z-index: 1000;
           overflow-y: auto;
         }
 

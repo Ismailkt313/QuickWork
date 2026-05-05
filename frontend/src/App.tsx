@@ -30,6 +30,7 @@ const App = () => {
           fontSize: "14px",
           boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
         }}
+        style={{ zIndex: 999999 }}
       />
 
       <Routes>

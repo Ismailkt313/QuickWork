@@ -9,8 +9,8 @@ export const config = {
 
     JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET || "",
     JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET || "",
-    JWT_ACCESS_EXPIRATION: process.env.JWT_ACCESS_EXPIRATION || "1h",
-    JWT_REFRESH_EXPIRATION: process.env.JWT_REFRESH_EXPIRATION || "7d",
+    JWT_ACCESS_EXPIRATION: process.env.JWT_ACCESS_EXPIRATION || "7d",
+    JWT_REFRESH_EXPIRATION: process.env.JWT_REFRESH_EXPIRATION || "30d",
 
     SMTP_HOST: process.env.SMTP_HOST || "smtp.gmail.com",
     SMTP_PORT: parseInt(process.env.SMTP_PORT || "587", 10),

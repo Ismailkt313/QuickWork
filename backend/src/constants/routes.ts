@@ -16,4 +16,5 @@ export const API_ROUTES = {
   NOTIFICATIONS: "/notifications",
   PAYMENTS: "/payments",
   WALLET: "/wallet",
+  INVOICES: "/invoices",
 };

@@ -39,8 +39,8 @@ const AssignmentSchema: Schema = new Schema(
             evidence: [{ type: String }]
         },
         payment: {
-            status: { type: String, enum: Object.values(PAYMENT_STATUS), default: PAYMENT_STATUS.PENDING },
-            method: { type: String, enum: Object.values(PAYMENT_METHOD) },
+            status: { type: String, enum: ['pending', 'awaiting_confirmation', 'completed', 'failed', 'refunded'], default: 'pending' },
+            method: { type: String, enum: ['CASH', 'ONLINE'] },
             amount: { type: Number },
             paidAt: { type: Date },
             transactionId: { type: String }

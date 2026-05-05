@@ -178,8 +178,10 @@ export const submitReport = async (reportData: {
 export const markAsPaidByCash = async (assignmentId: string) => {
   try {
     const response = await api.post(ENDPOINTS.ASSIGNMENT.MARK_PAID_CASH(assignmentId));
+     console.log('Mark as paid response:', response.data);
     return response.data;
   } catch (error) {
+    console.log('Mark as paid error:', error);
     const axiosError = error as AxiosError<{ message: string }>;
     throw new Error(axiosError.response?.data?.message || "Failed to mark as paid");
   }

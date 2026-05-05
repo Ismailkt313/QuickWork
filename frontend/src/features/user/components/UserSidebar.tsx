@@ -7,6 +7,7 @@ import {
   RiArrowRightSLine,
   RiMapPin2Line,
   RiSearchEyeLine,
+  RiBillLine,
 } from "react-icons/ri";
 import { NavLink, Link } from "react-router-dom";
 import "../../provider/components/ProviderSidebar.css";
@@ -26,6 +27,10 @@ interface UserSidebarProps {
     email?: string;
     avatarUrl?: string;
     initials?: string;
+    profileImage?: {
+      url: string;
+      public_id: string;
+    };
   };
   showOnMobile?: boolean;
   onCloseMobile?: () => void;
@@ -44,6 +49,12 @@ const PRIMARY_NAV: NavItem[] = [
     label: "My Jobs",
     icon: <RiBriefcaseLine />,
     href: "/user/jobs",
+  },
+  {
+    id: "payment-history",
+    label: "Payment History",
+    icon: <RiBillLine />,
+    href: "/user/payment-history",
   },
 ];
 
@@ -145,7 +156,15 @@ const UserSidebar: React.FC<UserSidebarProps> = ({
           >
             <div className="qw-avatar-wrap">
               <div className="qw-avatar">
-                {user.initials ?? user.name.slice(0, 1).toUpperCase()}
+                {user.profileImage?.url ? (
+                  <img
+                    src={user.profileImage.url}
+                    alt="Profile"
+                    className="w-100 h-100 object-fit-cover"
+                  />
+                ) : (
+                  user.initials ?? user.name.slice(0, 1).toUpperCase()
+                )}
               </div>
               <span className="qw-avatar-status" />
             </div>

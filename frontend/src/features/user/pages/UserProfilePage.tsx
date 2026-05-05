@@ -108,7 +108,7 @@ const UserProfilePage: React.FC = () => {
                   border: "4px solid rgba(255,255,255,0.3)",
                 }}
               >
-                {user.profileImage?.url ? (
+                {user.profileImage ? (
                   <img
                     src={user.profileImage.url}
                     alt="Profile"

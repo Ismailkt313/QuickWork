@@ -74,8 +74,16 @@ export const useNotifications = () => {
       setUnreadCount(prev => prev + 1);
     });
 
+    socket.on('user_blocked', () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      window.location.href = '/auth/login?error=blocked';
+    });
+
     return () => {
       socket.off('newNotification');
+      socket.off('user_blocked');
     };
   }, [socket]);
 

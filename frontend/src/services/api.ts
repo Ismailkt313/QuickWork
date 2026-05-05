@@ -85,6 +85,9 @@ api.interceptors.response.use(
     }
 
     if (error.response?.status === 403 && !originalRequest.url?.includes("/auth/login")) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("user");
       window.location.href = `/auth/login?error=blocked`;
     }
 

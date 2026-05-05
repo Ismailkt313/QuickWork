@@ -117,10 +117,10 @@ const UserJobDetailPage: React.FC = () => {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isPaymentConfirmOpen, setIsPaymentConfirmOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  
+
   const hasAwaitingPayment = React.useMemo(() => {
-    if (job?.hiredProvider?.payment?.status === 'awaiting_provider_confirmation') return true;
-    return assignments.some(a => a.payment?.status === 'awaiting_provider_confirmation');
+    if (job?.hiredProvider?.payment?.status === 'awaiting_confirmation') return true;
+    return assignments.some(a => a.payment?.status === 'awaiting_confirmation');
   }, [job, assignments]);
 
 
@@ -145,7 +145,7 @@ const UserJobDetailPage: React.FC = () => {
   const handleCancelJob = async () => {
     if (!jobId) return;
     if (!window.confirm("Are you sure you want to cancel this job offer?")) return;
-    
+
     try {
       setLoading(true);
       const response = await cancelJob(jobId);
@@ -191,7 +191,7 @@ const UserJobDetailPage: React.FC = () => {
         images,
         role: "client_to_provider",
       });
-      console.log(response,"Review submitted successfully");
+      console.log(response, "Review submitted successfully");
 
       toast.success(response.message || "Review submitted successfully");
       fetchData();
@@ -233,9 +233,11 @@ const UserJobDetailPage: React.FC = () => {
         fetchData();
       }
     } catch (error) {
+      console.log(error, "Error in mark as paid");
       const axiosError = error as AxiosError<{ message: string }>;
       toast.error(axiosError.response?.data?.message || "Failed to mark as paid");
     } finally {
+      
       setLoading(false);
     }
   };
@@ -352,23 +354,21 @@ const UserJobDetailPage: React.FC = () => {
           <div>
             <div className="d-flex align-items-center gap-3 mb-2">
               <span
-                className={`badge rounded-pill bg-${
-                  job.status === "open"
+                className={`badge rounded-pill bg-${job.status === "open"
                     ? "warning text-dark"
                     : job.status === "rejected" || job.status === "cancelled"
                       ? "danger"
                       : job.status === "completed"
                         ? "success"
                         : "primary"
-                }-subtle text-${
-                  job.status === "open"
+                  }-subtle text-${job.status === "open"
                     ? "warning text-dark"
                     : job.status === "rejected" || job.status === "cancelled"
                       ? "danger"
                       : job.status === "completed"
                         ? "success"
                         : "primary"
-                } px-3 py-2 fw-bold text-uppercase`}
+                  } px-3 py-2 fw-bold text-uppercase`}
                 style={{ fontSize: "11px", letterSpacing: "0.5px" }}
               >
                 {job.status.replace("_", " ")}
@@ -387,10 +387,10 @@ const UserJobDetailPage: React.FC = () => {
               {job.title}
             </h1>
             <div className="d-flex align-items-center gap-2 mb-3">
-               <RiFocus2Line className="text-primary" size={18} />
-               <span className="fw-bold text-primary small text-uppercase letter-spacing-1">
-                 {job.skills && job.skills.length > 0 ? job.skills[0] : "General Service"}
-               </span>
+              <RiFocus2Line className="text-primary" size={18} />
+              <span className="fw-bold text-primary small text-uppercase letter-spacing-1">
+                {job.skills && job.skills.length > 0 ? job.skills[0] : "General Service"}
+              </span>
             </div>
             <p
               className="text-muted fs-5 mb-0"
@@ -518,8 +518,8 @@ const UserJobDetailPage: React.FC = () => {
             {/* Progress bar */}
             <div className="qw-ps-progress-wrap">
               <div className="qw-ps-progress-bar">
-                <div 
-                  className="qw-ps-progress-fill" 
+                <div
+                  className="qw-ps-progress-fill"
                   style={{ width: totalBudget > 0 ? `${(totalPaid / totalBudget) * 100}%` : '0%' }}
                 />
               </div>
@@ -620,20 +620,18 @@ const UserJobDetailPage: React.FC = () => {
                     </div>
                     <p className="text-muted mb-2 small fw-medium">{hp.headline || "Professional Service Provider"}</p>
                     <div className="d-flex gap-2">
-                      <span className={`status-chip ${
-                        hp.workStatus === "completed" ? "bg-success-subtle text-success" : 
-                        hp.workStatus === "in_progress" ? "bg-warning-subtle text-warning" : "bg-info-subtle text-info"
-                      }`}>
+                      <span className={`status-chip ${hp.workStatus === "completed" ? "bg-success-subtle text-success" :
+                          hp.workStatus === "in_progress" ? "bg-warning-subtle text-warning" : "bg-info-subtle text-info"
+                        }`}>
                         {hp.workStatus?.replace("_", " ") || "Assigned"}
                       </span>
                       {job.status === "open" && (
-                         <span className="status-chip bg-amber-50 text-amber-600">Pending Response</span>
+                        <span className="status-chip bg-amber-50 text-amber-600">Pending Response</span>
                       )}
                       {hp.payment && (
-                        <span className={`status-chip ${
-                          hp.payment.status === "completed" ? "bg-success-subtle text-success" :
-                          hp.payment.status === "awaiting_confirmation" || hp.payment.status === "awaiting_provider_confirmation" ? "bg-warning-subtle text-warning" : "bg-secondary-subtle text-secondary"
-                        }`}>
+                        <span className={`status-chip ${hp.payment.status === "completed" ? "bg-success-subtle text-success" :
+                            hp.payment.status === "awaiting_confirmation" ? "bg-warning-subtle text-warning" : "bg-secondary-subtle text-secondary"
+                          }`}>
                           <RiMoneyDollarCircleLine size={12} className="me-1" />
                           ₹{hp.payment.amount} • {hp.payment.status === "completed" ? "Paid" : hp.payment.status?.includes("awaiting") ? "Awaiting" : "Unpaid"}
                         </span>
@@ -643,8 +641,8 @@ const UserJobDetailPage: React.FC = () => {
                 </div>
 
                 <div className="d-flex align-items-center gap-2">
-                  <button 
-                    className="action-btn-circle" 
+                  <button
+                    className="action-btn-circle"
                     title="Message"
                     onClick={() => handleTextProvider(hp.name)}
                   >
@@ -652,8 +650,8 @@ const UserJobDetailPage: React.FC = () => {
                   </button>
                   {hp.workStatus === "completed" && (
                     <>
-                      <button 
-                        className="action-btn-circle hover-text-primary" 
+                      <button
+                        className="action-btn-circle hover-text-primary"
                         title="Write Review"
                         onClick={() => {
                           setSelectedAssignmentId(hp.assignmentId);
@@ -666,8 +664,8 @@ const UserJobDetailPage: React.FC = () => {
                       </button>
                     </>
                   )}
-                  <button 
-                    className="action-btn-circle hover-text-danger" 
+                  <button
+                    className="action-btn-circle hover-text-danger"
                     title="Report Issue"
                     onClick={() => {
                       setSelectedAssignmentId(hp.assignmentId);
@@ -679,7 +677,7 @@ const UserJobDetailPage: React.FC = () => {
                     <RiFlagLine size={20} />
                   </button>
                   {job.status === "open" && isDirectHire && !hasAwaitingPayment && (
-                    <button 
+                    <button
                       className="btn btn-link text-danger text-decoration-none small fw-bold px-3"
                       onClick={handleCancelJob}
                     >
@@ -691,7 +689,7 @@ const UserJobDetailPage: React.FC = () => {
 
               {hp.workStatus === "completed" && (
                 <div className="pt-4 mt-2 border-top border-f1f5f9">
-                  <ClientJobPaymentSection 
+                  <ClientJobPaymentSection
                     assignmentId={hp.assignmentId}
                     providerName={hp.name}
                   />
@@ -723,17 +721,15 @@ const UserJobDetailPage: React.FC = () => {
                     <div>
                       <h6 className="fw-bold mb-0 text-dark">{assignment.provider.name}</h6>
                       <div className="d-flex gap-2 mt-1">
-                        <span className={`status-chip py-1 px-2 ${
-                          assignment.workStatus === "completed" ? "bg-success-subtle text-success" : 
-                          assignment.workStatus === "in_progress" ? "bg-warning-subtle text-warning" : "bg-info-subtle text-info"
-                        }`} style={{ fontSize: '9px' }}>
+                        <span className={`status-chip py-1 px-2 ${assignment.workStatus === "completed" ? "bg-success-subtle text-success" :
+                            assignment.workStatus === "in_progress" ? "bg-warning-subtle text-warning" : "bg-info-subtle text-info"
+                          }`} style={{ fontSize: '9px' }}>
                           {assignment.workStatus?.replace("_", " ") || "Assigned"}
                         </span>
                         {assignment.payment && (
-                          <span className={`status-chip py-1 px-2 ${
-                            assignment.payment.status === "completed" ? "bg-success-subtle text-success" :
-                            assignment.payment.status === "awaiting_confirmation" ? "bg-warning-subtle text-warning" : "bg-secondary-subtle text-secondary"
-                          }`} style={{ fontSize: '9px' }}>
+                          <span className={`status-chip py-1 px-2 ${assignment.payment.status === "completed" ? "bg-success-subtle text-success" :
+                              assignment.payment.status === "awaiting_confirmation" ? "bg-warning-subtle text-warning" : "bg-secondary-subtle text-secondary"
+                            }`} style={{ fontSize: '9px' }}>
                             <RiMoneyDollarCircleLine size={10} className="me-1" />
                             ₹{assignment.payment.amount} • {assignment.payment.status === "completed" ? "Paid" : assignment.payment.status === "awaiting_confirmation" ? "Awaiting" : "Unpaid"}
                           </span>
@@ -743,8 +739,8 @@ const UserJobDetailPage: React.FC = () => {
                   </div>
 
                   <div className="d-flex gap-1">
-                    <button 
-                      className="action-btn-circle" 
+                    <button
+                      className="action-btn-circle"
                       style={{ width: '32px', height: '32px' }}
                       title="Message"
                       onClick={() => handleTextProvider(assignment.provider.name)}
@@ -752,8 +748,8 @@ const UserJobDetailPage: React.FC = () => {
                       <RiMessage2Line size={16} />
                     </button>
                     {assignment.workStatus === "completed" && (
-                      <button 
-                        className="action-btn-circle hover-text-primary" 
+                      <button
+                        className="action-btn-circle hover-text-primary"
                         style={{ width: '32px', height: '32px' }}
                         title="Review"
                         onClick={() => {
@@ -766,8 +762,8 @@ const UserJobDetailPage: React.FC = () => {
                         <RiStarLine size={16} />
                       </button>
                     )}
-                    <button 
-                      className="action-btn-circle hover-text-danger" 
+                    <button
+                      className="action-btn-circle hover-text-danger"
                       style={{ width: '32px', height: '32px' }}
                       title="Report"
                       onClick={() => {
@@ -784,7 +780,7 @@ const UserJobDetailPage: React.FC = () => {
 
                 {assignment.workStatus === "completed" && (
                   <div className="pt-3 mt-3 border-top border-f1f5f9">
-                    <ClientJobPaymentSection 
+                    <ClientJobPaymentSection
                       assignmentId={assignment.assignmentId}
                       providerName={assignment.provider.name}
                     />

@@ -13,16 +13,16 @@ export class WorkHistoryService implements IWorkHistoryService {
         this._jobRepo = jobRepo;
     }
 
-    
+
     async createFromAssignment(assignment: any): Promise<IWorkHistory> {
-        
+
         let clientId = assignment.clientId;
         if (!clientId && assignment.jobId) {
             if (assignment.jobId.userId) {
-                
+
                 clientId = assignment.jobId.userId._id || assignment.jobId.userId;
             } else {
-                
+
                 const job = await this._jobRepo.findById(assignment.jobId);
                 if (job) clientId = job.userId;
             }
@@ -32,12 +32,12 @@ export class WorkHistoryService implements IWorkHistoryService {
             throw new Error('WorkHistory creation failed: clientId not found');
         }
 
-        
+
         const totalAmount = assignment.payment?.amount || 0;
-        const platformFee = totalAmount * 0.10; 
+        const platformFee = totalAmount * 0.10;
         const providerAmount = totalAmount - platformFee;
 
-        
+
         let finalStatus: 'COMPLETED' | 'CANCELLED' | 'ABSENT' = 'COMPLETED';
         if (assignment.workStatus === 'cancelled') finalStatus = 'CANCELLED';
         if (assignment.workStatus === 'absent') finalStatus = 'ABSENT';
@@ -52,7 +52,7 @@ export class WorkHistoryService implements IWorkHistoryService {
             startedAt: assignment.startedAt,
             endedAt: assignment.completedAt || assignment.cancellation?.cancelledAt || assignment.absence?.reportedAt || new Date(),
             payment: {
-                method: assignment.payment?.method === 'online' ? 'ONLINE' : 'CASH',
+                method: assignment.payment?.method === 'ONLINE' ? 'ONLINE' : 'CASH',
                 totalAmount,
                 platformFee,
                 providerAmount,
