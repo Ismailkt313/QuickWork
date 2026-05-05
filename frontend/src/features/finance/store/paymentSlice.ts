@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { financeService } from "../services/finance.service";
-import { toast } from "react-hot-toast";
+import { toast } from "react-toastify";
 
 export const markAsPaidCash = createAsyncThunk(
   "payment/markAsPaidCash",

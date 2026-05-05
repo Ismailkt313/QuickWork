@@ -6,6 +6,4 @@ const WalletSchema = new Schema<IWallet>({
     balance: { type: Number, default: 0 }
 }, { timestamps: true });
 
-WalletSchema.index({ providerId: 1 });
-
 export const WalletModel = mongoose.model<IWallet>('Wallet', WalletSchema);

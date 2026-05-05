@@ -22,6 +22,15 @@ const ProvidersPage: React.FC = () => {
     null,
   );
   const [modalOpen, setModalOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchInput);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchInput]);
 
   useEffect(() => {
     const savedLocId = localStorage.getItem("locationId");
@@ -40,6 +49,7 @@ const ProvidersPage: React.FC = () => {
     skillId: skillId || "",
     locationId: selectedLocation?._id,
     sort,
+    search: debouncedSearch,
   });
 
   const handleSelectLocation = (loc: Location) => {
@@ -160,8 +170,24 @@ const ProvidersPage: React.FC = () => {
             )}
           </div>
 
-          <div className="d-flex align-items-center gap-2">
-            <span style={{ fontSize: 12.5, color: "#94a3b8", fontWeight: 500 }}>
+          <div className="d-flex align-items-center gap-2 ms-auto flex-wrap">
+            <input
+              type="text"
+              placeholder="Search providers..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="form-control form-control-sm"
+              style={{
+                width: 200,
+                borderRadius: 10,
+                border: "1.5px solid #e2e8f0",
+                fontSize: 13,
+                fontWeight: 500,
+                color: "#1e293b",
+                padding: "6px 12px",
+              }}
+            />
+            <span style={{ fontSize: 12.5, color: "#94a3b8", fontWeight: 500, marginLeft: 8 }}>
               Sort by:
             </span>
             <select

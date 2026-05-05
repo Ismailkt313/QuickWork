@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../../../services/api";
+import { ENDPOINTS } from "../../../../constants/endpoints";
 import MainLayout from "../../layout/MainLayout";
 import { useLandingData } from "../../hooks/useLandingData";
 import LocationModal from "../../landingPage/components/LocationModal";
@@ -76,7 +77,7 @@ const AllServicesPage: React.FC = () => {
       const params: Record<string, string> = {};
       if (q) params.search = q;
       if (locId) params.locationId = locId;
-      const res = await api.get("/skills/all", { params });
+      const res = await api.get(ENDPOINTS.SKILLS.ALL, { params });
       setSkills(res.data.data ?? []);
     } catch {
       setError("Failed to load services. Please try again.");

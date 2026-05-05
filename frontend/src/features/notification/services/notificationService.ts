@@ -1,4 +1,5 @@
 import { api } from "../../../services/api";
+import { ENDPOINTS } from "../../../constants/endpoints";
 
 export interface INotification {
   _id: string;
@@ -12,19 +13,19 @@ export interface INotification {
 
 export const notificationService = {
   getNotifications: async () => {
-    const response = await api.get<{ success: boolean; data: { notifications: INotification[]; unreadCount: number } }>('/notifications');
+    const response = await api.get<{ success: boolean; data: { notifications: INotification[]; unreadCount: number } }>(ENDPOINTS.NOTIFICATION.LIST);
     return response.data.data;
   },
 
   markAsRead: async (id: string) => {
-    await api.patch(`/notifications/${id}/read`);
+    await api.patch(ENDPOINTS.NOTIFICATION.READ_ONE(id));
   },
 
   markAllAsRead: async () => {
-    await api.patch('/notifications/read-all');
+    await api.patch(ENDPOINTS.NOTIFICATION.READ_ALL);
   },
 
   deleteNotification: async (id: string) => {
-    await api.delete(`/notifications/${id}`);
+    await api.delete(ENDPOINTS.NOTIFICATION.DELETE(id));
   }
 };

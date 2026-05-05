@@ -11,7 +11,7 @@ import { getMe } from "../../auth/services/authApi";
 import UpdateProfileModal from "../components/UpdateProfileModal";
 import UpdatePasswordModal from "../components/UpdatePasswordModal";
 import { format } from "date-fns";
-import { toast } from "react-hot-toast";
+import { toast } from "react-toastify";
 
 interface IUser {
   name: string;

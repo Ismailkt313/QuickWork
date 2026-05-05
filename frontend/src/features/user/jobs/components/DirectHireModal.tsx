@@ -22,6 +22,7 @@ import { LocationRepository } from "../../../../services/repositories/LocationRe
 import { LocationAutocomplete } from "../../../../shared/components/inputs/LocationAutocomplete";
 import { jobService } from "../services/job.service";
 import { api } from "../../../../services/api";
+import { ENDPOINTS } from "../../../../constants/endpoints";
 import type { JobFormData, Location } from "../types/job.types";
 
 interface DirectHireModalProps {
@@ -73,7 +74,7 @@ export const DirectHireModal: React.FC<DirectHireModalProps> = ({
       try {
         const [locs, profile] = await Promise.all([
           LocationRepository.getLocations(),
-          api.get("/auth/me"),
+          api.get(ENDPOINTS.AUTH.ME),
         ]);
         setLocations(locs || []);
 

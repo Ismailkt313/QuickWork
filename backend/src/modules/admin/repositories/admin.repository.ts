@@ -11,7 +11,7 @@ import { HttpStatusCode } from "../../../constants/httpStatusCode";
 export class AdminRepository implements IAdminRepository {
 
     public async getUsers(query: IUserListQuery): Promise<IUser[]> {
-        const filter = this.buildSearchFilter(query.search);
+        const filter = this._buildSearchFilter(query.search);
         const skip = (query.page - 1) * query.limit;
 
         return UserModel.find(filter)
@@ -21,11 +21,11 @@ export class AdminRepository implements IAdminRepository {
     }
 
     public async getUserCount(search?: string): Promise<number> {
-        const filter = this.buildSearchFilter(search);
+        const filter = this._buildSearchFilter(search);
         return UserModel.countDocuments(filter);
     }
 
-    private buildSearchFilter(search?: string): Record<string, unknown> {
+    private _buildSearchFilter(search?: string): Record<string, unknown> {
         if (!search || search.trim() === "") {
             return {};
         }

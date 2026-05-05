@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import { logout } from "../../features/auth/services/authApi";
 import { lazy, Suspense } from "react";
 import FallbackScreen from "../../components/ui/FallbackScreen";
 import ProviderGuard from "../../guards/ProviderGuard";
@@ -45,58 +46,69 @@ const ProviderReviewsPage = lazy(
 );
 
 const ProviderRouter = () => {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/auth/login");
+  };
+
   return (
-    <Routes>
-      <Route
-        path="become-provider"
-        element={
-          <Suspense fallback={<FallbackScreen />}>
+    <Suspense fallback={<FallbackScreen />}>
+      <Routes>
+        <Route
+          path="become-provider"
+          element={
             <AuthGuard>
               <ProviderGuard>
                 <BecomeProviderPage />
               </ProviderGuard>
             </AuthGuard>
-          </Suspense>
-        }
-      />
+          }
+        />
 
-      <Route
-        path="success"
-        element={
-          <AuthGuard>
-            <Suspense fallback={<FallbackScreen />}>
+        <Route
+          path="success"
+          element={
+            <AuthGuard>
               <ProviderGuard>
                 <ProviderSuccessPage />
               </ProviderGuard>
-            </Suspense>
-          </AuthGuard>
-        }
-      />
-
-      <Route
-        element={
-          <AuthGuard>
-            <ProviderGuard>
-              <ProviderDashboardLayout />
-            </ProviderGuard>
-          </AuthGuard>
-        }
-      >
-        <Route path="dashboard" element={<ProviderDashboardPage />} />
-        <Route path="available-jobs" element={<AvailableJobsPage />} />
-        <Route path="jobs/:jobId" element={<JobDetailPage />} />
-        <Route path="messages" element={<MessagesPage />} />
-        <Route path="requests" element={<RequestsPage />} />
-        <Route path="my-jobs" element={<MyJobsPage />} />
-        <Route
-          path="assignment/:assignmentId"
-          element={<AssignmentDetailPage />}
+            </AuthGuard>
+          }
         />
-        <Route path="profile" element={<ProviderProfilePage />} />
-        <Route path="wallet" element={<ProviderEarningsPage />} />
-        <Route path="reviews" element={<ProviderReviewsPage />} />
-      </Route>
-    </Routes>
+
+        <Route
+          element={
+            <AuthGuard>
+              <ProviderGuard>
+                <ProviderDashboardLayout onLogout={handleLogout} />
+              </ProviderGuard>
+            </AuthGuard>
+          }
+        >
+          <Route path="dashboard" element={<ProviderDashboardPage />} />
+          <Route path="available-jobs" element={<AvailableJobsPage />} />
+          <Route path="jobs/:jobId" element={<JobDetailPage />} />
+          <Route path="messages" element={<MessagesPage />} />
+          <Route path="requests" element={<RequestsPage />} />
+          <Route path="my-jobs" element={<MyJobsPage />} />
+          <Route
+            path="assignment/:assignmentId"
+            element={<AssignmentDetailPage />}
+          />
+          <Route path="profile" element={<ProviderProfilePage />} />
+          <Route path="wallet" element={<ProviderEarningsPage />} />
+          <Route path="reviews" element={<ProviderReviewsPage />} />
+        </Route>
+      </Routes>
+    </Suspense>
   );
 };
 

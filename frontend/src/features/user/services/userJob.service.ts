@@ -1,5 +1,6 @@
 import { AxiosError } from "axios";
 import { api } from "../../../services/api";
+import { ENDPOINTS } from "../../../constants/endpoints";
 
 export interface UserJob {
   id: string;
@@ -48,7 +49,7 @@ export const getUserJobs = async (
     if (status && status !== "all") params.append("status", status);
     if (search) params.append("search", search);
 
-    const response = await api.get(`/job/my?${params.toString()}`);
+    const response = await api.get(`${ENDPOINTS.JOB.MY}?${params.toString()}`);
     console.log("User Jobs Response:", response.data);
     return response.data;
   } catch (error) {
@@ -62,7 +63,7 @@ export const getUserJobs = async (
 export const cancelJob = async (jobId: string) => {
   try {
     console.log("Cancelling job:", jobId);
-    const response = await api.put(`/job/${jobId}/cancel`);
+    const response = await api.put(ENDPOINTS.JOB.CANCEL(jobId));
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;
@@ -72,7 +73,7 @@ export const cancelJob = async (jobId: string) => {
 
 export const getJobDetails = async (jobId: string) => {
   try {
-    const response = await api.get(`/job/${jobId}`);
+    const response = await api.get(ENDPOINTS.JOB.DETAILS(jobId));
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;
@@ -84,7 +85,7 @@ export const getJobDetails = async (jobId: string) => {
 
 export const getJobAssignments = async (jobId: string) => {
   try {
-    const response = await api.get(`/job/${jobId}/assignments`);
+    const response = await api.get(ENDPOINTS.JOB.ASSIGNMENTS(jobId));
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;
@@ -96,7 +97,7 @@ export const getJobAssignments = async (jobId: string) => {
 
 export const userProfile = async () => {
   try {
-    const response = await api.get("/user/profile");
+    const response = await api.get(ENDPOINTS.USER.PROFILE);
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;
@@ -109,7 +110,7 @@ export const cancelAssignmentByClient = async (
 ) => {
   try {
     const response = await api.post(
-      `/assignment/${assignmentId}/cancel-by-client`,
+      ENDPOINTS.ASSIGNMENT.CANCEL_BY_CLIENT(assignmentId),
       { notes },
     );
     return response.data;
@@ -127,7 +128,7 @@ export const reportAbsence = async (
   evidence?: string[],
 ) => {
   try {
-    const response = await api.post(`/assignment/${assignmentId}/absence`, {
+    const response = await api.post(ENDPOINTS.ASSIGNMENT.ABSENCE(assignmentId), {
       notes,
       evidence,
     });
@@ -149,7 +150,7 @@ export const submitReview = async (reviewData: {
   role: "client_to_provider" | "provider_to_client";
 }) => {
   try {
-    const response = await api.post("/review", reviewData);
+    const response = await api.post(ENDPOINTS.REVIEW.CREATE, reviewData);
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;
@@ -166,7 +167,7 @@ export const submitReport = async (reportData: {
   role: "client_to_provider" | "provider_to_client";
 }) => {
   try {
-    const response = await api.post("/report", reportData);
+    const response = await api.post(ENDPOINTS.REPORT.CREATE, reportData);
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;
@@ -176,7 +177,7 @@ export const submitReport = async (reportData: {
 
 export const markAsPaidByCash = async (assignmentId: string) => {
   try {
-    const response = await api.post(`/assignment/${assignmentId}/payment/mark-as-paid-cash`);
+    const response = await api.post(ENDPOINTS.ASSIGNMENT.MARK_PAID_CASH(assignmentId));
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;

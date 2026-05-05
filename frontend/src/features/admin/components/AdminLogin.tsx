@@ -54,10 +54,6 @@ const AdminLogin = () => {
       const response = await adminLogin({ email, password });
       console.log("Admin Login Response:", response.data.data);
       localStorage.setItem("adminAccessToken", response.data.data.accessToken);
-      localStorage.setItem(
-        "adminRefreshToken",
-        response.data.data.refreshToken,
-      );
       navigate("/admin");
     } catch (err) {
       let msg = "Invalid credentials";

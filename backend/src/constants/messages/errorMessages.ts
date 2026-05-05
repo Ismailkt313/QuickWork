@@ -6,6 +6,7 @@ export const ErrorMessages = {
 
   USER_NOT_FOUND: "User not found",
   USER_ALREADY_EXISTS: "User already exists",
+  EMAIL_NOT_FOUND: "No account found with this email address",
 
   PROVIDER_NOT_FOUND: "Service provider not found",
   APPLICATION_ALREADY_SUBMITTED: "You have already applied for this job",

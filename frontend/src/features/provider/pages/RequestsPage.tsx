@@ -21,6 +21,7 @@ import AcceptConfirmationModal from "../components/AcceptConfirmationModal";
 import RejectConfirmationModal from "../components/RejectConfirmationModal";
 import VerificationPendingModal from "../components/VerificationPendingModal";
 import { api } from "../../../services/api";
+import { ENDPOINTS } from "../../../constants/endpoints";
 import type { JobDetail } from "../types/job";
 import { useProviderLocation } from "../hooks/useProviderLocation";
 
@@ -52,7 +53,7 @@ const RequestsPage: React.FC = () => {
   const fetchRequests = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/job/offers");
+      const response = await api.get(ENDPOINTS.JOB.OFFERS);
       if (response.data.success) setRequests(response.data.data);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Failed to fetch requests";

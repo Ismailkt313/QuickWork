@@ -25,9 +25,9 @@ export const useProviders = ({
     if (!skillId) return;
     setLoading(true);
     try {
-      const data = await getProviders({ skillId, locationId, page, sort });
-      setProviders(data.providers);
-      setPagination(data.pagination);
+      const res = await getProviders({ skillId, locationId, page, sort });
+      setProviders(res.data);
+      setPagination(res.pagination);
     } catch {
       setProviders([]);
       setPagination(null);

@@ -47,8 +47,15 @@ export const createAuthRouter = (authController: AuthController): Router => {
             const accessToken = generateAccessToken(tokenPayload);
             const refreshToken = generateRefreshToken(tokenPayload);
 
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+            });
+
             res.redirect(
-                `${config.FRONTEND_URL}/auth/google/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`
+                `${config.FRONTEND_URL}/auth/google/callback?accessToken=${accessToken}`
             );
         }
     );

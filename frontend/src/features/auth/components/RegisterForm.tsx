@@ -113,7 +113,6 @@ const RegisterForm = ({ mode }: RegisterFormProps) => {
       } else {
         const response = await login({ email, password });
         localStorage.setItem("token", response.data.accessToken);
-        localStorage.setItem("refreshToken", response.data.refreshToken);
         navigate("/");
       }
     } catch (err) {

@@ -1,5 +1,6 @@
 import { AxiosError } from "axios";
 import { api } from "../../../../services/api";
+import { ENDPOINTS } from "../../../../constants/endpoints";
 
 export interface ProviderApplicationPayload {
   headline: string;
@@ -20,7 +21,7 @@ export const submitProviderApplication = async (
   data: ProviderApplicationPayload,
 ): Promise<{ success: boolean; data?: unknown; message?: string }> => {
   try {
-    const response = await api.post("/provider/apply", data);
+    const response = await api.post(ENDPOINTS.PROVIDER.APPLY, data);
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;

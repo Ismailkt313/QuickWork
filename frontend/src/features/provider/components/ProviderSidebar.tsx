@@ -16,6 +16,7 @@ import {
 import { NavLink, Link } from "react-router-dom";
 import "./ProviderSidebar.css";
 import { api } from "../../../services/api";
+import { ENDPOINTS } from "../../../constants/endpoints";
 import { JOB_STATUS } from "../../../constants/jobStatus";
 import { WORK_STATUS } from "../../../constants/assignment";
 
@@ -137,6 +138,7 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
   provider,
   showOnMobile = false,
   onCloseMobile,
+  onLogout,
 }) => {
   console.log(provider, "provider");
   const [navItems, setNavItems] = React.useState<NavItem[]>(PRIMARY_NAV);
@@ -145,12 +147,12 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
   useEffect(() => {
     const fetchCounts = async () => {
       try {
-        const offersRes = await api.get("/job/offers");
+        const offersRes = await api.get(ENDPOINTS.JOB.OFFERS);
         const pendingCount = (offersRes.data.data || []).filter(
           (r: { status: string }) => r.status === JOB_STATUS.OPEN,
         ).length;
 
-        const assignmentsRes = await api.get("/assignment/my");
+        const assignmentsRes = await api.get(ENDPOINTS.ASSIGNMENT.MY);
         const activeCount = (assignmentsRes.data.data || []).filter(
           (as: { workStatus: string }) =>
             as.workStatus === WORK_STATUS.ASSIGNED ||
@@ -323,8 +325,19 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
             type="button"
             aria-label="Switch to client"
           >
-            <RiLogoutBoxLine aria-hidden="true" />
+            <RiMapLine aria-hidden="true" />
             Switch to client
+          </button>
+
+          <button
+            className="qw-logout-btn"
+            onClick={onLogout}
+            type="button"
+            aria-label="Logout"
+            style={{ marginTop: "0.5rem", color: "#ef4444" }}
+          >
+            <RiLogoutBoxLine aria-hidden="true" />
+            Logout
           </button>
         </div>
       </aside>

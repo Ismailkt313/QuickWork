@@ -9,10 +9,10 @@ import { ErrorMessages } from "../../../constants/messages/errorMessages";
 
 
 export class ServiceProviderController implements IServiceProviderController {
-    private serviceProviderService: IServiceProviderService;
+    private _serviceProviderService: IServiceProviderService;
 
     constructor(serviceProviderService: IServiceProviderService) {
-        this.serviceProviderService = serviceProviderService;
+        this._serviceProviderService = serviceProviderService;
     }
 
     submitApplication = async (req: Request, res: Response, next: any): Promise<void> => {
@@ -25,7 +25,7 @@ export class ServiceProviderController implements IServiceProviderController {
 
             const applicationData = SubmitApplicationDTO.create(req.body);
 
-            const result = await this.serviceProviderService.submitApplication(userId, applicationData);
+            const result = await this._serviceProviderService.submitApplication(userId, applicationData);
 
             if (!result.success) {
                 throw new AppError(result.message || 'Conflict occurred', HttpStatusCode.CONFLICT);
@@ -39,13 +39,15 @@ export class ServiceProviderController implements IServiceProviderController {
 
     getProviders = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { skillId, locationId, page, limit } = req.query as Record<string, string | undefined>;
+            const { skillId, locationId, page, limit, search, sort } = req.query as Record<string, string | undefined>;
 
-            const result = await this.serviceProviderService.getProviders({
+            const result = await this._serviceProviderService.getProviders({
                 skillId,
                 locationId,
                 page: Number(page),
                 limit: Number(limit),
+                search,
+                sort
             });
 
             if (!result.success) {
@@ -57,7 +59,7 @@ export class ServiceProviderController implements IServiceProviderController {
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
-                providers: providers,
+                data: providers,
                 pagination: {
                     page: pg,
                     limit: lm,
@@ -75,7 +77,7 @@ export class ServiceProviderController implements IServiceProviderController {
     getProviderById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const id = req.params.id as string;
-            const result = await this.serviceProviderService.getProviderById(id);
+            const result = await this._serviceProviderService.getProviderById(id);
 
             if (!result.success) {
                 res.status(HttpStatusCode.NOT_FOUND).json(result);
@@ -99,7 +101,7 @@ export class ServiceProviderController implements IServiceProviderController {
                 return;
             }
 
-            const result = await this.serviceProviderService.getMyProfile(userId);
+            const result = await this._serviceProviderService.getMyProfile(userId);
             if (!result.success) {
                 res.status(HttpStatusCode.NOT_FOUND).json(result);
                 return;
@@ -123,7 +125,7 @@ export class ServiceProviderController implements IServiceProviderController {
             }
 
             const updateData = UpdateProviderDTO.create(req.body);
-            const result = await this.serviceProviderService.updateProfile(userId, updateData);
+            const result = await this._serviceProviderService.updateProfile(userId, updateData);
 
             if (!result.success) {
                 res.status(HttpStatusCode.BAD_REQUEST).json(result);
@@ -148,7 +150,7 @@ export class ServiceProviderController implements IServiceProviderController {
                 return;
             }
 
-            const result = await this.serviceProviderService.resetApplication(userId);
+            const result = await this._serviceProviderService.resetApplication(userId);
             if (!result.success) {
                 res.status(HttpStatusCode.BAD_REQUEST).json(result);
                 return;

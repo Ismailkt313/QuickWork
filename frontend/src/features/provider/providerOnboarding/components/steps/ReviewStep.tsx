@@ -53,7 +53,6 @@ const ReviewStep: React.FC = () => {
       console.log("Submission Result:", result);
       if (result.success && result.data?.accessToken) {
         localStorage.setItem("token", result.data.accessToken);
-        localStorage.setItem("refreshToken", result.data.refreshToken);
 
         dispatch(resetOnboarding());
         navigate("/provider/success");

@@ -15,18 +15,18 @@ import { INotificationService } from "../../notification/interfaces/notification
 
 
 export class AdminService implements IAdminService {
-    private readonly adminRepository: IAdminRepository;
-    private readonly notificationService: INotificationService;
+    private readonly _adminRepository: IAdminRepository;
+    private readonly _notificationService: INotificationService;
 
     constructor(adminRepository: IAdminRepository, notificationService: INotificationService) {
-        this.adminRepository = adminRepository;
-        this.notificationService = notificationService;
+        this._adminRepository = adminRepository;
+        this._notificationService = notificationService;
     }
 
     public async getUsers(query: IUserListQuery): Promise<IUserListResponse> {
         const [users, total] = await Promise.all([
-            this.adminRepository.getUsers(query),
-            this.adminRepository.getUserCount(query.search),
+            this._adminRepository.getUsers(query),
+            this._adminRepository.getUserCount(query.search),
         ]);
 
         const totalPages = Math.ceil(total / query.limit);
@@ -52,10 +52,10 @@ export class AdminService implements IAdminService {
     }
 
     public async toggleBlockUser(userId: string): Promise<IApiResponse<{ isBlocked: boolean }>> {
-        const user = await this.adminRepository.toggleBlockUser(userId);
+        const user = await this._adminRepository.toggleBlockUser(userId);
         logger.info({ userId, action: user.isBlocked ? "user_blocked" : "user_unblocked" }, `User ${user.isBlocked ? "blocked" : "unblocked"} successfully`);
 
-        await this.notificationService.createNotification({
+        await this._notificationService.createNotification({
             recipient: userId,
             title: user.isBlocked ? 'Account Blocked' : 'Account Unblocked',
             message: user.isBlocked 
@@ -75,8 +75,8 @@ export class AdminService implements IAdminService {
     
     public async getPendingProviders(query: IUserListQuery): Promise<IUserListResponse> {
         const [providers, total] = await Promise.all([
-            this.adminRepository.getPendingProviders(query),
-            this.adminRepository.getPendingProviderCount()
+            this._adminRepository.getPendingProviders(query),
+            this._adminRepository.getPendingProviderCount()
         ]);
         
         const totalPages = Math.ceil(total / query.limit);
@@ -102,7 +102,7 @@ export class AdminService implements IAdminService {
     }
 
     public async approveProvider(providerId: string): Promise<IApiResponse<void>> {
-        await this.adminRepository.approveProvider(providerId);
+        await this._adminRepository.approveProvider(providerId);
         logger.info({ providerId, action: "provider_approved" }, "Provider approved successfully");
         return {
             success: true,
@@ -113,7 +113,7 @@ export class AdminService implements IAdminService {
 
 
     public async rejectProvider(providerId: string, reason: string): Promise<IApiResponse<void>> {
-        await this.adminRepository.rejectProvider(providerId, reason);
+        await this._adminRepository.rejectProvider(providerId, reason);
         logger.info({ providerId, reason, action: "provider_rejected" }, "Provider rejected successfully");
         return {
             success: true,
@@ -124,7 +124,7 @@ export class AdminService implements IAdminService {
 
 
     public async getProviderDetails(providerId: string): Promise<IApiResponse<IServiceProviderDetails>> {
-        const provider = await this.adminRepository.getProviderDetails(providerId);
+        const provider = await this._adminRepository.getProviderDetails(providerId);
         return {
             success: true,
             message: SuccessMessages.PROVIDER_DETAILS_FETCHED || "Provider details fetched successfully",
@@ -133,7 +133,7 @@ export class AdminService implements IAdminService {
     }
 
     public async getUserById(userId: string): Promise<IApiResponse<IUser>> {
-        const user = await this.adminRepository.getUserById(userId);
+        const user = await this._adminRepository.getUserById(userId);
         if (!user) {
             throw new Error(ErrorMessages.USER_NOT_FOUND);
         }

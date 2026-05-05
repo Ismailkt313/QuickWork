@@ -29,7 +29,7 @@ const SkillRequests: React.FC = () => {
   const [rejectionReason, setRejectionReason] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
+  const [_total, setTotal] = useState(0);
   const limit = 5;
 
   const [modal, setModal] = useState<ModalState>({

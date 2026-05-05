@@ -3,6 +3,7 @@ import { Socket } from "socket.io-client";
 import type { Message } from "../types/message.types";
 import { MESSAGE_TYPE } from "../../../constants/message";
 import { getMessages as fetchMessagesApi, createMessage } from "../api/message.api";
+import { toast } from "react-toastify";
 
 export const useMessages = (
   socket: Socket | null,
@@ -72,6 +73,7 @@ export const useMessages = (
         }
       } catch (error) {
         console.error("Failed to load messages:", error);
+        toast.error("Failed to load messages");
       } finally {
         setLoading(false);
       }
@@ -101,6 +103,7 @@ export const useMessages = (
           await createMessage(dataToAPI);
         } catch (error) {
           console.error("Failed to send message:", error);
+          toast.error("Failed to send message");
         }
       }
     },

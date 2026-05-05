@@ -2,15 +2,15 @@ import { ConversationResponseDTO, mapConversationToResponseDTO, mapMessageToResp
 import { IConversationRepository, IMessage, IMessageRepository, IMessageService } from "../interface/message.interface";
 
 export class MessageService implements IMessageService {
-    private messageRepository: IMessageRepository;
-    private conversationRepository: IConversationRepository;
+    private _messageRepository: IMessageRepository;
+    private _conversationRepository: IConversationRepository;
 
     constructor(
         messageRepository: IMessageRepository,
         conversationRepository: IConversationRepository
     ) {
-        this.messageRepository = messageRepository;
-        this.conversationRepository = conversationRepository;
+        this._messageRepository = messageRepository;
+        this._conversationRepository = conversationRepository;
     }
 
     async createMessage(messageData: IMessage): Promise<MessageResponseDTO> {
@@ -30,10 +30,10 @@ export class MessageService implements IMessageService {
         const participants = [sender, receiver].sort();
 
         if (!conversationId) {
-            let conversation = await this.conversationRepository.findConversationByParticipants(participants);
+            let conversation = await this._conversationRepository.findConversationByParticipants(participants);
 
             if (!conversation) {
-                conversation = await this.conversationRepository.createConversation({
+                conversation = await this._conversationRepository.createConversation({
                     participants,
                     lastMessage: "",
                     lastMessageAt: new Date()
@@ -43,14 +43,14 @@ export class MessageService implements IMessageService {
             conversationId = conversation._id;
         }
 
-        const message = await this.messageRepository.createMessage({
+        const message = await this._messageRepository.createMessage({
             ...messageData,
             conversationId
         });
 
         const lastMessageSnippet = message.text ? message.text : (message.image ? "Sent an image" : "");
 
-        await this.conversationRepository.updateConversationMetadata(
+        await this._conversationRepository.updateConversationMetadata(
             conversationId,
             {
                 lastMessage: lastMessageSnippet,
@@ -62,17 +62,17 @@ export class MessageService implements IMessageService {
     }
 
     async getMessages(conversationId: string): Promise<MessageResponseDTO[]> {
-        const messages = await this.messageRepository.getMessages(conversationId);
+        const messages = await this._messageRepository.getMessages(conversationId);
         return messages.map(mapMessageToResponseDTO);
     }
 
     async getConversations(userId: string): Promise<ConversationResponseDTO[]> {
-        const conversations = await this.conversationRepository.getConversations(userId);
+        const conversations = await this._conversationRepository.getConversations(userId);
         return conversations.map(mapConversationToResponseDTO);
     }
 
     async getConversation(conversationId: string): Promise<ConversationResponseDTO> {
-        const conversation = await this.conversationRepository.getConversation(conversationId);
+        const conversation = await this._conversationRepository.getConversation(conversationId);
         if (!conversation) {
             throw new Error("Conversation not found");
         }
@@ -80,7 +80,7 @@ export class MessageService implements IMessageService {
     }
 
     async deleteMessage(messageId: string): Promise<MessageResponseDTO> {
-        const message = await this.messageRepository.deleteMessage(messageId);
+        const message = await this._messageRepository.deleteMessage(messageId);
         if (!message) {
             throw new Error("Message not found");
         }
@@ -88,7 +88,7 @@ export class MessageService implements IMessageService {
     }
 
     async deleteConversation(conversationId: string): Promise<ConversationResponseDTO> {
-        const conversation = await this.conversationRepository.deleteConversation(conversationId);
+        const conversation = await this._conversationRepository.deleteConversation(conversationId);
         if (!conversation) {
             throw new Error("Conversation not found");
         }

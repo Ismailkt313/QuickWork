@@ -1,5 +1,6 @@
 import express, { Application } from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import passport from "./config/passport";
 import { registerdRoutes } from "./routes";
 import { errorHandler } from "./middleware/errorHandler";
@@ -14,6 +15,7 @@ const allowedOrigins = [
 ];
 
 app.use(loggerMiddleware);
+app.use(cookieParser());
 
 
 app.use(cors({

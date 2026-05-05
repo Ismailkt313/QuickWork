@@ -11,17 +11,17 @@ const TakeActionSchema = z.object({
 
 
 export class ModerationController implements IModerationController {
-    private moderationService: IModerationService;
+    private _moderationService: IModerationService;
 
     constructor(moderationService: IModerationService) {
-        this.moderationService = moderationService;
+        this._moderationService = moderationService;
     }
 
     
     getReports = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { status, page, limit } = req.query;
-            const result = await this.moderationService.getReports({
+            const result = await this._moderationService.getReports({
                 status: status as string,
                 page: page ? parseInt(page as string) : 1,
                 limit: limit ? parseInt(limit as string) : 10
@@ -45,7 +45,7 @@ export class ModerationController implements IModerationController {
     getReportDetail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params;
-            const result = await this.moderationService.getReportDetail(id as string);
+            const result = await this._moderationService.getReportDetail(id as string);
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
@@ -70,7 +70,7 @@ export class ModerationController implements IModerationController {
             const adminId = (req.user as any).userId;
             const { action, reason } = validation.data;
 
-            const result = await this.moderationService.takeAction(id as string, adminId, action, reason);
+            const result = await this._moderationService.takeAction(id as string, adminId, action, reason);
 
             res.status(HttpStatusCode.OK).json({
                 success: true,

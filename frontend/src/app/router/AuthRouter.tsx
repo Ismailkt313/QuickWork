@@ -1,57 +1,61 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 
-import LoginPage from "../../features/auth/pages/LoginPage";
-import RegisterPage from "../../features/auth/pages/RegisterPage";
-import OtpPage from "../../features/auth/pages/OtpPage";
-import GoogleCallback from "../../features/auth/pages/GoogleCallback";
-import ForgotPasswordPage from "../../features/auth/pages/ForgotPasswordPage";
-import ResetPasswordPage from "../../features/auth/pages/ResetPasswordPage";
-
 import GuestGuard from "../../guards/GuestGuard";
+import FallbackScreen from "../../components/ui/FallbackScreen";
+
+const LoginPage = lazy(() => import("../../features/auth/pages/LoginPage"));
+const RegisterPage = lazy(() => import("../../features/auth/pages/RegisterPage"));
+const OtpPage = lazy(() => import("../../features/auth/pages/OtpPage"));
+const GoogleCallback = lazy(() => import("../../features/auth/pages/GoogleCallback"));
+const ForgotPasswordPage = lazy(() => import("../../features/auth/pages/ForgotPasswordPage"));
+const ResetPasswordPage = lazy(() => import("../../features/auth/pages/ResetPasswordPage"));
 
 const AuthRouter = () => {
   return (
-    <Routes>
-      <Route
-        path="login"
-        element={
-          <GuestGuard>
-            <LoginPage />
-          </GuestGuard>
-        }
-      />
+    <Suspense fallback={<FallbackScreen />}>
+      <Routes>
+        <Route
+          path="login"
+          element={
+            <GuestGuard>
+              <LoginPage />
+            </GuestGuard>
+          }
+        />
 
-      <Route
-        path="signup"
-        element={
-          <GuestGuard>
-            <RegisterPage />
-          </GuestGuard>
-        }
-      />
+        <Route
+          path="signup"
+          element={
+            <GuestGuard>
+              <RegisterPage />
+            </GuestGuard>
+          }
+        />
 
-      <Route path="verify-otp" element={<OtpPage />} />
+        <Route path="verify-otp" element={<OtpPage />} />
 
-      <Route
-        path="forgot-password"
-        element={
-          <GuestGuard>
-            <ForgotPasswordPage />
-          </GuestGuard>
-        }
-      />
+        <Route
+          path="forgot-password"
+          element={
+            <GuestGuard>
+              <ForgotPasswordPage />
+            </GuestGuard>
+          }
+        />
 
-      <Route
-        path="reset-password"
-        element={
-          <GuestGuard>
-            <ResetPasswordPage />
-          </GuestGuard>
-        }
-      />
+        <Route
+          path="reset-password"
+          element={
+            <GuestGuard>
+              <ResetPasswordPage />
+            </GuestGuard>
+          }
+        />
 
-      <Route path="google/callback" element={<GoogleCallback />} />
-    </Routes>
+        <Route path="google/callback" element={<GoogleCallback />} />
+      </Routes>
+    </Suspense>
   );
 };
 

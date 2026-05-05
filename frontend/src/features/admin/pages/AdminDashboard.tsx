@@ -1,9 +1,15 @@
 import { useNavigate } from "react-router-dom";
+import { logout } from "../../auth/services/authApi";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
     localStorage.removeItem("adminAccessToken");
     localStorage.removeItem("adminRefreshToken");
     navigate("/admin/login");

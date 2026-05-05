@@ -5,10 +5,10 @@ import { ErrorMessages } from "../../../constants/messages/errorMessages";
 
 
 export class AdminController implements IAdminController {
-    private readonly adminService: IAdminService;
+    private readonly _adminService: IAdminService;
 
     constructor(adminService: IAdminService) {
-        this.adminService = adminService;
+        this._adminService = adminService;
     }
 
     public getUsers = async (
@@ -23,7 +23,7 @@ export class AdminController implements IAdminController {
                 search: (req.query.search as string) || undefined,
             };
 
-            const result = await this.adminService.getUsers(query);
+            const result = await this._adminService.getUsers(query);
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
@@ -37,7 +37,7 @@ export class AdminController implements IAdminController {
     ): Promise<void> => {
         try {
             const id = req.params.id as string;
-            const result = await this.adminService.toggleBlockUser(id);
+            const result = await this._adminService.toggleBlockUser(id);
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
@@ -54,7 +54,7 @@ export class AdminController implements IAdminController {
                 page: Math.max(1, parseInt(req.query.page as string) || 1),
                 limit: Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 10)),
             };
-            const result = await this.adminService.getPendingProviders(query);
+            const result = await this._adminService.getPendingProviders(query);
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
@@ -68,7 +68,7 @@ export class AdminController implements IAdminController {
     ): Promise<void> => {
         try {
             const id = req.params.id as string;
-            const result = await this.adminService.approveProvider(id);
+            const result = await this._adminService.approveProvider(id);
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
@@ -89,7 +89,7 @@ export class AdminController implements IAdminController {
                 return;
             }
 
-            const result = await this.adminService.rejectProvider(id, reason.trim());
+            const result = await this._adminService.rejectProvider(id, reason.trim());
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
@@ -102,7 +102,7 @@ export class AdminController implements IAdminController {
     ): Promise<void> => {
         try {
             const id = req.params.id as string;
-            const result = await this.adminService.getProviderDetails(id);
+            const result = await this._adminService.getProviderDetails(id);
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
@@ -116,7 +116,7 @@ export class AdminController implements IAdminController {
     ): Promise<void> => {
         try {
             const id = req.params.id as string;
-            const result = await this.adminService.getUserById(id);
+            const result = await this._adminService.getUserById(id);
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);

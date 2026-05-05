@@ -4,7 +4,7 @@ import { logger } from "../../../utils/logger";
 import { IS3Service } from '../interfaces/upload.interface';
 
 export class S3Service implements IS3Service {
-    private s3Client: S3Client;
+    private _s3Client: S3Client;
 
     constructor() {
         
@@ -16,7 +16,7 @@ export class S3Service implements IS3Service {
         }, "S3 Config Check");
 
 
-        this.s3Client = new S3Client({
+        this._s3Client = new S3Client({
             region: config.AWS_REGION,
             credentials: {
                 accessKeyId: config.AWS_ACCESS_KEY_ID,
@@ -35,7 +35,7 @@ export class S3Service implements IS3Service {
                 ContentType: mimetype,
             });
 
-            await this.s3Client.send(command);
+            await this._s3Client.send(command);
 
             const imageUrl = `https://${config.AWS_BUCKET_NAME}.s3.${config.AWS_REGION}.amazonaws.com/${fileName}`;
 
@@ -64,7 +64,7 @@ export class S3Service implements IS3Service {
                 Key: fileName,
             });
 
-            await this.s3Client.send(command);
+            await this._s3Client.send(command);
             logger.info({ bucket: config.AWS_BUCKET_NAME, fileName }, "File deleted from S3 successfully");
         } catch (error) {
             logger.error({ error, bucket: config.AWS_BUCKET_NAME, fileName }, "S3 Deletion Failed");

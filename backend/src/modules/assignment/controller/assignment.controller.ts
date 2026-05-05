@@ -8,15 +8,15 @@ import { SuccessMessages } from '../../../constants/messages/successMessages';
 import { ErrorMessages } from '../../../constants/messages/errorMessages';
 
 export class AssignmentController implements IAssignmentController {
-    private assignmentService: IAssignmentService;
-    private serviceProviderRepository: IServiceProviderRepository;
+    private _assignmentService: IAssignmentService;
+    private _serviceProviderRepository: IServiceProviderRepository;
 
     constructor(
         assignmentService: IAssignmentService,
         serviceProviderRepository: IServiceProviderRepository
     ) {
-        this.assignmentService = assignmentService;
-        this.serviceProviderRepository = serviceProviderRepository;
+        this._assignmentService = assignmentService;
+        this._serviceProviderRepository = serviceProviderRepository;
     }
 
     getProviderAssignments = async (req: Request, res: Response, next: any): Promise<void> => {
@@ -31,12 +31,12 @@ export class AssignmentController implements IAssignmentController {
                 throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
             }
 
-            const provider = await this.serviceProviderRepository.findByUserId(userId);
+            const provider = await this._serviceProviderRepository.findByUserId(userId);
             if (!provider) {
                 throw new AppError(ErrorMessages.PROVIDER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
             }
 
-            const { assignments, total, counts } = await this.assignmentService.getAssignmentsByProvider(provider._id.toString(), { page, limit, search, status });
+            const { assignments, total, counts } = await this._assignmentService.getAssignmentsByProvider(provider._id.toString(), { page, limit, search, status });
             
             res.status(HttpStatusCode.OK).json({
                 success: true,
@@ -55,8 +55,8 @@ export class AssignmentController implements IAssignmentController {
         try {
             const userId = req.user?.userId;
             const assignmentId = req.params.id as string;
-            const provider = await this.serviceProviderRepository.findByUserId(userId as string);
-            const assignment = await this.assignmentService.getAssignmentById(assignmentId);
+            const provider = await this._serviceProviderRepository.findByUserId(userId as string);
+            const assignment = await this._assignmentService.getAssignmentById(assignmentId);
 
             const freelancerId = assignment?.freelancerId?._id ? assignment.freelancerId._id.toString() : assignment?.freelancerId?.toString();
 
@@ -65,7 +65,7 @@ export class AssignmentController implements IAssignmentController {
             }
 
             const jobId = assignment.jobId?._id ? assignment.jobId._id.toString() : assignment.jobId.toString();
-            const coWorkers = await this.assignmentService.getAssignmentsByJobId(jobId);
+            const coWorkers = await this._assignmentService.getAssignmentsByJobId(jobId);
             
             const mappedCoWorkers = coWorkers
                 .filter(a => a._id.toString() !== assignmentId)
@@ -96,8 +96,8 @@ export class AssignmentController implements IAssignmentController {
             const assignmentId = req.params.id as string;
             const { status } = req.body;
 
-            const provider = await this.serviceProviderRepository.findByUserId(userId as string);
-            const assignment = await this.assignmentService.getAssignmentById(assignmentId);
+            const provider = await this._serviceProviderRepository.findByUserId(userId as string);
+            const assignment = await this._assignmentService.getAssignmentById(assignmentId);
 
             const freelancerId = assignment?.freelancerId?._id ? assignment.freelancerId._id.toString() : assignment?.freelancerId?.toString();
 
@@ -105,7 +105,7 @@ export class AssignmentController implements IAssignmentController {
                 throw new AppError(ErrorMessages.ASSIGNMENT_NOT_FOUND, HttpStatusCode.NOT_FOUND);
             }
 
-            const updated = await this.assignmentService.updateStatus(assignmentId, status);
+            const updated = await this._assignmentService.updateStatus(assignmentId, status);
             res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: SuccessMessages.STATUS_UPDATED(status),
@@ -122,8 +122,8 @@ export class AssignmentController implements IAssignmentController {
             const assignmentId = req.params.id as string;
             const { images, description } = req.body;
 
-            const provider = await this.serviceProviderRepository.findByUserId(userId as string);
-            const assignment = await this.assignmentService.getAssignmentById(assignmentId);
+            const provider = await this._serviceProviderRepository.findByUserId(userId as string);
+            const assignment = await this._assignmentService.getAssignmentById(assignmentId);
 
             const freelancerId = assignment?.freelancerId?._id ? assignment.freelancerId._id.toString() : assignment?.freelancerId?.toString();
 
@@ -131,7 +131,7 @@ export class AssignmentController implements IAssignmentController {
                 throw new AppError(ErrorMessages.ASSIGNMENT_NOT_FOUND, HttpStatusCode.NOT_FOUND);
             }
 
-            const updated = await this.assignmentService.submitProof(assignmentId, { images, description });
+            const updated = await this._assignmentService.submitProof(assignmentId, { images, description });
             res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: SuccessMessages.PROOF_SUBMITTED,
@@ -148,12 +148,12 @@ export class AssignmentController implements IAssignmentController {
             const id = req.params.id as string;
             const { notes } = req.body;
 
-            const provider = await this.serviceProviderRepository.findByUserId(userId as string);
+            const provider = await this._serviceProviderRepository.findByUserId(userId as string);
             if (!provider) {
                 throw new AppError(ErrorMessages.PROVIDER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
             }
 
-            const updated = await this.assignmentService.cancelByProvider(id, provider._id.toString(), notes);
+            const updated = await this._assignmentService.cancelByProvider(id, provider._id.toString(), notes);
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
@@ -171,7 +171,7 @@ export class AssignmentController implements IAssignmentController {
             const id = req.params.id as string;
             const { notes } = req.body;
 
-            const updated = await this.assignmentService.cancelByClient(id, userId as string, notes);
+            const updated = await this._assignmentService.cancelByClient(id, userId as string, notes);
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
@@ -188,7 +188,7 @@ export class AssignmentController implements IAssignmentController {
             const userId = req.user?.userId;
             const id = req.params.id as string;
             const { notes, evidence } = req.body;
-            const updated = await this.assignmentService.reportAbsence(id, userId as string, notes, evidence);
+            const updated = await this._assignmentService.reportAbsence(id, userId as string, notes, evidence);
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
@@ -205,7 +205,7 @@ export class AssignmentController implements IAssignmentController {
         try {
             const userId = req.user?.userId;
             const id = req.params.id as string;
-            const updated = await this.assignmentService.markAsPaidByCash(id, userId as string);
+            const updated = await this._assignmentService.markAsPaidByCash(id, userId as string);
             res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: 'Payment marked as paid by cash',
@@ -220,10 +220,10 @@ export class AssignmentController implements IAssignmentController {
         try {
             const userId = req.user?.userId;
             const id = req.params.id as string;
-            const provider = await this.serviceProviderRepository.findByUserId(userId as string);
+            const provider = await this._serviceProviderRepository.findByUserId(userId as string);
             if (!provider) throw new AppError('Provider not found', HttpStatusCode.NOT_FOUND);
 
-            const updated = await this.assignmentService.confirmPayment(id, provider._id.toString());
+            const updated = await this._assignmentService.confirmPayment(id, provider._id.toString());
             res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: 'Payment confirmed',
@@ -238,10 +238,10 @@ export class AssignmentController implements IAssignmentController {
         try {
             const userId = req.user?.userId;
             const id = req.params.id as string;
-            const provider = await this.serviceProviderRepository.findByUserId(userId as string);
+            const provider = await this._serviceProviderRepository.findByUserId(userId as string);
             if (!provider) throw new AppError('Provider not found', HttpStatusCode.NOT_FOUND);
 
-            const updated = await this.assignmentService.providerMarkAsPaid(id, provider._id.toString());
+            const updated = await this._assignmentService.providerMarkAsPaid(id, provider._id.toString());
             res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: 'Payment marked as received by hand',
@@ -256,10 +256,10 @@ export class AssignmentController implements IAssignmentController {
         try {
             const userId = req.user?.userId;
             const id = req.params.id as string;
-            const provider = await this.serviceProviderRepository.findByUserId(userId as string);
+            const provider = await this._serviceProviderRepository.findByUserId(userId as string);
             if (!provider) throw new AppError('Provider not found', HttpStatusCode.NOT_FOUND);
 
-            const updated = await this.assignmentService.rejectPayment(id, provider._id.toString());
+            const updated = await this._assignmentService.rejectPayment(id, provider._id.toString());
             res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: 'Payment confirmation rejected',

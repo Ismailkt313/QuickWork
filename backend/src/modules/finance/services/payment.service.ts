@@ -9,10 +9,10 @@ import {
 import { config } from '../../../config';
 
 export class PaymentService implements IPaymentService {
-    private walletService: IWalletService;
-    private razorpayService: IRazorpayService;
-    private workHistoryRepo: IWorkHistoryRepository;
-    private platformTransactionRepo: IPlatformTransactionRepository;
+    private _walletService: IWalletService;
+    private _razorpayService: IRazorpayService;
+    private _workHistoryRepo: IWorkHistoryRepository;
+    private _platformTransactionRepo: IPlatformTransactionRepository;
 
     constructor(
         walletService: IWalletService,
@@ -20,14 +20,14 @@ export class PaymentService implements IPaymentService {
         workHistoryRepo: IWorkHistoryRepository,
         platformTransactionRepo: IPlatformTransactionRepository
     ) {
-        this.walletService = walletService;
-        this.razorpayService = razorpayService;
-        this.workHistoryRepo = workHistoryRepo;
-        this.platformTransactionRepo = platformTransactionRepo;
+        this._walletService = walletService;
+        this._razorpayService = razorpayService;
+        this._workHistoryRepo = workHistoryRepo;
+        this._platformTransactionRepo = platformTransactionRepo;
     }
 
-    private async createPlatformTransaction(history: IWorkHistory, razorpayPaymentId?: string) {
-        await this.platformTransactionRepo.create({
+    private async _createPlatformTransaction(history: IWorkHistory, razorpayPaymentId?: string) {
+        await this._platformTransactionRepo.create({
             jobId: history.jobId,
             workHistoryId: history._id,
             providerId: history.providerId,
@@ -43,7 +43,7 @@ export class PaymentService implements IPaymentService {
 
     
     async createRazorpayOrder(workHistoryId: string): Promise<any> {
-        const history = await this.workHistoryRepo.findById(workHistoryId);
+        const history = await this._workHistoryRepo.findById(workHistoryId);
         
         if (!history) throw new Error('Work history not found');
         if (history.finalStatus !== 'COMPLETED') throw new Error('Payment only allowed for completed jobs');
@@ -53,13 +53,13 @@ export class PaymentService implements IPaymentService {
         if (history.payment.method !== 'ONLINE') {
             if (history.payment.status === 'pending') {
                 history.payment.method = 'ONLINE';
-                await this.workHistoryRepo.save(history);
+                await this._workHistoryRepo.save(history);
             } else {
                 throw new Error('Invalid payment method for online order in current state');
             }
         }
 
-        const order = await this.razorpayService.createOrder(history.payment.totalAmount, workHistoryId);
+        const order = await this._razorpayService.createOrder(history.payment.totalAmount, workHistoryId);
         
         return {
             orderId: order.id,
@@ -77,7 +77,7 @@ export class PaymentService implements IPaymentService {
         razorpaySignature: string
     ): Promise<{ success: boolean; message: string }> {
         
-        const isValid = this.razorpayService.verifySignature(
+        const isValid = this._razorpayService.verifySignature(
             razorpayOrderId,
             razorpayPaymentId,
             razorpaySignature,
@@ -89,31 +89,31 @@ export class PaymentService implements IPaymentService {
         }
 
         
-        const history = await this.workHistoryRepo.findById(workHistoryId);
+        const history = await this._workHistoryRepo.findById(workHistoryId);
         if (!history) throw new Error('Work history not found');
         if (history.payment.status === 'completed') throw new Error('Payment already processed');
 
         
         history.payment.status = 'completed';
         history.payment.confirmedAt = new Date();
-        await this.workHistoryRepo.save(history);
+        await this._workHistoryRepo.save(history);
 
         
-        await this.walletService.processOnlinePayment(
+        await this._walletService.processOnlinePayment(
             history.providerId.toString(), 
             history.payment.totalAmount,
             history.payment.platformFee
         );
 
         
-        await this.createPlatformTransaction(history, razorpayPaymentId);
+        await this._createPlatformTransaction(history, razorpayPaymentId);
 
         return { success: true, message: 'Payment verified and processed successfully' };
     }
 
     
     async markAsPaidCash(workHistoryId: string, clientId: string): Promise<{ success: boolean; message: string }> {
-        const history = await this.workHistoryRepo.findById(workHistoryId);
+        const history = await this._workHistoryRepo.findById(workHistoryId);
         
         if (!history) return { success: false, message: 'Work history not found' };
         if (history.clientId.toString() !== clientId) return { success: false, message: 'Unauthorized' };
@@ -122,14 +122,14 @@ export class PaymentService implements IPaymentService {
         if (history.payment.method !== 'CASH') return { success: false, message: 'Invalid payment method' };
 
         history.payment.status = 'awaiting_confirmation';
-        await this.workHistoryRepo.save(history);
+        await this._workHistoryRepo.save(history);
 
         return { success: true, message: 'Payment marked as paid, awaiting provider confirmation' };
     }
 
     
     async confirmCashPayment(workHistoryId: string, providerId: string): Promise<{ success: boolean; message: string }> {
-        const history = await this.workHistoryRepo.findById(workHistoryId);
+        const history = await this._workHistoryRepo.findById(workHistoryId);
         
         if (!history) return { success: false, message: 'Work history not found' };
         if (history.providerId.toString() !== providerId) return { success: false, message: 'Unauthorized' };
@@ -137,20 +137,20 @@ export class PaymentService implements IPaymentService {
 
         history.payment.status = 'completed';
         history.payment.confirmedAt = new Date();
-        await this.workHistoryRepo.save(history);
+        await this._workHistoryRepo.save(history);
 
         
-        await this.walletService.processCashPayment(providerId, history.payment.platformFee);
+        await this._walletService.processCashPayment(providerId, history.payment.platformFee);
 
         
-        await this.createPlatformTransaction(history);
+        await this._createPlatformTransaction(history);
 
         return { success: true, message: 'Payment confirmed and wallet updated' };
     }
 
     
     async rejectCashPayment(workHistoryId: string, providerId: string): Promise<{ success: boolean; message: string }> {
-        const history = await this.workHistoryRepo.findById(workHistoryId);
+        const history = await this._workHistoryRepo.findById(workHistoryId);
         
         if (!history) return { success: false, message: 'Work history not found' };
         if (history.providerId.toString() !== providerId) return { success: false, message: 'Unauthorized' };
@@ -158,14 +158,14 @@ export class PaymentService implements IPaymentService {
         if (history.payment.status !== 'awaiting_confirmation') return { success: false, message: 'No payment confirmation to reject' };
 
         history.payment.status = 'pending';
-        await this.workHistoryRepo.save(history);
+        await this._workHistoryRepo.save(history);
 
         return { success: true, message: 'Payment rejected and status reverted to pending' };
     }
 
     
     async createJobRazorpayOrder(jobId: string): Promise<any> {
-        const eligibleHistories = await this.workHistoryRepo.findEligibleForJobPayment(jobId);
+        const eligibleHistories = await this._workHistoryRepo.findEligibleForJobPayment(jobId);
 
         if (eligibleHistories.length === 0) {
             throw new Error('No payable providers found for this job');
@@ -177,11 +177,11 @@ export class PaymentService implements IPaymentService {
         for (const history of eligibleHistories) {
             if (history.payment.method !== 'ONLINE' && history.payment.status === 'pending') {
                 history.payment.method = 'ONLINE';
-                await this.workHistoryRepo.save(history);
+                await this._workHistoryRepo.save(history);
             }
         }
 
-        const order = await this.razorpayService.createOrder(totalAmount, jobId);
+        const order = await this._razorpayService.createOrder(totalAmount, jobId);
 
         return {
             orderId: order.id,
@@ -205,7 +205,7 @@ export class PaymentService implements IPaymentService {
         totalProcessedAmount: number 
     }> {
         
-        const isValid = this.razorpayService.verifySignature(
+        const isValid = this._razorpayService.verifySignature(
             razorpayOrderId,
             razorpayPaymentId,
             razorpaySignature,
@@ -217,7 +217,7 @@ export class PaymentService implements IPaymentService {
         }
 
         
-        const eligibleHistories = await this.workHistoryRepo.findEligibleForJobPayment(jobId);
+        const eligibleHistories = await this._workHistoryRepo.findEligibleForJobPayment(jobId);
 
         let paidProviders = 0;
         let skippedProviders = 0;
@@ -236,17 +236,17 @@ export class PaymentService implements IPaymentService {
                 history.payment.status = 'completed';
                 history.payment.confirmedAt = new Date();
                 history.payment.method = 'ONLINE';
-                await this.workHistoryRepo.save(history);
+                await this._workHistoryRepo.save(history);
 
                 
-                await this.walletService.processOnlinePayment(
+                await this._walletService.processOnlinePayment(
                     history.providerId.toString(),
                     history.payment.totalAmount,
                     history.payment.platformFee
                 );
 
                 
-                await this.createPlatformTransaction(history, razorpayPaymentId);
+                await this._createPlatformTransaction(history, razorpayPaymentId);
 
                 paidProviders++;
                 totalProcessedAmount += history.payment.totalAmount;
@@ -266,6 +266,6 @@ export class PaymentService implements IPaymentService {
 
     
     async getPlatformEarnings(): Promise<number> {
-        return this.workHistoryRepo.getPlatformEarnings();
+        return this._workHistoryRepo.getPlatformEarnings();
     }
 }

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../../app/store";
 import { fetchReportDetail, takeReportAction, clearSelectedReport } from "../store/adminReportSlice";
-import { toast } from "react-hot-toast";
+import { toast } from "react-toastify";
 import {
   RiArrowLeftLine,
   RiShieldUserLine,

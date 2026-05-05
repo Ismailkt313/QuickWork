@@ -15,6 +15,7 @@ import {
 } from "react-icons/ri";
 import { financeService, type WorkHistory } from "../services/finance.service";
 import { confirmPayment, rejectPayment } from "../store/paymentSlice";
+import { toast } from "react-toastify";
 
 const ProviderEarningsPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -46,6 +47,7 @@ const ProviderEarningsPage: React.FC = () => {
         setPendingPagination(res.pagination);
       } catch (err) {
         console.error("Failed to fetch pending history", err);
+        toast.error("Failed to load pending payments");
       } finally {
         setPendingLoading(false);
       }
@@ -60,6 +62,7 @@ const ProviderEarningsPage: React.FC = () => {
         setAllHistory(res.data);
       } catch (err) {
         console.error("Failed to fetch history", err);
+        toast.error("Failed to load earning history");
       }
     };
     fetchHistory();

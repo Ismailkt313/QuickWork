@@ -1,14 +1,30 @@
 import axios, { type AxiosResponse } from "axios";
+import { ENDPOINTS } from "../../../constants/endpoints";
 import type { IApiResponse, IPaginatedResponse } from "../../../types/api.types";
 import type { IUserListItem, IServiceProviderDetails, IAdminLoginResponse } from "../types/admin.types";
 const apiUrl = import.meta.env.VITE_API_URL;
 export const Adminapi = axios.create({
   baseURL: `${apiUrl}/api/v1`,
-
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
+
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 Adminapi.interceptors.request.use((config) => {
   const token = localStorage.getItem("adminAccessToken");
 
@@ -19,25 +35,81 @@ Adminapi.interceptors.request.use((config) => {
   return config;
 });
 
+Adminapi.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes("/admin/login") &&
+      !originalRequest.url?.includes("/refresh-token")
+    ) {
+      if (isRefreshing) {
+        return new Promise(function (resolve, reject) {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers["Authorization"] = "Bearer " + token;
+            return Adminapi(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const response = await axios.post(
+          `${apiUrl}/api/v1/auth/refresh-token`,
+          {},
+          { withCredentials: true }
+        );
+
+        const { accessToken } = response.data.data;
+        localStorage.setItem("adminAccessToken", accessToken);
+        Adminapi.defaults.headers.common["Authorization"] = "Bearer " + accessToken;
+        originalRequest.headers["Authorization"] = "Bearer " + accessToken;
+
+        processQueue(null, accessToken);
+        return Adminapi(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        localStorage.removeItem("adminAccessToken");
+        localStorage.removeItem("adminRefreshToken");
+        window.location.href = `/admin/login?error=session_expired`;
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);
+
  
 export const adminLogin = (data: { email: string; password: string }): Promise<AxiosResponse<IApiResponse<IAdminLoginResponse>>> => {
-  return Adminapi.post("/auth/admin/login", data);
+  return Adminapi.post(ENDPOINTS.AUTH.ADMIN_LOGIN, data);
 };
 
 export const getPendingProviders = (params?: {
   page?: number;
   limit?: number;
 }): Promise<AxiosResponse<IPaginatedResponse<IUserListItem>>> => {
-  return Adminapi.get("/admin/providers/pending", { params });
+  return Adminapi.get(ENDPOINTS.ADMIN.PENDING_PROVIDERS, { params });
 };
 
 export const approveProvider = (id: string): Promise<AxiosResponse<IApiResponse<void>>> => {
-  return Adminapi.patch(`/admin/provider/${id}/approve`);
+  return Adminapi.patch(ENDPOINTS.ADMIN.APPROVE_PROVIDER(id));
 };
 
 
 export const rejectProvider = (id: string, reason?: string): Promise<AxiosResponse<IApiResponse<void>>> => {
-  return Adminapi.patch(`/admin/provider/${id}/reject`, { reason });
+  return Adminapi.patch(ENDPOINTS.ADMIN.REJECT_PROVIDER(id), { reason });
 };
 
 export const getUsers = (params?: {
@@ -45,18 +117,18 @@ export const getUsers = (params?: {
   limit?: number;
   search?: string;
 }): Promise<AxiosResponse<IPaginatedResponse<IUserListItem>>> => {
-  return Adminapi.get("/admin/users", { params });
+  return Adminapi.get(ENDPOINTS.ADMIN.USERS, { params });
 };
 
 
 export const toggleBlockUser = (userId: string): Promise<AxiosResponse<IApiResponse<{ isBlocked: boolean }>>> => {
-  return Adminapi.patch(`/admin/users/${userId}/block`);
+  return Adminapi.patch(ENDPOINTS.ADMIN.BLOCK_USER(userId));
 };
 
 export const getProviderById = (providerId: string): Promise<AxiosResponse<IApiResponse<IServiceProviderDetails>>> => {
-  return Adminapi.get(`/admin/provider/${providerId}`);
+  return Adminapi.get(ENDPOINTS.ADMIN.PROVIDER_DETAILS(providerId));
 };
 
 export const getUserById = (userId: string): Promise<AxiosResponse<IApiResponse<IUserListItem>>> => {
-  return Adminapi.get(`/admin/user/${userId}`);
+  return Adminapi.get(ENDPOINTS.ADMIN.USER_DETAILS(userId));
 };

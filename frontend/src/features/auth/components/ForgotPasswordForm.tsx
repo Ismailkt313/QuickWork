@@ -89,7 +89,10 @@ const ForgotPasswordForm = () => {
                 type="email"
                 placeholder="Enter your email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (error) setError(null);
+                }}
                 className={`form-control ${error ? "is-invalid" : ""}`}
                 autoFocus
               />

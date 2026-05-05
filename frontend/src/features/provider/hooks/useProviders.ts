@@ -9,12 +9,14 @@ interface UseProvidersParams {
   skillId: string;
   locationId?: string;
   sort?: string;
+  search?: string;
 }
 
 export const useProviders = ({
   skillId,
   locationId,
   sort,
+  search,
 }: UseProvidersParams) => {
   const [providers, setProviders] = useState<ProviderItem[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
@@ -25,16 +27,16 @@ export const useProviders = ({
     if (!skillId) return;
     setLoading(true);
     try {
-      const data = await getProviders({ skillId, locationId, page, sort });
-      setProviders(data.providers || []);
-      setPagination(data.pagination || null);
+      const res = await getProviders({ skillId, locationId, page, sort, search });
+      setProviders(res.data || []);
+      setPagination(res.pagination || null);
     } catch {
       setProviders([]);
       setPagination(null);
     } finally {
       setLoading(false);
     }
-  }, [skillId, locationId, page, sort]);
+  }, [skillId, locationId, page, sort, search]);
 
   useEffect(() => {
     fetchProviders();
@@ -42,7 +44,7 @@ export const useProviders = ({
 
   useEffect(() => {
     setPage(1);
-  }, [skillId, locationId, sort]);
+  }, [skillId, locationId, sort, search]);
 
   return { providers, pagination, loading, page, setPage };
 };

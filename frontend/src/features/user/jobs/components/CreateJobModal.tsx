@@ -16,6 +16,7 @@ import {
   FiPhone,
 } from "react-icons/fi";
 import { api } from "../../../../services/api";
+import { ENDPOINTS } from "../../../../constants/endpoints";
 import { FormInput } from "../../../../shared/components/inputs/FormInput";
 import { FormTextarea } from "../../../../shared/components/inputs/FormTextarea";
 import { FormSelect } from "../../../../shared/components/inputs/FormSelect";
@@ -72,7 +73,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
         const [cats, locs, profile] = await Promise.all([
           CategoryRepository.getCategories(),
           LocationRepository.getLocations(),
-          api.get("/auth/me"),
+          api.get(ENDPOINTS.AUTH.ME),
         ]);
         setCategories(cats || []);
         setLocations(locs || []);

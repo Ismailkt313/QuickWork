@@ -13,10 +13,27 @@ import { SuccessMessages } from "../../../constants/messages/successMessages";
 import { IAuthController } from '../interfaces/auth.interface';
 
 export class AuthController implements IAuthController {
-    private readonly authService: IAuthService;
+    private readonly _authService: IAuthService;
 
     constructor(authService: IAuthService) {
-        this.authService = authService;
+        this._authService = authService;
+    }
+
+    private setTokenCookie(res: Response, token: string) {
+        res.cookie('refreshToken', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+    }
+
+    private clearTokenCookie(res: Response) {
+        res.clearCookie('refreshToken', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict'
+        });
     }
 
     public sendOtp = async (
@@ -27,7 +44,7 @@ export class AuthController implements IAuthController {
         try {
 
             const dto = SendOtpDto.create(req.body);
-            const result = await this.authService.sendOtp(dto);
+            const result = await this._authService.sendOtp(dto);
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
@@ -41,7 +58,7 @@ export class AuthController implements IAuthController {
     ): Promise<void> => {
         try {
             const dto = VerifyOtpDto.create(req.body);
-            const result = await this.authService.verifyOtp(dto);
+            const result = await this._authService.verifyOtp(dto);
             res.status(HttpStatusCode.CREATED).json(result);
         } catch (error) {
             next(error);
@@ -55,7 +72,7 @@ export class AuthController implements IAuthController {
     ): Promise<void> => {
         try {
             const dto = ResendOtpDto.create(req.body);
-            const result = await this.authService.resendOtp(dto);
+            const result = await this._authService.resendOtp(dto);
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
@@ -69,7 +86,12 @@ export class AuthController implements IAuthController {
     ): Promise<void> => {
         try {
             const dto = LoginDto.create(req.body);
-            const result = await this.authService.login(dto);
+            const result = await this._authService.login(dto);
+            if (result.success && result.data?.refreshToken) {
+                this.setTokenCookie(res, result.data.refreshToken);
+                // Remove refreshToken from the JSON response to prevent frontend from storing it in localStorage
+                delete (result.data as any).refreshToken;
+            }
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
@@ -82,7 +104,7 @@ export class AuthController implements IAuthController {
         next: NextFunction
     ): Promise<void> => {
         try {
-            const { refreshToken } = req.body;
+            const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
 
             if (!refreshToken) {
                 res.status(HttpStatusCode.BAD_REQUEST).json({
@@ -92,7 +114,11 @@ export class AuthController implements IAuthController {
                 return;
             }
 
-            const result = await this.authService.refreshToken(refreshToken);
+            const result = await this._authService.refreshToken(refreshToken);
+            if (result.success && result.data?.refreshToken) {
+                this.setTokenCookie(res, result.data.refreshToken);
+                delete (result.data as any).refreshToken;
+            }
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
@@ -105,7 +131,11 @@ export class AuthController implements IAuthController {
     ): Promise<void> => {
         try {
             const dto = LoginDto.create(req.body);
-            const result = await this.authService.adminLogin(dto);
+            const result = await this._authService.adminLogin(dto);
+            if (result.success && result.data?.refreshToken) {
+                this.setTokenCookie(res, result.data.refreshToken);
+                delete (result.data as any).refreshToken;
+            }
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
@@ -117,7 +147,7 @@ export class AuthController implements IAuthController {
         next: NextFunction
     ): Promise<void> => {
         try {
-            const { refreshToken } = req.body;
+            const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
             if (!refreshToken) {
                 res.status(HttpStatusCode.BAD_REQUEST).json({
                     success: false,
@@ -125,7 +155,8 @@ export class AuthController implements IAuthController {
                 });
                 return;
             }
-            const result = await this.authService.logout(refreshToken);
+            const result = await this._authService.logout(refreshToken);
+            this.clearTokenCookie(res);
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
 
@@ -140,7 +171,7 @@ export class AuthController implements IAuthController {
     ): Promise<void> => {
         try {
             const dto = ForgotPasswordDto.create(req.body);
-            const result = await this.authService.forgotPassword(dto);
+            const result = await this._authService.forgotPassword(dto);
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
@@ -154,7 +185,7 @@ export class AuthController implements IAuthController {
     ): Promise<void> => {
         try {
             const dto = ResetPasswordDto.create(req.body);
-            const result = await this.authService.resetPassword(dto);
+            const result = await this._authService.resetPassword(dto);
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
@@ -168,7 +199,7 @@ export class AuthController implements IAuthController {
     ): Promise<void> => {
         try {
             const userId = (req.user as any).userId;
-            const result = await this.authService.getProfile(userId);
+            const result = await this._authService.getProfile(userId);
             res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: SuccessMessages.PROFILE_FETCHED,
@@ -187,7 +218,7 @@ export class AuthController implements IAuthController {
         try {
             const userId = (req.user as any).userId;
             const { name, number } = req.body;
-            const result = await this.authService.updateProfile(userId, { name, number });
+            const result = await this._authService.updateProfile(userId, { name, number });
             res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: SuccessMessages.PROFILE_UPDATED,
@@ -206,7 +237,7 @@ export class AuthController implements IAuthController {
         try {
             const userId = (req.user as any).userId;
             const { currentPassword, newPassword } = req.body;
-            await this.authService.changePassword(userId, { currentPassword, newPassword });
+            await this._authService.changePassword(userId, { currentPassword, newPassword });
             res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: SuccessMessages.PASSWORD_CHANGED

@@ -4,15 +4,15 @@ import {HttpStatusCode} from "../../../constants/httpStatusCode"
 
 
 export class LocationController implements ILocationController {
-    private locationService: ILocationService;
+    private _locationService: ILocationService;
 
     constructor(locationService: ILocationService) {
-        this.locationService = locationService;
+        this._locationService = locationService;
     }
 
     getAllLocations = async (req: Request, res: Response, next: any): Promise<void> => {
         try {
-            const result = await this.locationService.getAllLocations();
+            const result = await this._locationService.getAllLocations();
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);

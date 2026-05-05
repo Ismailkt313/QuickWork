@@ -6,10 +6,10 @@ import { AppError } from '../../../utils/AppError';
 import { IReportController } from '../interfaces/report.interface';
 
 export class ReportController implements IReportController {
-    private reportService: IReportService;
+    private _reportService: IReportService;
 
     constructor(reportService: IReportService) {
-        this.reportService = reportService;
+        this._reportService = reportService;
     }
 
     public createReport = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -21,7 +21,7 @@ export class ReportController implements IReportController {
             }
 
             const reporterId = (req.user as any).userId;
-            const report = await this.reportService.createReport(reporterId, validationResult.data);
+            const report = await this._reportService.createReport(reporterId, validationResult.data);
 
             res.status(HttpStatusCode.CREATED).json({
                 success: true,
@@ -38,7 +38,7 @@ export class ReportController implements IReportController {
             const page = Math.max(1, parseInt(req.query.page as string) || 1);
             const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 10));
             
-            const result = await this.reportService.getAllReports(page, limit);
+            const result = await this._reportService.getAllReports(page, limit);
             
             res.status(HttpStatusCode.OK).json({
                 success: true,
@@ -65,7 +65,7 @@ export class ReportController implements IReportController {
                 throw new AppError(errorMessage, HttpStatusCode.BAD_REQUEST);
             }
 
-            const updatedReport = await this.reportService.updateReportStatus(id as string, validationResult.data.status);
+            const updatedReport = await this._reportService.updateReportStatus(id as string, validationResult.data.status);
 
             res.status(HttpStatusCode.OK).json({
                 success: true,

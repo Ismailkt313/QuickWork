@@ -9,7 +9,11 @@ import { logger } from './utils/logger';
 
 const startServer = async (): Promise<void> => {
     try {
-        await mongoose.connect(config.MONGO_URI);
+        await mongoose.connect(config.MONGO_URI, {
+            serverSelectionTimeoutMS: 5000,
+            connectTimeoutMS: 10000,
+            socketTimeoutMS: 45000,
+        });
         logger.info('Database connected successfully');
         const httpServer = http.createServer(app);
         const io = new Server(httpServer, {

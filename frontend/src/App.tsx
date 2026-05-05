@@ -11,7 +11,26 @@ import UserRouter from "./app/router/UserRouter";
 const App = () => {
   return (
     <BrowserRouter>
-      <ToastContainer position="top-right" autoClose={2500} />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+        limit={5}
+        stacked
+        toastStyle={{
+          borderRadius: "12px",
+          fontWeight: 600,
+          fontSize: "14px",
+          boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
+        }}
+      />
 
       <Routes>
         <Route path="*" element={<Routers />} />

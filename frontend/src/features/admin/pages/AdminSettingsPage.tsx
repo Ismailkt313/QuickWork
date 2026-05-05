@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Adminapi } from "../services/adminApi";
+import { ENDPOINTS } from "../../../constants/endpoints";
 import { 
   RiShieldUserLine, 
   RiMapPinLine, 
@@ -12,7 +13,7 @@ import {
   RiBarChartLine,
   RiDoubleQuotesL
 } from "react-icons/ri";
-import { toast } from "react-hot-toast";
+import { toast } from "react-toastify";
 import "../admin.css";
 import "./AdminSettings.css";
 
@@ -34,7 +35,7 @@ const AdminSettingsPage: React.FC = () => {
     const fetchAdminProfile = async () => {
       try {
         setLoading(true);
-        const response = await Adminapi.get("/auth/me");
+        const response = await Adminapi.get(ENDPOINTS.AUTH.ME);
         if (response.data.success) {
           setAdmin(response.data.data);
         }

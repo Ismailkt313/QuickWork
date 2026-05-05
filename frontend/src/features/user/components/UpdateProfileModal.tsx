@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { updateProfile } from "../../auth/services/authApi";
-import { toast } from "react-hot-toast";
+import { toast } from "react-toastify";
 import {
   RiSaveLine,
   RiUser3Line,

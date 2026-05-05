@@ -2,16 +2,16 @@ import { Request, Response } from 'express';
 import { IAdminFinanceController, IAdminFinanceService } from '../interfaces/finance.interface';
 
 export class AdminFinanceController implements IAdminFinanceController {
-    private adminFinanceService: IAdminFinanceService;
+    private _adminFinanceService: IAdminFinanceService;
 
     constructor(adminFinanceService: IAdminFinanceService) {
-        this.adminFinanceService = adminFinanceService;
+        this._adminFinanceService = adminFinanceService;
     }
 
     
     getOverview = async (req: Request, res: Response) => {
         try {
-            const overview = await this.adminFinanceService.getFinanceOverview();
+            const overview = await this._adminFinanceService.getFinanceOverview();
             return res.status(200).json({
                 success: true,
                 data: overview
@@ -28,7 +28,7 @@ export class AdminFinanceController implements IAdminFinanceController {
     getTransactions = async (req: Request, res: Response) => {
         try {
             const { page, limit, paymentMethod, startDate, endDate } = req.query;
-            const data = await this.adminFinanceService.getTransactions({
+            const data = await this._adminFinanceService.getTransactions({
                 page: page ? parseInt(page as string) : 1,
                 limit: limit ? parseInt(limit as string) : 10,
                 paymentMethod: paymentMethod as string,

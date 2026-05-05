@@ -7,10 +7,10 @@ import { AppError } from '../../../utils/AppError';
 import { IReviewController } from '../interfaces/review.interface';
 
 export class ReviewController implements IReviewController {
-    private reviewService: IReviewService;
+    private _reviewService: IReviewService;
 
     constructor(reviewService: IReviewService) {
-        this.reviewService = reviewService;
+        this._reviewService = reviewService;
     }
 
     public createReview = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -21,7 +21,7 @@ export class ReviewController implements IReviewController {
                 throw new AppError(errorMessage, HttpStatusCode.BAD_REQUEST);
             }
              const reviewerId = (req.user as any).userId;
-             const review = await this.reviewService.createReview(reviewerId, validationResult.data);
+             const review = await this._reviewService.createReview(reviewerId, validationResult.data);
              res.status(HttpStatusCode.CREATED).json({
                 success: true,
                 message: SuccessMessages.REVIEW_CREATED,
@@ -35,7 +35,7 @@ export class ReviewController implements IReviewController {
     public getReviewsForUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { userId } = req.params;
-            const reviews = await this.reviewService.getReviewsForUser(userId as string);
+            const reviews = await this._reviewService.getReviewsForUser(userId as string);
             
             res.status(HttpStatusCode.OK).json({
                 success: true,
@@ -50,7 +50,7 @@ export class ReviewController implements IReviewController {
     public getReviewsForAssignment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { assignmentId } = req.params;
-            const reviews = await this.reviewService.getReviewsForAssignment(assignmentId as string);
+            const reviews = await this._reviewService.getReviewsForAssignment(assignmentId as string);
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
@@ -65,7 +65,7 @@ export class ReviewController implements IReviewController {
     public getMyReviews = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = (req.user as any).userId;
-            const reviews = await this.reviewService.getReviewsForUser(userId as string);
+            const reviews = await this._reviewService.getReviewsForUser(userId as string);
             
             res.status(HttpStatusCode.OK).json({
                 success: true,

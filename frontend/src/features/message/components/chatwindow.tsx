@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { Message } from "../types/message.types";
-import { RiUser3Line,RiDeleteBinLine  } from "react-icons/ri";
+import { RiUser3Line, RiDeleteBinLine } from "react-icons/ri";
 import { format } from "date-fns";
 import { MessageInput } from "./MessageInput";
 
@@ -95,15 +95,15 @@ export const ChatWindow = ({
             Active Now
           </span>
           <div className="ms-auto">
-  <button 
-    className="btn btn-outline-danger btn-sm border-0" 
-    onClick={onDelete}
-    disabled={isDeleting}
-    title="Delete Conversation"
-  >
-    <RiDeleteBinLine size={20} />
-  </button>
-</div>
+            <button
+              className="btn btn-outline-danger btn-sm border-0"
+              onClick={onDelete}
+              disabled={isDeleting}
+              title="Delete Conversation"
+            >
+              <RiDeleteBinLine size={20} />
+            </button>
+          </div>
         </div>
       </div>
       <div
@@ -124,7 +124,7 @@ export const ChatWindow = ({
             <p className="small fw-medium">
               No messages yet. Start the conversation!
             </p>
-            
+
           </div>
         ) : (
           <div className="d-flex flex-column gap-3">
@@ -132,26 +132,25 @@ export const ChatWindow = ({
               const isSentByMe = msg.sender === currentUserId;
               return (
                 <div
-  key={msg._id}
-  className={`d-flex flex-column ${isSentByMe ? "align-items-end" : "align-items-start"} position-relative group`}
->
-  {isSentByMe && (
-    <button 
-      onClick={() => onDeleteMessage(msg._id)}
-      className="btn btn-sm text-danger p-0 position-absolute"
-      style={{ right: '100%', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}
-      title="Delete Message"
-    >
-      <RiDeleteBinLine size={14} />
-    </button>
-  )}
+                  key={msg._id}
+                  className={`d-flex flex-column ${isSentByMe ? "align-items-end" : "align-items-start"} position-relative group`}
+                >
+                  {isSentByMe && (
+                    <button
+                      onClick={() => onDeleteMessage(msg._id)}
+                      className="btn btn-sm text-danger p-0 position-absolute"
+                      style={{ right: '100%', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}
+                      title="Delete Message"
+                    >
+                      <RiDeleteBinLine size={14} />
+                    </button>
+                  )}
 
                   <div
-                    className={`p-2 rounded-4 shadow-sm ${
-                      isSentByMe
+                    className={`p-2 rounded-4 shadow-sm ${isSentByMe
                         ? "bg-primary text-white"
                         : "bg-white text-dark border"
-                    }`}
+                      }`}
                     style={{ maxWidth: "75%", lineHeight: "1.4" }}
                   >
                     {msg.image && (

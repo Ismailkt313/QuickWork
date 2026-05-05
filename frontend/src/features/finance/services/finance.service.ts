@@ -1,4 +1,5 @@
 import { api } from "../../../services/api";
+import { ENDPOINTS } from "../../../constants/endpoints";
 
 export interface Wallet {
   balance: number;
@@ -33,52 +34,52 @@ export interface WorkHistory {
 
 export const financeService = {
   markAsPaidCash: async (workHistoryId: string) => {
-    const response = await api.post(`/payments/cash/${workHistoryId}`);
+    const response = await api.post(ENDPOINTS.FINANCE.PAYMENTS_CASH(workHistoryId));
     return response.data;
   },
 
   confirmPayment: async (workHistoryId: string) => {
-    const response = await api.post(`/payments/confirm/${workHistoryId}`);
+    const response = await api.post(ENDPOINTS.FINANCE.PAYMENTS_CONFIRM(workHistoryId));
     return response.data;
   },
   
   rejectPayment: async (workHistoryId: string) => {
-    const response = await api.post(`/payments/reject/${workHistoryId}`);
+    const response = await api.post(ENDPOINTS.FINANCE.PAYMENTS_REJECT(workHistoryId));
     return response.data;
   },
 
   getWallet: async () => {
-    const response = await api.get("/wallet/me");
+    const response = await api.get(ENDPOINTS.FINANCE.WALLET_ME);
     return response.data;
   },
 
   getTransactions: async (params?: { page?: number; limit?: number }) => {
-    const response = await api.get("/wallet/transactions", { params });
+    const response = await api.get(ENDPOINTS.FINANCE.WALLET_TRANSACTIONS, { params });
     return response.data;
   },
 
   getAdminOverview: async () => {
-    const response = await api.get("/wallet/admin/overview");
+    const response = await api.get(ENDPOINTS.FINANCE.WALLET_ADMIN_OVERVIEW);
     return response.data;
   },
 
   getPlatformEarnings: async () => {
-    const response = await api.get("/payments/admin/earnings");
+    const response = await api.get(ENDPOINTS.FINANCE.PAYMENTS_ADMIN_EARNINGS);
     return response.data;
   },
 
   getWorkHistoryByAssignmentId: async (assignmentId: string) => {
-    const response = await api.get(`/payments/history/assignment/${assignmentId}`);
+    const response = await api.get(ENDPOINTS.FINANCE.PAYMENTS_HISTORY_ASSIGNMENT(assignmentId));
     return response.data;
   },
 
   getProviderHistory: async (params?: { page?: number; limit?: number; status?: string }) => {
-    const response = await api.get("/payments/history/provider", { params });
+    const response = await api.get(ENDPOINTS.FINANCE.PAYMENTS_HISTORY_PROVIDER, { params });
     return response.data;
   },
 
   createRazorpayOrder: async (workHistoryId: string) => {
-    const response = await api.post("/payments/create-order", { workHistoryId });
+    const response = await api.post(ENDPOINTS.FINANCE.PAYMENTS_CREATE_ORDER, { workHistoryId });
     return response.data;
   },
 
@@ -88,12 +89,12 @@ export const financeService = {
     razorpay_payment_id: string;
     razorpay_signature: string;
   }) => {
-    const response = await api.post("/payments/verify", data);
+    const response = await api.post(ENDPOINTS.FINANCE.PAYMENTS_VERIFY, data);
     return response.data;
   },
 
   createJobRazorpayOrder: async (jobId: string) => {
-    const response = await api.post("/payments/job/create-order", { jobId });
+    const response = await api.post(ENDPOINTS.FINANCE.PAYMENTS_JOB_CREATE_ORDER, { jobId });
     return response.data;
   },
 
@@ -103,7 +104,7 @@ export const financeService = {
     razorpay_payment_id: string;
     razorpay_signature: string;
   }) => {
-    const response = await api.post("/payments/job/verify", data);
+    const response = await api.post(ENDPOINTS.FINANCE.PAYMENTS_JOB_VERIFY, data);
     return response.data;
   },
 };

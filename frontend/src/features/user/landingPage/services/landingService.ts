@@ -1,4 +1,5 @@
 import { api } from "../../../../services/api";
+import { ENDPOINTS } from "../../../../constants/endpoints";
 
 export interface Location {
   _id: string;
@@ -24,6 +25,6 @@ export const getLandingData = async (
   locationId?: string,
 ): Promise<LandingData> => {
   const params = locationId ? { locationId } : {};
-  const response = await api.get("/landing", { params });
+  const response = await api.get(ENDPOINTS.LANDING as string, { params });
   return response.data.data;
 };

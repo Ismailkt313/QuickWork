@@ -1,18 +1,18 @@
 import { ILandingService, ILandingRepository, LandingData } from '../types/landing.types';
 
 export class LandingService implements ILandingService {
-    private readonly landingRepository: ILandingRepository;
+    private readonly _landingRepository: ILandingRepository;
 
     constructor(landingRepository: ILandingRepository) {
-        this.landingRepository = landingRepository;
+        this._landingRepository = landingRepository;
     }
 
     async getLandingData(locationId?: string): Promise<{ success: boolean; data: LandingData }> {
-        const locations = await this.landingRepository.getAllLocations();
+        const locations = await this._landingRepository.getAllLocations();
 
         const skills = locationId
-            ? await this.landingRepository.getSkillsByLocationId(locationId)
-            : await this.landingRepository.getAllSkills();
+            ? await this._landingRepository.getSkillsByLocationId(locationId)
+            : await this._landingRepository.getAllSkills();
 
         return {
             success: true,

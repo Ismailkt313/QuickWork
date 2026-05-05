@@ -14,7 +14,7 @@ import { getUserJobs, cancelJob, type UserJob } from "../services/userJob.servic
 import UserJobCard from "../components/UserJobCard";
 import { CreateJobModal } from "../jobs/components/CreateJobModal";
 import { CancelJobModal } from "../components/CancelJobModal";
-import { toast } from "react-hot-toast";
+import { toast } from "react-toastify";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AxiosError } from "axios";
 

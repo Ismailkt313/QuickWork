@@ -167,6 +167,27 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView, onRefr
           </div>
         </div>
 
+        {/* Payment Status Row */}
+        {job.providers && job.providers.length > 0 && job.providers.some(p => p.finalStatus === "COMPLETED") && (
+          <div className="qw-payment-row mb-3" onClick={(e) => e.stopPropagation()}>
+            {job.providers.filter(p => p.finalStatus === "COMPLETED").map((p, i) => (
+              <div key={i} className="qw-pay-chip-item">
+                <span className={`qw-pay-chip ${
+                  p.payment.status === "completed" ? "paid" : 
+                  p.payment.status === "awaiting_confirmation" || p.payment.status === "awaiting_provider_confirmation" ? "awaiting" : "unpaid"
+                }`}>
+                  <RiMoneyDollarCircleLine size={12} />
+                  ₹{p.payment.totalAmount.toLocaleString()} 
+                  <span className="qw-pay-chip-label">
+                    {p.payment.status === "completed" ? "Paid" : 
+                     p.payment.status?.includes("awaiting") ? "Awaiting" : "Unpaid"}
+                  </span>
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="qw-card-footer pt-3 mt-auto">
           <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div className="d-flex flex-column">
@@ -403,6 +424,39 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView, onRefr
 
         @media (max-width: 576px) {
           .qw-info-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Payment Status Row */
+        .qw-payment-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          padding: 10px 14px;
+          background: #f8fafc;
+          border-radius: 14px;
+          border: 1px solid #f1f5f9;
+        }
+
+        .qw-pay-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 11px;
+          font-weight: 700;
+          padding: 5px 10px;
+          border-radius: 100px;
+        }
+
+        .qw-pay-chip.paid { background: #f0fdf4; color: #16a34a; }
+        .qw-pay-chip.awaiting { background: #fffbeb; color: #f59e0b; }
+        .qw-pay-chip.unpaid { background: #f1f5f9; color: #64748b; }
+
+        .qw-pay-chip-label {
+          font-size: 9px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.03em;
+          opacity: 0.8;
         }
       `}</style>
     </div>

@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { FaUserCircle } from "react-icons/fa";
 import { jwtDecode } from "jwt-decode";
 import { api } from "../../../services/api";
+import { logout } from "../../auth/services/authApi";
+import { ENDPOINTS } from "../../../constants/endpoints";
 import LocationModal from "../landingPage/components/LocationModal";
 import { CreateJobModal } from "../jobs/components/CreateJobModal";
 import { NotificationModal } from "../../notification/components/NotificationModal";
@@ -47,7 +49,7 @@ const Header: React.FC<HeaderProps> = ({
     if (token) {
       const fetchProfile = async () => {
         try {
-          const response = await api.get("/auth/me");
+          const response = await api.get(ENDPOINTS.AUTH.ME);
           const result = response.data;
           if (result && result.data) {
             setUser({
@@ -72,7 +74,12 @@ const Header: React.FC<HeaderProps> = ({
     }
   }, [token]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
     localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");

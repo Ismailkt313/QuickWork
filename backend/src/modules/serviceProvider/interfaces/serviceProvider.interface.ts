@@ -48,10 +48,12 @@ export interface ProviderListItem {
 }
 
 export interface ProviderFilter {
-    skillId: string;
+    skillId?: string;
     locationId?: string;
     page: number;
     limit: number;
+    search?: string;
+    sort?: string;
 }
 
 export interface ProviderListResult {
@@ -76,6 +78,8 @@ export interface IServiceProviderService {
         locationId?: string;
         page?: number;
         limit?: number;
+        search?: string;
+        sort?: string;
     }): Promise<{ success: boolean; message?: string; data?: ProviderListResult & { page: number; limit: number } }>;
     getProviderById(id: string): Promise<{ success: boolean; data?: any; message?: string }>;
     getMyProfile(userId: string): Promise<{ success: boolean; data?: any; message?: string }>;

@@ -27,11 +27,16 @@ import {
   RiFlagLine,
   RiCheckboxCircleLine,
   RiFocus2Line,
+  RiWallet3Line,
+  RiHandCoinLine,
+  RiTimeLine,
+  RiCashLine,
 } from "react-icons/ri";
 import CancellationModal from "../../provider/components/CancellationModal";
 import ReportAbsenceModal from "../../provider/components/ReportAbsenceModal";
 import UniversalActionModal from "../../provider/components/UniversalActionModal";
 import ClientJobPaymentSection from "../../finance/components/ClientJobPaymentSection";
+import { financeService, type WorkHistory } from "../../finance/services/finance.service";
 import { AxiosError } from "axios";
 
 interface JobDetail {
@@ -101,6 +106,7 @@ const UserJobDetailPage: React.FC = () => {
   const { jobId } = useParams<{ jobId: string }>();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [paymentHistories, setPaymentHistories] = useState<Record<string, WorkHistory>>({});
 
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isAbsenceModalOpen, setIsAbsenceModalOpen] = useState(false);
@@ -234,18 +240,41 @@ const UserJobDetailPage: React.FC = () => {
     }
   };
 
+  const fetchPaymentHistories = useCallback(async (assignmentIds: string[]) => {
+    const histories: Record<string, WorkHistory> = {};
+    await Promise.all(
+      assignmentIds.map(async (aId) => {
+        try {
+          const res = await financeService.getWorkHistoryByAssignmentId(aId);
+          if (res.data) histories[aId] = res.data;
+        } catch {
+          // Payment history may not exist yet
+        }
+      })
+    );
+    setPaymentHistories(histories);
+  }, []);
+
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const jobRes = await getJobDetails(jobId!);
       if (jobRes.success) {
         setJob(jobRes.data);
+        const assignmentIds: string[] = [];
         if (jobRes.data.visibility === "public") {
           const assignRes = await getJobAssignments(jobId!);
           if (assignRes.success) {
             setAssignments(assignRes.data);
+            assignRes.data.forEach((a: Assignment) => {
+              if (a.workStatus === "completed") assignmentIds.push(a.assignmentId);
+            });
           }
+        } else if (jobRes.data.hiredProvider?.assignmentId) {
+          const hp = jobRes.data.hiredProvider;
+          if (hp.workStatus === "completed") assignmentIds.push(hp.assignmentId);
         }
+        if (assignmentIds.length > 0) fetchPaymentHistories(assignmentIds);
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
@@ -253,7 +282,7 @@ const UserJobDetailPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [jobId]);
+  }, [jobId, fetchPaymentHistories]);
 
   useEffect(() => {
     if (jobId) {
@@ -427,6 +456,111 @@ const UserJobDetailPage: React.FC = () => {
         </div>
       </div>
 
+      {/* ── Payment Summary Section ── */}
+      {(() => {
+        const allAssignmentIds: string[] = [];
+        if (job.visibility === "private" && job.hiredProvider?.assignmentId && job.hiredProvider.workStatus === "completed") {
+          allAssignmentIds.push(job.hiredProvider.assignmentId);
+        } else {
+          assignments.filter(a => a.workStatus === "completed").forEach(a => allAssignmentIds.push(a.assignmentId));
+        }
+        const histories = allAssignmentIds.map(id => paymentHistories[id]).filter(Boolean);
+        if (histories.length === 0) return null;
+
+        const totalBudget = histories.reduce((s, h) => s + h.payment.totalAmount, 0);
+        const totalPaid = histories.filter(h => h.payment.status === "completed").reduce((s, h) => s + h.payment.totalAmount, 0);
+        const totalPending = histories.filter(h => h.payment.status !== "completed").reduce((s, h) => s + h.payment.totalAmount, 0);
+        const totalFees = histories.reduce((s, h) => s + h.payment.platformFee, 0);
+
+        return (
+          <div className="qw-payment-summary-card mb-4">
+            <div className="qw-ps-header">
+              <div className="qw-ps-icon-box">
+                <RiWallet3Line size={22} />
+              </div>
+              <div>
+                <h4 className="qw-ps-title">Payment Summary</h4>
+                <p className="qw-ps-subtitle">{histories.length} provider{histories.length > 1 ? 's' : ''} • {histories.filter(h => h.payment.status === "completed").length} paid</p>
+              </div>
+            </div>
+
+            <div className="qw-ps-stats-grid">
+              <div className="qw-ps-stat">
+                <div className="qw-ps-stat-icon total"><RiMoneyDollarCircleLine size={18} /></div>
+                <div className="qw-ps-stat-info">
+                  <span className="qw-ps-stat-label">Total Amount</span>
+                  <span className="qw-ps-stat-value">₹{totalBudget.toLocaleString()}</span>
+                </div>
+              </div>
+              <div className="qw-ps-stat">
+                <div className="qw-ps-stat-icon paid"><RiCheckboxCircleLine size={18} /></div>
+                <div className="qw-ps-stat-info">
+                  <span className="qw-ps-stat-label">Paid</span>
+                  <span className="qw-ps-stat-value success">₹{totalPaid.toLocaleString()}</span>
+                </div>
+              </div>
+              <div className="qw-ps-stat">
+                <div className="qw-ps-stat-icon pending"><RiTimeLine size={18} /></div>
+                <div className="qw-ps-stat-info">
+                  <span className="qw-ps-stat-label">Pending</span>
+                  <span className="qw-ps-stat-value warning">₹{totalPending.toLocaleString()}</span>
+                </div>
+              </div>
+              <div className="qw-ps-stat">
+                <div className="qw-ps-stat-icon fee"><RiHandCoinLine size={18} /></div>
+                <div className="qw-ps-stat-info">
+                  <span className="qw-ps-stat-label">Platform Fee</span>
+                  <span className="qw-ps-stat-value muted">₹{totalFees.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Progress bar */}
+            <div className="qw-ps-progress-wrap">
+              <div className="qw-ps-progress-bar">
+                <div 
+                  className="qw-ps-progress-fill" 
+                  style={{ width: totalBudget > 0 ? `${(totalPaid / totalBudget) * 100}%` : '0%' }}
+                />
+              </div>
+              <span className="qw-ps-progress-label">
+                {totalBudget > 0 ? Math.round((totalPaid / totalBudget) * 100) : 0}% paid
+              </span>
+            </div>
+
+            {/* Per-provider breakdown */}
+            {histories.length > 1 && (
+              <div className="qw-ps-breakdown">
+                <h6 className="qw-ps-breakdown-title">Provider Breakdown</h6>
+                {histories.map((h) => {
+                  const provider = assignments.find(a => a.assignmentId === Object.keys(paymentHistories).find(k => paymentHistories[k]?._id === h._id));
+                  return (
+                    <div key={h._id} className="qw-ps-breakdown-row">
+                      <div className="qw-ps-breakdown-name">
+                        <div className="qw-ps-mini-avatar">{(provider?.provider.name || h.jobId.title || 'P').charAt(0).toUpperCase()}</div>
+                        <span>{provider?.provider.name || h.jobId.title}</span>
+                      </div>
+                      <div className="qw-ps-breakdown-amount">
+                        <span className="qw-ps-amount-value">₹{h.payment.totalAmount.toLocaleString()}</span>
+                        <span className={`qw-ps-method-tag ${h.payment.status}`}>
+                          {h.payment.status === "completed" ? (
+                            <><RiCheckboxCircleLine size={12} /> Paid</>
+                          ) : h.payment.status === "awaiting_confirmation" ? (
+                            <><RiTimeLine size={12} /> Awaiting</>
+                          ) : (
+                            <><RiCashLine size={12} /> Pending</>
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {isDirectHire && isRejected && (
         <div
           className="alert alert-danger d-flex gap-3 align-items-start p-4 rounded-4 mb-4 border-0 shadow-sm"
@@ -494,6 +628,15 @@ const UserJobDetailPage: React.FC = () => {
                       </span>
                       {job.status === "open" && (
                          <span className="status-chip bg-amber-50 text-amber-600">Pending Response</span>
+                      )}
+                      {hp.payment && (
+                        <span className={`status-chip ${
+                          hp.payment.status === "completed" ? "bg-success-subtle text-success" :
+                          hp.payment.status === "awaiting_confirmation" || hp.payment.status === "awaiting_provider_confirmation" ? "bg-warning-subtle text-warning" : "bg-secondary-subtle text-secondary"
+                        }`}>
+                          <RiMoneyDollarCircleLine size={12} className="me-1" />
+                          ₹{hp.payment.amount} • {hp.payment.status === "completed" ? "Paid" : hp.payment.status?.includes("awaiting") ? "Awaiting" : "Unpaid"}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -586,6 +729,15 @@ const UserJobDetailPage: React.FC = () => {
                         }`} style={{ fontSize: '9px' }}>
                           {assignment.workStatus?.replace("_", " ") || "Assigned"}
                         </span>
+                        {assignment.payment && (
+                          <span className={`status-chip py-1 px-2 ${
+                            assignment.payment.status === "completed" ? "bg-success-subtle text-success" :
+                            assignment.payment.status === "awaiting_confirmation" ? "bg-warning-subtle text-warning" : "bg-secondary-subtle text-secondary"
+                          }`} style={{ fontSize: '9px' }}>
+                            <RiMoneyDollarCircleLine size={10} className="me-1" />
+                            ₹{assignment.payment.amount} • {assignment.payment.status === "completed" ? "Paid" : assignment.payment.status === "awaiting_confirmation" ? "Awaiting" : "Unpaid"}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -801,6 +953,233 @@ const UserJobDetailPage: React.FC = () => {
                 }
                 .qw-spin { animation: qwSpin 1.2s linear infinite; }
                 @keyframes qwSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+                /* ─── Payment Summary Card ─── */
+                .qw-payment-summary-card {
+                    background: #ffffff;
+                    border: 1px solid #e2e8f0;
+                    border-radius: 28px;
+                    padding: 32px;
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+                    animation: fadeSlideUp 0.5s ease-out;
+                }
+
+                @keyframes fadeSlideUp {
+                    from { opacity: 0; transform: translateY(16px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+
+                .qw-ps-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+                    margin-bottom: 28px;
+                }
+
+                .qw-ps-icon-box {
+                    width: 48px;
+                    height: 48px;
+                    border-radius: 16px;
+                    background: linear-gradient(135deg, #6366f1, #4f46e5);
+                    color: white;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+                }
+
+                .qw-ps-title {
+                    font-family: 'Syne', sans-serif;
+                    font-weight: 800;
+                    font-size: 20px;
+                    color: #0f172a;
+                    margin: 0;
+                }
+
+                .qw-ps-subtitle {
+                    font-size: 13px;
+                    color: #94a3b8;
+                    font-weight: 500;
+                    margin: 2px 0 0;
+                }
+
+                .qw-ps-stats-grid {
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 16px;
+                    margin-bottom: 24px;
+                }
+
+                @media (max-width: 768px) {
+                    .qw-ps-stats-grid { grid-template-columns: repeat(2, 1fr); }
+                }
+
+                .qw-ps-stat {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 16px;
+                    background: #f8fafc;
+                    border-radius: 16px;
+                    border: 1px solid #f1f5f9;
+                    transition: all 0.25s ease;
+                }
+
+                .qw-ps-stat:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.06);
+                }
+
+                .qw-ps-stat-icon {
+                    width: 38px;
+                    height: 38px;
+                    border-radius: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-shrink: 0;
+                }
+
+                .qw-ps-stat-icon.total { background: #eff6ff; color: #3b82f6; }
+                .qw-ps-stat-icon.paid { background: #f0fdf4; color: #16a34a; }
+                .qw-ps-stat-icon.pending { background: #fffbeb; color: #f59e0b; }
+                .qw-ps-stat-icon.fee { background: #f5f3ff; color: #8b5cf6; }
+
+                .qw-ps-stat-info {
+                    display: flex;
+                    flex-direction: column;
+                    min-width: 0;
+                }
+
+                .qw-ps-stat-label {
+                    font-size: 11px;
+                    font-weight: 700;
+                    color: #94a3b8;
+                    text-transform: uppercase;
+                    letter-spacing: 0.03em;
+                }
+
+                .qw-ps-stat-value {
+                    font-size: 18px;
+                    font-weight: 800;
+                    color: #0f172a;
+                }
+
+                .qw-ps-stat-value.success { color: #16a34a; }
+                .qw-ps-stat-value.warning { color: #f59e0b; }
+                .qw-ps-stat-value.muted { color: #8b5cf6; }
+
+                /* Progress Bar */
+                .qw-ps-progress-wrap {
+                    display: flex;
+                    align-items: center;
+                    gap: 14px;
+                    margin-bottom: 24px;
+                }
+
+                .qw-ps-progress-bar {
+                    flex: 1;
+                    height: 10px;
+                    background: #f1f5f9;
+                    border-radius: 100px;
+                    overflow: hidden;
+                }
+
+                .qw-ps-progress-fill {
+                    height: 100%;
+                    background: linear-gradient(90deg, #6366f1, #16a34a);
+                    border-radius: 100px;
+                    transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+                    min-width: 4px;
+                }
+
+                .qw-ps-progress-label {
+                    font-size: 12px;
+                    font-weight: 700;
+                    color: #64748b;
+                    white-space: nowrap;
+                }
+
+                /* Provider Breakdown */
+                .qw-ps-breakdown {
+                    border-top: 1px solid #f1f5f9;
+                    padding-top: 20px;
+                }
+
+                .qw-ps-breakdown-title {
+                    font-family: 'Syne', sans-serif;
+                    font-weight: 800;
+                    font-size: 14px;
+                    color: #0f172a;
+                    margin-bottom: 14px;
+                }
+
+                .qw-ps-breakdown-row {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 12px 16px;
+                    background: #f8fafc;
+                    border-radius: 14px;
+                    margin-bottom: 8px;
+                    transition: all 0.2s ease;
+                }
+
+                .qw-ps-breakdown-row:hover {
+                    background: #f1f5f9;
+                }
+
+                .qw-ps-breakdown-name {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #0f172a;
+                }
+
+                .qw-ps-mini-avatar {
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 10px;
+                    background: linear-gradient(135deg, #6366f1, #4f46e5);
+                    color: white;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 800;
+                    font-size: 13px;
+                    flex-shrink: 0;
+                }
+
+                .qw-ps-breakdown-amount {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                }
+
+                .qw-ps-amount-value {
+                    font-size: 15px;
+                    font-weight: 800;
+                    color: #0f172a;
+                }
+
+                .qw-ps-method-tag {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 4px;
+                    font-size: 10px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    padding: 4px 10px;
+                    border-radius: 100px;
+                    letter-spacing: 0.02em;
+                }
+
+                .qw-ps-method-tag.completed { background: #f0fdf4; color: #16a34a; }
+                .qw-ps-method-tag.awaiting_confirmation { background: #fffbeb; color: #f59e0b; }
+                .qw-ps-method-tag.pending { background: #f1f5f9; color: #64748b; }
             `}</style>
     </div>
   );

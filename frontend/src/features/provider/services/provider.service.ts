@@ -1,5 +1,6 @@
 import { AxiosError } from "axios";
 import { api } from "../../../services/api";
+import { ENDPOINTS } from "../../../constants/endpoints";
 import { cloudinaryService } from "../../../services/cloudinaryService";
 
 interface BaseResponse<T = unknown> {
@@ -27,7 +28,7 @@ export const submitProviderApplication = async (
   data: ProviderApplicationPayload,
 ): Promise<BaseResponse<{ accessToken: string; refreshToken: string }>> => {
   try {
-    const response = await api.post("/provider/apply", data);
+    const response = await api.post(ENDPOINTS.PROVIDER.APPLY, data);
     return response.data;
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
@@ -47,7 +48,7 @@ export const availableJobs = async (
   search?: string,
 ) => {
   try {
-    const response = await api.get("/job/availablejobs", {
+    const response = await api.get(ENDPOINTS.JOB.AVAILABLE, {
       params: {
         page,
         limit,
@@ -69,7 +70,7 @@ export const availableJobs = async (
 
 export const fetchallskills = async () => {
   try {
-    const response = await api.get("/skills");
+    const response = await api.get(ENDPOINTS.SKILLS.LIST);
     return response.data;
   } catch {
     return { success: false, message: "Failed to fetch all skills" };
@@ -78,7 +79,7 @@ export const fetchallskills = async () => {
 
 export const fetchSkills = async () => {
   try {
-    const response = await api.get("/skills/my/skills");
+    const response = await api.get(ENDPOINTS.SKILLS.MY);
     return response.data;
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
@@ -88,7 +89,7 @@ export const fetchSkills = async () => {
 
 export const fetchLocations = async () => {
   try {
-    const response = await api.get("/locations/all");
+    const response = await api.get(ENDPOINTS.LOCATION.ALL);
     return response.data;
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
@@ -100,7 +101,7 @@ export const fetchLocations = async () => {
 
 export const acceptJob = async (jobId: string) => {
   try {
-    const response = await api.post(`/job/${jobId}/accept`);
+    const response = await api.post(ENDPOINTS.JOB.ACCEPT(jobId));
     if (!response.data.success) {
       throw new Error(response.data.message || "Failed to accept job");
     }
@@ -115,7 +116,7 @@ export const acceptJob = async (jobId: string) => {
 
 export const acceptOffer = async (jobId: string) => {
   try {
-    const response = await api.put(`/job/offers/${jobId}/accept`);
+    const response = await api.put(ENDPOINTS.JOB.OFFER_ACCEPT(jobId));
     if (!response.data.success) {
       throw new Error(response.data.message || "Failed to accept offer");
     }
@@ -132,7 +133,7 @@ export const acceptOffer = async (jobId: string) => {
 
 export const rejectOffer = async (jobId: string) => {
   try {
-    const response = await api.put(`/job/offers/${jobId}/reject`);
+    const response = await api.put(ENDPOINTS.JOB.OFFER_REJECT(jobId));
     console.log("enthoo error ind ivida", response.data);
     return response.data;
   } catch (error) {
@@ -148,7 +149,7 @@ export const getAssignments = async (
   status: string = "all",
 ) => {
   try {
-    const response = await api.get("/assignment/my", {
+    const response = await api.get(ENDPOINTS.ASSIGNMENT.MY, {
       params: { page, limit, search, status },
     });
     return response.data;
@@ -162,7 +163,7 @@ export const getAssignments = async (
 
 export const getAssignmentById = async (id: string) => {
   try {
-    const response = await api.get(`/assignment/${id}`);
+    const response = await api.get(ENDPOINTS.ASSIGNMENT.DETAILS(id));
     return response.data;
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
@@ -174,7 +175,7 @@ export const getAssignmentById = async (id: string) => {
 
 export const updateAssignmentStatus = async (id: string, status: string) => {
   try {
-    const response = await api.patch(`/assignment/${id}/status`, { status });
+    const response = await api.patch(ENDPOINTS.ASSIGNMENT.UPDATE_STATUS(id), { status });
     return response.data;
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
@@ -187,7 +188,7 @@ export const submitAssignmentProof = async (
   data: { images: string[]; description: string },
 ) => {
   try {
-    const response = await api.post(`/assignment/${id}/proof`, data);
+    const response = await api.post(ENDPOINTS.ASSIGNMENT.SUBMIT_PROOF(id), data);
     return response.data;
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
@@ -198,7 +199,7 @@ export const submitAssignmentProof = async (
 export const getMyProfile = async <T = unknown>(): Promise<BaseResponse<T>> => {
   try {
     console.log("Fetching profile...");
-    const response = await api.get("/provider/profile");
+    const response = await api.get(ENDPOINTS.PROVIDER.PROFILE);
     console.log(response.data, "response.data");
     return response.data;
   } catch (error) {
@@ -211,7 +212,7 @@ export const updateProviderProfile = async (
   data: unknown,
 ): Promise<BaseResponse> => {
   try {
-    const response = await api.patch("/provider/profile", data);
+    const response = await api.patch(ENDPOINTS.PROVIDER.PROFILE, data);
     return response.data;
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
@@ -277,7 +278,7 @@ export const resetProviderApplication = async (): Promise<{
   message: string;
 }> => {
   try {
-    const response = await api.post("/provider/reset");
+    const response = await api.post(ENDPOINTS.PROVIDER.RESET);
     return response.data;
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
@@ -292,7 +293,7 @@ export const cancelAssignmentByProvider = async (
   notes?: string,
 ) => {
   try {
-    const response = await api.post(`/assignment/${id}/cancel-by-provider`, {
+    const response = await api.post(ENDPOINTS.ASSIGNMENT.CANCEL_BY_PROVIDER(id), {
       notes,
     });
     return response.data;
@@ -313,7 +314,7 @@ export const submitReview = async (reviewData: {
   role: "client_to_provider" | "provider_to_client";
 }) => {
   try {
-    const response = await api.post("/review", reviewData);
+    const response = await api.post(ENDPOINTS.REVIEW.CREATE, reviewData);
     return response.data;
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
@@ -330,7 +331,7 @@ export const submitReport = async (reportData: {
   role: "client_to_provider" | "provider_to_client";
 }) => {
   try {
-    const response = await api.post("/report", reportData);
+    const response = await api.post(ENDPOINTS.REPORT.CREATE, reportData);
     return response.data;
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
@@ -340,7 +341,7 @@ export const submitReport = async (reportData: {
 
 export const confirmPayment = async (id: string) => {
   try {
-    const response = await api.post(`/assignment/${id}/payment/confirm-cash`);
+    const response = await api.post(ENDPOINTS.ASSIGNMENT.CONFIRM_CASH(id));
     return response.data;
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
@@ -350,7 +351,7 @@ export const confirmPayment = async (id: string) => {
 
 export const providerMarkAsPaid = async (id: string) => {
   try {
-    const response = await api.post(`/assignment/${id}/payment/provider-mark-paid`);
+    const response = await api.post(ENDPOINTS.ASSIGNMENT.PROVIDER_MARK_PAID(id));
     return response.data;
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
@@ -360,7 +361,7 @@ export const providerMarkAsPaid = async (id: string) => {
 
 export const rejectPayment = async (id: string) => {
   try {
-    const response = await api.post(`/assignment/${id}/payment/reject`);
+    const response = await api.post(ENDPOINTS.ASSIGNMENT.REJECT_PAYMENT(id));
     return response.data;
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;

@@ -4,6 +4,8 @@ import { RiMenuLine, RiMapPin2Line } from "react-icons/ri";
 import { useNavigate, Outlet } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { api } from "../../../services/api";
+import { logout } from "../../auth/services/authApi";
+import { ENDPOINTS } from "../../../constants/endpoints";
 import "../../provider/components/ProviderSidebar.css";
 
 const UserDashboardLayout: React.FC = () => {
@@ -18,7 +20,7 @@ const UserDashboardLayout: React.FC = () => {
     if (token) {
       const fetchProfile = async () => {
         try {
-          const response = await api.get("/auth/me");
+          const response = await api.get(ENDPOINTS.AUTH.ME);
           const result = response.data;
           if (result.success) {
             setUser({
@@ -44,8 +46,14 @@ const UserDashboardLayout: React.FC = () => {
     }
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     navigate("/auth/login");
   };
 

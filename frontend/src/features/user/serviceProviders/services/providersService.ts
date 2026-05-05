@@ -1,4 +1,5 @@
 import { api } from "../../../../services/api";
+import { ENDPOINTS } from "../../../../constants/endpoints";
 
 export interface ProviderItem {
   id: string;
@@ -20,7 +21,7 @@ export interface PaginationInfo {
 
 export interface ProvidersResponse {
   success: boolean;
-  providers: ProviderItem[];
+  data: ProviderItem[];
   pagination: PaginationInfo;
 }
 
@@ -30,12 +31,13 @@ export const getProviders = async (params: {
   page?: number;
   limit?: number;
   sort?: string;
+  search?: string;
 }): Promise<ProvidersResponse> => {
-  const response = await api.get("/provider/list", { params });
+  const response = await api.get(ENDPOINTS.PROVIDER.LIST, { params });
   return response.data;
 };
 
 export const getProviderById = async <T = unknown>(id: string): Promise<{ success: boolean; data: T; message?: string }> => {
-  const response = await api.get(`/provider/${id}`);
+  const response = await api.get(ENDPOINTS.PROVIDER.DETAILS(id));
   return response.data;
 };

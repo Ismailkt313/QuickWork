@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { changePassword } from "../../auth/services/authApi";
-import { toast } from "react-hot-toast";
+import { toast } from "react-toastify";
 import { RiSaveLine, RiShieldLine, RiLockLine } from "react-icons/ri";
 
 const passwordSchema = z
@@ -47,20 +47,23 @@ const UpdatePasswordModal: React.FC<UpdatePasswordModalProps> = ({
   const onSubmit = async (data: PasswordFormData) => {
     try {
       const response = await changePassword(data);
+      console.log('response here ',response)
       if (response.success) {
         toast.success("Password changed successfully");
         reset();
         onClose();
+      } else {
+        console.log('not done')
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Failed to change password";
-
       if (errorMessage.toLowerCase().includes("current password")) {
         setError("currentPassword", { type: "manual", message: errorMessage });
       } else if (errorMessage.toLowerCase().includes("match")) {
         setError("confirmPassword", { type: "manual", message: errorMessage });
       } else {
-        toast.error(errorMessage);
+        setError("currentPassword",{type: "manual", message: 'enter currect paasword'})
+        toast.error('not working')
       }
     }
   };

@@ -238,6 +238,7 @@ const AvailableJobsPage: React.FC = () => {
         setSkills(sks.data);
       } catch (err: unknown) {
         console.error("Error loading filters:", err);
+        toast.error("Failed to load filter options");
       }
     };
     loadFilters();
@@ -276,6 +277,7 @@ const AvailableJobsPage: React.FC = () => {
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : "Failed to fetch jobs";
         console.error(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setLoading(false);
         setRefreshing(false);

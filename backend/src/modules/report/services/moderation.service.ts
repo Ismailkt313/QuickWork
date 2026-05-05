@@ -8,10 +8,10 @@ import { HttpStatusCode } from '../../../constants/httpStatusCode';
 import { IModerationService } from '../interfaces/report.interface';
 
 export class ModerationService implements IModerationService {
-    private reportRepository: IReportRepository;
-    private notificationService: INotificationService;
-    private moderationLogRepository: IModerationLogRepository;
-    private authRepository: IAuthRepository;
+    private _reportRepository: IReportRepository;
+    private _notificationService: INotificationService;
+    private _moderationLogRepository: IModerationLogRepository;
+    private _authRepository: IAuthRepository;
 
     constructor(
         reportRepository: IReportRepository, 
@@ -19,23 +19,23 @@ export class ModerationService implements IModerationService {
         authRepository: IAuthRepository,
         notificationService: INotificationService
     ) {
-        this.reportRepository = reportRepository;
-        this.moderationLogRepository = moderationLogRepository;
-        this.authRepository = authRepository;
-        this.notificationService = notificationService;
+        this._reportRepository = reportRepository;
+        this._moderationLogRepository = moderationLogRepository;
+        this._authRepository = authRepository;
+        this._notificationService = notificationService;
     }
 
     async getReports(query: { status?: string; page?: number; limit?: number }) {
-        return await this.reportRepository.findWithFilters(query);
+        return await this._reportRepository.findWithFilters(query);
     }
 
     async getReportDetail(reportId: string) {
-        const report = await this.reportRepository.findById(reportId);
+        const report = await this._reportRepository.findById(reportId);
         if (!report) {
             throw new AppError('Report not found', HttpStatusCode.NOT_FOUND);
         }
 
-        const moderationLogs = await this.moderationLogRepository.findByReportId(reportId);
+        const moderationLogs = await this._moderationLogRepository.findByReportId(reportId);
 
         return { report, moderationLogs };
     }
@@ -46,7 +46,7 @@ export class ModerationService implements IModerationService {
         action: 'warn' | 'block' | 'reject',
         reason: string
     ) {
-        const report = await this.reportRepository.findById(reportId);
+        const report = await this._reportRepository.findById(reportId);
         if (!report) {
             throw new AppError('Report not found', HttpStatusCode.NOT_FOUND);
         }
@@ -58,11 +58,11 @@ export class ModerationService implements IModerationService {
         const reportedUserId = report.reportedUserId._id.toString();
 
         if (action === 'warn') {
-            await this.authRepository.incrementWarningCount(reportedUserId);
+            await this._authRepository.incrementWarningCount(reportedUserId);
 
-            await this.reportRepository.updateStatus(reportId, REPORT_STATUS.ACTION_TAKEN);
+            await this._reportRepository.updateStatus(reportId, REPORT_STATUS.ACTION_TAKEN);
 
-            await this.moderationLogRepository.create({
+            await this._moderationLogRepository.create({
                 userId: reportedUserId,
                 reportId,
                 action: 'warn',
@@ -70,7 +70,7 @@ export class ModerationService implements IModerationService {
                 adminId
             });
 
-            await this.notificationService.createNotification({
+            await this._notificationService.createNotification({
                 recipient: reportedUserId,
                 title: 'Warning Received',
                 message: `You have received a warning: ${reason}`,
@@ -78,11 +78,11 @@ export class ModerationService implements IModerationService {
             });
 
         } else if (action === 'block') {
-            await this.authRepository.blockUser(reportedUserId);
+            await this._authRepository.blockUser(reportedUserId);
 
-            await this.reportRepository.updateStatus(reportId, REPORT_STATUS.ACTION_TAKEN);
+            await this._reportRepository.updateStatus(reportId, REPORT_STATUS.ACTION_TAKEN);
 
-            await this.moderationLogRepository.create({
+            await this._moderationLogRepository.create({
                 userId: reportedUserId,
                 reportId,
                 action: 'block',
@@ -90,7 +90,7 @@ export class ModerationService implements IModerationService {
                 adminId
             });
 
-            await this.notificationService.createNotification({
+            await this._notificationService.createNotification({
                 recipient: reportedUserId,
                 title: 'Account Blocked',
                 message: `Your account has been blocked: ${reason}`,
@@ -98,9 +98,9 @@ export class ModerationService implements IModerationService {
             });
 
         } else if (action === 'reject') {
-            await this.reportRepository.updateStatus(reportId, REPORT_STATUS.REJECTED);
+            await this._reportRepository.updateStatus(reportId, REPORT_STATUS.REJECTED);
 
-            await this.moderationLogRepository.create({
+            await this._moderationLogRepository.create({
                 userId: reportedUserId,
                 reportId,
                 action: 'reject',

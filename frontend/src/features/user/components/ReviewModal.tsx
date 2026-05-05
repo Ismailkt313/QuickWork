@@ -209,6 +209,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
           justify-content: center;
           padding: 24px;
           z-index: 999999;
+          overflow-y: auto;
         }
 
         .qw-modal-content {
@@ -219,7 +220,17 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
           border-radius: 32px;
           box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
           position: relative;
+          margin: auto;
+          max-height: 90vh;
+          overflow-y: auto;
+          scrollbar-width: thin;
+          scrollbar-color: #cbd5e1 transparent;
         }
+
+        .qw-modal-content::-webkit-scrollbar { width: 6px; }
+        .qw-modal-content::-webkit-scrollbar-track { background: transparent; }
+        .qw-modal-content::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+        .qw-modal-content::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
 
         .qw-modal-title {
           font-family: 'Syne', sans-serif;

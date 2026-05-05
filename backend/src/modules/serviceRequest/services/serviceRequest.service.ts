@@ -12,35 +12,35 @@ import { logger } from '../../../utils/logger';
 
 
 export class ServiceRequestService implements IServiceRequestService {
-    private serviceRequestRepository: IServiceRequestRepository;
-    private skillRepository: ISkillRepository;
-    private serviceProviderRepository: IServiceProviderRepository;
+    private _serviceRequestRepository: IServiceRequestRepository;
+    private _skillRepository: ISkillRepository;
+    private _serviceProviderRepository: IServiceProviderRepository;
 
     constructor(
         serviceRequestRepository: IServiceRequestRepository,
         skillRepository: ISkillRepository,
         serviceProviderRepository: IServiceProviderRepository
     ) {
-        this.serviceRequestRepository = serviceRequestRepository;
-        this.skillRepository = skillRepository;
-        this.serviceProviderRepository = serviceProviderRepository;
+        this._serviceRequestRepository = serviceRequestRepository;
+        this._skillRepository = skillRepository;
+        this._serviceProviderRepository = serviceProviderRepository;
     }
 
     async createRequest(userId: string, dto: CreateServiceRequestDTO): Promise<{ success: boolean; message: string; data?: any }> {
         const normalizedName = dto.name.toLowerCase().trim();
         const generatedSlug = generateSlug(normalizedName);
 
-        const existingSkill = await this.skillRepository.findByName(normalizedName);
+        const existingSkill = await this._skillRepository.findByName(normalizedName);
         if (existingSkill) {
             return { success: false, message: ErrorMessages.SKILL_ALREADY_EXISTS };
         }
 
-        const existingRequest = await this.serviceRequestRepository.findPendingByName(normalizedName);
+        const existingRequest = await this._serviceRequestRepository.findPendingByName(normalizedName);
         if (existingRequest) {
             return { success: false, message: ErrorMessages.PENDING_REQUEST_EXISTS };
         }
 
-        const newRequest = await this.serviceRequestRepository.create({
+        const newRequest = await this._serviceRequestRepository.create({
             name: normalizedName,
             slug: generatedSlug,
             description: dto.description,
@@ -55,7 +55,7 @@ export class ServiceRequestService implements IServiceRequestService {
     }
 
     async getUserRequests(userId: string): Promise<{ success: boolean; data: IServiceRequest[] }> {
-        const requests = await this.serviceRequestRepository.findByUser(userId);
+        const requests = await this._serviceRequestRepository.findByUser(userId);
         return { success: true, data: requests };
     }
 
@@ -70,8 +70,8 @@ export class ServiceRequestService implements IServiceRequestService {
         };
     }> {
         const [requests, total] = await Promise.all([
-            this.serviceRequestRepository.findAllPending(page, limit),
-            this.serviceRequestRepository.getPendingCount()
+            this._serviceRequestRepository.findAllPending(page, limit),
+            this._serviceRequestRepository.getPendingCount()
         ]);
         
         return { 
@@ -91,7 +91,7 @@ export class ServiceRequestService implements IServiceRequestService {
       requestId: string
     ): Promise<{ success: boolean; message: string }> {
 
-      const request = await this.serviceRequestRepository.findById(requestId);
+      const request = await this._serviceRequestRepository.findById(requestId);
       if (!request) {
         return { success: false, message: ErrorMessages.SERVICE_REQUEST_NOT_FOUND };
       }
@@ -101,17 +101,17 @@ export class ServiceRequestService implements IServiceRequestService {
       }
 
 
-      let skill = await this.skillRepository.findBySlug(request.slug);
+      let skill = await this._skillRepository.findBySlug(request.slug);
 
       if (!skill) {
         try {
-          skill = await this.skillRepository.create({
+          skill = await this._skillRepository.create({
             name: request.name,
             slug: request.slug
           });
         } catch (error: any) {
           if (error.code === 11000) {
-            skill = await this.skillRepository.findBySlug(request.slug);
+            skill = await this._skillRepository.findBySlug(request.slug);
           } else {
             logger.error({ error, requestId, slug: request.slug }, "Failed to create skill during approval");
 
@@ -125,13 +125,13 @@ export class ServiceRequestService implements IServiceRequestService {
       }
 
       const userId = request.requestedBy.toString();
-      const updateResult = await this.serviceProviderRepository.addSkillToProvider(
+      const updateResult = await this._serviceProviderRepository.addSkillToProvider(
         userId,
         skill._id.toString()
       );
 
       if (updateResult.matchedCount === 0) {
-         await this.serviceRequestRepository.updateStatus(requestId, {
+         await this._serviceRequestRepository.updateStatus(requestId, {
           status: SKILL_STATUS.APPROVED,
           reviewedBy: new Types.ObjectId(adminId),
           reviewedAt: new Date(),
@@ -145,7 +145,7 @@ export class ServiceRequestService implements IServiceRequestService {
       }
 
 
-      await this.serviceRequestRepository.updateStatus(requestId, {
+      await this._serviceRequestRepository.updateStatus(requestId, {
         status: SKILL_STATUS.APPROVED,
         reviewedBy: new Types.ObjectId(adminId),
         reviewedAt: new Date()
@@ -158,7 +158,7 @@ export class ServiceRequestService implements IServiceRequestService {
     }
 
     async rejectRequest(adminId: string, requestId: string, dto: RejectServiceRequestDTO): Promise<{ success: boolean; message: string }> {
-        const request = await this.serviceRequestRepository.findById(requestId);
+        const request = await this._serviceRequestRepository.findById(requestId);
         if (!request) {
             return { success: false, message: ErrorMessages.SERVICE_REQUEST_NOT_FOUND };
         }
@@ -167,7 +167,7 @@ export class ServiceRequestService implements IServiceRequestService {
             return { success: false, message: ErrorMessages.REQUEST_ALREADY_REVIEWED(request.status) };
         }
 
-        await this.serviceRequestRepository.updateStatus(requestId, {
+        await this._serviceRequestRepository.updateStatus(requestId, {
             status: SKILL_STATUS.REJECTED,
             reviewedBy: new Types.ObjectId(adminId),
             reviewedAt: new Date(),

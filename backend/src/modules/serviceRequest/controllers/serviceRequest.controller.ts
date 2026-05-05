@@ -8,10 +8,10 @@ import { ErrorMessages } from '../../../constants/messages/errorMessages';
 
 
 export class ServiceRequestController implements IServiceRequestController {
-    private serviceRequestService: IServiceRequestService;
+    private _serviceRequestService: IServiceRequestService;
 
     constructor(serviceRequestService: IServiceRequestService) {
-        this.serviceRequestService = serviceRequestService;
+        this._serviceRequestService = serviceRequestService;
     }
 
     createRequest = async (req: Request, res: Response, next: any): Promise<void> => {
@@ -23,7 +23,7 @@ export class ServiceRequestController implements IServiceRequestController {
 
             const dto = CreateServiceRequestDTO.create(req.body);
 
-            const result = await this.serviceRequestService.createRequest(userId, dto);
+            const result = await this._serviceRequestService.createRequest(userId, dto);
 
             if (!result.success) {
                 throw new AppError(result.message, HttpStatusCode.CONFLICT);
@@ -42,7 +42,7 @@ export class ServiceRequestController implements IServiceRequestController {
                 throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
             }
 
-            const result = await this.serviceRequestService.getUserRequests(userId);
+            const result = await this._serviceRequestService.getUserRequests(userId);
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
@@ -53,7 +53,7 @@ export class ServiceRequestController implements IServiceRequestController {
         try {
             const page = Math.max(1, parseInt(req.query.page as string) || 1);
             const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 10));
-            const result = await this.serviceRequestService.getPendingRequests(page, limit);
+            const result = await this._serviceRequestService.getPendingRequests(page, limit);
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
@@ -72,7 +72,7 @@ export class ServiceRequestController implements IServiceRequestController {
                 throw new AppError(ErrorMessages.SERVICE_REQUEST_ID_REQUIRED, HttpStatusCode.BAD_REQUEST);
             }
 
-            const result = await this.serviceRequestService.approveRequest(adminId, id);
+            const result = await this._serviceRequestService.approveRequest(adminId, id);
 
             if (!result.success) {
                 throw new AppError(result.message, HttpStatusCode.BAD_REQUEST);
@@ -97,7 +97,7 @@ export class ServiceRequestController implements IServiceRequestController {
             }
 
             const dto = RejectServiceRequestDTO.create(req.body);
-            const result = await this.serviceRequestService.rejectRequest(adminId, id, dto);
+            const result = await this._serviceRequestService.rejectRequest(adminId, id, dto);
 
             if (!result.success) {
                 throw new AppError(result.message, HttpStatusCode.BAD_REQUEST);

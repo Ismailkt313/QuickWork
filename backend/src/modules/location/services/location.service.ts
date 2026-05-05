@@ -1,14 +1,14 @@
 import { ILocationService, ILocationRepository, ILoactionresponse } from '../interfaces/location.interface';
 
 export class LocationService implements ILocationService {
-    private locationRepository: ILocationRepository;
+    private _locationRepository: ILocationRepository;
 
     constructor(locationRepository: ILocationRepository) {
-        this.locationRepository = locationRepository;
+        this._locationRepository = locationRepository;
     }
 
     async getAllLocations(): Promise<{ success: boolean; data: ILoactionresponse[] }> {
-        const locations = await this.locationRepository.getAllLocations();
+        const locations = await this._locationRepository.getAllLocations();
         return {
             success: true,
             data: locations.map(loc => ({

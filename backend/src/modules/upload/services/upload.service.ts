@@ -6,33 +6,33 @@ import { randomUUID } from 'crypto';
 import { IUploadService, IS3Service } from '../interfaces/upload.interface';
 
 export class UploadService implements IUploadService {
-    private s3Service: IS3Service;
+    private _s3Service: IS3Service;
 
     constructor(s3Service: IS3Service) {
-        this.s3Service = s3Service;
+        this._s3Service = s3Service;
     }
 
     async uploadProfileImage(fileBuffer: Buffer, _mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
-        return this.uploadImage(fileBuffer, 'quickwork/profile-images');
+        return this._uploadImage(fileBuffer, 'quickwork/profile-images');
     }
 
     async uploadPortfolioImage(fileBuffer: Buffer, _mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
-        return this.uploadImage(fileBuffer, 'quickwork/portfolio-images');
+        return this._uploadImage(fileBuffer, 'quickwork/portfolio-images');
     }
 
     async uploadAssignmentProof(fileBuffer: Buffer, _mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
-        return this.uploadImage(fileBuffer, 'quickwork/assignment-proofs');
+        return this._uploadImage(fileBuffer, 'quickwork/assignment-proofs');
     }
 
     async uploadChatMessage(fileBuffer: Buffer, mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
         if (!config.AWS_ACCESS_KEY_ID || !config.AWS_SECRET_ACCESS_KEY || !config.AWS_BUCKET_NAME) {
-            return this.uploadImage(fileBuffer, 'quickwork/chat-images');
+            return this._uploadImage(fileBuffer, 'quickwork/chat-images');
         }
         const fileName = `chat/${randomUUID()}-${Date.now()}`;
-        return this.s3Service.uploadFile(fileBuffer, fileName, mimetype);
+        return this._s3Service.uploadFile(fileBuffer, fileName, mimetype);
     }
 
-    private uploadImage(fileBuffer: Buffer, folder: string): Promise<{ imageUrl: string, publicId: string }> {
+    private _uploadImage(fileBuffer: Buffer, folder: string): Promise<{ imageUrl: string, publicId: string }> {
         return new Promise((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
                 {
@@ -86,7 +86,7 @@ export class UploadService implements IUploadService {
     async deleteImage(publicId: string): Promise<any> {
         
         if (publicId.includes('/') && !publicId.startsWith('quickwork')) {
-            return this.s3Service.deleteFile(publicId);
+            return this._s3Service.deleteFile(publicId);
         }
 
         return new Promise((resolve, reject) => {

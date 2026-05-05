@@ -1,27 +1,27 @@
 import { IPlatformTransactionRepository, IWalletRepository, IAdminFinanceService } from '../interfaces/finance.interface';
 
 export class AdminFinanceService implements IAdminFinanceService {
-    private platformTransactionRepo: IPlatformTransactionRepository;
-    private walletRepo: IWalletRepository;
+    private _platformTransactionRepo: IPlatformTransactionRepository;
+    private _walletRepo: IWalletRepository;
 
     constructor(
         platformTransactionRepo: IPlatformTransactionRepository,
         walletRepo: IWalletRepository
     ) {
-        this.platformTransactionRepo = platformTransactionRepo;
-        this.walletRepo = walletRepo;
+        this._platformTransactionRepo = platformTransactionRepo;
+        this._walletRepo = walletRepo;
     }
 
     
     async getFinanceOverview() {
-        const overview = await this.platformTransactionRepo.getAdminFinanceOverview() || {
+        const overview = await this._platformTransactionRepo.getAdminFinanceOverview() || {
             totalPlatformEarnings: 0,
             totalTransactions: 0,
             totalOnlinePayments: 0,
             totalCashPayments: 0
         };
 
-        const totalPendingDues = await this.walletRepo.getPendingDues();
+        const totalPendingDues = await this._walletRepo.getPendingDues();
 
         return {
             totalPlatformEarnings: overview.totalPlatformEarnings,
@@ -54,7 +54,7 @@ export class AdminFinanceService implements IAdminFinanceService {
             if (endDate) filter.createdAt.$lte = new Date(endDate);
         }
 
-        const [transactions, total] = await this.platformTransactionRepo.getTransactionsWithCount(filter, skip, limit);
+        const [transactions, total] = await this._platformTransactionRepo.getTransactionsWithCount(filter, skip, limit);
 
         return {
             transactions,

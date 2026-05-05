@@ -9,11 +9,11 @@ import { getIo } from "../../../chat/socket";
 
 
 export class MessageController implements IMessageController {
-    private messageService: IMessageService;
+    private _messageService: IMessageService;
     constructor(
         messageService: IMessageService
     ) {
-        this.messageService = messageService
+        this._messageService = messageService
     }
     async createMessage(req: Request, res: Response): Promise<void> {
         try {
@@ -26,7 +26,7 @@ export class MessageController implements IMessageController {
 
             const dto = CreateMessageDto.create(req.body);
 
-            const result = await this.messageService.createMessage({
+            const result = await this._messageService.createMessage({
                 sender: senderId,
                 receiver: dto.receiverId,
                 text: dto.text,
@@ -59,7 +59,7 @@ export class MessageController implements IMessageController {
     async getMessages(req: Request, res: Response): Promise<void> {
         try {
             const dto = ConversationIdDto.create(req.query);
-            const result = await this.messageService.getMessages(dto.conversationId);
+            const result = await this._messageService.getMessages(dto.conversationId);
             res.status(HttpStatusCode.OK).json({ success: true, data: result });
         } catch (error: any) {
             res.status(error.statusCode || 500).json({ success: false, message: error.message });
@@ -76,7 +76,7 @@ export class MessageController implements IMessageController {
                 res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
                 return;
             }
-            const result = await this.messageService.getConversations(userId);
+            const result = await this._messageService.getConversations(userId);
             res.status(HttpStatusCode.OK).json({ success: true, data: result });
         } catch (error: any) {
             (req as any).log.error({ error: error.message }, "Error in getConversations");
@@ -87,7 +87,7 @@ export class MessageController implements IMessageController {
     async getConversation(req: Request, res: Response): Promise<void> {
         try {
             const dto = ConversationIdDto.create(req.query);
-            const result = await this.messageService.getConversation(dto.conversationId);
+            const result = await this._messageService.getConversation(dto.conversationId);
             res.status(HttpStatusCode.OK).json({ success: true, data: result });
         } catch (error: any) {
             res.status(error.statusCode || 500).json({ success: false, message: error.message });
@@ -97,7 +97,7 @@ export class MessageController implements IMessageController {
     async deleteMessage(req: Request, res: Response): Promise<void> {
         try {
             const dto = MessageIdDto.create(req.query);
-            const result = await this.messageService.deleteMessage(dto.messageId);
+            const result = await this._messageService.deleteMessage(dto.messageId);
             const io = req.app.get("io");
             if (io && result){
                 const senderRoom = String(result.sender);
@@ -120,8 +120,8 @@ export class MessageController implements IMessageController {
     async deleteConversation(req: Request, res: Response): Promise<void> {
         try {
             const dto = ConversationIdDto.create(req.query);
-            const conversation = await this.messageService.getConversation(dto.conversationId);
-            const result = await this.messageService.deleteConversation(dto.conversationId);
+            const conversation = await this._messageService.getConversation(dto.conversationId);
+            const result = await this._messageService.deleteConversation(dto.conversationId);
             const io = req.app.get("io");
             if (io && conversation && conversation.participants) {
                 // Temporary broadcast for debugging

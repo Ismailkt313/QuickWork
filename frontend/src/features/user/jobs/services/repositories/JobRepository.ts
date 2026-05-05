@@ -1,4 +1,5 @@
 import { apiClient } from "../../../../../services/api/apiClient";
+import { ENDPOINTS } from "../../../../../constants/endpoints";
 
 export interface CreateJobData {
   title: string;
@@ -30,7 +31,7 @@ export class JobRepository {
     jobData: CreateJobData,
   ): Promise<{ success: boolean; message: string; data?: unknown }> {
     try {
-      const response = await apiClient.post("/job", jobData);
+      const response = await apiClient.post(ENDPOINTS.JOB.CREATE, jobData);
       return response.data;
     } catch (error: unknown) {
       const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to create job";

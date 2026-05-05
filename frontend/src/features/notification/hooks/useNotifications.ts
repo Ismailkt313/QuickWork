@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { notificationService, type INotification } from '../services/notificationService';
 import { useSocket } from '../../message/hooks/useSocket';
+import { toast } from 'react-toastify';
 
 export const useNotifications = () => {
   const [notifications, setNotifications] = useState<INotification[]>([]);
@@ -29,6 +30,7 @@ export const useNotifications = () => {
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
+      toast.error('Failed to update notification');
     }
   };
 
@@ -39,6 +41,7 @@ export const useNotifications = () => {
       setUnreadCount(0);
     } catch (error) {
       console.error('Failed to mark all as read:', error);
+      toast.error('Failed to mark notifications as read');
     }
   };
 
@@ -50,6 +53,7 @@ export const useNotifications = () => {
       if (wasUnread) setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Failed to delete notification:', error);
+      toast.error('Failed to delete notification');
     }
   };
 

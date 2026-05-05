@@ -7,6 +7,7 @@ import { getConversations,deleteConversation,deleteMessage } from "../api/messag
 import { useSearchParams } from "react-router-dom";
 import { Sidebar } from "../components/Sidebar";
 import ConfirmModal from "../../../shared/components/ui/ConfirmModal";
+import { toast } from "react-toastify";
 import type { IUser } from "../../../types/user.types";
 import type { Conversation, Participant } from "../types";
 
@@ -65,6 +66,7 @@ const MessagesPage: React.FC = () => {
       }
     } catch (error) {
       console.error("Delete failed:", error);
+      toast.error("Failed to delete conversation");
     } finally {
       setDeleteModal({ show: false, loading: false });
     }
@@ -115,6 +117,7 @@ const MessagesPage: React.FC = () => {
       }
     } catch (error) {
       console.error("Failed to fetch conversations:", error);
+      toast.error("Failed to load conversations");
     } finally {
       setLoadingConversations(false);
     }
@@ -136,6 +139,7 @@ const executeDeleteMessage = async () => {
     
   } catch (error) {
     console.error("Failed to delete message:", error);
+    toast.error("Failed to delete message");
   } finally {
     setDeleteMsgModal({ show: false, loading: false, messageId: "" });
   }
@@ -301,11 +305,17 @@ const executeDeleteMessage = async () => {
 
   const recipient = getRecipientDetails(activeConversation);
 
-  const filteredConversations = conversations.filter((c) => {
-    if (!c.participants) return false;
-    const recipientInfo = getRecipientDetails(c);
-    return recipientInfo.name.toLowerCase().includes(searchQuery.toLowerCase());
-  });
+  const filteredConversations = conversations
+    .filter((c) => {
+      if (!c.participants) return false;
+      const recipientInfo = getRecipientDetails(c);
+      return recipientInfo.name.toLowerCase().includes(searchQuery.toLowerCase());
+    })
+    .sort((a, b) => {
+      const dateA = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+      const dateB = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+      return dateB - dateA;
+    });
 
   if (!user) {
     return (

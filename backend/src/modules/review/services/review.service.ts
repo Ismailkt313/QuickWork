@@ -7,18 +7,18 @@ import { HttpStatusCode } from '../../../constants/httpStatusCode';
 import { CreateReviewDTO } from '../dtos/review.dto';
 
 export class ReviewService implements IReviewService {
-    private reviewRepository: IReviewRepository;
-    private assignmentRepository: IAssignmentRepository;
-    private jobRepository: IJobRepository;
+    private _reviewRepository: IReviewRepository;
+    private _assignmentRepository: IAssignmentRepository;
+    private _jobRepository: IJobRepository;
 
     constructor(
         reviewRepository: IReviewRepository,
         assignmentRepository: IAssignmentRepository,
         jobRepository: IJobRepository
     ) {
-        this.reviewRepository = reviewRepository;
-        this.assignmentRepository = assignmentRepository;
-        this.jobRepository = jobRepository;
+        this._reviewRepository = reviewRepository;
+        this._assignmentRepository = assignmentRepository;
+        this._jobRepository = jobRepository;
     }
 
     async createReview(reviewerId: string, data: CreateReviewDTO): Promise<IReview> {
@@ -26,19 +26,20 @@ export class ReviewService implements IReviewService {
             throw new AppError("You cannot review yourself", HttpStatusCode.BAD_REQUEST);
         }
 
-         const assignment = await this.assignmentRepository.findById(data.assignmentId);
+         const assignment = await this._assignmentRepository.findById(data.assignmentId);
         if (!assignment) {
             throw new AppError("Assignment not found", HttpStatusCode.NOT_FOUND);
         }
 
          
-        const job = await this.jobRepository.findById(assignment.jobId.toString());
+         const jobId = (assignment.jobId as any)._id?.toString() || assignment.jobId.toString();
+         const job = await this._jobRepository.findById(jobId);
         if (!job || assignment.workStatus !== 'completed') {
             throw new AppError("Reviews are only allowed for completed jobs", HttpStatusCode.BAD_REQUEST);
         }
 
         
-        const alreadyReviewed = await this.reviewRepository.exists({
+        const alreadyReviewed = await this._reviewRepository.exists({
             assignmentId: data.assignmentId,
             role: data.role
         });
@@ -47,7 +48,7 @@ export class ReviewService implements IReviewService {
         }
 
         
-        return await this.reviewRepository.create({
+        return await this._reviewRepository.create({
             ...data,
             assignmentId: new Types.ObjectId(data.assignmentId) as any,
             revieweeId: new Types.ObjectId(data.revieweeId) as any,
@@ -56,10 +57,10 @@ export class ReviewService implements IReviewService {
     }
 
     async getReviewsForUser(userId: string): Promise<IReview[]> {
-        return await this.reviewRepository.findByUser(userId);
+        return await this._reviewRepository.findByUser(userId);
     }
 
     async getReviewsForAssignment(assignmentId: string): Promise<IReview[]> {
-        return await this.reviewRepository.findByAssignment(assignmentId);
+        return await this._reviewRepository.findByAssignment(assignmentId);
     }
 }

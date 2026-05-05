@@ -1,7 +1,9 @@
-import React, { useState, useRef } from "react";
-import { RiSendPlane2Fill, RiImage2Line, RiCloseLine, RiLoader4Line } from "react-icons/ri";
+import React, { useState, useRef, useEffect } from "react";
+import { RiSendPlane2Fill, RiImage2Line, RiCloseLine, RiLoader4Line, RiEmotionHappyLine } from "react-icons/ri";
+import EmojiPicker from "emoji-picker-react";
 import { toast } from "react-toastify";
 import { apiClient } from "../../../services/api/apiClient";
+import { ENDPOINTS } from "../../../constants/endpoints";
 
 interface MessageInputProps {
   onSend: (text: string, imageUrl?: string) => void;
@@ -16,7 +18,23 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pickerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const onEmojiClick = (emojiObject: any) => {
+    setText((prev) => prev + emojiObject.emoji);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -45,14 +63,14 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       try {
         const formData = new FormData();
         formData.append("image", selectedFile);
-        
-        
-        const response = await apiClient.post("/upload/chat-image", formData, {
+
+
+        const response = await apiClient.post(ENDPOINTS.UPLOAD.CHAT_IMAGE, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
         });
-        
+
         imageUrl = response.data.data.imageUrl;
       } catch (error) {
         console.error("Image upload failed:", error);
@@ -76,15 +94,29 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   };
 
   return (
-    <div className="chat-footer">
+    <div className="chat-footer position-relative">
+      {showEmojiPicker && (
+        <div
+          ref={pickerRef}
+          style={{
+            position: "absolute",
+            bottom: "100%",
+            left: "10px",
+            zIndex: 1000,
+            marginBottom: "10px"
+          }}
+        >
+          <EmojiPicker onEmojiClick={onEmojiClick} width={300} height={400} />
+        </div>
+      )}
       {previewUrl && (
         <div className="p-2 border-bottom bg-light d-flex align-items-center gap-2">
           <div className="position-relative">
-            <img 
-              src={previewUrl} 
-              alt="Preview" 
-              className="rounded-3 border" 
-              style={{ width: "60px", height: "60px", objectFit: "cover" }} 
+            <img
+              src={previewUrl}
+              alt="Preview"
+              className="rounded-3 border"
+              style={{ width: "60px", height: "60px", objectFit: "cover" }}
             />
             <button
               className="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-danger border-0"
@@ -109,8 +141,17 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         />
         <button
           className="btn btn-link text-muted p-2"
+          onClick={() => setShowEmojiPicker((prev) => !prev)}
+          disabled={disabled || isUploading}
+          type="button"
+        >
+          <RiEmotionHappyLine size={24} />
+        </button>
+        <button
+          className="btn btn-link text-muted p-2"
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled || isUploading}
+          type="button"
         >
           <RiImage2Line size={24} />
         </button>

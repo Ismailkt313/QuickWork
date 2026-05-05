@@ -2,6 +2,7 @@ import { Types } from 'mongoose';
 import { IServiceProvider, IServiceProviderRepository, ProviderFilter, ProviderListResult } from '../interfaces/serviceProvider.interface';
 import { ServiceProviderModel } from '../models/serviceProvider.model';
 import { UserModel } from '../../auth/models/user.model';
+import { VERIFICATION_STATUS } from '../../../constants/verification';
 
 export class ServiceProviderRepository implements IServiceProviderRepository {
     async findByUserId(userId: string): Promise<any> {
@@ -25,20 +26,38 @@ export class ServiceProviderRepository implements IServiceProviderRepository {
     }
 
     async findProviders(filter: ProviderFilter): Promise<ProviderListResult> {
-        const { skillId, locationId, page, limit } = filter;
+        const { skillId, locationId, page, limit, search, sort } = filter;
         const skip = (page - 1) * limit;
 
         const query: Record<string, any> = {
-            skills: new Types.ObjectId(skillId),
+            isActive: true,
+            'verification.status': VERIFICATION_STATUS.VERIFIED,
         };
+
+        if (skillId) {
+            query.skills = new Types.ObjectId(skillId);
+        }
 
         if (locationId) {
             query['location.id'] = locationId;
         }
 
+        if (search) {
+            query.$or = [
+                { headline: { $regex: search, $options: 'i' } },
+                { about: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        let sortOption: any = { createdAt: -1 }; // Default
+        if (sort === 'price_low') sortOption = { hourlyRate: 1 };
+        if (sort === 'price_high') sortOption = { hourlyRate: -1 };
+        if (sort === 'experience') sortOption = { yearsOfExperience: -1 };
+
         const [providers, total] = await Promise.all([
             ServiceProviderModel.find(query)
                 .select('_id headline profileImage hourlyRate yearsOfExperience location')
+                .sort(sortOption)
                 .skip(skip)
                 .limit(limit)
                 .lean(),

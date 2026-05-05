@@ -13,7 +13,7 @@ import {
   RiShieldCheckLine
 } from "react-icons/ri";
 import { financeService, type WorkHistory } from "../services/finance.service";
-import { toast } from "react-hot-toast";
+import { toast } from "react-toastify";
 import PaymentErrorModal from "./PaymentErrorModal";
 
 interface Props {

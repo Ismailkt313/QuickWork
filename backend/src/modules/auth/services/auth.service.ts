@@ -43,22 +43,22 @@ import { logger } from "../../../utils/logger";
 
  
 export class AuthService implements IAuthService {
-    private readonly authRepository: IAuthRepository;
-    private readonly otpRepository: IOtpRepository;
-    private readonly uploadService: IUploadService;
+    private readonly _authRepository: IAuthRepository;
+    private readonly _otpRepository: IOtpRepository;
+    private readonly _uploadService: IUploadService;
 
     constructor(
         authRepository: IAuthRepository,
         otpRepository: IOtpRepository,
         uploadService: IUploadService
     ) {
-        this.authRepository = authRepository;
-        this.otpRepository = otpRepository;
-        this.uploadService = uploadService;
+        this._authRepository = authRepository;
+        this._otpRepository = otpRepository;
+        this._uploadService = uploadService;
     }
 
     public async sendOtp(input: ISendOtpInput): Promise<ISendOtpResponse> {
-        const existingUser = await this.authRepository.findByEmail(input.email);
+        const existingUser = await this._authRepository.findByEmail(input.email);
         if (existingUser) {
             throw new AppError(ErrorMessages.EMAIL_ALREADY_EXISTS, HttpStatusCode.CONFLICT);
         }
@@ -77,12 +77,12 @@ export class AuthService implements IAuthService {
         };
 
         const otp = generateOtp();
-        
+        console.log("login otp ", otp);
         const hashedOtpValue = await hashOtp(otp);
         const otpExpiresAt = new Date(Date.now() + config.OTP_EXPIRY_SECONDS * 1000);
         const expiresAt = new Date(Date.now() + config.OTP_TTL_SECONDS * 1000);
 
-        await this.otpRepository.upsert(userData.email, hashedOtpValue, OTP_TYPE.REGISTRATION, otpExpiresAt, expiresAt, userData);
+        await this._otpRepository.upsert(userData.email, hashedOtpValue, OTP_TYPE.REGISTRATION, otpExpiresAt, expiresAt, userData);
         await sendOtpEmail(userData.email, otp);
 
         return {
@@ -92,7 +92,7 @@ export class AuthService implements IAuthService {
     }
 
     public async verifyOtp(input: IVerifyOtpInput): Promise<IVerifyOtpResponse> {
-        const otpEntry = await this.otpRepository.findByEmailAndType(input.email.toLowerCase().trim(), OTP_TYPE.REGISTRATION);
+        const otpEntry = await this._otpRepository.findByEmailAndType(input.email.toLowerCase().trim(), OTP_TYPE.REGISTRATION);
         if (!otpEntry) {
             throw new AppError(ErrorMessages.REGISTRATION_SESSION_EXPIRED, HttpStatusCode.BAD_REQUEST);
         }
@@ -106,8 +106,8 @@ export class AuthService implements IAuthService {
             throw new AppError(ErrorMessages.INVALID_OTP, HttpStatusCode.BAD_REQUEST);
         }
 
-        await this.authRepository.createUser(otpEntry.userData!);
-        await this.otpRepository.deleteByEmailAndType(input.email, OTP_TYPE.REGISTRATION);
+        await this._authRepository.createUser(otpEntry.userData!);
+        await this._otpRepository.deleteByEmailAndType(input.email, OTP_TYPE.REGISTRATION);
 
         return {
             success: true,
@@ -116,7 +116,7 @@ export class AuthService implements IAuthService {
     }
 
     public async resendOtp(input: IResendOtpInput): Promise<IResendOtpResponse> {
-        const otpEntry = await this.otpRepository.findByEmailAndType(input.email.toLowerCase().trim(), OTP_TYPE.REGISTRATION);
+        const otpEntry = await this._otpRepository.findByEmailAndType(input.email.toLowerCase().trim(), OTP_TYPE.REGISTRATION);
         if (!otpEntry) {
             throw new AppError(ErrorMessages.REGISTRATION_SESSION_EXPIRED, HttpStatusCode.BAD_REQUEST);
         }
@@ -125,7 +125,7 @@ export class AuthService implements IAuthService {
         const hashedOtpValue = await hashOtp(otp);
         const otpExpiresAt = new Date(Date.now() + config.OTP_EXPIRY_SECONDS * 1000);
 
-        await this.otpRepository.updateOtp(otpEntry.email, hashedOtpValue, OTP_TYPE.REGISTRATION, otpExpiresAt);
+        await this._otpRepository.updateOtp(otpEntry.email, hashedOtpValue, OTP_TYPE.REGISTRATION, otpExpiresAt);
         await sendOtpEmail(otpEntry.email, otp);
 
         return {
@@ -135,7 +135,7 @@ export class AuthService implements IAuthService {
     }
 
     public async login(input: ILoginInput): Promise<ILoginResponse> {
-        const user = await this.authRepository.findByEmailWithPassword(input.email);
+        const user = await this._authRepository.findByEmailWithPassword(input.email);
         if (!user) {
             throw new AppError(ErrorMessages.INVALID_CREDENTIALS, HttpStatusCode.UNAUTH0RIZED);
         }
@@ -184,7 +184,7 @@ export class AuthService implements IAuthService {
             throw new AppError(ErrorMessages.INVALID_OR_EXPIRED_TOKEN, HttpStatusCode.UNAUTH0RIZED);
         }
 
-        const user = await this.authRepository.findById(decoded.userId);
+        const user = await this._authRepository.findById(decoded.userId);
         if (!user) {
             throw new AppError(ErrorMessages.USER_NOT_FOUND, HttpStatusCode.UNAUTH0RIZED);
         }
@@ -213,7 +213,7 @@ export class AuthService implements IAuthService {
     public async adminLogin(input: ILoginInput): Promise<IAdminLoginResponse> {
         const genericError = new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
 
-        const user = await this.authRepository.findByEmailWithPassword(input.email);
+        const user = await this._authRepository.findByEmailWithPassword(input.email);
          if (!user) {
             throw genericError;
         }
@@ -258,7 +258,7 @@ export class AuthService implements IAuthService {
             if (!varify) {
                 throw new AppError(ErrorMessages.INVALID_OR_EXPIRED_TOKEN, HttpStatusCode.UNAUTH0RIZED);
             }
-            await this.otpRepository.deleteByRefreshToken(token);
+            await this._otpRepository.deleteByRefreshToken(token);
         } catch {
             throw new AppError(ErrorMessages.INVALID_OR_EXPIRED_TOKEN, HttpStatusCode.UNAUTH0RIZED);
         }
@@ -270,20 +270,19 @@ export class AuthService implements IAuthService {
     }
 
     public async forgotPassword(input: IForgotPasswordInput): Promise<IForgotPasswordResponse> {
-        const user = await this.authRepository.findByEmail(input.email.toLowerCase().trim());
+        const user = await this._authRepository.findByEmail(input.email.toLowerCase().trim());
         if (!user) {
-            return {
-                success: true,
-                message: SuccessMessages.PASSWORD_RESET_LINK_SENT,
-            };
+            throw new AppError(ErrorMessages.EMAIL_NOT_FOUND, HttpStatusCode.NOT_FOUND);
         }
 
         const otp = generateOtp();
-        
+        console.log('forgot pass otp = ', otp);
+
+
         const hashedOtpValue = await hashOtp(otp);
         const expiresAt = new Date(Date.now() + config.OTP_EXPIRY_SECONDS * 1000);
 
-        await this.otpRepository.upsert(user.email, hashedOtpValue, OTP_TYPE.PASSWORD_RESET, expiresAt, expiresAt);
+        await this._otpRepository.upsert(user.email, hashedOtpValue, OTP_TYPE.PASSWORD_RESET, expiresAt, expiresAt);
         await sendOtpEmail(user.email, otp);
 
         return {
@@ -293,7 +292,7 @@ export class AuthService implements IAuthService {
     }
 
     public async resetPassword(input: IResetPasswordInput): Promise<IResetPasswordResponse> {
-        const resetEntry = await this.otpRepository.findByEmailAndType(input.email.toLowerCase().trim(), OTP_TYPE.PASSWORD_RESET);
+        const resetEntry = await this._otpRepository.findByEmailAndType(input.email.toLowerCase().trim(), OTP_TYPE.PASSWORD_RESET);
         if (!resetEntry) {
             throw new AppError(ErrorMessages.RESET_REQUEST_EXPIRED, HttpStatusCode.BAD_REQUEST);
         }
@@ -307,14 +306,14 @@ export class AuthService implements IAuthService {
             throw new AppError(ErrorMessages.INVALID_RESET_CODE, HttpStatusCode.BAD_REQUEST);
         }
 
-        const user = await this.authRepository.findByEmail(input.email.toLowerCase().trim());
+        const user = await this._authRepository.findByEmail(input.email.toLowerCase().trim());
         if (!user) {
             throw new AppError(ErrorMessages.INTERNAL_SERVER_ERROR, HttpStatusCode.NOT_FOUND);
         }
 
         const hashedPassword = await bcrypt.hash(input.newPassword, config.BCRYPT_SALT_ROUNDS);
-        await this.authRepository.updatePassword(user._id.toString(), hashedPassword);
-        await this.otpRepository.deleteByEmailAndType(input.email, OTP_TYPE.PASSWORD_RESET);
+        await this._authRepository.updatePassword(user._id.toString(), hashedPassword);
+        await this._otpRepository.deleteByEmailAndType(input.email, OTP_TYPE.PASSWORD_RESET);
 
         return {
             success: true,
@@ -323,7 +322,7 @@ export class AuthService implements IAuthService {
     }
 
     public async getProfile(userId: string): Promise<UserResponseDTO> {
-        const user = await this.authRepository.findById(userId);
+        const user = await this._authRepository.findById(userId);
         if (!user) {
             throw new AppError(ErrorMessages.USER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
         }
@@ -336,21 +335,21 @@ export class AuthService implements IAuthService {
     }
 
     public async updateProfile(userId: string, data: IUpdateProfileInput): Promise<UserResponseDTO> {
-        const currentUser = await this.authRepository.findById(userId);
+        const currentUser = await this._authRepository.findById(userId);
         if (!currentUser) {
             throw new AppError(ErrorMessages.USER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
         }
 
         if (data.profileImage && currentUser.profileImage?.public_id && currentUser.profileImage.public_id !== data.profileImage.public_id) {
             try {
-                await this.uploadService.deleteImage(currentUser.profileImage.public_id);
+                await this._uploadService.deleteImage(currentUser.profileImage.public_id);
             } catch (error) {
                 logger.error({ error, publicId: currentUser.profileImage.public_id }, "Failed to delete old profile image");
             }
 
         }
 
-        const user = await this.authRepository.updateUser(userId, data as any);
+        const user = await this._authRepository.updateUser(userId, data as any);
         if (!user) {
             throw new AppError(ErrorMessages.USER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
         }
@@ -358,13 +357,13 @@ export class AuthService implements IAuthService {
     }
 
     public async changePassword(userId: string, data: IChangePasswordInput): Promise<void> {
-        const existingUser = await this.authRepository.findById(userId);
+        const existingUser = await this._authRepository.findById(userId);
         if (!existingUser) {
             throw new AppError(ErrorMessages.USER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
         }
-        const user = await this.authRepository.findByEmailWithPassword(existingUser.email);
+        const user = await this._authRepository.findByEmailWithPassword(existingUser.email);
         if (!user || !user.hashedPassword) {
-            throw new AppError(ErrorMessages.USER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
+            throw new AppError(ErrorMessages.USER_NOT_FOUND, HttpStatusCode.BAD_REQUEST);
         }
         const isPasswordValid = await bcrypt.compare(data.currentPassword, user.hashedPassword);
         if (!isPasswordValid) {
@@ -372,6 +371,6 @@ export class AuthService implements IAuthService {
         }
 
         const hashedNewPassword = await bcrypt.hash(data.newPassword, config.BCRYPT_SALT_ROUNDS);
-        await this.authRepository.updatePassword(userId, hashedNewPassword);
+        await this._authRepository.updatePassword(userId, hashedNewPassword);
     }
 }

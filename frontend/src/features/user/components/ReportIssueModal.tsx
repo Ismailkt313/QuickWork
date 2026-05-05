@@ -101,9 +101,11 @@ const ReportIssueModal: React.FC<ReportIssueModalProps> = ({
           </div>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="qw-modal-form">
           <div className="mb-4">
-            <label className="qw-field-label">Select Reason</label>
+            <label className="qw-field-label">
+              <RiErrorWarningLine /> Select Reason
+            </label>
             <div className="qw-reason-grid">
               {reasons.map((r) => (
                 <button
@@ -178,8 +180,8 @@ const ReportIssueModal: React.FC<ReportIssueModalProps> = ({
             />
           </div>
 
-          <div className="qw-report-info-banner">
-             <RiErrorWarningLine size={20} />
+          <div className="qw-report-info-banner mb-4">
+             <RiErrorWarningLine size={20} className="flex-shrink-0" />
              <p>Our team will review this report and evidence to take appropriate action.</p>
           </div>
 
@@ -204,17 +206,28 @@ const ReportIssueModal: React.FC<ReportIssueModalProps> = ({
           justify-content: center;
           padding: 24px;
           z-index: 999999;
+          overflow-y: auto;
         }
 
         .qw-modal-content {
           background: #fff;
           width: 100%;
-          max-width: 500px;
+          max-width: 550px;
           padding: 40px;
           border-radius: 32px;
           box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
           position: relative;
+          margin: auto;
+          max-height: 90vh;
+          overflow-y: auto;
+          scrollbar-width: thin;
+          scrollbar-color: #cbd5e1 transparent;
         }
+
+        .qw-modal-content::-webkit-scrollbar { width: 6px; }
+        .qw-modal-content::-webkit-scrollbar-track { background: transparent; }
+        .qw-modal-content::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+        .qw-modal-content::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
 
         .qw-modal-title {
           font-family: 'Syne', sans-serif;
@@ -272,32 +285,36 @@ const ReportIssueModal: React.FC<ReportIssueModalProps> = ({
         .qw-reason-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 8px;
+          gap: 10px;
         }
 
         .qw-reason-btn {
-          padding: 10px;
-          border-radius: 12px;
+          padding: 12px;
+          border-radius: 14px;
           border: 1.5px solid #e2e8f0;
           background: #fff;
-          font-size: 12px;
+          font-size: 13px;
           font-weight: 600;
           color: #64748b;
           cursor: pointer;
           transition: all 0.2s;
           text-align: left;
+          line-height: 1.2;
         }
+
+        .qw-reason-btn:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
 
         .qw-reason-btn.active {
           border-color: #ef4444;
-          background: #fef2f2;
-          color: #ef4444;
+          background: #ef4444;
+          color: #fff;
+          box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
         }
 
         .qw-textarea {
           width: 100%;
-          border-radius: 18px;
-          padding: 16px;
+          border-radius: 20px;
+          padding: 18px;
           border: 1.5px solid #e2e8f0;
           background: #f8fafc;
           font-size: 14px;
@@ -335,13 +352,14 @@ const ReportIssueModal: React.FC<ReportIssueModalProps> = ({
           background: #ef4444;
           color: #fff;
           border: none;
-          width: 20px;
-          height: 20px;
-          border-radius: 6px;
-          font-size: 10px;
+          width: 22px;
+          height: 22px;
+          border-radius: 8px;
+          font-size: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .qw-img-add-btn {
@@ -364,19 +382,19 @@ const ReportIssueModal: React.FC<ReportIssueModalProps> = ({
         .qw-report-info-banner {
           display: flex;
           gap: 12px;
-          padding: 12px 16px;
-          background: #fffbeb;
-          border-radius: 14px;
-          color: #92400e;
-          margin-bottom: 24px;
+          padding: 14px 18px;
+          background: #fff7ed;
+          border-radius: 16px;
+          color: #9a3412;
+          border: 1px solid #ffedd5;
         }
 
         .qw-report-info-banner p { font-size: 12px; margin: 0; line-height: 1.5; font-weight: 500; }
 
         .qw-modal-submit-btn {
           width: 100%;
-          height: 52px;
-          border-radius: 16px;
+          height: 56px;
+          border-radius: 18px;
           border: none;
           font-weight: 700;
           font-size: 16px;
@@ -384,20 +402,21 @@ const ReportIssueModal: React.FC<ReportIssueModalProps> = ({
           align-items: center;
           justify-content: center;
           gap: 10px;
-          transition: all 0.2s;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           cursor: pointer;
         }
 
         .qw-modal-submit-btn.danger { background: #ef4444; color: #fff; box-shadow: 0 10px 20px rgba(239, 68, 68, 0.15); }
-        .qw-modal-submit-btn:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.1); }
-        .qw-modal-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .qw-modal-submit-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(239, 68, 68, 0.25); filter: brightness(1.05); }
+        .qw-modal-submit-btn:active { transform: translateY(0); }
+        .qw-modal-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
 
         .qw-spin { animation: qw-spin 1s linear infinite; }
         @keyframes qw-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         .animate-pop-in { animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes popIn {
-          from { opacity: 0; transform: scale(0.95) translateY(10px); }
+          from { opacity: 0; transform: scale(0.95) translateY(20px); }
           to { opacity: 1; transform: scale(1) translateY(0); }
         }
       `}</style>

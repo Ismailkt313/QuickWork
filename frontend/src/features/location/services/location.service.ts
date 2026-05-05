@@ -1,4 +1,5 @@
 import { api } from "../../../services/api";
+import { ENDPOINTS } from "../../../constants/endpoints";
 
 export interface Location {
   id: string;
@@ -10,7 +11,7 @@ export const getLocations = async (): Promise<{
   data: Location[];
 }> => {
   try {
-    const response = await api.get("/locations/all");
+    const response = await api.get(ENDPOINTS.LOCATION.ALL);
     return response.data;
   } catch {
     return { success: false, data: [] };
@@ -29,7 +30,7 @@ export const searchLocation = async (
 ): Promise<LocationResult[]> => {
   if (!query || query.length < 3) return [];
   try {
-    const response = await api.get("/locations", {
+    const response = await api.get(ENDPOINTS.LOCATION.LIST, {
       params: { search: query },
     });
     return response.data.data;
@@ -43,6 +44,6 @@ export const selectLocation = async (locationData: {
   lat: number;
   lon: number;
 }): Promise<{ id: string }> => {
-  const response = await api.post("/locations", locationData);
+  const response = await api.post(ENDPOINTS.LOCATION.CREATE, locationData);
   return { id: response.data.data.id };
 };

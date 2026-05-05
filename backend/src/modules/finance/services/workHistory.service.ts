@@ -2,15 +2,15 @@ import { IWorkHistory, IWorkHistoryRepository, IWorkHistoryService } from '../in
 import { IJobRepository } from '../../job/interfaces/job.interface';
 
 export class WorkHistoryService implements IWorkHistoryService {
-    private workHistoryRepo: IWorkHistoryRepository;
-    private jobRepo: IJobRepository;
+    private _workHistoryRepo: IWorkHistoryRepository;
+    private _jobRepo: IJobRepository;
 
     constructor(
         workHistoryRepo: IWorkHistoryRepository,
         jobRepo: IJobRepository
     ) {
-        this.workHistoryRepo = workHistoryRepo;
-        this.jobRepo = jobRepo;
+        this._workHistoryRepo = workHistoryRepo;
+        this._jobRepo = jobRepo;
     }
 
     
@@ -23,7 +23,7 @@ export class WorkHistoryService implements IWorkHistoryService {
                 clientId = assignment.jobId.userId._id || assignment.jobId.userId;
             } else {
                 
-                const job = await this.jobRepo.findById(assignment.jobId);
+                const job = await this._jobRepo.findById(assignment.jobId);
                 if (job) clientId = job.userId;
             }
         }
@@ -42,7 +42,7 @@ export class WorkHistoryService implements IWorkHistoryService {
         if (assignment.workStatus === 'cancelled') finalStatus = 'CANCELLED';
         if (assignment.workStatus === 'absent') finalStatus = 'ABSENT';
 
-        const workHistory = await this.workHistoryRepo.create({
+        const workHistory = await this._workHistoryRepo.create({
             jobId: assignment.jobId?._id || assignment.jobId,
             clientId,
             providerId: assignment.freelancerId?._id || assignment.freelancerId,
@@ -64,10 +64,10 @@ export class WorkHistoryService implements IWorkHistoryService {
     }
 
     async getByProvider(providerId: string): Promise<IWorkHistory[]> {
-        return await this.workHistoryRepo.getByProvider(providerId);
+        return await this._workHistoryRepo.getByProvider(providerId);
     }
 
     async getById(id: string): Promise<IWorkHistory | null> {
-        return await this.workHistoryRepo.findById(id);
+        return await this._workHistoryRepo.findById(id);
     }
 }

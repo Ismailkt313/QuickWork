@@ -4,7 +4,7 @@ import {
   RiBankCardLine
 } from "react-icons/ri";
 import { financeService } from "../../finance/services/finance.service";
-import { toast } from "react-hot-toast";
+import { toast } from "react-toastify";
 import type { UserJob } from "../services/userJob.service";
 
 interface Props {
