@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   getJobDetails,
   getJobAssignments,
@@ -9,6 +9,9 @@ import {
   submitReport,
   cancelJob,
   markAsPaidByCash,
+  getReviewsForAssignment,
+  updateReview,
+  deleteReview,
 } from "../services/userJob.service";
 import ReviewModal from "../components/ReviewModal";
 import ReportIssueModal from "../components/ReportIssueModal";
@@ -24,6 +27,7 @@ import {
   RiLoader4Line,
   RiErrorWarningLine,
   RiStarLine,
+  RiStarFill,
   RiFlagLine,
   RiCheckboxCircleLine,
   RiFocus2Line,
@@ -102,8 +106,21 @@ interface Assignment {
   };
 }
 
+interface Review {
+  id: string;
+  assignmentId: string;
+  reviewerId: { id: string; name: string };
+  revieweeId: { id: string; name: string };
+  role: string;
+  rating: number;
+  comment?: string;
+  images?: string[];
+  createdAt: string;
+}
+
 const UserJobDetailPage: React.FC = () => {
   const { jobId } = useParams<{ jobId: string }>();
+  const navigate = useNavigate();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [paymentHistories, setPaymentHistories] = useState<Record<string, WorkHistory>>({});
@@ -117,12 +134,21 @@ const UserJobDetailPage: React.FC = () => {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isPaymentConfirmOpen, setIsPaymentConfirmOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [assignmentReviews, setAssignmentReviews] = useState<Record<string, Review>>({});
+  const [editReviewState, setEditReviewState] = useState<{
+    isEdit: boolean;
+    reviewId?: string;
+    initialRating?: number;
+    initialComment?: string;
+    initialImages?: string[];
+  }>({ isEdit: false });
+  const [isDeleteReviewModalOpen, setIsDeleteReviewModalOpen] = useState(false);
+  const [reviewToDelete, setReviewToDelete] = useState<{ id: string; assignmentId: string } | null>(null);
 
   const hasAwaitingPayment = React.useMemo(() => {
     if (job?.hiredProvider?.payment?.status === 'awaiting_confirmation') return true;
     return assignments.some(a => a.payment?.status === 'awaiting_confirmation');
   }, [job, assignments]);
-
 
   const handleCancelAssignment = async (notes: string) => {
     if (!selectedAssignmentId) return;
@@ -183,23 +209,66 @@ const UserJobDetailPage: React.FC = () => {
     if (!selectedAssignmentId || !selectedProviderId) return;
     try {
       setLoading(true);
-      const response = await submitReview({
-        assignmentId: selectedAssignmentId,
-        revieweeId: selectedProviderId,
-        rating,
-        comment,
-        images,
-        role: "client_to_provider",
-      });
-      console.log(response, "Review submitted successfully");
+      let response;
+      if (editReviewState.isEdit && editReviewState.reviewId) {
+        response = await updateReview(editReviewState.reviewId, { rating, comment, images });
+      } else {
+        response = await submitReview({
+          assignmentId: selectedAssignmentId,
+          revieweeId: selectedProviderId,
+          rating,
+          comment,
+          images,
+          role: "client_to_provider",
+        });
+      }
 
-      toast.success(response.message || "Review submitted successfully");
-      fetchData();
+      toast.success(response.message || "Review processed successfully");
+      setIsReviewModalOpen(false);
+      setEditReviewState({ isEdit: false });
+      fetchData(true);
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
-      toast.error(axiosError.response?.data?.message || "An unexpected error occurred during review");
+      const status = axiosError.response?.status;
+      const message = axiosError.message || "An unexpected error occurred during review";
+
+      if (status === 409) {
+        toast.warning("You have already submitted a review for this provider on this assignment.", {
+          autoClose: 5000,
+        });
+        setIsReviewModalOpen(false);
+      } else {
+        toast.error(message);
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteReviewClick = (reviewId: string, assignmentId: string) => {
+    setReviewToDelete({ id: reviewId, assignmentId });
+    setIsDeleteReviewModalOpen(true);
+  };
+
+  const confirmDeleteReview = async () => {
+    if (!reviewToDelete) return;
+    const { id, assignmentId } = reviewToDelete;
+    try {
+      setLoading(true);
+      await deleteReview(id);
+      toast.success("Review deleted successfully");
+      setAssignmentReviews((prev) => {
+        const next = { ...prev };
+        delete next[assignmentId];
+        return next;
+      });
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      toast.error(axiosError.response?.data?.message || "Failed to delete review");
+    } finally {
+      setLoading(false);
+      setIsDeleteReviewModalOpen(false);
+      setReviewToDelete(null);
     }
   };
 
@@ -230,14 +299,14 @@ const UserJobDetailPage: React.FC = () => {
       const response = await markAsPaidByCash(assignmentId);
       if (response.success) {
         toast.success("Payment marked as paid by cash. Awaiting provider confirmation.");
-        fetchData();
+        fetchData(true);
       }
     } catch (error) {
-      console.log(error, "Error in mark as paid");
+
       const axiosError = error as AxiosError<{ message: string }>;
       toast.error(axiosError.response?.data?.message || "Failed to mark as paid");
     } finally {
-      
+
       setLoading(false);
     }
   };
@@ -249,42 +318,70 @@ const UserJobDetailPage: React.FC = () => {
         try {
           const res = await financeService.getWorkHistoryByAssignmentId(aId);
           if (res.data) histories[aId] = res.data;
-        } catch {
-          // Payment history may not exist yet
+        } catch (error) {
+          console.error(`Failed to fetch payment history for assignment ${aId}:`, error);
         }
       })
     );
     setPaymentHistories(histories);
   }, []);
 
-  const fetchData = useCallback(async () => {
+  const fetchAssignmentReviews = useCallback(async (assignmentIds: string[]) => {
+    const reviews: Record<string, Review> = {};
+    await Promise.all(
+      assignmentIds.map(async (aId) => {
+        try {
+          const res = await getReviewsForAssignment(aId);
+          if (res.success && res.data && res.data.length > 0) {
+            const clientReview = res.data.find((r: Review) => r.role === "client_to_provider");
+            if (clientReview) reviews[aId] = clientReview;
+          }
+        } catch (error) {
+          console.error(`Failed to fetch reviews for assignment ${aId}:`, error);
+        }
+      })
+    );
+    setAssignmentReviews((prev) => {
+      const next = { ...prev };
+      assignmentIds.forEach(id => {
+        if (reviews[id]) next[id] = reviews[id];
+        else delete next[id];
+      });
+      return next;
+    });
+  }, []);
+
+  const fetchData = useCallback(async (isSilent = false) => {
     try {
-      setLoading(true);
+      if (!isSilent) setLoading(true);
       const jobRes = await getJobDetails(jobId!);
       if (jobRes.success) {
         setJob(jobRes.data);
-        const assignmentIds: string[] = [];
+        const completedAssignmentIds: string[] = [];
         if (jobRes.data.visibility === "public") {
           const assignRes = await getJobAssignments(jobId!);
           if (assignRes.success) {
             setAssignments(assignRes.data);
             assignRes.data.forEach((a: Assignment) => {
-              if (a.workStatus === "completed") assignmentIds.push(a.assignmentId);
+              if (a.workStatus === "completed") completedAssignmentIds.push(a.assignmentId);
             });
           }
         } else if (jobRes.data.hiredProvider?.assignmentId) {
           const hp = jobRes.data.hiredProvider;
-          if (hp.workStatus === "completed") assignmentIds.push(hp.assignmentId);
+          if (hp.workStatus === "completed") completedAssignmentIds.push(hp.assignmentId);
         }
-        if (assignmentIds.length > 0) fetchPaymentHistories(assignmentIds);
+        if (completedAssignmentIds.length > 0) {
+          fetchPaymentHistories(completedAssignmentIds);
+          fetchAssignmentReviews(completedAssignmentIds);
+        }
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
       toast.error(axiosError.response?.data?.message || "Failed to load data");
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
-  }, [jobId, fetchPaymentHistories]);
+  }, [jobId, fetchPaymentHistories, fetchAssignmentReviews]);
 
   useEffect(() => {
     if (jobId) {
@@ -292,8 +389,68 @@ const UserJobDetailPage: React.FC = () => {
     }
   }, [jobId, fetchData]);
 
-  const handleTextProvider = (providerName: string) => {
-    toast.success(`Chat with ${providerName} coming soon!`);
+  const handleTextProvider = (providerId: string, providerName: string) => {
+    navigate(`/user/messages?userId=${providerId}&name=${encodeURIComponent(providerName)}`);
+  };
+
+  const renderReviewCard = (assignmentId: string, providerName: string, providerId: string) => {
+    const review = assignmentReviews[assignmentId];
+    if (!review) return null;
+
+    return (
+      <div className="qw-review-card-mini mt-3 p-3 rounded-4 border bg-light shadow-sm">
+        <div className="d-flex justify-content-between align-items-start mb-2">
+          <div className="d-flex align-items-center gap-2">
+            <div className="d-flex text-warning">
+              {[...Array(5)].map((_, i) => (
+                i < review.rating ? <RiStarFill key={i} size={14} /> : <RiStarLine key={i} size={14} />
+              ))}
+            </div>
+            <span className="small text-muted fw-bold">{new Date(review.createdAt).toLocaleDateString()}</span>
+          </div>
+          <div className="d-flex gap-2">
+            <button
+              className="btn btn-sm btn-link p-0 text-primary fw-bold text-decoration-none"
+              style={{ fontSize: '12px' }}
+              onClick={() => {
+                setSelectedAssignmentId(assignmentId);
+                setSelectedProviderId(providerId);
+                setSelectedProviderName(providerName);
+                setEditReviewState({
+                  isEdit: true,
+                  reviewId: review.id,
+                  initialRating: review.rating,
+                  initialComment: review.comment,
+                  initialImages: review.images
+                });
+                setIsReviewModalOpen(true);
+              }}
+            >
+              Edit
+            </button>
+            <button
+              className="btn btn-sm btn-link p-0 text-danger fw-bold text-decoration-none"
+              style={{ fontSize: '12px' }}
+              onClick={() => handleDeleteReviewClick(review.id, assignmentId)}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+        <p className="small text-dark mb-2 fw-medium">{review.comment}</p>
+        {review.images && review.images.length > 0 && (
+          <div className="d-flex gap-2 overflow-auto pb-1 qw-mini-images">
+            {review.images.map((img, i) => (
+              <img key={i} src={img} alt="review" className="rounded-2 shadow-sm border" style={{ width: 44, height: 44, objectFit: 'cover' }} />
+            ))}
+          </div>
+        )}
+        <style>{`
+          .qw-mini-images::-webkit-scrollbar { height: 4px; }
+          .qw-mini-images::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        `}</style>
+      </div>
+    );
   };
 
   if (loading) {
@@ -456,7 +613,7 @@ const UserJobDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ── Payment Summary Section ── */}
+      {}
       {(() => {
         const allAssignmentIds: string[] = [];
         if (job.visibility === "private" && job.hiredProvider?.assignmentId && job.hiredProvider.workStatus === "completed") {
@@ -515,7 +672,7 @@ const UserJobDetailPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Progress bar */}
+            {}
             <div className="qw-ps-progress-wrap">
               <div className="qw-ps-progress-bar">
                 <div
@@ -528,7 +685,7 @@ const UserJobDetailPage: React.FC = () => {
               </span>
             </div>
 
-            {/* Per-provider breakdown */}
+            {}
             {histories.length > 1 && (
               <div className="qw-ps-breakdown">
                 <h6 className="qw-ps-breakdown-title">Provider Breakdown</h6>
@@ -644,11 +801,11 @@ const UserJobDetailPage: React.FC = () => {
                   <button
                     className="action-btn-circle"
                     title="Message"
-                    onClick={() => handleTextProvider(hp.name)}
+                    onClick={() => handleTextProvider(hp.userId, hp.name)}
                   >
                     <RiMessage2Line size={20} />
                   </button>
-                  {hp.workStatus === "completed" && (
+                  {hp.workStatus === "completed" && !assignmentReviews[hp.assignmentId] && (
                     <>
                       <button
                         className="action-btn-circle hover-text-primary"
@@ -693,6 +850,7 @@ const UserJobDetailPage: React.FC = () => {
                     assignmentId={hp.assignmentId}
                     providerName={hp.name}
                   />
+                  {renderReviewCard(hp.assignmentId, hp.name, hp.userId)}
                 </div>
               )}
             </div>
@@ -743,11 +901,11 @@ const UserJobDetailPage: React.FC = () => {
                       className="action-btn-circle"
                       style={{ width: '32px', height: '32px' }}
                       title="Message"
-                      onClick={() => handleTextProvider(assignment.provider.name)}
+                      onClick={() => handleTextProvider(assignment.provider.userId, assignment.provider.name)}
                     >
                       <RiMessage2Line size={16} />
                     </button>
-                    {assignment.workStatus === "completed" && (
+                    {assignment.workStatus === "completed" && !assignmentReviews[assignment.assignmentId] && (
                       <button
                         className="action-btn-circle hover-text-primary"
                         style={{ width: '32px', height: '32px' }}
@@ -784,6 +942,7 @@ const UserJobDetailPage: React.FC = () => {
                       assignmentId={assignment.assignmentId}
                       providerName={assignment.provider.name}
                     />
+                    {renderReviewCard(assignment.assignmentId, assignment.provider.name, assignment.provider.userId)}
                   </div>
                 )}
 
@@ -851,11 +1010,16 @@ const UserJobDetailPage: React.FC = () => {
         isOpen={isReviewModalOpen}
         onClose={() => {
           setIsReviewModalOpen(false);
+          setEditReviewState({ isEdit: false });
           setSelectedAssignmentId(null);
           setSelectedProviderId(null);
         }}
         onSubmit={handleReviewSubmit}
         providerName={selectedProviderName}
+        initialRating={editReviewState.initialRating}
+        initialComment={editReviewState.initialComment}
+        initialImages={editReviewState.initialImages}
+        isEdit={editReviewState.isEdit}
       />
 
       <ReportIssueModal
@@ -877,6 +1041,20 @@ const UserJobDetailPage: React.FC = () => {
         message="Are you sure you have paid the provider in cash? This will notify the provider to confirm receipt."
         confirmLabel="Yes, I have Paid"
         iconType="info"
+      />
+
+      <UniversalActionModal
+        isOpen={isDeleteReviewModalOpen}
+        onClose={() => {
+          setIsDeleteReviewModalOpen(false);
+          setReviewToDelete(null);
+        }}
+        onConfirm={confirmDeleteReview}
+        title="Delete Review?"
+        message="This action cannot be undone. Are you sure you want to permanently remove your feedback for this provider?"
+        confirmLabel="Yes, Delete Review"
+        cancelLabel="Keep Review"
+        iconType="warning"
       />
 
       <style>{`

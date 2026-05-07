@@ -1,6 +1,6 @@
 import { Adminapi } from "./adminApi";
 import { SKILL_STATUS } from "../../../constants/skill";
-import type { IApiResponse } from "../../../types/api.types";
+import type { IPaginatedResponse } from "../../../types/api.types";
 import axios from "axios";
 
 export interface ServiceRequest {
@@ -22,25 +22,9 @@ export interface ServiceRequest {
 export const getPendingServiceRequests = async (params?: {
   page?: number;
   limit?: number;
-}): Promise<{
-  data: ServiceRequest[];
-  pagination: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
-}> => {
-  const response = await Adminapi.get<IApiResponse<{
-    data: ServiceRequest[];
-    pagination: {
-      total: number;
-      page: number;
-      limit: number;
-      totalPages: number;
-    };
-  }>>("/admin/service-requests", { params });
-  return response.data.data;
+}): Promise<IPaginatedResponse<ServiceRequest>> => {
+  const response = await Adminapi.get<IPaginatedResponse<ServiceRequest>>("/admin/service-requests", { params });
+  return response.data;
 };
 
 export const approveServiceRequest = async (

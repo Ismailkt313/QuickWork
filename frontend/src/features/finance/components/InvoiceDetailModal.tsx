@@ -3,10 +3,9 @@ import {
   RiCloseLine,
   RiDownload2Line,
   RiBillLine,
-  RiMapPin2Line,
   RiCheckFill
 } from "react-icons/ri";
-import type { IInvoice } from "../services/finance.service";
+import type { IInvoice, IInvoiceItem } from "../services/finance.service";
 
 interface InvoiceDetailModalProps {
   isOpen: boolean;
@@ -26,7 +25,7 @@ const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
   return (
     <div className="qw-modal-overlay" onClick={onClose}>
       <div className="qw-modal-content animate-pop-in" onClick={e => e.stopPropagation()}>
-        {/* Modal Header */}
+        {}
         <div className="qw-modal-header mb-4">
           <div className="d-flex align-items-center gap-3">
             <div className="qw-header-icon-box invoice">
@@ -42,9 +41,9 @@ const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
           </div>
         </div>
 
-        {/* Modal Body */}
+        {}
         <div className="qw-modal-body-scroll">
-          {/* Status Banner */}
+          {}
           <div className="d-flex justify-content-between align-items-center mb-4">
             <div className="status-badge-paid">
               <RiCheckFill />
@@ -56,7 +55,7 @@ const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
             </div>
           </div>
 
-          {/* Billing Info */}
+          {}
           <div className="qw-billing-info-grid mb-4">
             <div className="billing-col">
               <label className="qw-field-label">Billed To</label>
@@ -70,7 +69,7 @@ const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
             </div>
           </div>
 
-          {/* Items Table */}
+          {}
           <div className="qw-invoice-items-card mb-4">
             <table className="qw-items-table">
               <thead>
@@ -80,8 +79,8 @@ const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {(invoice as any).items?.length > 0 ? (
-                  (invoice as any).items.map((item: any, idx: number) => (
+                {invoice.items && invoice.items.length > 0 ? (
+                  invoice.items.map((item: IInvoiceItem, idx: number) => (
                     <tr key={idx}>
                       <td>{item.description}</td>
                       <td className="text-end">₹{item.amount.toLocaleString()}</td>
@@ -97,7 +96,7 @@ const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
             </table>
           </div>
 
-          {/* Summary Section */}
+          {}
           <div className="qw-invoice-summary-card">
             <div className="summary-row">
               <span>Subtotal</span>
@@ -111,7 +110,7 @@ const InvoiceDetailModal: React.FC<InvoiceDetailModalProps> = ({
           </div>
         </div>
 
-        {/* Modal Footer */}
+        {}
         <div className="mt-4">
           <button
             className="qw-modal-submit-btn primary"

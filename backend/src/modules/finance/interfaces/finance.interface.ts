@@ -72,13 +72,13 @@ export interface IInvoice extends Document {
     updatedAt: Date;
 }
 
-
 import { Request, Response, NextFunction } from 'express';
 
 export interface IWalletController {
     getMe(req: Request, res: Response, next: NextFunction): Promise<void>;
     getTransactions(req: Request, res: Response, next: NextFunction): Promise<void>;
     getAdminFinanceOverview(req: Request, res: Response, next: NextFunction): Promise<void>;
+    withdraw(req: Request, res: Response, next: NextFunction): Promise<void>;
 }
 
 export interface IPaymentController {
@@ -105,14 +105,14 @@ export interface IInvoiceController {
     downloadInvoicePdf(req: Request, res: Response, next: NextFunction): Promise<void>;
 }
 
-
 export interface IWalletService {
     getOrCreateWallet(providerId: string): Promise<IWallet>;
     processCashPayment(providerId: string, platformFee: number): Promise<void>;
     processOnlinePayment(providerId: string, totalAmount: number, platformFee: number): Promise<void>;
     getAdminOverview(): Promise<any>;
     isBlocked(providerId: string): Promise<boolean>;
-    getTransactions(providerId: string, page?: number, limit?: number): Promise<{ transactions: IWalletTransaction[], total: number }>;
+    getTransactions(providerId: string, page?: number, limit?: number, search?: string, type?: string, source?: string): Promise<{ transactions: IWalletTransaction[], total: number }>;
+    requestWithdrawal(providerId: string, amount: number): Promise<IWallet>;
 }
 
 export interface IRazorpayService {
@@ -150,14 +150,13 @@ export interface IInvoiceService {
     generateInvoicePdf(id: string): Promise<Buffer>;
 }
 
-
 export interface IWalletRepository {
     findByProviderId(providerId: string): Promise<IWallet | null>;
     create(providerId: string, balance: number): Promise<IWallet>;
     updateBalance(walletId: string, change: number): Promise<IWallet | null>;
     createTransaction(providerId: string, type: 'credit' | 'debit', source: 'cash_fee' | 'online_payment' | 'withdrawal', amount: number, balanceAfter: number): Promise<IWalletTransaction>;
     findAllWithProvider(): Promise<any[]>;
-    getTransactionsWithCount(providerId: string, skip: number, limit: number): Promise<[IWalletTransaction[], number]>;
+    getTransactionsWithCount(providerId: string, skip: number, limit: number, search?: string, type?: string, source?: string): Promise<[IWalletTransaction[], number]>;
     getPendingDues(): Promise<number>;
 }
 

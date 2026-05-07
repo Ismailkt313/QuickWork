@@ -47,13 +47,13 @@ const UpdatePasswordModal: React.FC<UpdatePasswordModalProps> = ({
   const onSubmit = async (data: PasswordFormData) => {
     try {
       const response = await changePassword(data);
-      console.log('response here ',response)
+
       if (response.success) {
         toast.success("Password changed successfully");
         reset();
         onClose();
       } else {
-        console.log('not done')
+        toast.error(response.message || "Failed to change password");
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Failed to change password";

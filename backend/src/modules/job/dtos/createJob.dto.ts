@@ -20,7 +20,7 @@ const createJobSchema = z.object({
             type: z.literal("Point"),
             coordinates: z.array(z.number())
                 .length(2)
-                .refine(([lng, lat]) => 
+                .refine(([lng, lat]) =>
                     lng >= -180 && lng <= 180 && lat >= -90 && lat <= 90,
                     { message: ErrorMessages.INVALID_COORD_RANGE }
                 )
@@ -39,6 +39,8 @@ const createJobSchema = z.object({
 
     durationType: z.nativeEnum(JOB_DURATION_TYPE),
     startDate: z.string().min(1),
+    startTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/).default("09:00"),
+    endTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/).default("18:00"),
     days: z.number().positive().optional(),
 
     freelancersNeeded: z.number().positive().optional(),
@@ -90,6 +92,8 @@ export class CreateJobDTO {
     public readonly isUrgent: boolean;
     public readonly durationType: JOB_DURATION_TYPE;
     public readonly startDate: string;
+    public readonly startTime: string;
+    public readonly endTime: string;
     public readonly days?: number;
     public readonly freelancersNeeded: number;
     public readonly visibility: JOB_VISIBILITY;
@@ -116,6 +120,8 @@ export class CreateJobDTO {
 
         this.durationType = data.durationType;
         this.startDate = data.startDate;
+        this.startTime = data.startTime;
+        this.endTime = data.endTime;
         this.days = data.days;
 
         this.freelancersNeeded = data.freelancersNeeded ?? 1;

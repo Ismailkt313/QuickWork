@@ -11,11 +11,9 @@ export const createPaymentRouter = (paymentController: PaymentController) => {
     router.get('/history/assignment/:assignmentId', authMiddleware, paymentController.getWorkHistoryByAssignment);
     router.get('/history/provider', authMiddleware, paymentController.getProviderWorkHistory);
 
-    
     router.post('/create-order', authMiddleware, paymentController.createRazorpayOrder);
     router.post('/verify', authMiddleware, paymentController.verifyRazorpayPayment);
 
-    
     router.post('/job/create-order', authMiddleware, paymentController.createJobRazorpayOrder);
     router.post('/job/verify', authMiddleware, paymentController.verifyJobRazorpayPayment);
 

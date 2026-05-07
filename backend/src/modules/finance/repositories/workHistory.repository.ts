@@ -51,13 +51,11 @@ export class WorkHistoryRepository implements IWorkHistoryRepository {
     }
 
     async save(workHistory: IWorkHistory): Promise<IWorkHistory> {
-        
-        
-        
+
         if (typeof (workHistory as any).save === 'function') {
             return (workHistory as any).save();
         }
-        
+
         return WorkHistoryModel.findByIdAndUpdate(workHistory._id, workHistory, { new: true }) as unknown as Promise<IWorkHistory>;
     }
 

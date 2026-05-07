@@ -8,6 +8,10 @@ interface ReviewModalProps {
   onClose: () => void;
   onSubmit: (rating: number, comment: string, images: string[]) => Promise<void>;
   clientName: string;
+  initialRating?: number;
+  initialComment?: string;
+  initialImages?: string[];
+  isEdit?: boolean;
 }
 
 const ReviewModal: React.FC<ReviewModalProps> = ({
@@ -15,14 +19,28 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
   onClose,
   onSubmit,
   clientName,
+  initialRating = 0,
+  initialComment = "",
+  initialImages = [],
+  isEdit = false,
 }) => {
-  const [rating, setRating] = useState(0);
+  const [rating, setRating] = useState(initialRating);
   const [hover, setHover] = useState(0);
-  const [comment, setComment] = useState("");
-  const [images, setImages] = useState<string[]>([]);
+  const [comment, setComment] = useState(initialComment);
+  const [images, setImages] = useState<string[]>(initialImages);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const wasOpen = useRef(false);
+
+  React.useEffect(() => {
+    if (isOpen && !wasOpen.current) {
+      setRating(initialRating);
+      setComment(initialComment);
+      setImages(initialImages);
+    }
+    wasOpen.current = isOpen;
+  }, [isOpen, initialRating, initialComment, initialImages]);
 
   if (!isOpen) return null;
 
@@ -186,7 +204,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
             {loading ? (
               <span className="spinner-border spinner-border-sm" />
             ) : (
-              "Submit Review"
+              isEdit ? "Update Review" : "Submit Review"
             )}
           </button>
         </form>

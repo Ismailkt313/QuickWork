@@ -19,9 +19,9 @@ const RejectConfirmationModal: React.FC<RejectConfirmationModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div 
-      className="modal show d-block" 
-      tabIndex={-1} 
+    <div
+      className="modal show d-block"
+      tabIndex={-1}
       style={{ backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
     >
       <div className="modal-dialog modal-dialog-centered">
@@ -48,11 +48,11 @@ const RejectConfirmationModal: React.FC<RejectConfirmationModalProps> = ({
             >
               <RiCloseCircleLine size={40} />
             </div>
-            
+
             <h3 className="fw-bold mb-2" style={{ fontFamily: "Syne, sans-serif", color: "#0f172a" }}>
               Reject Invitation?
             </h3>
-            
+
             <p className="text-muted mb-4 px-3" style={{ fontSize: "15px", lineHeight: 1.6 }}>
               Are you sure you want to decline the invitation for <strong className="text-dark">"{jobTitle || "this job"}"</strong>? This action cannot be undone.
             </p>
@@ -81,7 +81,7 @@ const RejectConfirmationModal: React.FC<RejectConfirmationModalProps> = ({
           </div>
         </div>
       </div>
-      
+
       <style>{`
         .py-2-5 { padding-top: 0.625rem; padding-bottom: 0.625rem; }
       `}</style>

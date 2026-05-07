@@ -21,6 +21,20 @@ export interface IVerification {
     rejectionReason?: string;
 }
 
+export interface IAvailability {
+    day: "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
+    startTime: string;
+    endTime: string;
+    isAvailable: boolean;
+}
+
+export interface IBlockedDate {
+    _id?: Types.ObjectId;
+    startDate: Date;
+    endDate: Date;
+    reason: string;
+}
+
 export interface IServiceProvider extends Document {
     userId: Types.ObjectId;
     headline: string;
@@ -33,6 +47,8 @@ export interface IServiceProvider extends Document {
     portfolio: IPortfolioItem[];
     verification: IVerification;
     isActive: boolean;
+    availability: IAvailability[];
+    blockedDates: IBlockedDate[];
     submittedAt: Date;
     createdAt: Date;
     updatedAt: Date;
@@ -54,6 +70,7 @@ export interface ProviderFilter {
     limit: number;
     search?: string;
     sort?: string;
+    currentUserId?: string;
 }
 
 export interface ProviderListResult {
@@ -69,6 +86,9 @@ export interface IServiceProviderRepository {
     findById(id: string): Promise<any>;
     updateByUserId(userId: string, data: any): Promise<any>;
     deleteByUserId(userId: string): Promise<void>;
+    updateAvailability(userId: string, availability: IAvailability[]): Promise<any>;
+    addBlockedDate(userId: string, blockedDate: IBlockedDate): Promise<any>;
+    deleteBlockedDate(userId: string, blockedDateId: string): Promise<any>;
 }
 
 export interface IServiceProviderService {
@@ -80,11 +100,15 @@ export interface IServiceProviderService {
         limit?: number;
         search?: string;
         sort?: string;
+        currentUserId?: string;
     }): Promise<{ success: boolean; message?: string; data?: ProviderListResult & { page: number; limit: number } }>;
     getProviderById(id: string): Promise<{ success: boolean; data?: any; message?: string }>;
     getMyProfile(userId: string): Promise<{ success: boolean; data?: any; message?: string }>;
     updateProfile(userId: string, data: any): Promise<{ success: boolean; data?: any; message?: string }>;
     resetApplication(userId: string): Promise<{ success: boolean; message: string }>;
+    updateAvailability(userId: string, availability: IAvailability[]): Promise<{ success: boolean; message: string; data?: any }>;
+    addBlockedDate(userId: string, blockedDate: Omit<IBlockedDate, '_id'>): Promise<{ success: boolean; message: string; data?: any }>;
+    deleteBlockedDate(userId: string, blockedDateId: string): Promise<{ success: boolean; message: string }>;
 }
 
 export interface IServiceProviderController {
@@ -94,4 +118,7 @@ export interface IServiceProviderController {
     getMyProfile(req: Request, res: Response, next: NextFunction): Promise<void>;
     updateProfile(req: Request, res: Response, next: NextFunction): Promise<void>;
     resetApplication(req: Request, res: Response, next: NextFunction): Promise<void>;
+    updateAvailability(req: Request, res: Response, next: NextFunction): Promise<void>;
+    addBlockedDate(req: Request, res: Response, next: NextFunction): Promise<void>;
+    deleteBlockedDate(req: Request, res: Response, next: NextFunction): Promise<void>;
 }

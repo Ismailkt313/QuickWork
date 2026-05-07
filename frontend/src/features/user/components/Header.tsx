@@ -36,13 +36,13 @@ const Header: React.FC<HeaderProps> = ({
     null,
   );
 
-  const { 
-    notifications, 
-    unreadCount, 
-    loading: notificationsLoading, 
-    markAsRead, 
-    markAllAsRead, 
-    deleteNotification 
+  const {
+    notifications,
+    unreadCount,
+    loading: notificationsLoading,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification
   } = useNotifications();
 
   useEffect(() => {

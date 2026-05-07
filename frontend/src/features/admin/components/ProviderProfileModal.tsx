@@ -2,8 +2,6 @@ import React, { useEffect } from "react";
 import type { IServiceProviderDetails } from "../types/admin.types";
 import { VERIFICATION_STATUS } from "../../../constants/verification";
 
-
-
 interface ProviderProfileModalProps {
   provider: IServiceProviderDetails;
   onClose: () => void;

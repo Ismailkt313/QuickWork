@@ -1,12 +1,12 @@
 import React, { useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { 
-  RiErrorWarningLine, 
-  RiCloseLine, 
-  RiFileList2Line, 
-  RiImageAddLine, 
-  RiDeleteBin7Line, 
-  RiLoader4Line 
+import {
+  RiErrorWarningLine,
+  RiCloseLine,
+  RiFileList2Line,
+  RiImageAddLine,
+  RiDeleteBin7Line,
+  RiLoader4Line
 } from "react-icons/ri";
 import { cloudinaryService } from "../../../services/cloudinaryService";
 import { toast } from "react-toastify";
@@ -141,7 +141,7 @@ const ReportIssueModal: React.FC<ReportIssueModalProps> = ({
               </span>
               <span className="count">{images.length}/5</span>
             </label>
-            
+
             <div className="qw-image-upload-grid">
               {images.map((url, index) => (
                 <div key={index} className="qw-uploaded-image">
@@ -151,7 +151,7 @@ const ReportIssueModal: React.FC<ReportIssueModalProps> = ({
                   </button>
                 </div>
               ))}
-              
+
               {images.length < 5 && (
                 <button
                   type="button"

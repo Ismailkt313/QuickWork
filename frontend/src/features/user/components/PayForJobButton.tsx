@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { 
-  RiLoader4Line, 
+import {
+  RiLoader4Line,
   RiBankCardLine
 } from "react-icons/ri";
 import { financeService } from "../../finance/services/finance.service";
@@ -42,7 +42,7 @@ const PayForJobButton: React.FC<Props> = ({ job, onSuccess }) => {
 
   const handleJobPayment = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     if (isProcessing) return;
 
     try {

@@ -16,14 +16,14 @@ export interface ISkillRepository {
     getServices():Promise<ISkill[]>;
     getAllSkills(search?: string, locationId?: string): Promise<ISkill[]>;
     getSkills(): Promise<ISkill[]>;
-    getMySkill(userId:string):Promise<ISkill[]>
+    getMySkill(userId: string):Promise<ISkill[]>
 }
 
 export interface ISkillService {
-    searchSkills(query:string): Promise<{ success: boolean; data?: ISkill[] }>;
+    searchSkills(query: string): Promise<{ success: boolean; data?: ISkill[] }>;
     getAllSkills(search?: string, locationId?: string): Promise<{ success: boolean; data: ISkill[] }>;
     getSkills(): Promise<{ success: boolean; data: ISkill[] }>;
-    getMySkills(userId:any):Promise<{success:boolean, data:ISkill[]}>
+    getMySkills(userId: any):Promise<{success: boolean, data:ISkill[]}>
 }
 export interface ISkillController {
     searchSkills(req: any, res: any, next: any): Promise<void>;

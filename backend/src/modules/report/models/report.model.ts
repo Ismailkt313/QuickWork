@@ -3,44 +3,44 @@ import { IReport, REPORT_STATUS, REPORT_ROLE } from '../interfaces/report.interf
 
 const ReportSchema: Schema = new Schema(
     {
-        assignmentId: { 
-            type: Schema.Types.ObjectId, 
-            ref: 'Assignment', 
-            required: true 
+        assignmentId: {
+            type: Schema.Types.ObjectId,
+            ref: 'Assignment',
+            required: true
         },
-        reporterId: { 
-            type: Schema.Types.ObjectId, 
-            ref: 'User', 
-            required: true 
+        reporterId: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: true
         },
-        reportedUserId: { 
-            type: Schema.Types.ObjectId, 
-            ref: 'User', 
-            required: true 
+        reportedUserId: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: true
         },
         role: {
             type: String,
             enum: Object.values(REPORT_ROLE),
             required: true
         },
-        reason: { 
-            type: String, 
-            required: true 
+        reason: {
+            type: String,
+            required: true
         },
-        description: { 
-            type: String 
+        description: {
+            type: String
         },
         images: [{
             type: String
         }],
-        status: { 
-            type: String, 
-            enum: Object.values(REPORT_STATUS), 
-            default: REPORT_STATUS.PENDING 
+        status: {
+            type: String,
+            enum: Object.values(REPORT_STATUS),
+            default: REPORT_STATUS.PENDING
         }
     },
-    { 
-        timestamps: true 
+    {
+        timestamps: true
     }
 );
 

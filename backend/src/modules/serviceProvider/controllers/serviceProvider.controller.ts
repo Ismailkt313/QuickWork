@@ -7,7 +7,6 @@ import { UpdateProviderDTO } from '../dtos/updateProvider.dto';
 import { HttpStatusCode } from "../../../constants/httpStatusCode"
 import { ErrorMessages } from "../../../constants/messages/errorMessages";
 
-
 export class ServiceProviderController implements IServiceProviderController {
     private _serviceProviderService: IServiceProviderService;
 
@@ -40,6 +39,7 @@ export class ServiceProviderController implements IServiceProviderController {
     getProviders = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { skillId, locationId, page, limit, search, sort } = req.query as Record<string, string | undefined>;
+            const currentUserId = req.user?.userId;
 
             const result = await this._serviceProviderService.getProviders({
                 skillId,
@@ -47,7 +47,8 @@ export class ServiceProviderController implements IServiceProviderController {
                 page: Number(page),
                 limit: Number(limit),
                 search,
-                sort
+                sort,
+                currentUserId
             });
 
             if (!result.success) {
@@ -156,6 +157,51 @@ export class ServiceProviderController implements IServiceProviderController {
                 return;
             }
 
+            res.status(HttpStatusCode.OK).json(result);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    updateAvailability = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const userId = req.user?.userId;
+            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+
+            const { availability } = req.body;
+            const result = await this._serviceProviderService.updateAvailability(userId, availability);
+
+            if (!result.success) throw new AppError(result.message, HttpStatusCode.BAD_REQUEST);
+            res.status(HttpStatusCode.OK).json(result);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    addBlockedDate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const userId = req.user?.userId;
+            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+
+            const { startDate, endDate, reason } = req.body;
+            const result = await this._serviceProviderService.addBlockedDate(userId, { startDate, endDate, reason });
+
+            if (!result.success) throw new AppError(result.message, HttpStatusCode.BAD_REQUEST);
+            res.status(HttpStatusCode.OK).json(result);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    deleteBlockedDate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const userId = req.user?.userId;
+            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+
+            const { id } = req.params;
+            const result = await this._serviceProviderService.deleteBlockedDate(userId, id as string);
+
+            if (!result.success) throw new AppError(result.message, HttpStatusCode.BAD_REQUEST);
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);

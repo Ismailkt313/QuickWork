@@ -41,7 +41,6 @@ import { HttpStatusCode } from "../../../constants/httpStatusCode";
 import { IUploadService } from "../../upload/interfaces/upload.interface";
 import { logger } from "../../../utils/logger";
 
- 
 export class AuthService implements IAuthService {
     private readonly _authRepository: IAuthRepository;
     private readonly _otpRepository: IOtpRepository;
@@ -77,7 +76,7 @@ export class AuthService implements IAuthService {
         };
 
         const otp = generateOtp();
-        console.log("login otp ", otp);
+
         const hashedOtpValue = await hashOtp(otp);
         const otpExpiresAt = new Date(Date.now() + config.OTP_EXPIRY_SECONDS * 1000);
         const expiresAt = new Date(Date.now() + config.OTP_TTL_SECONDS * 1000);
@@ -276,8 +275,6 @@ export class AuthService implements IAuthService {
         }
 
         const otp = generateOtp();
-        console.log('forgot pass otp = ', otp);
-
 
         const hashedOtpValue = await hashOtp(otp);
         const expiresAt = new Date(Date.now() + config.OTP_EXPIRY_SECONDS * 1000);

@@ -32,10 +32,6 @@ export class InvoiceService implements IInvoiceService {
         if (!history) throw new Error('Work history not found');
         if (history.payment.status !== 'completed') throw new Error('Invoice can only be generated for completed payments');
 
-        // Check if invoice already exists
-        const existingInvoice = await this._invoiceRepo.findById(workHistoryId); // Assuming we might use workHistoryId as reference
-        // Wait, I didn't define a findByWorkHistoryId. Let's just use findOne in the repo if needed, 
-        // but for now let's assume we create it once.
 
         const job = await this._jobRepo.findById(history.jobId.toString());
         if (!job) throw new Error('Job not found');
@@ -74,7 +70,7 @@ export class InvoiceService implements IInvoiceService {
             }],
             subtotal: history.payment.totalAmount,
             platformFee: history.payment.platformFee,
-            platformFeePercent: 10, // Assuming 10%
+            platformFeePercent: 10,
             total: history.payment.totalAmount,
             providerPayout: history.payment.providerAmount,
             paymentMethod: history.payment.method,
@@ -116,20 +112,17 @@ export class InvoiceService implements IInvoiceService {
             doc.on('end', () => resolve(Buffer.concat(buffers)));
             doc.on('error', reject);
 
-            // Header
             doc.fillColor('#444444').fontSize(20).text('QuickWork Marketplace', 50, 57);
             doc.fontSize(10).text('QuickWork Inc.', 200, 65, { align: 'right' });
             doc.text('123 Marketplace Ave', 200, 80, { align: 'right' });
             doc.text('New York, NY, 10001', 200, 95, { align: 'right' });
             doc.moveDown();
 
-            // Invoice Info
             doc.fillColor('#000000').fontSize(20).text('Invoice', 50, 160);
             doc.fontSize(10).text(`Invoice Number: ${invoice.invoiceNumber}`, 50, 200);
             doc.text(`Invoice Date: ${invoice.issuedAt.toLocaleDateString()}`, 50, 215);
             doc.text(`Payment Status: ${invoice.paymentStatus.toUpperCase()}`, 50, 230);
 
-            // Client & Provider Info
             doc.text('Bill To:', 50, 270, { underline: true });
             doc.text(invoice.client.name, 50, 285);
             doc.text(invoice.client.email, 50, 300);
@@ -138,7 +131,6 @@ export class InvoiceService implements IInvoiceService {
             doc.text(invoice.provider.name, 300, 285);
             doc.text(invoice.provider.email, 300, 300);
 
-            // Table Header
             const tableTop = 350;
             doc.font('Helvetica-Bold').fontSize(10).text('Description', 50, tableTop);
             doc.text('Quantity', 250, tableTop, { align: 'right' });
@@ -148,7 +140,6 @@ export class InvoiceService implements IInvoiceService {
 
             doc.moveTo(50, tableTop + 15).lineTo(550, tableTop + 15).stroke();
 
-            // Table Items
             let y = tableTop + 30;
             invoice.items.forEach(item => {
                 doc.text(item.description, 50, y);
@@ -160,7 +151,6 @@ export class InvoiceService implements IInvoiceService {
 
             doc.moveTo(50, y).lineTo(550, y).stroke();
 
-            // Totals
             y += 20;
             doc.text('Subtotal:', 350, y, { align: 'right' });
             doc.text(`$${invoice.subtotal.toFixed(2)}`, 450, y, { align: 'right' });
@@ -178,7 +168,6 @@ export class InvoiceService implements IInvoiceService {
             doc.fontSize(10).text(`Payment Method: ${invoice.paymentMethod}`, 50, y);
             doc.text(`Paid At: ${invoice.paidAt.toLocaleDateString()}`, 50, y + 15);
 
-            // Footer
             doc.fontSize(10).text('Thank you for using QuickWork!', 50, 700, { align: 'center', width: 500 });
 
             doc.end();

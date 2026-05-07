@@ -3,9 +3,9 @@ export const generateSlug = (text: string): string => {
         .toString()
         .toLowerCase()
         .trim()
-        .replace(/\s+/g, '-')           
-        .replace(/[^\w-]+/g, '')        
-        .replace(/--+/g, '-')        
-        .replace(/^-+/, '')             
+        .replace(/\s+/g, '-')
+        .replace(/[^\w-]+/g, '')
+        .replace(/--+/g, '-')
+        .replace(/^-+/, '')
         .replace(/-+$/, '');
 };

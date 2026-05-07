@@ -5,8 +5,6 @@ import { MESSAGE_TYPE } from "../../../constants/message";
 import { HttpStatusCode } from "../../../constants/httpStatusCode"
 import { ErrorMessages } from "../../../constants/messages/errorMessages";
 import { SuccessMessages } from "../../../constants/messages/successMessages";
-import { getIo } from "../../../chat/socket";
-
 
 export class MessageController implements IMessageController {
     private _messageService: IMessageService;
@@ -40,7 +38,7 @@ export class MessageController implements IMessageController {
             if (io) {
                 const receiverRoom = String(dto.receiverId);
                 const senderRoom = String(senderId);
-                
+
                 io.to(receiverRoom).emit("receiveMessage", result);
                 io.to(senderRoom).emit("receiveMessage", result);
             }
@@ -65,11 +63,11 @@ export class MessageController implements IMessageController {
             res.status(error.statusCode || 500).json({ success: false, message: error.message });
         }
     }
-    
+
     async getConversations(req: Request, res: Response): Promise<void> {
         try {
             const userId = (req as any).user?.userId || (req as any).user?._id;
-            
+
             if (!userId) {
                 (req as any).log.warn("No userId found in req.user");
 
@@ -105,9 +103,8 @@ export class MessageController implements IMessageController {
 
                 (req as any).log.info({ senderRoom, receiverRoom, messageId: dto.messageId }, "DEBUG: Emitting messageDeleted");
 
-                // Temporary broadcast for debugging
                 io.emit("messageDeleted", { messageId: dto.messageId });
-                
+
                 io.to(senderRoom).emit("messageDeleted", { messageId: dto.messageId });
                 io.to(receiverRoom).emit("messageDeleted", { messageId: dto.messageId });
             }
@@ -124,22 +121,22 @@ export class MessageController implements IMessageController {
             const result = await this._messageService.deleteConversation(dto.conversationId);
             const io = req.app.get("io");
             if (io && conversation && conversation.participants) {
-                // Temporary broadcast for debugging
+
                 io.emit("conversationDeleted", { conversationId: dto.conversationId });
 
                 conversation.participants.forEach((p: any) => {
                     const participantId = String(p._id || p.id || p);
                     (req as any).log.info({ participantId, conversationId: dto.conversationId }, "DEBUG: Emitting conversationDeleted");
-                    io.to(participantId).emit("conversationDeleted", { 
-                        conversationId: dto.conversationId 
+                    io.to(participantId).emit("conversationDeleted", {
+                        conversationId: dto.conversationId
                     });
                 });
             }
 
-            res.status(HttpStatusCode.OK).json({ 
-                success: true, 
-                message: SuccessMessages.CONVERSATION_DELETED, 
-                data: result 
+            res.status(HttpStatusCode.OK).json({
+                success: true,
+                message: SuccessMessages.CONVERSATION_DELETED,
+                data: result
             });
         } catch (error: any) {
             res.status(error.statusCode || 500).json({ success: false, message: error.message });

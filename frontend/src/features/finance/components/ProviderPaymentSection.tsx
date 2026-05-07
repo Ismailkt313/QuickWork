@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { confirmPayment, rejectPayment } from "../store/paymentSlice";
 import type { AppDispatch, RootState } from "../../../app/store";
-import { 
-  RiCheckboxCircleLine, 
-  RiLoader4Line, 
+import {
+  RiCheckboxCircleLine,
+  RiLoader4Line,
   RiMoneyDollarCircleLine,
   RiHandCoinLine,
   RiInformationLine,
@@ -59,7 +59,7 @@ const ProviderPaymentSection: React.FC<Props> = ({
     }
 
     setModalConfig({ ...modalConfig, isOpen: false });
-    
+
     setTimeout(() => {
       financeService.getWorkHistoryByAssignmentId(assignmentId).then(res => setHistory(res.data));
     }, 2000);
@@ -165,7 +165,7 @@ const ProviderPaymentSection: React.FC<Props> = ({
             <button className="qw-confirm-close" onClick={() => setModalConfig({ ...modalConfig, isOpen: false })}>
               <RiCloseLine size={20} />
             </button>
-            
+
             <div className={`qw-confirm-icon-box ${modalConfig.type}`}>
               {modalConfig.type === "confirm" ? <RiAlertLine size={32} /> : <RiArrowGoBackLine size={32} />}
             </div>
@@ -183,8 +183,8 @@ const ProviderPaymentSection: React.FC<Props> = ({
               <button className="qw-confirm-btn-cancel" onClick={() => setModalConfig({ ...modalConfig, isOpen: false })}>
                 Cancel
               </button>
-              <button 
-                className={`qw-confirm-btn-proceed ${modalConfig.type}`} 
+              <button
+                className={`qw-confirm-btn-proceed ${modalConfig.type}`}
                 onClick={processAction}
                 disabled={loading}
               >

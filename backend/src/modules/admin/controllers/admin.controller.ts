@@ -3,7 +3,6 @@ import { IAdminController, IAdminService, IUserListQuery } from "../interfaces/a
 import { HttpStatusCode } from "../../../constants/httpStatusCode";
 import { ErrorMessages } from "../../../constants/messages/errorMessages";
 
-
 export class AdminController implements IAdminController {
     private readonly _adminService: IAdminService;
 

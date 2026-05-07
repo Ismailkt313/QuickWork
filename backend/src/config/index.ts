@@ -4,7 +4,7 @@ dotenv.config();
 
 export const config = {
     PORT: parseInt(process.env.PORT || "5000", 10),
-    MONGO_URI: process.env.MONGO_URI || "mongodb://localhost:27017/quickwork",
+    MONGO_URI: process.env.MONGO_URI || "",
     BCRYPT_SALT_ROUNDS: parseInt(process.env.BCRYPT_SALT_ROUNDS || "10", 10),
 
     JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET || "",
@@ -28,7 +28,7 @@ export const config = {
     CLOUD_API_SECRET: process.env.CLOUD_API_SECRET || "",
 
     url: process.env.URL,
-    FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:5173",
+    FRONTEND_URL: process.env.FRONTEND_URL || "",
     VERCEL_URL: process.env.VERCEL_URL,
 
     AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID || "",

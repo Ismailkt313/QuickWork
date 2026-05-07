@@ -4,6 +4,7 @@ import paymentReducer from "../features/finance/store/paymentSlice";
 import walletReducer from "../features/finance/store/walletSlice";
 import adminFinanceReducer from "../features/admin/store/adminFinanceSlice";
 import adminReportReducer from "../features/admin/store/adminReportSlice";
+import availabilityReducer from "../features/provider/store/availabilitySlice";
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     wallet: walletReducer,
     adminFinance: adminFinanceReducer,
     adminReport: adminReportReducer,
+    availability: availabilityReducer,
   },
 });
 

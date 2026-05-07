@@ -16,11 +16,13 @@ export interface ProviderResponseDTO {
     isActive: boolean;
     verificationStatus: string;
     rejectionReason?: string;
+    availability: any[];
+    blockedDates: any[];
 }
 
 export const mapProviderToResponseDTO = (provider: any): ProviderResponseDTO => {
     const user = provider.userId || {};
-    
+
     return {
         id: provider._id ? provider._id.toString() : provider.id,
         userId: user._id ? user._id.toString() : user.id,
@@ -39,6 +41,8 @@ export const mapProviderToResponseDTO = (provider: any): ProviderResponseDTO => 
         portfolio: provider.portfolio,
         isActive: provider.isActive,
         verificationStatus: provider.verification?.status || 'pending',
-        rejectionReason: provider.verification?.rejectionReason || ''
+        rejectionReason: provider.verification?.rejectionReason || '',
+        availability: provider.availability || [],
+        blockedDates: provider.blockedDates || []
     };
 };

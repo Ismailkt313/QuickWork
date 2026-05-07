@@ -3,7 +3,7 @@ import { logger } from "../utils/logger";
 import { randomUUID } from "crypto";
 
 export const loggerMiddleware = (req: Request, res: Response, next: NextFunction) => {
-    
+
     if (req.method === "OPTIONS") {
         return next();
     }
@@ -12,11 +12,8 @@ export const loggerMiddleware = (req: Request, res: Response, next: NextFunction
 
     const startTime = Date.now();
 
-    
     res.setHeader("x-request-id", requestId);
 
-    
-    
     const childLogger = logger.child({
         requestId,
         method: req.method,
@@ -24,11 +21,9 @@ export const loggerMiddleware = (req: Request, res: Response, next: NextFunction
         ip: req.ip,
     });
 
-    
     (req as any).log = childLogger;
     (req as any).requestId = requestId;
 
-    
     childLogger.info({
         msg: "Incoming Request",
         body: req.body,
@@ -36,7 +31,6 @@ export const loggerMiddleware = (req: Request, res: Response, next: NextFunction
         params: req.params,
     });
 
-    
     res.on("finish", () => {
         const duration = Date.now() - startTime;
         const user = (req as any).user;

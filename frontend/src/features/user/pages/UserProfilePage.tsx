@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { toast } from "react-toastify";
 
 interface IUser {
+  id: string;
   name: string;
   email: string;
   number?: string;

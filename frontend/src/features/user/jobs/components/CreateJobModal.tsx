@@ -50,6 +50,8 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
     category: "",
     durationType: "half_day",
     startDate: "",
+    startTime: "09:00",
+    endTime: "18:00",
     days: "",
     minBudget: "",
     maxBudget: "",
@@ -160,6 +162,25 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
     if (!formData.selectedLocation)
       newErrors.selectedLocation = "Please search and select a location";
     if (!formData.startDate) newErrors.startDate = "Start date is required";
+    if (!formData.startTime) newErrors.startTime = "Start time is required";
+    if (!formData.endTime) newErrors.endTime = "End time is required";
+
+    if (formData.startTime && formData.endTime) {
+      const toMinutes = (t: string) => {
+        const [h, m] = t.split(":").map(Number);
+        return h * 60 + m;
+      };
+      const start = toMinutes(formData.startTime);
+      const end = toMinutes(formData.endTime);
+
+      if (end <= start) {
+        newErrors.endTime = "End time must be after start time";
+      } else if (formData.durationType === "half_day") {
+        if (end - start > 240) {
+          newErrors.endTime = "Half-day jobs cannot exceed 4 hours";
+        }
+      }
+    }
 
     if (
       formData.durationType === "multi_day" &&
@@ -263,6 +284,8 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
         },
         durationType: formData.durationType,
         startDate: formData.startDate,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
         days:
           formData.durationType === "multi_day"
             ? Number(formData.days)
@@ -525,6 +548,30 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
                   error={errors.freelancersNeeded}
                   placeholder="1"
                   icon={<FiUsers />}
+                  required
+                />
+              </div>
+              <div className="col-md-6">
+                <FormInput
+                  label="Start Time"
+                  name="startTime"
+                  type="time"
+                  value={formData.startTime}
+                  onChange={handleChange}
+                  error={errors.startTime}
+                  icon={<FiClock />}
+                  required
+                />
+              </div>
+              <div className="col-md-6">
+                <FormInput
+                  label="End Time"
+                  name="endTime"
+                  type="time"
+                  value={formData.endTime}
+                  onChange={handleChange}
+                  error={errors.endTime}
+                  icon={<FiClock />}
                   required
                 />
               </div>

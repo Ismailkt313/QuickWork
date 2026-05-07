@@ -8,6 +8,7 @@ export const createWalletRouter = (walletController: WalletController) => {
 
     router.get('/me', authMiddleware, walletController.getMe);
     router.get('/transactions', authMiddleware, walletController.getTransactions);
+    router.post('/withdraw', authMiddleware, authorizeRoles('provider'), walletController.withdraw);
     router.get('/admin/overview', authMiddleware, authorizeRoles('admin'), walletController.getAdminFinanceOverview);
 
     return router;

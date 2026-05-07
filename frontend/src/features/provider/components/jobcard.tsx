@@ -35,7 +35,7 @@ export interface Job {
   clientInitials?: string;
   clientAvatarColor?: string;
   clientRating?: number;
-  clientReviewCount?: number;
+  clientReviewsCount?: number;
   location: JobLocation | null;
   postedAt: string;
   skills: string[];
@@ -105,12 +105,11 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
   const visibleSkills = job.skills.slice(0, 5);
   const extraSkills = job.skills.length - visibleSkills.length;
 
-  
   const jobDistrict = job.location?.districtName?.toLowerCase().trim() ?? "";
   const myDistrict = providerLocation?.toLowerCase().trim() ?? "";
   const isMyArea = myDistrict && myDistrict !== "not set" && jobDistrict
     ? jobDistrict.includes(myDistrict) || myDistrict.includes(jobDistrict)
-    : null; 
+    : null;
 
   const isMultiDay = job.startDate !== job.endDate;
 
@@ -165,7 +164,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
           <div className="jc-client-meta">
             <span className="jc-client-name"><RiUserLine size={11} /> {job.clientName}</span>
             {job.clientRating !== undefined && (
-              <><span className="jc-meta-sep">·</span><StarRating rating={job.clientRating} count={job.clientReviewCount} /></>
+              <><span className="jc-meta-sep">·</span><StarRating rating={job.clientRating} count={job.clientReviewsCount} /></>
             )}
             <span className="jc-meta-sep">·</span>
             <span className="jc-posted"><RiTimeLine size={11} /> {job.postedAt}</span>

@@ -140,7 +140,7 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
   onCloseMobile,
   onLogout,
 }) => {
-  console.log(provider, "provider");
+
   const [navItems, setNavItems] = React.useState<NavItem[]>(PRIMARY_NAV);
   const navigate = useNavigate();
 

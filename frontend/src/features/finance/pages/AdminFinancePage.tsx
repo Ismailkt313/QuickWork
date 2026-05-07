@@ -1,25 +1,26 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../../app/store";
-import { fetchFinanceOverview, fetchTransactions } from "../../admin/store/adminFinanceSlice";
-import { 
-  RiMoneyDollarCircleLine, 
-  RiExchangeLine, 
-  RiBankCardLine, 
-  RiCashLine, 
+import { fetchFinanceOverview, fetchTransactions, type AdminFinanceState, type Transaction } from "../../admin/store/adminFinanceSlice";
+import {
+  RiMoneyDollarCircleLine,
+  RiExchangeLine,
+  RiBankCardLine,
+  RiCashLine,
   RiErrorWarningLine,
   RiFilter3Line,
   RiCalendarLine,
   RiArrowLeftSLine,
   RiArrowRightSLine,
   RiLoader4Line,
-  RiHistoryLine
+  RiHistoryLine,
+  RiSearchLine
 } from "react-icons/ri";
 
 const AdminFinancePage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { overview, transactions, pagination, loading } = useSelector(
-    (state: RootState) => state.adminFinance
+    (state: RootState) => state.adminFinance as AdminFinanceState
   );
 
   const [filters, setFilters] = useState({
@@ -28,11 +29,21 @@ const AdminFinancePage: React.FC = () => {
     paymentMethod: "all",
     startDate: "",
     endDate: "",
+    search: "",
   });
+
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     dispatch(fetchFinanceOverview());
   }, [dispatch]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters(prev => ({ ...prev, search: searchTerm, page: 1 }));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   useEffect(() => {
     dispatch(fetchTransactions(filters));
@@ -124,11 +135,11 @@ const AdminFinancePage: React.FC = () => {
       <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
         <div className="card-header bg-white p-4 border-bottom">
           <div className="row g-3 align-items-end">
-            <div className="col-12 col-md-4">
+            <div className="col-12 col-md-3">
               <label className="form-label fw-bold small text-muted text-uppercase mb-2">
                 <RiFilter3Line size={14} className="me-1" /> Payment Method
               </label>
-              <select 
+              <select
                 className="form-select border rounded-3 py-2"
                 name="paymentMethod"
                 value={filters.paymentMethod}
@@ -139,29 +150,44 @@ const AdminFinancePage: React.FC = () => {
                 <option value="CASH">Cash (Direct)</option>
               </select>
             </div>
-            <div className="col-12 col-md-4">
+            <div className="col-12 col-md-3">
               <label className="form-label fw-bold small text-muted text-uppercase mb-2">
                 <RiCalendarLine size={14} className="me-1" /> Start Date
               </label>
-              <input 
-                type="date" 
+              <input
+                type="date"
                 className="form-control border rounded-3 py-2"
                 name="startDate"
                 value={filters.startDate}
                 onChange={handleFilterChange}
               />
             </div>
-            <div className="col-12 col-md-4">
+            <div className="col-12 col-md-3">
               <label className="form-label fw-bold small text-muted text-uppercase mb-2">
                 <RiCalendarLine size={14} className="me-1" /> End Date
               </label>
-              <input 
-                type="date" 
+              <input
+                type="date"
                 className="form-control border rounded-3 py-2"
                 name="endDate"
                 value={filters.endDate}
                 onChange={handleFilterChange}
               />
+            </div>
+            <div className="col-12 col-md-3">
+              <label className="form-label fw-bold small text-muted text-uppercase mb-2">
+                <RiSearchLine size={14} className="me-1" /> Search
+              </label>
+              <div className="position-relative">
+                <RiSearchLine className="position-absolute top-50 translate-middle-y ms-3 text-muted" />
+                <input
+                  type="text"
+                  className="form-control border rounded-3 py-2 ps-5"
+                  placeholder="Search by ID..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -188,7 +214,7 @@ const AdminFinancePage: React.FC = () => {
                   </td>
                 </tr>
               ) : transactions.length > 0 ? (
-                transactions.map((tx) => (
+                transactions.map((tx: Transaction) => (
                   <tr key={tx._id}>
                     <td className="py-3 px-4">
                       <div className="d-flex flex-column">
@@ -232,14 +258,14 @@ const AdminFinancePage: React.FC = () => {
               Page <span className="fw-bold">{pagination.page}</span> of <span className="fw-bold">{pagination.pages}</span>
             </span>
             <div className="d-flex gap-2">
-              <button 
+              <button
                 className="btn btn-outline-secondary btn-sm rounded-3 px-3 d-flex align-items-center"
                 disabled={pagination.page === 1}
                 onClick={() => handlePageChange(pagination.page - 1)}
               >
                 <RiArrowLeftSLine size={18} /> Previous
               </button>
-              <button 
+              <button
                 className="btn btn-outline-secondary btn-sm rounded-3 px-3 d-flex align-items-center"
                 disabled={pagination.page === pagination.pages}
                 onClick={() => handlePageChange(pagination.page + 1)}

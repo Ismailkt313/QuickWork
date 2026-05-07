@@ -37,7 +37,7 @@ export class AssignmentController implements IAssignmentController {
             }
 
             const { assignments, total, counts } = await this._assignmentService.getAssignmentsByProvider(provider._id.toString(), { page, limit, search, status });
-            
+
             res.status(HttpStatusCode.OK).json({
                 success: true,
                 data: await Promise.all(assignments.map(mapAssignmentToResponseDTO)),
@@ -66,7 +66,7 @@ export class AssignmentController implements IAssignmentController {
 
             const jobId = assignment.jobId?._id ? assignment.jobId._id.toString() : assignment.jobId.toString();
             const coWorkers = await this._assignmentService.getAssignmentsByJobId(jobId);
-            
+
             const mappedCoWorkers = coWorkers
                 .filter(a => a._id.toString() !== assignmentId)
                 .map((a: any) => ({
@@ -196,7 +196,7 @@ export class AssignmentController implements IAssignmentController {
                 data: await mapAssignmentToResponseDTO(updated)
             });
         } catch (error: any) {
-            console.log('error absence', error);
+
             next(error);
         }
     };
@@ -239,7 +239,7 @@ export class AssignmentController implements IAssignmentController {
             const userId = req.user?.userId;
             const id = req.params.id as string;
             const provider = await this._serviceProviderRepository.findByUserId(userId as string);
-            console.log('Provider found', provider);
+
             if (!provider) throw new AppError('Provider not found', HttpStatusCode.NOT_FOUND);
 
             const updated = await this._assignmentService.providerMarkAsPaid(id, provider._id.toString());

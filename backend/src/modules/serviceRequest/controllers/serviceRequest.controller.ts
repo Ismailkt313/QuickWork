@@ -6,7 +6,6 @@ import { IServiceRequestController, IServiceRequestService } from '../interfaces
 import {HttpStatusCode} from "../../../constants/httpStatusCode"
 import { ErrorMessages } from '../../../constants/messages/errorMessages';
 
-
 export class ServiceRequestController implements IServiceRequestController {
     private _serviceRequestService: IServiceRequestService;
 

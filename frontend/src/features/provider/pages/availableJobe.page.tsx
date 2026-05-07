@@ -195,8 +195,8 @@ const AvailableJobsPage: React.FC = () => {
     }[]
   >([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState(""); 
-  const [selectedCategory, setSelectedCategory] = useState(""); 
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [budget, setBudget] = useState("Any Budget");
 
   const [sortBy, setSortBy] = useState("newest");
@@ -206,7 +206,7 @@ const AvailableJobsPage: React.FC = () => {
     total: 0,
     page: 1,
     limit: 10,
-    pages: 1,
+    totalPages: 1,
   });
   const JOBS_PER_PAGE = 10;
 
@@ -234,7 +234,7 @@ const AvailableJobsPage: React.FC = () => {
           fetchSkills(),
         ]);
         setLocations(locs.data);
-        console.log(sks.data, locs.data);
+
         setSkills(sks.data);
       } catch (err: unknown) {
         console.error("Error loading filters:", err);
@@ -371,8 +371,7 @@ const AvailableJobsPage: React.FC = () => {
     setCurrentPage(1);
   };
 
-
-  const totalPages = pagination.pages;
+  const totalPages = pagination.totalPages;
 
   const urgentCount = jobs.filter((j) => j.isUrgent).length;
 
@@ -638,7 +637,7 @@ const AvailableJobsPage: React.FC = () => {
                   job={{ ...job, animationDelay: i * 60 }}
                   onApply={handleApply}
                   onViewDetails={(id) => navigate(`/provider/jobs/${id}`)}
-                  onSave={(id, saved) => console.log("Save:", id, saved)}
+                  onSave={(id, saved) => { console.log(id, saved); }}
                 />
               </div>
             ))

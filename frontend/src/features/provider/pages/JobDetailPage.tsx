@@ -18,6 +18,7 @@ import VerificationPendingModal from "../components/VerificationPendingModal";
 import { ClientProfileModal } from "../components/ClientProfileModal";
 import RejectConfirmationModal from "../components/RejectConfirmationModal";
 import Map from "../components/Map";
+import UserReviewsModal from "../components/UserReviewsModal";
 
 const JobDetailPage: React.FC = () => {
   const { jobId } = useParams() as { jobId: string };
@@ -31,6 +32,7 @@ const JobDetailPage: React.FC = () => {
   const [isPendingModalOpen,  setIsPendingModalOpen]  = React.useState(false);
   const [isProfileModalOpen,  setIsProfileModalOpen]  = React.useState(false);
   const [isRejectModalOpen,   setIsRejectModalOpen]   = React.useState(false);
+  const [isReviewsModalOpen,  setIsReviewsModalOpen]  = React.useState(false);
 
   const providerLocation = useProviderLocation();
 
@@ -144,9 +146,10 @@ const JobDetailPage: React.FC = () => {
           {}
           <JobInfoCard
             description={job.description}
-            client={{ name: job.clientName, initials: job.clientInitials, rating: job.clientRating, reviewsCount: job.clientReviewsCount, isVerified: job.isClientVerified, avatarUrl: job.clientAvatarUrl }}
+            client={{ id: job.clientId, name: job.clientName, initials: job.clientInitials, rating: job.clientRating, reviewsCount: job.clientReviewsCount, isVerified: job.isClientVerified, avatarUrl: job.clientAvatarUrl }}
             skills={job.skills}
             onViewProfile={() => setIsProfileModalOpen(true)}
+            onViewReviews={() => setIsReviewsModalOpen(true)}
           />
         </div>
 
@@ -192,6 +195,7 @@ const JobDetailPage: React.FC = () => {
       <ClientProfileModal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)}
         client={{ name: job?.clientName ?? "", email: job?.clientEmail, phone: job?.clientNumber, initials: job?.clientInitials ?? "", avatarUrl: job?.clientAvatarUrl, isVerified: job?.isClientVerified }}/>
       <RejectConfirmationModal isOpen={isRejectModalOpen} onClose={() => setIsRejectModalOpen(false)} onConfirm={confirmReject} jobTitle={job?.title} isActionLoading={isAccepting}/>
+      <UserReviewsModal isOpen={isReviewsModalOpen} onClose={() => setIsReviewsModalOpen(false)} userId={job?.clientId ?? ""} userName={job?.clientName ?? ""} />
 
       <style>{`
         @media (max-width: 991px) {

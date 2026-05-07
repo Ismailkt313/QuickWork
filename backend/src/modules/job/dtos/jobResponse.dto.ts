@@ -23,6 +23,8 @@ export interface JobResponseDTO {
   postedAt: string;
   skills: string[];
   budget: string;
+  clientRating: number;
+  clientReviewsCount: number;
 
   applicants: number;
   status: string;
@@ -53,12 +55,12 @@ export interface JobResponseDTO {
   }[];
 }
 
-export const mapJobToResponseDTO = async (job: any, assignmentData?: any): Promise<JobResponseDTO> => {
+export const mapJobToResponseDTO = async (job: any, assignmentData?: any, clientMetrics?: { averageRating: number, totalReviews: number }): Promise<JobResponseDTO> => {
   const user = job.userId || {};
   const skill = job.skillId || {};
- 
+
   let hiredProvider = undefined;
- 
+
   if (job.hiredProviderId?.userId) {
     hiredProvider = {
       id: job.hiredProviderId._id?.toString() || job.hiredProviderId.id,
@@ -160,5 +162,7 @@ export const mapJobToResponseDTO = async (job: any, assignmentData?: any): Promi
       startDate: job.schedule.startDate,
       endDate: job.schedule.endDate,
     } : undefined,
+    clientRating: clientMetrics?.averageRating || 0,
+    clientReviewsCount: clientMetrics?.totalReviews || 0,
   };
-};
+};

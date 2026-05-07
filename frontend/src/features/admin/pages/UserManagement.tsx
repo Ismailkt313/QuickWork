@@ -59,7 +59,7 @@ const UserManagement = () => {
     setLoading(true);
     try {
       const res = await getUsers({ page, limit, search: search || undefined });
-      console.log("Fetched users:", res.data);
+
       setUsers(res.data.data);
       setTotal(res.data.pagination.total);
       setTotalPages(res.data.pagination.totalPages);
@@ -108,15 +108,15 @@ const UserManagement = () => {
   const executeBlock = async () => {
     const targetId = confirmState.userId;
     const wasBlocked = confirmState.isBlocked;
-    
+
     setConfirmState((prev) => ({ ...prev, loading: true }));
     const action = wasBlocked ? "unblocked" : "blocked";
-    
+
     try {
       await toggleBlockUser(targetId);
-      
-      setUsers((prevUsers) => 
-        prevUsers.map((user) => 
+
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
           (user.id === targetId || user._id === targetId)
             ? { ...user, isBlocked: !wasBlocked }
             : user
@@ -127,7 +127,7 @@ const UserManagement = () => {
         selectedUser &&
         (selectedUser._id === targetId || selectedUser.id === targetId)
       ) {
-        setSelectedUser((prev) => 
+        setSelectedUser((prev) =>
           prev ? { ...prev, isBlocked: !wasBlocked } : null
         );
       }

@@ -12,6 +12,8 @@ import { JOB_VISIBILITY } from '../../../constants/jobVisibility';
 import { SuccessMessages } from '../../../constants/messages/successMessages';
 import { ErrorMessages } from '../../../constants/messages/errorMessages';
 import { IWorkHistoryRepository } from '../../finance/interfaces/finance.interface';
+import { AvailabilityValidator } from '../../serviceProvider/utils/availability.validator';
+import { IReviewRepository } from '../../review/interfaces/review.interface';
 
 export class JobService implements IJobService {
     private _jobRepository: IJobRepository;
@@ -20,6 +22,7 @@ export class JobService implements IJobService {
     private _locationRepository: ILocationRepository;
     private _notificationService: INotificationService;
     private _workHistoryRepository: IWorkHistoryRepository;
+    private _reviewRepository: IReviewRepository;
 
     constructor(
         jobRepository: IJobRepository,
@@ -27,7 +30,8 @@ export class JobService implements IJobService {
         assignmentService: IAssignmentService,
         locationRepository: ILocationRepository,
         notificationService: INotificationService,
-        workHistoryRepository: IWorkHistoryRepository
+        workHistoryRepository: IWorkHistoryRepository,
+        reviewRepository: IReviewRepository
     ) {
         this._jobRepository = jobRepository;
         this._serviceProviderRepository = serviceProviderRepository;
@@ -35,6 +39,21 @@ export class JobService implements IJobService {
         this._locationRepository = locationRepository;
         this._notificationService = notificationService;
         this._workHistoryRepository = workHistoryRepository;
+        this._reviewRepository = reviewRepository;
+    }
+
+    private async _getClientMetrics(userId: any): Promise<{ averageRating: number; totalReviews: number }> {
+        const userIdStr = userId?._id?.toString() || userId?.toString();
+        if (!userIdStr || !Types.ObjectId.isValid(userIdStr)) {
+            return { averageRating: 0, totalReviews: 0 };
+        }
+        try {
+            const response = await this._reviewRepository.findByUser(userIdStr, 1, 1);
+            return response.meta;
+        } catch (error) {
+            console.error(`Error fetching metrics for user ${userIdStr}:`, error);
+            return { averageRating: 0, totalReviews: 0 };
+        }
     }
 
     async createJob(userId: string, dto: CreateJobDTO): Promise<{ success: boolean; message: string; data?: JobResponseDTO }> {
@@ -119,7 +138,9 @@ export class JobService implements IJobService {
             durationType: dto.durationType,
             schedule: {
                 startDate: start,
-                endDate: endDate
+                endDate: endDate,
+                startTime: dto.startTime,
+                endTime: dto.endTime
             },
             days: dto.days,
             freelancersNeeded: isPrivate ? 1 : freelancersNeeded,
@@ -131,7 +152,7 @@ export class JobService implements IJobService {
         });
 
         const job = await this._jobRepository.findById(newJob._id.toString());
-        
+
         let assignmentData = null;
         if (job && job.hiredProviderId) {
              assignmentData = await this._assignmentService.getAssignmentByJobAndFreelancer(
@@ -140,10 +161,11 @@ export class JobService implements IJobService {
             );
         }
 
+        const clientMetrics = await this._getClientMetrics(job?.userId);
         return {
             success: true,
             message: SuccessMessages.JOB_CREATED,
-            data: job ? await mapJobToResponseDTO(job, assignmentData) : undefined
+            data: job ? await mapJobToResponseDTO(job, assignmentData, clientMetrics) : undefined
         };
     }
 
@@ -166,8 +188,9 @@ export class JobService implements IJobService {
                     j.hiredProviderId._id.toString()
                 );
             }
-            const dto = await mapJobToResponseDTO(j, assignmentData);
-            
+            const clientMetrics = await this._getClientMetrics(j.userId);
+            const dto = await mapJobToResponseDTO(j, assignmentData, clientMetrics);
+
             const workHistories = await this._workHistoryRepository.findByJobAndStatus(j._id.toString(), 'COMPLETED');
 
             dto.providers = workHistories.map(wh => ({
@@ -178,9 +201,9 @@ export class JobService implements IJobService {
                     totalAmount: wh.payment.totalAmount
                 }
             }));
-            
+
             dto.hasPendingPayment = workHistories.some(wh => wh.payment.status !== 'completed');
-            
+
             return dto;
         }));
 
@@ -191,14 +214,16 @@ export class JobService implements IJobService {
                 total,
                 page,
                 limit,
-                pages: Math.ceil(total / limit)
+                totalPages: Math.ceil(total / limit),
+                hasNext: page < Math.ceil(total / limit),
+                hasPrev: page > 1
             },
             counts
         };
     }
 
     async availableJobs(page: number = 1, limit: number = 10, filters: any = {}, userId?: string): Promise<import('../interfaces/job.interface').IJobPaginationResponse> {
-        
+
         const assignedJobIds = new Set<string>();
             const provider = await this._serviceProviderRepository.findByUserId(userId as string);
             if (provider) {
@@ -208,18 +233,19 @@ export class JobService implements IJobService {
                     if (id) assignedJobIds.add(id);
                 });
             }
-            const skills:string[] = await provider.skills.map((a: any) => a._id.toString())
-            const { jobs, total } = await this._jobRepository.findAllOpen(page, limit, filters, skills, Array.from(assignedJobIds));
+            const skills: string[] = await provider.skills.map((a: any) => a._id.toString())
+            const { jobs, total } = await this._jobRepository.findAllOpen(page, limit, filters, skills, Array.from(assignedJobIds), userId);
 
         const mappedJobs = await Promise.all(jobs.map(async j => {
-            const dto = await mapJobToResponseDTO(j);
+            const clientMetrics = await this._getClientMetrics(j.userId);
+            const dto = await mapJobToResponseDTO(j, undefined, clientMetrics);
             dto.isApplied = assignedJobIds.has(dto.id);
-            
+
             dto.applicants = await this._assignmentService.getAssignmentCountByJob(dto.id);
-            
+
             return dto;
         }));
-        
+
         return {
             success: true,
             data: mappedJobs,
@@ -227,7 +253,9 @@ export class JobService implements IJobService {
                 total,
                 page,
                 limit,
-                pages: Math.ceil(total / limit)
+                totalPages: Math.ceil(total / limit),
+                hasNext: page < Math.ceil(total / limit),
+                hasPrev: page > 1
             }
         };
     }
@@ -246,8 +274,9 @@ export class JobService implements IJobService {
             );
         }
 
-        const dto = await mapJobToResponseDTO(job, assignmentData);
-        
+        const clientMetrics = await this._getClientMetrics(job.userId);
+        const dto = await mapJobToResponseDTO(job, assignmentData, clientMetrics);
+
         dto.applicants = await this._assignmentService.getAssignmentCountByJob(jobId);
 
         if (userId) {
@@ -264,24 +293,43 @@ export class JobService implements IJobService {
         return { success: true, data: dto };
     }
 
-    async getDirectOffers(userId: string): Promise<{ success: boolean; data: JobResponseDTO[] }> {
+    async getDirectOffers(userId: string, page: number = 1, limit: number = 10, search?: string, filter?: string): Promise<import('../interfaces/job.interface').IJobPaginationResponse> {
         const provider = await this._serviceProviderRepository.findByUserId(userId);
         if (!provider) {
-            return { success: true, data: [] };
+            return {
+                success: true,
+                data: [],
+                pagination: { total: 0, page, limit, totalPages: 0, hasNext: false, hasPrev: false },
+                counts: { all: 0, pending: 0, accepted: 0, rejected: 0 } as any
+            };
         }
 
-        const jobs = await this._jobRepository.findByProvider(provider._id.toString());
+        const [{ jobs, total }, counts] = await Promise.all([
+            this._jobRepository.findByProviderPaginated(provider._id.toString(), page, limit, search, filter),
+            this._jobRepository.countByProviderGrouped(provider._id.toString())
+        ]);
+
         const mappedJobs = await Promise.all(jobs.map(async j => {
              const assignmentData = await this._assignmentService.getAssignmentByJobAndFreelancer(
                 j._id.toString(),
                 provider._id.toString()
             );
-            return mapJobToResponseDTO(j, assignmentData);
+            const clientMetrics = await this._getClientMetrics(j.userId);
+            return mapJobToResponseDTO(j, assignmentData, clientMetrics);
         }));
 
         return {
             success: true,
-            data: mappedJobs
+            data: mappedJobs,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+                hasNext: page < Math.ceil(total / limit),
+                hasPrev: page > 1
+            },
+            counts: counts as any
         };
     }
 
@@ -311,14 +359,32 @@ export class JobService implements IJobService {
             return { success: false, message: ErrorMessages.JOB_ALREADY_ACCEPTED };
         }
 
-        const hasOverlap = await this._assignmentService.checkOverlap(
-            provider._id.toString(),
+        const isAvailableInWeekly = AvailabilityValidator.isWithinWeeklyAvailability(
+            provider.availability,
             job.schedule.startDate,
-            job.schedule.endDate
+            job.schedule.startTime,
+            job.schedule.endTime
         );
+        if (!isAvailableInWeekly) {
+            return { success: false, message: "Provider unavailable during requested time based on weekly schedule" };
+        }
 
-        if (hasOverlap) {
-            return { success: false, message: ErrorMessages.JOB_OVERLAP };
+        const isBlocked = AvailabilityValidator.isDateBlocked(
+            provider.blockedDates,
+            job.schedule.startDate
+        );
+        if (isBlocked) {
+            return { success: false, message: "Provider has blocked this date" };
+        }
+
+        const hasConflict = AvailabilityValidator.doesOverlapWithAssignments(
+            existingAssignments,
+            job.schedule.startDate,
+            job.schedule.startTime,
+            job.schedule.endTime
+        );
+        if (hasConflict) {
+            return { success: false, message: "Provider has a conflicting assignment within buffer time" };
         }
 
         const updatedJob = await this._jobRepository.findByConditionAndUpdate(
@@ -390,14 +456,34 @@ export class JobService implements IJobService {
             return { success: false, message: ErrorMessages.OFFER_NOT_FOR_USER };
         }
 
-        const hasOverlap = await this._assignmentService.checkOverlap(
-            provider._id.toString(),
-            job.schedule.startDate,
-            job.schedule.endDate
-        );
+        const { assignments: existingAssignments } = await this._assignmentService.getAssignmentsByProvider(provider._id.toString(), { limit: 1000 });
 
-        if (hasOverlap) {
-            return { success: false, message: ErrorMessages.JOB_OVERLAP };
+        const isAvailableInWeekly = AvailabilityValidator.isWithinWeeklyAvailability(
+            provider.availability,
+            job.schedule.startDate,
+            job.schedule.startTime,
+            job.schedule.endTime
+        );
+        if (!isAvailableInWeekly) {
+            return { success: false, message: "Provider unavailable during requested time based on weekly schedule" };
+        }
+
+        const isBlocked = AvailabilityValidator.isDateBlocked(
+            provider.blockedDates,
+            job.schedule.startDate
+        );
+        if (isBlocked) {
+            return { success: false, message: "Provider has blocked this date" };
+        }
+
+        const hasConflict = AvailabilityValidator.doesOverlapWithAssignments(
+            existingAssignments,
+            job.schedule.startDate,
+            job.schedule.startTime,
+            job.schedule.endTime
+        );
+        if (hasConflict) {
+            return { success: false, message: "Provider has a conflicting assignment within buffer time" };
         }
 
         const isOutOfDistrict = provider.location?.id?.toString() !== job.location?.district?._id?.toString();

@@ -31,6 +31,10 @@ export interface WorkHistory {
   };
   endedAt: string;
 }
+export interface IInvoiceItem {
+  description: string;
+  amount: number;
+}
 
 export interface IInvoice {
   description: string;
@@ -44,8 +48,8 @@ export interface IInvoice {
   paymentStatus: string;
   paidAt: string;
   createdAt: string;
+  items?: IInvoiceItem[];
 }
-
 
 export const financeService = {
   markAsPaidCash: async (workHistoryId: string) => {
@@ -57,7 +61,7 @@ export const financeService = {
     const response = await api.post(ENDPOINTS.FINANCE.PAYMENTS_CONFIRM(workHistoryId));
     return response.data;
   },
-  
+
   rejectPayment: async (workHistoryId: string) => {
     const response = await api.post(ENDPOINTS.FINANCE.PAYMENTS_REJECT(workHistoryId));
     return response.data;
@@ -68,8 +72,13 @@ export const financeService = {
     return response.data;
   },
 
-  getTransactions: async (params?: { page?: number; limit?: number }) => {
+  getTransactions: async (params?: { page?: number; limit?: number; search?: string; type?: string; source?: string }) => {
     const response = await api.get(ENDPOINTS.FINANCE.WALLET_TRANSACTIONS, { params });
+    return response.data;
+  },
+
+  withdraw: async (amount: number) => {
+    const response = await api.post(ENDPOINTS.FINANCE.WALLET_WITHDRAW, { amount });
     return response.data;
   },
 
@@ -122,7 +131,7 @@ export const financeService = {
     const response = await api.post(ENDPOINTS.FINANCE.PAYMENTS_JOB_VERIFY, data);
     return response.data;
   },
-  
+
   getInvoices: async (params?: { page?: number; limit?: number; role?: "client" | "provider" }) => {
     const response = await api.get(ENDPOINTS.FINANCE.INVOICES, { params });
     return response.data;

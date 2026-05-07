@@ -42,6 +42,21 @@ const ServiceProviderSchema = new Schema<IServiceProvider>({
     },
     verification: { type: VerificationSchema, default: () => ({ status: VERIFICATION_STATUS.PENDING }) },
     isActive: { type: Boolean, default: false },
+    availability: [{
+        day: {
+            type: String,
+            enum: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"],
+            required: true
+        },
+        startTime: { type: String, default: "09:00" },
+        endTime: { type: String, default: "18:00" },
+        isAvailable: { type: Boolean, default: true }
+    }],
+    blockedDates: [{
+        startDate: { type: Date, required: true },
+        endDate: { type: Date, required: true },
+        reason: { type: String, required: true }
+    }],
     submittedAt: { type: Date, default: Date.now }
 }, {
     timestamps: true

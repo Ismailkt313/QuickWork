@@ -15,7 +15,7 @@ export interface ILoactionresponse {
         type: "Point";
         coordinates: [number, number];
     };
-}   
+}
 
 export interface ILocationService {
     getAllLocations(): Promise<{ success: boolean; data: ILoactionresponse[] }>;

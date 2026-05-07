@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import { ILandingController, ILandingService } from '../types/landing.types';
 import {HttpStatusCode} from "../../../constants/httpStatusCode"
 
-
 export class LandingController implements ILandingController {
     private readonly _landingService: ILandingService;
 

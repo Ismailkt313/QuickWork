@@ -106,7 +106,7 @@ const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
             {}
             <div className="qw-proof-section">
               <label className="qw-section-label">Proof of Work Photos <span>({uploadedImages.length}/5)</span></label>
-              
+
               <div className="qw-image-grid">
                 {uploadedImages.map((url, index) => (
                   <div key={index} className="qw-image-item animate-pop">
@@ -118,7 +118,7 @@ const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
                 ))}
 
                 {uploadedImages.length < 5 && (
-                  <div 
+                  <div
                     className={`qw-upload-box ${dragActive ? 'active' : ''} ${isUploading ? 'loading' : ''}`}
                     onClick={() => fileInputRef.current?.click()}
                     onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
@@ -144,7 +144,7 @@ const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
             {}
             <div className="qw-proof-section">
               <label className="qw-section-label">Work Description</label>
-              <textarea 
+              <textarea
                 className="qw-proof-textarea"
                 placeholder="Briefly describe the work you completed..."
                 value={description}
@@ -165,10 +165,10 @@ const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
         {}
         <div className="qw-proof-footer">
           <button className="qw-btn-cancel" onClick={onClose} disabled={isSubmitting}>Cancel</button>
-          <button 
-            type="submit" 
-            form="proof-form" 
-            className="qw-btn-submit" 
+          <button
+            type="submit"
+            form="proof-form"
+            className="qw-btn-submit"
             disabled={isSubmitting || !description.trim() || uploadedImages.length === 0}
           >
             {isSubmitting ? <RiLoader4Line className="qw-spin" /> : <RiArrowRightLine />}

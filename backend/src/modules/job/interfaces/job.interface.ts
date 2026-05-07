@@ -31,6 +31,8 @@ export interface IJob extends Document {
     schedule: {
         startDate: Date;
         endDate: Date;
+        startTime: string;
+        endTime: string;
     };
     days?: number;
     freelancersNeeded: number;
@@ -50,7 +52,9 @@ export interface IJobPaginationResponse {
         total: number;
         page: number;
         limit: number;
-        pages: number;
+        totalPages: number;
+        hasNext: boolean;
+        hasPrev: boolean;
     };
     counts?: {
         all: number;
@@ -72,7 +76,7 @@ export interface IJobService {
     ): Promise<IJobPaginationResponse>;
     availableJobs(page: number, limit: number, filters?: any, userId?: string): Promise<IJobPaginationResponse>;
     getJobById(id: string, userId?: string): Promise<{ success: boolean; data?: JobResponseDTO; message?: string }>;
-    getDirectOffers(userId: string): Promise<{ success: boolean; data: JobResponseDTO[] }>;
+    getDirectOffers(userId: string, page?: number, limit?: number, search?: string, filter?: string): Promise<IJobPaginationResponse>;
     acceptOffer(jobId: string, userId: string): Promise<{ success: boolean; message: string }>;
     rejectOffer(jobId: string, userId: string, reason?: string): Promise<{ success: boolean; message: string }>;
     acceptJob(jobId: string, userId: string): Promise<{ success: boolean; message: string }>;
@@ -96,9 +100,22 @@ export interface IJobRepository {
         completed: number;
         cancelled: number;
     }>;
-    findAllOpen(page: number, limit: number, filters: any , skill:string[], excludeJobIds?: string[]): Promise<{ jobs: IJob[], total: number }>;
+    findAllOpen(page: number, limit: number, filters: any , skill: string[], excludeJobIds?: string[], currentUserId?: string): Promise<{ jobs: IJob[], total: number }>;
     findById(id: string): Promise<IJob | null>;
     findByProvider(providerId: string): Promise<IJob[]>;
+    findByProviderPaginated(
+        providerId: string,
+        page: number,
+        limit: number,
+        search?: string,
+        filter?: string
+    ): Promise<{ jobs: IJob[]; total: number }>;
+    countByProviderGrouped(providerId: string): Promise<{
+        all: number;
+        pending: number;
+        accepted: number;
+        rejected: number;
+    }>;
     updateStatus(id: string, status: JOB_STATUS): Promise<IJob | null>;
     findByConditionAndUpdate(query: any, update: any): Promise<IJob | null>;
     find(query: any): Promise<IJob[]>;

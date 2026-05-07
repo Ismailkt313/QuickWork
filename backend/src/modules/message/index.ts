@@ -5,8 +5,6 @@ import { MessageRepository } from "./repository/message.repository";
 import { ConversationRepository } from "./repository/conversation.repository";
 import { createMessageRouter } from "./routes/message.routes";
 
-
-
 const messageRepository = new MessageRepository();
 const conversationRepository = new ConversationRepository();
 export const messageService = new MessageService(messageRepository, conversationRepository);

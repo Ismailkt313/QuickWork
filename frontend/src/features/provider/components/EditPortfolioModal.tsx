@@ -98,12 +98,12 @@ const EditPortfolioModal: React.FC<EditPortfolioModalProps> = ({
     try {
       let updatedPortfolio: PortfolioItem[];
       if (itemToEdit) {
-        
+
         updatedPortfolio = portfolio.map((item) =>
           item.title === itemToEdit.title ? formData : item,
         );
       } else {
-        
+
         updatedPortfolio = [...portfolio, formData];
       }
 

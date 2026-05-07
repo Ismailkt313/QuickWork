@@ -18,4 +18,3 @@ export enum ASSIGNMENT_TYPE {
     DIRECT = "direct"
 }
 
-

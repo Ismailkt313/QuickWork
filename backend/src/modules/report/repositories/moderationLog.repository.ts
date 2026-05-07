@@ -9,7 +9,7 @@ export class ModerationLogRepository implements IModerationLogRepository {
     async create(data: any): Promise<any> {
         return await ModerationLogModel.create(data);
     }
-    
+
     async findByReportId(reportId: string): Promise<any[]> {
         return await ModerationLogModel.find({ reportId })
             .populate('adminId', 'name email')

@@ -14,7 +14,7 @@ export class ModerationService implements IModerationService {
     private _authRepository: IAuthRepository;
 
     constructor(
-        reportRepository: IReportRepository, 
+        reportRepository: IReportRepository,
         moderationLogRepository: IModerationLogRepository,
         authRepository: IAuthRepository,
         notificationService: INotificationService

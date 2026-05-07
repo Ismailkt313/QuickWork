@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { ILocationService, ILocationController } from '../interfaces/location.interface';
 import {HttpStatusCode} from "../../../constants/httpStatusCode"
 
-
 export class LocationController implements ILocationController {
     private _locationService: ILocationService;
 

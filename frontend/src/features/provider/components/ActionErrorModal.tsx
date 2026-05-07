@@ -199,13 +199,13 @@ const ActionErrorModal: React.FC<ActionErrorModalProps> = ({
           padding: 20px;
           z-index: 5000;
         }
-        
+
         .qw-modal-content {
           background: #ffffff;
           width: 100%;
           padding: 48px 40px 36px;
           border-radius: 42px;
-          box-shadow: 
+          box-shadow:
             0 30px 60px -12px rgba(15, 23, 42, 0.2),
             inset 0 0 0 1px rgba(255, 255, 255, 1);
           position: relative;
@@ -228,10 +228,10 @@ const ActionErrorModal: React.FC<ActionErrorModalProps> = ({
           transition: all 0.3s ease;
           cursor: pointer;
         }
-        
-        .qw-modal-close-btn:hover { 
-          background: #ef4444; 
-          color: white; 
+
+        .qw-modal-close-btn:hover {
+          background: #ef4444;
+          color: white;
           transform: rotate(90deg);
         }
 

@@ -20,6 +20,8 @@ export interface CreateJobData {
 
   durationType: string;
   startDate?: string;
+  startTime?: string;
+  endTime?: string;
   days?: number;
   freelancersNeeded: number;
   visibility?: "public" | "private";

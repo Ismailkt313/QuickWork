@@ -21,8 +21,8 @@ export const getRelativeTime = (date: Date): string => {
 export const formatDate = (date: Date): string => {
     if (!date) return '';
     const d = typeof date === 'string' ? new Date(date) : date;
-    return d.toLocaleDateString('en-US', { 
-        month: 'short', 
+    return d.toLocaleDateString('en-US', {
+        month: 'short',
         day: 'numeric',
         year: 'numeric'
     });

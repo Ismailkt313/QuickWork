@@ -8,7 +8,6 @@ export class AdminFinanceController implements IAdminFinanceController {
         this._adminFinanceService = adminFinanceService;
     }
 
-    
     getOverview = async (req: Request, res: Response) => {
         try {
             const overview = await this._adminFinanceService.getFinanceOverview();
@@ -24,16 +23,16 @@ export class AdminFinanceController implements IAdminFinanceController {
         }
     };
 
-    
     getTransactions = async (req: Request, res: Response) => {
         try {
-            const { page, limit, paymentMethod, startDate, endDate } = req.query;
+            const { page, limit, paymentMethod, startDate, endDate, search } = req.query;
             const data = await this._adminFinanceService.getTransactions({
                 page: page ? parseInt(page as string) : 1,
                 limit: limit ? parseInt(limit as string) : 10,
                 paymentMethod: paymentMethod as string,
                 startDate: startDate as string,
-                endDate: endDate as string
+                endDate: endDate as string,
+                search: search as string
             });
 
             return res.status(200).json({

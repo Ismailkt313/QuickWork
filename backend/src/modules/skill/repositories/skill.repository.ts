@@ -19,7 +19,7 @@ export class SkillRepository implements ISkillRepository {
 
     async create(skillData: Partial<ISkill>, session?: any): Promise<ISkill> {
         const skill = new SkillModel(skillData);
-        
+
         return await skill.save({ session });
     }
 
@@ -48,7 +48,7 @@ export class SkillRepository implements ISkillRepository {
         const filter = search ? { name: { $regex: search, $options: 'i' } } : {};
         return SkillModel.find(filter).sort({ name: 1 });
     }
-    
+
     async getSkills(): Promise<ISkill[]> {
         return SkillModel.find().sort({ name: 1 }) as Promise<ISkill[]>;
     }

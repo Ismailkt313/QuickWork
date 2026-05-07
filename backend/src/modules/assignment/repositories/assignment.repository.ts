@@ -57,7 +57,6 @@ export class AssignmentRepository implements IAssignmentRepository {
         return await AssignmentModel.updateMany({ jobId }, { $set: data });
     }
 
-
     async exists(query: any): Promise<boolean> {
         const result = await AssignmentModel.exists(query);
         return !!result;

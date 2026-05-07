@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Adminapi } from "../services/adminApi";
 import { ENDPOINTS } from "../../../constants/endpoints";
-import { 
-  RiShieldUserLine, 
-  RiMapPinLine, 
-  RiMailLine, 
-  RiPhoneLine, 
+import {
+  RiShieldUserLine,
+  RiMapPinLine,
+  RiMailLine,
+  RiPhoneLine,
   RiInformationLine,
   RiTimeLine,
   RiLockPasswordLine,
@@ -85,7 +85,7 @@ const AdminSettingsPage: React.FC = () => {
               </div>
               <h2 className="admin-name">{admin?.name || "Administrator"}</h2>
               <p className="admin-email">{admin?.email}</p>
-              
+
               <div className="admin-details-list">
                 <div className="detail-item">
                   <RiMailLine />

@@ -164,13 +164,13 @@ const AcceptConfirmationModal: React.FC<AcceptConfirmationModalProps> = ({
           z-index: 1000;
           transition: all 0.3s ease;
         }
-        
+
         .qw-modal-content {
           background: #ffffff;
           width: 100%;
           padding: 48px 40px 36px;
           border-radius: 42px;
-          box-shadow: 
+          box-shadow:
             0 30px 60px -12px rgba(15, 23, 42, 0.2),
             0 18px 36px -18px rgba(15, 23, 42, 0.2),
             inset 0 0 0 1px rgba(255, 255, 255, 1);
@@ -194,10 +194,10 @@ const AcceptConfirmationModal: React.FC<AcceptConfirmationModalProps> = ({
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           cursor: pointer;
         }
-        
-        .qw-modal-close-btn:hover { 
-          background: #ef4444; 
-          color: white; 
+
+        .qw-modal-close-btn:hover {
+          background: #ef4444;
+          color: white;
           transform: rotate(90deg) scale(1.1);
           box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
           border-color: #ef4444;

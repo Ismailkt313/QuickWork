@@ -65,7 +65,6 @@ export class JobController implements IJobController {
             const search = req.query.search as string;
             const userId = req.user?.userId;
 
-
             const result = await this._jobService.availableJobs(
                 page,
                 limit,
@@ -103,7 +102,12 @@ export class JobController implements IJobController {
                 throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
             }
 
-            const result = await this._jobService.getDirectOffers(userId);
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const search = req.query.search as string;
+            const filter = req.query.filter as string;
+
+            const result = await this._jobService.getDirectOffers(userId, page, limit, search, filter);
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);

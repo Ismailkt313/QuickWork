@@ -23,6 +23,7 @@ import EditProfileModal from "../components/EditProfileModal";
 import EditSkillsModal from "../components/EditSkillsModal";
 import EditPortfolioModal from "../components/EditPortfolioModal";
 import RequestSkillModal from "../components/RequestSkillModal";
+import ProviderAvailability from "../components/ProviderAvailability";
 import "./ProviderProfilePage.css";
 
 interface PortfolioItem {
@@ -54,6 +55,8 @@ interface ProviderProfile {
   yearsOfExperience: number;
   verificationStatus: string;
   skills: Skill[];
+  availability: { day: string; startTime: string; endTime: string; isAvailable: boolean }[];
+  blockedDates: { _id: string; startDate: string; endDate: string; reason: string }[];
 }
 
 const ProviderProfilePage: React.FC = () => {
@@ -130,7 +133,14 @@ const ProviderProfilePage: React.FC = () => {
                   <RiTimeLine /> Joined {joinedDate}
                 </div>
                 <div className="qw-meta-item">
-                  <RiGlobalLine /> {profile.isActive ? "Available Now" : "Currently Away"}
+                  <RiGlobalLine /> {profile.isActive ? "Online" : "Away"}
+                </div>
+                <div className="qw-meta-item">
+                  <RiTimeLine /> {
+                    (profile.availability || []).filter(a => a.isAvailable).length > 0
+                      ? `${(profile.availability || []).filter(a => a.isAvailable)[0].day.slice(0,3)}-${(profile.availability || []).filter(a => a.isAvailable).slice(-1)[0].day.slice(0,3)} ${(profile.availability || [])[0].startTime}-${(profile.availability || [])[0].endTime}`
+                      : "No schedule set"
+                  }
                 </div>
               </div>
             </div>
@@ -194,6 +204,9 @@ const ProviderProfilePage: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {}
+            <ProviderAvailability />
           </div>
 
           {}

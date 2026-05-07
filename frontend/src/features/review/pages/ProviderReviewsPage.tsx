@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { 
-  RiStarFill, 
-  RiChatQuoteLine, 
-  RiTimeLine, 
+import {
+  RiStarFill,
+  RiChatQuoteLine,
+  RiTimeLine,
   RiUser3Line,
   RiSearchLine,
   RiFilter3Line,
@@ -34,14 +34,14 @@ const ProviderReviewsPage: React.FC = () => {
   }, []);
 
   const filteredReviews = reviews.filter(review => {
-    const matchesSearch = review.reviewerId.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const matchesSearch = review.reviewerId.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (review.comment?.toLowerCase().includes(searchTerm.toLowerCase()) || "");
     const matchesRating = filterRating === "all" || review.rating === filterRating;
     return matchesSearch && matchesRating;
   });
 
-  const averageRating = reviews.length > 0 
-    ? (reviews.reduce((acc, curr) => acc + curr.rating, 0) / reviews.length).toFixed(1) 
+  const averageRating = reviews.length > 0
+    ? (reviews.reduce((acc, curr) => acc + curr.rating, 0) / reviews.length).toFixed(1)
     : "0.0";
 
   const ratingCounts = [5, 4, 3, 2, 1].map(r => ({
@@ -108,9 +108,9 @@ const ProviderReviewsPage: React.FC = () => {
           <div className="qw-filter-bar mb-4">
             <div className="qw-search-input">
               <RiSearchLine className="icon" />
-              <input 
-                type="text" 
-                placeholder="Search reviews or clients..." 
+              <input
+                type="text"
+                placeholder="Search reviews or clients..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -168,7 +168,7 @@ const ProviderReviewsPage: React.FC = () => {
 
                   <div className="qw-review-body mt-3">
                     <p className="qw-comment">{review.comment || "No comment provided."}</p>
-                    
+
                     {review.images && review.images.length > 0 && (
                       <div className="qw-review-images mt-3">
                         {review.images.map((img, idx) => (

@@ -1,7 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import { IAssignment } from '../interfaces/assignment.interface';
 import { ASSIGNMENT_STATUS, WORK_STATUS, ASSIGNMENT_TYPE } from '../../../constants/assignment';
-import { PAYMENT_STATUS, PAYMENT_METHOD } from '../../../constants/payment';
 
 const AssignmentSchema: Schema = new Schema(
     {
@@ -46,8 +45,8 @@ const AssignmentSchema: Schema = new Schema(
             transactionId: { type: String }
         }
     },
-    { 
-        timestamps: true 
+    {
+        timestamps: true
     }
 );
 AssignmentSchema.index({ freelancerId: 1 });

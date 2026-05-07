@@ -50,7 +50,7 @@ const ReviewStep: React.FC = () => {
       };
 
       const result = await submitProviderApplication(payload);
-      console.log("Submission Result:", result);
+
       if (result.success && result.data?.accessToken) {
         localStorage.setItem("token", result.data.accessToken);
 

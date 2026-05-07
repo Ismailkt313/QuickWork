@@ -27,7 +27,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="modal-overlay d-flex align-items-center justify-content-center"
       style={{
         position: 'fixed',
@@ -42,7 +42,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
       }}
       onClick={onClose}
     >
-      <div 
+      <div
         className="modal-card bg-white rounded-4 shadow-lg overflow-hidden animate-in fade-in zoom-in duration-200"
         style={{
           maxWidth: '400px',
@@ -53,7 +53,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
       >
         <div className="p-4">
           <div className="d-flex align-items-center gap-3 mb-3">
-            <div 
+            <div
               className={`rounded-circle d-flex align-items-center justify-content-center ${
                 type === 'danger' ? 'bg-danger-subtle text-danger' : 'bg-primary-subtle text-primary'
               }`}
@@ -67,16 +67,16 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
             {message}
           </p>
         </div>
-        
+
         <div className="p-3 bg-light d-flex gap-2 justify-content-end">
-          <button 
+          <button
             className="btn btn-link text-secondary text-decoration-none fw-medium px-4"
             onClick={onClose}
             disabled={isLoading}
           >
             {cancelText}
           </button>
-          <button 
+          <button
             className={`btn px-4 rounded-3 fw-bold ${
               type === 'danger' ? 'btn-danger shadow-danger' : 'btn-primary shadow-primary'
             }`}

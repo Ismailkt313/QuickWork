@@ -58,7 +58,9 @@ const JobSchema: Schema = new Schema(
         },
         schedule: {
             startDate: { type: Date, required: true },
-            endDate: { type: Date, required: true }
+            endDate: { type: Date, required: true },
+            startTime: { type: String, required: true, default: "09:00" },
+            endTime: { type: String, required: true, default: "18:00" }
         },
         days: { type: Number },
         freelancersNeeded: {
@@ -70,27 +72,26 @@ const JobSchema: Schema = new Schema(
             default: 0
         },
         userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-        visibility: { 
-            type: String, 
-            enum: Object.values(JOB_VISIBILITY), 
-            default: JOB_VISIBILITY.PUBLIC 
+        visibility: {
+            type: String,
+            enum: Object.values(JOB_VISIBILITY),
+            default: JOB_VISIBILITY.PUBLIC
         },
-        hiredProviderId: { 
-            type: Schema.Types.ObjectId, 
-            ref: 'ServiceProvider' 
+        hiredProviderId: {
+            type: Schema.Types.ObjectId,
+            ref: 'ServiceProvider'
         },
-        status: { 
-            type: String, 
-            enum: Object.values(JOB_STATUS), 
-            default: JOB_STATUS.OPEN 
+        status: {
+            type: String,
+            enum: Object.values(JOB_STATUS),
+            default: JOB_STATUS.OPEN
         },
         rejectionReason: { type: String }
     },
-    { 
-        timestamps: true 
+    {
+        timestamps: true
     }
 );
-
 
 JobSchema.pre('save', function(next) {
     if (this.isModified('visibility') || this.isNew) {

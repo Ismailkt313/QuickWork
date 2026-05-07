@@ -30,8 +30,7 @@ const EditSkillsModal: React.FC<EditSkillsModalProps> = ({
   currentSkills,
   allSkills,
 }) => {
-  console.log(currentSkills, "currentSkills in edit skills modal");
-  console.log(allSkills, "allSkills in edit skills modal");
+
   const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>(
     currentSkills.map((s) => s.id || s._id || "").filter(Boolean),
   );

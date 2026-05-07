@@ -94,14 +94,14 @@ export class PaymentController implements IPaymentController {
             if (!provider) throw new Error('Provider not found');
 
             const [history, total] = await this._workHistoryRepo.findProviderHistory(
-                provider._id.toString(), 
-                (Array.isArray(status) ? status[0] : status) as string | undefined, 
-                skip, 
+                provider._id.toString(),
+                (Array.isArray(status) ? status[0] : status) as string | undefined,
+                skip,
                 Number(limit)
             );
-                
-            res.status(HttpStatusCode.OK).json({ 
-                success: true, 
+
+            res.status(HttpStatusCode.OK).json({
+                success: true,
                 data: history,
                 pagination: {
                     total,
@@ -129,11 +129,11 @@ export class PaymentController implements IPaymentController {
 
     verifyRazorpayPayment = async (req: Request, res: Response, _next: NextFunction) => {
         try {
-            const { 
-                workHistoryId, 
-                razorpay_order_id, 
-                razorpay_payment_id, 
-                razorpay_signature 
+            const {
+                workHistoryId,
+                razorpay_order_id,
+                razorpay_payment_id,
+                razorpay_signature
             } = req.body;
 
             if (!workHistoryId || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -167,11 +167,11 @@ export class PaymentController implements IPaymentController {
 
     verifyJobRazorpayPayment = async (req: Request, res: Response, _next: NextFunction) => {
         try {
-            const { 
-                jobId, 
-                razorpay_order_id, 
-                razorpay_payment_id, 
-                razorpay_signature 
+            const {
+                jobId,
+                razorpay_order_id,
+                razorpay_payment_id,
+                razorpay_signature
             } = req.body;
 
             if (!jobId || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {

@@ -17,17 +17,40 @@ export interface IReview extends Document {
     updatedAt: Date;
 }
 
+export interface IReviewPaginatedResponse {
+    data: IReview[];
+    pagination: {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+        hasNext: boolean;
+        hasPrev: boolean;
+    };
+    meta: {
+        averageRating: number;
+        totalReviews: number;
+    };
+}
+
 export interface IReviewRepository {
     create(data: Partial<IReview>): Promise<IReview>;
-    findByUser(userId: string): Promise<IReview[]>;
+    findById(id: string): Promise<IReview | null>;
+    findByUser(userId: string, page: number, limit: number): Promise<IReviewPaginatedResponse>;
+    findByRevieweeAndRole(revieweeId: string, role: string, page: number, limit: number): Promise<IReviewPaginatedResponse>;
     findByAssignment(assignmentId: string): Promise<IReview[]>;
     exists(query: any): Promise<boolean>;
+    update(id: string, data: Partial<IReview>): Promise<IReview | null>;
+    delete(id: string): Promise<boolean>;
 }
 
 export interface IReviewService {
     createReview(reviewerId: string, data: any): Promise<IReview>;
-    getReviewsForUser(userId: string): Promise<IReview[]>;
+    getReviewsForUser(userId: string, page: number, limit: number): Promise<IReviewPaginatedResponse>;
     getReviewsForAssignment(assignmentId: string): Promise<IReview[]>;
+    getProviderReviewsForClient(clientId: string, page: number, limit: number): Promise<IReviewPaginatedResponse>;
+    updateReview(reviewId: string, reviewerId: string, data: { rating?: number; comment?: string; images?: string[] }): Promise<IReview>;
+    deleteReview(reviewId: string, reviewerId: string): Promise<void>;
 }
 
 import { Request, Response, NextFunction } from 'express';
@@ -37,4 +60,7 @@ export interface IReviewController {
     getReviewsForUser(req: Request, res: Response, next: NextFunction): Promise<void>;
     getReviewsForAssignment(req: Request, res: Response, next: NextFunction): Promise<void>;
     getMyReviews(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getProviderReviewsForClient(req: Request, res: Response, next: NextFunction): Promise<void>;
+    updateReview(req: Request, res: Response, next: NextFunction): Promise<void>;
+    deleteReview(req: Request, res: Response, next: NextFunction): Promise<void>;
 }

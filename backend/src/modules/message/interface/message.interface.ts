@@ -17,7 +17,6 @@ export interface IConversation {
     lastMessageAt: Date;
 }
 
-
 export interface IMessageResponse {
     _id: string;
     conversationId: string;
@@ -56,7 +55,7 @@ export interface IMessageController {
     getConversation(req: Request, res: Response): Promise<void>;
     deleteMessage(req: Request, res: Response): Promise<void>;
     deleteConversation(req: Request, res: Response): Promise<void>;
-}   
+}
 
 export interface IMessageRepository {
     createMessage(message: IMessage): Promise<IMessageResponse>;

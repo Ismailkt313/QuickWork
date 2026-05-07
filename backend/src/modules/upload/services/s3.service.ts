@@ -7,14 +7,13 @@ export class S3Service implements IS3Service {
     private _s3Client: S3Client;
 
     constructor() {
-        
-        logger.info({ 
-            region: config.AWS_REGION, 
+
+        logger.info({
+            region: config.AWS_REGION,
             bucket: config.AWS_BUCKET_NAME,
             hasAccessKey: !!config.AWS_ACCESS_KEY_ID,
             hasSecretKey: !!config.AWS_SECRET_ACCESS_KEY
         }, "S3 Config Check");
-
 
         this._s3Client = new S3Client({
             region: config.AWS_REGION,
@@ -24,7 +23,6 @@ export class S3Service implements IS3Service {
             },
         });
     }
-
 
     async uploadFile(fileBuffer: Buffer, fileName: string, mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
         try {
@@ -39,7 +37,6 @@ export class S3Service implements IS3Service {
 
             const imageUrl = `https://${config.AWS_BUCKET_NAME}.s3.${config.AWS_REGION}.amazonaws.com/${fileName}`;
 
-            
             logger.info({ bucket: config.AWS_BUCKET_NAME, fileName }, "File uploaded to S3 successfully");
 
             return {
@@ -47,10 +44,10 @@ export class S3Service implements IS3Service {
                 publicId: fileName,
             };
         } catch (error: any) {
-            logger.error({ 
-                message: error.message, 
-                code: error.code, 
-                bucket: config.AWS_BUCKET_NAME 
+            logger.error({
+                message: error.message,
+                code: error.code,
+                bucket: config.AWS_BUCKET_NAME
             }, "S3 Upload Failed");
             throw new Error(`S3 Upload Error: ${error.message}`);
         }

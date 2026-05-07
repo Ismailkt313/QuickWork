@@ -18,20 +18,18 @@ export class InvoiceController implements IInvoiceController {
             if (!userId) throw new Error('Unauthorized');
 
             const { page = 1, limit = 10, role } = req.query;
-            
+
             let result;
             const provider = await this._providerRepo.findByUserId(userId);
 
             if (role === 'provider' && provider) {
-                // Explicitly requested provider invoices
+
                 result = await this._invoiceService.getProviderInvoices(provider._id.toString(), Number(page), Number(limit));
             } else if (role === 'client') {
-                // Explicitly requested client invoices
+
                 result = await this._invoiceService.getClientInvoices(userId, Number(page), Number(limit));
             } else {
-                // Default behavior: return client invoices if role not specified, 
-                // but keep backward compatibility if needed.
-                // However, for clean separation, let's default to client for the "Payment History" page.
+
                 result = await this._invoiceService.getClientInvoices(userId, Number(page), Number(limit));
             }
 
@@ -59,10 +57,9 @@ export class InvoiceController implements IInvoiceController {
                 return;
             }
 
-            // Security check: ensure user is either the client or the provider
             const userId = req.user?.userId;
             const provider = await this._providerRepo.findByUserId(userId!);
-            
+
             const isClient = invoice.client.userId.toString() === userId;
             const isProvider = provider && invoice.provider.providerId.toString() === provider._id.toString();
 
@@ -81,7 +78,7 @@ export class InvoiceController implements IInvoiceController {
         try {
             const { id } = req.params;
             const pdfBuffer = await this._invoiceService.generateInvoicePdf(id as string);
-            
+
             const invoice = await this._invoiceService.getInvoiceById(id as string);
             const filename = invoice ? `invoice-${invoice.invoiceNumber}.pdf` : `invoice-${id}.pdf`;
 

@@ -41,3 +41,8 @@ export const getProviderById = async <T = unknown>(id: string): Promise<{ succes
   const response = await api.get(ENDPOINTS.PROVIDER.DETAILS(id));
   return response.data;
 };
+
+export const getProviderReviews = async (userId: string, params?: { page?: number; limit?: number }) => {
+  const response = await api.get(ENDPOINTS.REVIEW.USER(userId), { params });
+  return response.data;
+};

@@ -48,8 +48,6 @@ export class NotificationController implements INotificationController {
         }
     };
 
-    
-
     deleteNotification = async (req: Request, res: Response) => {
         try {
             const userId = (req as any).user.userId;

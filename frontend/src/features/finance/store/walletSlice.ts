@@ -16,10 +16,10 @@ export const fetchWallet = createAsyncThunk(
 
 export const fetchTransactions = createAsyncThunk(
   "wallet/fetchTransactions",
-  async (params: { page?: number; limit?: number } | undefined, { rejectWithValue }) => {
+  async (params: { page?: number; limit?: number; search?: string; type?: string; source?: string } | undefined, { rejectWithValue }) => {
     try {
       const response = await financeService.getTransactions(params);
-      return response; 
+      return response;
     } catch (error: unknown) {
       const err = error as { response?: { data?: unknown } };
       return rejectWithValue(err.response?.data);

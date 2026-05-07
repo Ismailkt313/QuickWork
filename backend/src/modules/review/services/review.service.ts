@@ -1,4 +1,4 @@
-import { IReview, IReviewRepository, IReviewService } from '../interfaces/review.interface';
+import { IReview, IReviewRepository, IReviewService, IReviewPaginatedResponse } from '../interfaces/review.interface';
 import { Types } from 'mongoose';
 import { IAssignmentRepository } from '../../assignment/interfaces/assignment.interface';
 import { IJobRepository } from '../../job/interfaces/job.interface';
@@ -31,14 +31,12 @@ export class ReviewService implements IReviewService {
             throw new AppError("Assignment not found", HttpStatusCode.NOT_FOUND);
         }
 
-         
          const jobId = (assignment.jobId as any)._id?.toString() || assignment.jobId.toString();
          const job = await this._jobRepository.findById(jobId);
         if (!job || assignment.workStatus !== 'completed') {
             throw new AppError("Reviews are only allowed for completed jobs", HttpStatusCode.BAD_REQUEST);
         }
 
-        
         const alreadyReviewed = await this._reviewRepository.exists({
             assignmentId: data.assignmentId,
             role: data.role
@@ -47,7 +45,6 @@ export class ReviewService implements IReviewService {
             throw new AppError("Review already submitted for this assignment and role", HttpStatusCode.CONFLICT);
         }
 
-        
         return await this._reviewRepository.create({
             ...data,
             assignmentId: new Types.ObjectId(data.assignmentId) as any,
@@ -56,11 +53,45 @@ export class ReviewService implements IReviewService {
         });
     }
 
-    async getReviewsForUser(userId: string): Promise<IReview[]> {
-        return await this._reviewRepository.findByUser(userId);
+    async getReviewsForUser(userId: string, page: number, limit: number): Promise<IReviewPaginatedResponse> {
+        return await this._reviewRepository.findByUser(userId, page, limit);
     }
 
     async getReviewsForAssignment(assignmentId: string): Promise<IReview[]> {
         return await this._reviewRepository.findByAssignment(assignmentId);
+    }
+
+    async getProviderReviewsForClient(clientId: string, page: number, limit: number): Promise<IReviewPaginatedResponse> {
+        return await this._reviewRepository.findByRevieweeAndRole(clientId, 'provider_to_client', page, limit);
+    }
+
+    async updateReview(reviewId: string, reviewerId: string, data: { rating?: number; comment?: string; images?: string[] }): Promise<IReview> {
+        const review = await this._reviewRepository.findById(reviewId);
+        if (!review) {
+            throw new AppError("Review not found", HttpStatusCode.NOT_FOUND);
+        }
+
+        if (review.reviewerId._id.toString() !== reviewerId) {
+            throw new AppError("You can only edit your own reviews", HttpStatusCode.FORBIDDEN);
+        }
+
+        const updated = await this._reviewRepository.update(reviewId, data);
+        if (!updated) {
+            throw new AppError("Failed to update review", HttpStatusCode.INTERNAL_SERVER_ERROR);
+        }
+        return updated;
+    }
+
+    async deleteReview(reviewId: string, reviewerId: string): Promise<void> {
+        const review = await this._reviewRepository.findById(reviewId);
+        if (!review) {
+            throw new AppError("Review not found", HttpStatusCode.NOT_FOUND);
+        }
+
+        if (review.reviewerId._id.toString() !== reviewerId) {
+            throw new AppError("You can only delete your own reviews", HttpStatusCode.FORBIDDEN);
+        }
+
+        await this._reviewRepository.delete(reviewId);
     }
 }

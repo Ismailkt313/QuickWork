@@ -7,7 +7,6 @@ import { ROLES } from '../../../constants/roles';
 export const createModerationRouter = (moderationController: ModerationController): Router => {
     const router = Router();
 
-    
     router.get('/', authMiddleware, authorizeRoles(ROLES.ADMIN), moderationController.getReports);
     router.get('/:id', authMiddleware, authorizeRoles(ROLES.ADMIN), moderationController.getReportDetail);
     router.post('/:id/action', authMiddleware, authorizeRoles(ROLES.ADMIN), moderationController.takeAction);

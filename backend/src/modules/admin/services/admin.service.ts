@@ -14,7 +14,6 @@ import { logger } from "../../../utils/logger";
 import { INotificationService } from "../../notification/interfaces/notification.interface";
 import { getIo } from "../../../chat/socket";
 
-
 export class AdminService implements IAdminService {
     private readonly _adminRepository: IAdminRepository;
     private readonly _notificationService: INotificationService;
@@ -59,8 +58,8 @@ export class AdminService implements IAdminService {
         await this._notificationService.createNotification({
             recipient: userId,
             title: user.isBlocked ? 'Account Blocked' : 'Account Unblocked',
-            message: user.isBlocked 
-                ? 'Your account has been blocked by the administrator due to policy violations.' 
+            message: user.isBlocked
+                ? 'Your account has been blocked by the administrator due to policy violations.'
                 : 'Your account has been unblocked. You can now use all platform features.',
             type: 'SYSTEM',
             link: '/user/profile'
@@ -80,13 +79,12 @@ export class AdminService implements IAdminService {
         };
     }
 
-    
     public async getPendingProviders(query: IUserListQuery): Promise<IUserListResponse> {
         const [providers, total] = await Promise.all([
             this._adminRepository.getPendingProviders(query),
             this._adminRepository.getPendingProviderCount()
         ]);
-        
+
         const totalPages = Math.ceil(total / query.limit);
 
         return {
@@ -119,7 +117,6 @@ export class AdminService implements IAdminService {
         };
     }
 
-
     public async rejectProvider(providerId: string, reason: string): Promise<IApiResponse<void>> {
         await this._adminRepository.rejectProvider(providerId, reason);
         logger.info({ providerId, reason, action: "provider_rejected" }, "Provider rejected successfully");
@@ -129,7 +126,6 @@ export class AdminService implements IAdminService {
             data: undefined as unknown as void,
         };
     }
-
 
     public async getProviderDetails(providerId: string): Promise<IApiResponse<IServiceProviderDetails>> {
         const provider = await this._adminRepository.getProviderDetails(providerId);

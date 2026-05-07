@@ -1,8 +1,8 @@
 import React from "react";
 import { createPortal } from "react-dom";
-import { 
-  RiErrorWarningLine, 
-  RiCloseLine, 
+import {
+  RiErrorWarningLine,
+  RiCloseLine,
   RiRefreshLine,
   RiQuestionLine
 } from "react-icons/ri";
@@ -34,7 +34,7 @@ const PaymentErrorModal: React.FC<Props> = ({
         </div>
 
         <h3>Payment Failed</h3>
-        
+
         <div className="qw-error-message-box">
           <p>{errorMessage}</p>
         </div>

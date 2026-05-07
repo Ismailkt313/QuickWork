@@ -8,7 +8,7 @@ export class CategoryRepository {
         success: boolean;
         data: ServiceCategory[];
       }>("/skills/list");
-      console.log("Categories fetched from API:", response.data);
+
       return response.data.data;
     } catch {
       throw new Error("Failed to fetch categories");

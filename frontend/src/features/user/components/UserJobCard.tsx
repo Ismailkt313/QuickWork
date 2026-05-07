@@ -167,7 +167,7 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView, onRefr
           </div>
         </div>
 
-        {/* Payment Status Row */}
+        {}
         {job.providers && job.providers.length > 0 && job.providers.some(p => p.finalStatus === "COMPLETED") && (
           <div className="qw-payment-row mb-3" onClick={(e) => e.stopPropagation()}>
             {job.providers.filter(p => p.finalStatus === "COMPLETED").map((p, i) => (

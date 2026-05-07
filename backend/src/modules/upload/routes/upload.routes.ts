@@ -38,14 +38,14 @@ export const createUploadRouter = (controller: UploadController): Router => {
         upload.single('image'),
         controller.uploadPortfolioImage
     );
-    
+
     router.post(
         '/assignment-proof',
         authMiddleware,
         upload.array('images', 5),
         controller.uploadAssignmentProofs
     );
-    
+
     router.get(
         '/signature',
         authMiddleware,

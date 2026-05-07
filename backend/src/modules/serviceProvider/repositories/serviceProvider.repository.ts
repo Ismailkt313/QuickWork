@@ -26,13 +26,17 @@ export class ServiceProviderRepository implements IServiceProviderRepository {
     }
 
     async findProviders(filter: ProviderFilter): Promise<ProviderListResult> {
-        const { skillId, locationId, page, limit, search, sort } = filter;
+        const { skillId, locationId, page, limit, search, sort, currentUserId } = filter;
         const skip = (page - 1) * limit;
 
         const query: Record<string, any> = {
             isActive: true,
             'verification.status': VERIFICATION_STATUS.VERIFIED,
         };
+
+        if (currentUserId) {
+            query.userId = { $ne: new Types.ObjectId(currentUserId) };
+        }
 
         if (skillId) {
             query.skills = new Types.ObjectId(skillId);
@@ -49,7 +53,7 @@ export class ServiceProviderRepository implements IServiceProviderRepository {
             ];
         }
 
-        let sortOption: any = { createdAt: -1 }; // Default
+        let sortOption: any = { createdAt: -1 };
         if (sort === 'price_low') sortOption = { hourlyRate: 1 };
         if (sort === 'price_high') sortOption = { hourlyRate: -1 };
         if (sort === 'experience') sortOption = { yearsOfExperience: -1 };
@@ -69,7 +73,7 @@ export class ServiceProviderRepository implements IServiceProviderRepository {
                 headline: p.headline,
                 profileImage: p.profileImage,
                 hourlyRate: p.hourlyRate,
-                yearsOfExperience: p.yearsOfExperience, 
+                yearsOfExperience: p.yearsOfExperience,
                 location: p.location,
             })),
             total,
@@ -94,5 +98,29 @@ export class ServiceProviderRepository implements IServiceProviderRepository {
     }
     async deleteByUserId(userId: string): Promise<void> {
         await ServiceProviderModel.deleteOne({ userId: new Types.ObjectId(userId) });
+    }
+
+    async updateAvailability(userId: string, availability: any[]): Promise<any> {
+        return await ServiceProviderModel.findOneAndUpdate(
+            { userId: new Types.ObjectId(userId) },
+            { $set: { availability } },
+            { new: true, runValidators: true }
+        ).lean();
+    }
+
+    async addBlockedDate(userId: string, blockedDate: any): Promise<any> {
+        return await ServiceProviderModel.findOneAndUpdate(
+            { userId: new Types.ObjectId(userId) },
+            { $push: { blockedDates: blockedDate } },
+            { new: true, runValidators: true }
+        ).lean();
+    }
+
+    async deleteBlockedDate(userId: string, blockedDateId: string): Promise<any> {
+        return await ServiceProviderModel.findOneAndUpdate(
+            { userId: new Types.ObjectId(userId) },
+            { $pull: { blockedDates: { _id: new Types.ObjectId(blockedDateId) } } },
+            { new: true }
+        ).lean();
     }
 }

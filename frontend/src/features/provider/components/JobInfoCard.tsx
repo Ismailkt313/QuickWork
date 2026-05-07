@@ -3,9 +3,10 @@ import { RiStarFill, RiVerifiedBadgeFill, RiUserLine, RiFileTextLine, RiToolsLin
 
 interface JobInfoCardProps {
   description: string;
-  client: { name: string; initials: string; rating?: number; reviewsCount?: number; isVerified?: boolean; avatarUrl?: string; };
+  client: { id: string; name: string; initials: string; rating?: number; reviewsCount?: number; isVerified?: boolean; avatarUrl?: string; };
   skills: string[];
   onViewProfile?: () => void;
+  onViewReviews?: () => void;
 }
 
 const AVATAR_COLORS = ["linear-gradient(135deg,#6366f1,#8b5cf6)","linear-gradient(135deg,#06b6d4,#0ea5e9)","linear-gradient(135deg,#f97316,#ef4444)","linear-gradient(135deg,#22c55e,#16a34a)","linear-gradient(135deg,#f59e0b,#d97706)"];
@@ -21,7 +22,7 @@ const Section: React.FC<{ icon: React.ReactNode; title: string; children: React.
   </div>
 );
 
-const JobInfoCard: React.FC<JobInfoCardProps> = ({ description, client, skills, onViewProfile }) => (
+const JobInfoCard: React.FC<JobInfoCardProps> = ({ description, client, skills, onViewProfile, onViewReviews }) => (
   <div>
     {}
     <Section icon={<RiUserLine size={16}/>} title="About the Client">
@@ -43,11 +44,13 @@ const JobInfoCard: React.FC<JobInfoCardProps> = ({ description, client, skills, 
             {client.isVerified && <span style={{ fontSize:10, fontWeight:700, padding:"2px 7px", borderRadius:10, background:"#eff6ff", color:"#3b82f6", border:"1px solid #bfdbfe", textTransform:"uppercase" }}>Verified</span>}
           </div>
           <div style={{ display:"flex", alignItems:"center", gap:10, fontSize:13 }}>
-            <span style={{ display:"flex", alignItems:"center", gap:3, fontWeight:700, color:"#f59e0b" }}>
-              <RiStarFill size={13}/> {(client.rating || 5).toFixed(1)}
-            </span>
-            <span style={{ color:"#94a3b8" }}>·</span>
-            <span style={{ color:"#64748b" }}>{client.reviewsCount || 0} reviews</span>
+            <button
+              onClick={(e) => { e.stopPropagation(); onViewReviews?.(); }}
+              style={{ display:"flex", alignItems:"center", gap:3, fontWeight:700, color:"#f59e0b", border:"none", background:"none", padding:0, cursor:"pointer" }}
+            >
+              <RiStarFill size={13}/> {(client.rating || 0).toFixed(1)}
+              <span style={{ color:"#64748b", fontWeight:500, marginLeft:4, textDecoration:"underline" }}>({client.reviewsCount || 0} reviews)</span>
+            </button>
           </div>
         </div>
         {onViewProfile && (

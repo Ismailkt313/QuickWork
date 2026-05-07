@@ -33,7 +33,7 @@ export class InvoiceRepository implements IInvoiceRepository {
         const query = { 'provider.providerId': new Types.ObjectId(providerId) };
         return Promise.all([
             InvoiceModel.find(query)
-            .populate('jobId')
+                .populate('jobId')
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit),
@@ -45,7 +45,6 @@ export class InvoiceRepository implements IInvoiceRepository {
         const date = new Date();
         const year = date.getFullYear();
 
-        // Find the last invoice for the current year
         const lastInvoice = await InvoiceModel.findOne({
             invoiceNumber: new RegExp(`^QW-INV-${year}-`)
         }).sort({ invoiceNumber: -1 });

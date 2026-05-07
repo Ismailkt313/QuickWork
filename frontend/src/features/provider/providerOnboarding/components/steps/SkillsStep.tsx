@@ -54,7 +54,6 @@ const SkillsStep: React.FC = () => {
     [],
   );
 
-
   const handleAddSkill = (skill: { id: string; name: string }) => {
     dispatch(addSkill(skill));
     setSkillQuery("");

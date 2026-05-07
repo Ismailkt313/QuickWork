@@ -42,7 +42,6 @@ export const SuccessMessages = {
   PROVIDER_APPLICATION_SUBMITTED: "Provider application submitted successfully",
   APPLICATION_RESET: "Application reset successfully",
 
-  
   SERVICE_REQUEST_SUBMITTED: "Service request submitted successfully",
   SERVICE_REQUEST_APPROVED: "Service request approved successfully",
   SERVICE_REQUEST_REJECTED: "Service request has been rejected",

@@ -19,7 +19,7 @@ const BecomeProviderPage: React.FC = () => {
     const checkStatus = async () => {
       try {
         const response = await getMyProfile<{ verificationStatus: string; rejectionReason?: string }>();
-        console.log(response, "ithan ividathe response");
+
         if (
           response.success &&
           response.data?.verificationStatus === "rejected"
@@ -28,7 +28,7 @@ const BecomeProviderPage: React.FC = () => {
           setRejectionReason(response.data.rejectionReason || "");
         }
       } catch (error) {
-        
+
         console.log(
           "No existing provider profile or error fetching profile:",
           error,
@@ -47,7 +47,7 @@ const BecomeProviderPage: React.FC = () => {
       if (response.success) {
         toast.success("Application reset. You can now start fresh.");
         setIsRejected(false);
-        
+
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Failed to reset application";

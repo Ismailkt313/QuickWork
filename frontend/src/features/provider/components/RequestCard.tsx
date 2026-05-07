@@ -58,7 +58,6 @@ export const RequestCard: React.FC<RequestCardProps> = ({
 
   const providerLocation = useProviderLocation();
 
-  
   const jobDistrict = request.location?.districtName?.toLowerCase().trim() ?? "";
   const myDistrict  = providerLocation?.toLowerCase().trim() ?? "";
   const isMyArea = myDistrict && myDistrict !== "not set" && jobDistrict

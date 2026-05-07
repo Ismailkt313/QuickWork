@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import MainLayout from "../../layout/MainLayout";
-import { getProviderById } from "../services/providersService";
+import { getProviderById, getProviderReviews } from "../services/providersService";
+import { RiStarFill } from "react-icons/ri";
 import {
   getLandingData,
   type Location,
@@ -21,6 +22,17 @@ interface ProviderDetail {
   location: { id: string; name: string; lat: number; lon: number };
   portfolio: { title: string; description?: string; images: string[] }[];
   createdAt: string;
+  availability: { day: string; startTime: string; endTime: string; isAvailable: boolean }[];
+  blockedDates: { startDate: string; endDate: string; reason: string }[];
+}
+
+interface Review {
+  id: string;
+  reviewerId: { id: string; name: string; profileImage?: string };
+  rating: number;
+  comment?: string;
+  images?: string[];
+  createdAt: string;
 }
 
 const ProviderDetailPage: React.FC = () => {
@@ -33,31 +45,67 @@ const ProviderDetailPage: React.FC = () => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [isHireModalOpen, setIsHireModalOpen] = useState(false);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [reviewMeta, setReviewMeta] = useState({ averageRating: 0, totalReviews: 0 });
+  const [reviewPagination, setReviewPagination] = useState({ page: 1, totalPages: 1, hasNext: false });
 
   useEffect(() => {
     getLandingData()
       .then((d) => setLocations(d.locations))
-      .catch(() => {});
+      .catch(() => { });
+  }, []);
+
+  const fetchReviews = useCallback((userId: string, page: number = 1) => {
+    setLoadingReviews(true);
+    getProviderReviews(userId, { page, limit: 5 })
+      .then(reviewRes => {
+        if (reviewRes.success) {
+          if (page === 1) {
+            setReviews(reviewRes.data);
+          } else {
+            setReviews(prev => [...prev, ...reviewRes.data]);
+          }
+          setReviewMeta(reviewRes.meta);
+          setReviewPagination({
+            page: reviewRes.pagination.page,
+            totalPages: reviewRes.pagination.totalPages,
+            hasNext: reviewRes.pagination.hasNext
+          });
+        }
+      })
+      .finally(() => setLoadingReviews(false));
   }, []);
 
   useEffect(() => {
     if (!providerId) return;
     getProviderById<ProviderDetail>(providerId)
       .then((res) => {
-        if (res.success) setProvider(res.data);
+        if (res.success) {
+          setProvider(res.data);
+          if (res.data.userId) {
+            fetchReviews(res.data.userId, 1);
+          }
+        }
         else setError(res.message || "Provider not found");
       })
       .catch(() => setError("Failed to load provider details"))
       .finally(() => setLoading(false));
-  }, [providerId]);
+  }, [providerId, fetchReviews]);
+
+  const handleLoadMoreReviews = () => {
+    if (provider?.userId && reviewPagination.hasNext && !loadingReviews) {
+      fetchReviews(provider.userId, reviewPagination.page + 1);
+    }
+  };
 
   if (loading) {
     return (
       <MainLayout
         locations={locations}
         selectedLocation={null}
-        onSelectLocation={() => {}}
-        onClearLocation={() => {}}
+        onSelectLocation={() => { }}
+        onClearLocation={() => { }}
       >
         <div
           style={{
@@ -81,8 +129,8 @@ const ProviderDetailPage: React.FC = () => {
       <MainLayout
         locations={locations}
         selectedLocation={null}
-        onSelectLocation={() => {}}
-        onClearLocation={() => {}}
+        onSelectLocation={() => { }}
+        onClearLocation={() => { }}
       >
         <div
           style={{
@@ -126,8 +174,8 @@ const ProviderDetailPage: React.FC = () => {
     <MainLayout
       locations={locations}
       selectedLocation={null}
-      onSelectLocation={() => {}}
-      onClearLocation={() => {}}
+      onSelectLocation={() => { }}
+      onClearLocation={() => { }}
     >
       <div
         style={{
@@ -197,6 +245,17 @@ const ProviderDetailPage: React.FC = () => {
                 >
                   {provider.headline}
                 </h4>
+                {reviewMeta.totalReviews > 0 && (
+                  <div className="d-flex align-items-center gap-2 mb-2">
+                    <div className="d-flex text-warning">
+                      {[...Array(5)].map((_, i) => (
+                        <RiStarFill key={i} size={14} color={i < Math.floor(reviewMeta.averageRating) ? "#f59e0b" : "#e2e8f0"} />
+                      ))}
+                    </div>
+                    <span className="fw-bold text-dark small">{reviewMeta.averageRating}</span>
+                    <span className="text-muted small">({reviewMeta.totalReviews} reviews)</span>
+                  </div>
+                )}
                 <div className="d-flex align-items-center gap-2 mb-3 mt-2">
                   <span style={{ fontSize: 14, color: "#64748b" }}>
                     📍 {provider.location.name}
@@ -403,6 +462,62 @@ const ProviderDetailPage: React.FC = () => {
               </div>
             </div>
 
+            {}
+            <div
+              className="card border-0 rounded-4 p-4 mb-4"
+              style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}
+            >
+              <h5 className="fw-bold mb-4" style={{ color: "#0f172a", fontSize: 18 }}>
+                Availability & Schedule
+              </h5>
+
+              <div className="row g-4">
+                <div className="col-md-6">
+                  <div className="p-3 rounded-3" style={{ background: "#f8fafc", border: "1px solid #f1f5f9" }}>
+                    <h6 className="fw-bold mb-3" style={{ fontSize: 14, color: "#1e293b" }}>Weekly Hours</h6>
+                    <div className="d-flex flex-column gap-2">
+                      {provider.availability?.length > 0 ? (
+                        provider.availability.map((a, idx) => (
+                          <div key={idx} className="d-flex justify-content-between align-items-center">
+                            <span className="text-capitalize" style={{ fontSize: 13, color: "#64748b", fontWeight: 500 }}>{a.day}</span>
+                            {a.isAvailable ? (
+                              <span style={{ fontSize: 13, color: "#0f172a", fontWeight: 600 }}>{a.startTime} - {a.endTime}</span>
+                            ) : (
+                              <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 500 }}>Unavailable</span>
+                            )}
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-muted small m-0">Standard business hours (09:00 - 18:00)</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="col-md-6">
+                  <div className="p-3 rounded-3" style={{ background: "#fef2f2", border: "1px solid #fee2e2" }}>
+                    <h6 className="fw-bold mb-3" style={{ fontSize: 14, color: "#991b1b" }}>Upcoming Leave / Blocked Dates</h6>
+                    <div className="d-flex flex-column gap-2">
+                      {provider.blockedDates?.filter(b => new Date(b.endDate) >= new Date(new Date().setHours(0,0,0,0))).length > 0 ? (
+                        provider.blockedDates
+                          .filter(b => new Date(b.endDate) >= new Date(new Date().setHours(0,0,0,0)))
+                          .map((b, idx) => (
+                          <div key={idx} className="p-2 rounded-2" style={{ background: "#fff", border: "1px solid #fecdd3" }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>{b.reason}</div>
+                            <div style={{ fontSize: 11, color: "#64748b" }}>
+                              {new Date(b.startDate).toLocaleDateString()} - {new Date(b.endDate).toLocaleDateString()}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-muted small m-0" style={{ color: "#b91c1c" }}>No upcoming leave scheduled.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {provider.portfolio.length > 0 && (
               <div
                 className="card border-0 rounded-4 p-4"
@@ -474,6 +589,112 @@ const ProviderDetailPage: React.FC = () => {
                 ))}
               </div>
             )}
+
+            {}
+            <div id="reviews-section" className="card border-0 rounded-4 p-4 mt-4 mb-4" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}>
+              <div className="d-flex align-items-center justify-content-between mb-4">
+                <h5 className="fw-bold m-0" style={{ color: "#0f172a", fontSize: 18 }}>
+                  Client Reviews ({reviewMeta.totalReviews})
+                </h5>
+                {reviewMeta.totalReviews > 0 && (
+                  <div className="d-flex align-items-center gap-2 bg-warning-subtle px-3 py-1 rounded-pill">
+                    <RiStarFill className="text-warning" size={18} />
+                    <span className="fw-bold" style={{ color: "#854d0e" }}>
+                      {reviewMeta.averageRating} / 5.0
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {reviews.length > 0 ? (
+                <div className="d-flex flex-column gap-4">
+                  {reviews.map((review, idx) => (
+                    <div
+                      key={review.id}
+                      className={idx === reviews.length - 1 && !reviewPagination.hasNext ? "" : "pb-4 mb-2"}
+                      style={idx === reviews.length - 1 && !reviewPagination.hasNext ? {} : { borderBottom: "1px solid #f1f5f9" }}
+                    >
+                      <div className="d-flex justify-content-between align-items-start mb-3">
+                        <div className="d-flex align-items-center gap-3">
+                          <div
+                            className="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm"
+                            style={{
+                              width: 44,
+                              height: 44,
+                              background: "linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)",
+                              color: "#6366f1",
+                              fontSize: 15,
+                              border: "2px solid #fff"
+                            }}
+                          >
+                            {review.reviewerId.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="fw-bold text-dark" style={{ fontSize: 14.5 }}>{review.reviewerId.name}</div>
+                            <div className="text-muted" style={{ fontSize: 12 }}>{new Date(review.createdAt).toLocaleDateString()}</div>
+                          </div>
+                        </div>
+                        <div className="d-flex gap-1 text-warning">
+                          {[...Array(5)].map((_, i) => (
+                            <RiStarFill
+                              key={i}
+                              size={16}
+                              style={{ color: i < review.rating ? "#f59e0b" : "#e2e8f0" }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-dark mb-3" style={{ fontSize: 14, lineHeight: 1.6, color: "#334155" }}>{review.comment}</p>
+                      {review.images && review.images.length > 0 && (
+                        <div className="d-flex flex-wrap gap-2 mt-3">
+                          {review.images.map((img, i) => (
+                            <div
+                              key={i}
+                              className="rounded-3 overflow-hidden border shadow-sm"
+                              style={{ width: 70, height: 70, cursor: 'pointer', transition: 'transform 0.2s' }}
+                              onClick={() => setLightbox(img)}
+                              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                            >
+                              <img src={img} alt="review" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {reviewPagination.hasNext && (
+                    <div className="text-center mt-2">
+                      <button
+                        className="btn btn-outline-primary btn-sm rounded-pill px-4 fw-bold"
+                        onClick={handleLoadMoreReviews}
+                        disabled={loadingReviews}
+                      >
+                        {loadingReviews ? (
+                          <>
+                            <span className="spinner-border spinner-border-sm me-2"></span>
+                            Loading...
+                          </>
+                        ) : (
+                          "Load More Reviews"
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : loadingReviews ? (
+                <div className="text-center py-5">
+                  <div className="spinner-border spinner-border-sm text-primary"></div>
+                  <p className="mt-2 text-muted small">Loading reviews...</p>
+                </div>
+              ) : (
+                <div className="text-center py-5 rounded-4" style={{ background: "#f8fafc", border: "1px dashed #e2e8f0" }}>
+                  <div className="text-muted mb-2" style={{ fontSize: 32 }}>⭐</div>
+                  <p className="mb-0 text-muted small fw-medium">No reviews yet for this provider.</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -532,6 +753,8 @@ const ProviderDetailPage: React.FC = () => {
         providerId={provider._id || provider.id}
         providerName={provider.headline}
         providerSkills={provider.skills}
+        availability={provider.availability}
+        blockedDates={provider.blockedDates}
       />
     </MainLayout>
   );

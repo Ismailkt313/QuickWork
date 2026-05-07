@@ -2,7 +2,6 @@ import { ISkill } from '../interfaces/skill.interface';
 import { ISkillService } from '../interfaces/skill.interface';
 import { ISkillRepository } from '../interfaces/skill.interface';
 
-
 export class SkillService implements ISkillService {
     private _skillRepository: ISkillRepository;
 
@@ -34,7 +33,7 @@ export class SkillService implements ISkillService {
         const skills = await this._skillRepository.getSkills();
         return { success: true, data: skills };
     }
-    async getMySkills(userId:string): Promise<{ success: boolean; data: ISkill[] }>{
+    async getMySkills(userId: string): Promise<{ success: boolean; data: ISkill[] }>{
         const skills:ISkill[] = await this._skillRepository.getMySkill(userId)
         return {success:true, data: skills}
     }

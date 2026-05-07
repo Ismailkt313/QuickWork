@@ -23,6 +23,9 @@ const UserJobDetailPage = lazy(
 const UserProfilePage = lazy(
   () => import("../../features/user/pages/UserProfilePage"),
 );
+const UserReviewsPage = lazy(
+  () => import("../../features/user/pages/UserReviewsPage"),
+);
 const MessagesPage = lazy(
   () => import("../../features/message/pages/messagePage"),
 );
@@ -45,6 +48,7 @@ const UserRouter = () => {
             <Route path="jobs" element={<UserJobsPage />} />
             <Route path="jobs/:jobId" element={<UserJobDetailPage />} />
             <Route path="profile" element={<UserProfilePage />} />
+            <Route path="reviews" element={<UserReviewsPage />} />
             <Route path="security" element={<UserProfilePage />} />
             <Route path="messages" element={<MessagesPage />} />
             <Route path="payment-history" element={<PaymentHistoryPage />} />

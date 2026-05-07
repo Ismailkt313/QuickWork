@@ -15,7 +15,7 @@ export const sendOtp = async (data: sendOtpPayload) => {
 
 export const login = async (data: loginPayload) => {
   const response = await api.post(ENDPOINTS.AUTH.LOGIN, data);
-  console.log("Login API Response:", response.data);
+
   return response.data;
 };
 
@@ -62,7 +62,7 @@ export const changePassword = async (data: {
   newPassword?: string;
 }) => {
   const response = await api.post(ENDPOINTS.AUTH.CHANGE_PASSWORD, data);
-  console.log('data',response)
+
   return response.data;
 };
 

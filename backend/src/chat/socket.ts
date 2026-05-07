@@ -3,7 +3,6 @@ import { verifyAccessToken } from "../utils/jwt.util";
 import { logger } from "../utils/logger";
 import { UserModel } from "../modules/auth/models/user.model";
 
-
 let io: Server;
 
 export const setupSocket = (socketIo: Server) => {
@@ -18,7 +17,7 @@ export const setupSocket = (socketIo: Server) => {
             const rawToken = token as string;
             const cleanToken = rawToken.startsWith("Bearer ") ? rawToken.split(" ")[1] : rawToken;
             const decoded = verifyAccessToken(cleanToken.trim());
-            
+
             const user = await UserModel.findById(decoded.userId).select("isBlocked");
             if (!user) {
                 return next(new Error("User not found"));
@@ -29,7 +28,7 @@ export const setupSocket = (socketIo: Server) => {
 
             socket.data.user = decoded;
             next();
-        } catch (error:any) {
+        } catch (error: any) {
             logger.warn({ error: error.message }, "Socket auth failed");
             return next(new Error("Authentication error: " + error.message));
         }
@@ -37,10 +36,10 @@ export const setupSocket = (socketIo: Server) => {
 
     io.on("connection", (socket: Socket) => {
         const userId = String(socket.data.user.userId || socket.data.user.id || socket.data.user._id).trim();
-        
+
         socket.join(userId);
         logger.info({ userId, socketId: socket.id }, "User joined socket room");
-        
+
         socket.on('disconnect', (reason) => {
             logger.info({ userId, socketId: socket.id, reason }, "User disconnected from socket");
         });

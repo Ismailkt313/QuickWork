@@ -42,7 +42,7 @@ const UserJobsPage: React.FC = () => {
     total: 0,
     page: 1,
     limit: JOBS_PER_PAGE,
-    pages: 1,
+    totalPages: 1,
   });
   const [counts, setCounts] = useState({
     all: 0,
@@ -147,7 +147,7 @@ const UserJobsPage: React.FC = () => {
     }
   };
 
-  const totalPages = pagination.pages;
+  const totalPages = pagination.totalPages;
 
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
@@ -445,7 +445,7 @@ const UserJobsPage: React.FC = () => {
                     padding-bottom: 4px;
                     scrollbar-width: none;
                 }
-                
+
                 .qw-tabs-wrapper::-webkit-scrollbar {
                     display: none;
                 }
@@ -482,7 +482,7 @@ const UserJobsPage: React.FC = () => {
                     font-size: 12px;
                     font-weight: 700;
                 }
-                
+
                 .qw-tab-btn:not(.active) .qw-tab-count {
                     background: #f1f5f9;
                     color: #475569;
@@ -545,7 +545,7 @@ const UserJobsPage: React.FC = () => {
                 .qw-spin {
                     animation: qwSpin 1.2s linear infinite;
                 }
-                
+
                 @keyframes qwSpin {
                     from { transform: rotate(0deg); }
                     to { transform: rotate(360deg); }

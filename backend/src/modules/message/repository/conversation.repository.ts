@@ -15,14 +15,13 @@ export class ConversationRepository implements IConversationRepository {
             const conversations = await Conversation.find({ participants: userId })
                 .populate("participants", "name email _id")
                 .sort({ updatedAt: -1 });
-            
+
             return conversations.map((c: any) => c.toObject() as unknown as IConversationResponse);
         } catch (error: any) {
             logger.error({ error, userId }, "Error fetching conversations in repository");
             throw error;
         }
     }
-
 
     async getConversation(conversationId: string): Promise<IConversationResponse | null> {
         const conversation = await Conversation.findById(conversationId);
@@ -43,11 +42,11 @@ export class ConversationRepository implements IConversationRepository {
     }
 
     async updateConversationMetadata(
-        conversationId: string, 
+        conversationId: string,
         metadata: { lastMessage: string, lastMessageAt: Date }
     ): Promise<IConversationResponse | null> {
         const updatedConversation = await Conversation.findByIdAndUpdate(
-            conversationId, 
+            conversationId,
             {
                 lastMessage: metadata.lastMessage,
                 lastMessageAt: metadata.lastMessageAt

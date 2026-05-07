@@ -51,7 +51,7 @@ export class UploadController implements IUploadController {
                 throw new AppError('No image files provided', HttpStatusCode.BAD_REQUEST);
             }
 
-            const uploadPromises = files.map(file => 
+            const uploadPromises = files.map(file =>
                 this._uploadService.uploadAssignmentProof(file.buffer, file.mimetype)
             );
 

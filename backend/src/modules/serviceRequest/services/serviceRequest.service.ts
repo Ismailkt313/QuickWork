@@ -10,7 +10,6 @@ import { SuccessMessages } from '../../../constants/messages/successMessages';
 import { ErrorMessages } from '../../../constants/messages/errorMessages';
 import { logger } from '../../../utils/logger';
 
-
 export class ServiceRequestService implements IServiceRequestService {
     private _serviceRequestRepository: IServiceRequestRepository;
     private _skillRepository: ISkillRepository;
@@ -59,9 +58,9 @@ export class ServiceRequestService implements IServiceRequestService {
         return { success: true, data: requests };
     }
 
-    async getPendingRequests(page: number, limit: number): Promise<{ 
-        success: boolean; 
-        data: IServiceRequest[]; 
+    async getPendingRequests(page: number, limit: number): Promise<{
+        success: boolean;
+        data: IServiceRequest[];
         pagination: {
             total: number;
             page: number;
@@ -73,9 +72,9 @@ export class ServiceRequestService implements IServiceRequestService {
             this._serviceRequestRepository.findAllPending(page, limit),
             this._serviceRequestRepository.getPendingCount()
         ]);
-        
-        return { 
-            success: true, 
+
+        return {
+            success: true,
             data: requests,
             pagination: {
                 total,
@@ -99,7 +98,6 @@ export class ServiceRequestService implements IServiceRequestService {
       if (request.status !== SKILL_STATUS.PENDING) {
         return { success: false, message: ErrorMessages.REQUEST_ALREADY_REVIEWED(request.status) };
       }
-
 
       let skill = await this._skillRepository.findBySlug(request.slug);
 
@@ -143,7 +141,6 @@ export class ServiceRequestService implements IServiceRequestService {
           message: SuccessMessages.SERVICE_REQUEST_PARTIAL_SUCCESS
         };
       }
-
 
       await this._serviceRequestRepository.updateStatus(requestId, {
         status: SKILL_STATUS.APPROVED,

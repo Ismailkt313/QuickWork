@@ -134,7 +134,7 @@ const ReportIssueModal: React.FC<ReportIssueModalProps> = ({
               Evidence / Screenshots (Optional)
               <span className="text-muted" style={{ fontSize: "10px" }}>{images.length}/5</span>
             </label>
-            
+
             <div className="d-flex flex-wrap gap-2 mb-2">
               {images.map((url, index) => (
                 <div key={index} className="position-relative" style={{ width: "80px", height: "80px" }}>
@@ -149,7 +149,7 @@ const ReportIssueModal: React.FC<ReportIssueModalProps> = ({
                   </button>
                 </div>
               ))}
-              
+
               {images.length < 5 && (
                 <button
                   type="button"

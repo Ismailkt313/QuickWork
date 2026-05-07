@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { 
-  RiBillLine, 
-  RiDownload2Line, 
-  RiExternalLinkLine, 
-  RiSearchLine, 
-  RiFilter3Line,
-  RiInformationLine,
-  RiCloseLine
+import {
+  RiDownload2Line,
+  RiExternalLinkLine,
+  RiSearchLine,
+  RiFilter3Line
 } from "react-icons/ri";
 import { financeService, type IInvoice } from "../services/finance.service";
 import { toast } from "react-toastify";
@@ -65,7 +62,7 @@ const PaymentHistoryPage: React.FC = () => {
     }
   };
 
-  const filteredInvoices = invoices.filter(inv => 
+  const filteredInvoices = invoices.filter(inv =>
     inv.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
     inv.jobId?.title?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -82,9 +79,9 @@ const PaymentHistoryPage: React.FC = () => {
       <div className="qw-history-controls">
         <div className="search-wrapper">
           <RiSearchLine className="search-icon" />
-          <input 
-            type="text" 
-            placeholder="Search by invoice # or job title..." 
+          <input
+            type="text"
+            placeholder="Search by invoice # or job title..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -140,15 +137,15 @@ const PaymentHistoryPage: React.FC = () => {
                     </td>
                     <td className="text-right">
                       <div className="action-group">
-                        <button 
-                          className="icon-btn view" 
+                        <button
+                          className="icon-btn view"
                           title="View Details"
                           onClick={() => openInvoiceDetails(inv._id)}
                         >
                           <RiExternalLinkLine />
                         </button>
-                        <button 
-                          className="icon-btn download" 
+                        <button
+                          className="icon-btn download"
                           title="Download PDF"
                           onClick={() => handleDownload(inv._id, inv.invoiceNumber)}
                         >
@@ -165,21 +162,21 @@ const PaymentHistoryPage: React.FC = () => {
 
         {pagination && pagination.pages > 1 && (
           <div className="qw-pagination">
-            <button 
-              disabled={page === 1} 
+            <button
+              disabled={page === 1}
               onClick={() => setPage(p => p - 1)}
             >Previous</button>
             <span className="page-info">Page {page} of {pagination.pages}</span>
-            <button 
-              disabled={page === pagination.pages} 
+            <button
+              disabled={page === pagination.pages}
               onClick={() => setPage(p => p + 1)}
             >Next</button>
           </div>
         )}
       </div>
 
-      {/* Invoice Detail Modal */}
-      <InvoiceDetailModal 
+      {}
+      <InvoiceDetailModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         invoice={selectedInvoice}

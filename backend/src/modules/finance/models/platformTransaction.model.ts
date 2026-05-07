@@ -18,15 +18,15 @@ const PlatformTransactionSchema: Schema = new Schema({
     jobId: { type: Schema.Types.ObjectId, ref: 'Job', required: true },
     workHistoryId: { type: Schema.Types.ObjectId, ref: 'WorkHistory', required: true },
     providerId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    type: { 
-        type: String, 
-        enum: ['platform_fee', 'payment', 'adjustment'], 
-        required: true 
+    type: {
+        type: String,
+        enum: ['platform_fee', 'payment', 'adjustment'],
+        required: true
     },
-    paymentMethod: { 
-        type: String, 
-        enum: ['CASH', 'ONLINE'], 
-        required: true 
+    paymentMethod: {
+        type: String,
+        enum: ['CASH', 'ONLINE'],
+        required: true
     },
     totalAmount: { type: Number, required: true },
     platformFee: { type: Number, required: true },
@@ -35,7 +35,6 @@ const PlatformTransactionSchema: Schema = new Schema({
     status: { type: String, enum: ['completed'], default: 'completed', required: true },
     createdAt: { type: Date, default: Date.now }
 });
-
 
 PlatformTransactionSchema.index({ jobId: 1 });
 PlatformTransactionSchema.index({ providerId: 1 });

@@ -3,9 +3,9 @@ import { createPortal } from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { markAsPaidCash } from "../store/paymentSlice";
 import type { AppDispatch, RootState } from "../../../app/store";
-import { 
-  RiCheckboxCircleLine, 
-  RiLoader4Line, 
+import {
+  RiCheckboxCircleLine,
+  RiLoader4Line,
   RiBankCardLine,
   RiCloseLine,
   RiAlertLine,
@@ -78,20 +78,18 @@ const ClientJobPaymentSection: React.FC<Props> = ({
       try {
         await dispatch(markAsPaidCash(history._id)).unwrap();
         setModalConfig({ ...modalConfig, isOpen: false });
-        
+
         const res = await financeService.getWorkHistoryByAssignmentId(assignmentId);
         setHistory(res.data);
-      } catch(error: any) {
-        console.log(error);
+      } catch(err: unknown) {
+        const error = err as { response?: { data?: { message?: string } } };
         toast.error(error.response?.data?.message || "Failed to mark as paid");
       }
     } else {
-      
+
       try {
         setIsProcessing(true);
-        console.log("Initiating Online Payment for History:", history._id);
-        
-        
+
         const isLoaded = await loadRazorpayScript();
         if (!isLoaded) {
           toast.error("Razorpay SDK failed to load. Check your connection.");
@@ -99,8 +97,6 @@ const ClientJobPaymentSection: React.FC<Props> = ({
           return;
         }
 
-        
-        console.log("Creating Razorpay Order...");
         const orderRes = await financeService.createRazorpayOrder(history._id);
         if (!orderRes.success) {
           toast.error(orderRes.message || "Failed to create order");
@@ -109,9 +105,7 @@ const ClientJobPaymentSection: React.FC<Props> = ({
         }
 
         const { orderId, amount, currency, keyId } = orderRes.data;
-        console.log("Order Created:", orderId);
 
-        
         const options = {
           key: keyId,
           amount: amount,
@@ -120,9 +114,9 @@ const ClientJobPaymentSection: React.FC<Props> = ({
           description: `Payment for job by ${providerName}`,
           order_id: orderId,
           handler: async (response: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
-            console.log("Payment Success. Verifying Signature...");
+
             try {
-              
+
               const verifyRes = await financeService.verifyRazorpayPayment({
                 workHistoryId: history._id,
                 razorpay_order_id: response.razorpay_order_id,
@@ -131,10 +125,10 @@ const ClientJobPaymentSection: React.FC<Props> = ({
               });
 
               if (verifyRes.success) {
-                console.log("Payment Verified Successfully!");
+
                 toast.success("Payment successful!");
                 setModalConfig({ ...modalConfig, isOpen: false });
-                
+
                 const updated = await financeService.getWorkHistoryByAssignmentId(assignmentId);
                 setHistory(updated.data);
               } else {
@@ -149,7 +143,7 @@ const ClientJobPaymentSection: React.FC<Props> = ({
             }
           },
           prefill: {
-            name: "", 
+            name: "",
             email: "",
           },
           theme: {
@@ -157,7 +151,7 @@ const ClientJobPaymentSection: React.FC<Props> = ({
           },
           modal: {
             ondismiss: () => {
-              console.log("Razorpay modal dismissed");
+
               setIsProcessing(false);
             }
           }
@@ -167,9 +161,9 @@ const ClientJobPaymentSection: React.FC<Props> = ({
         rzp.on('payment.failed', (response: { error: { description: string } }) => {
           console.error("Payment Failed event:", response.error);
           if (typeof rzp.close === 'function') rzp.close();
-          setErrorModal({ 
-            isOpen: true, 
-            message: response.error.description || "The payment was declined by your bank or the payment gateway." 
+          setErrorModal({
+            isOpen: true,
+            message: response.error.description || "The payment was declined by your bank or the payment gateway."
           });
           setIsProcessing(false);
         });
@@ -177,9 +171,9 @@ const ClientJobPaymentSection: React.FC<Props> = ({
       } catch (error: unknown) {
         const err = error as { response?: { data?: { message?: string } } };
         console.error("Payment Initiation Error:", err);
-        setErrorModal({ 
-          isOpen: true, 
-          message: err.response?.data?.message || "We couldn't connect to the payment gateway. Please try again later." 
+        setErrorModal({
+          isOpen: true,
+          message: err.response?.data?.message || "We couldn't connect to the payment gateway. Please try again later."
         });
         setIsProcessing(false);
       }
@@ -259,7 +253,7 @@ const ClientJobPaymentSection: React.FC<Props> = ({
                 <RiCloseLine size={20} />
               </button>
             )}
-            
+
             <div className={`qw-confirm-icon-box ${modalConfig.type}`}>
               {isProcessing ? (
                 <RiLoader4Line size={32} className="qw-spin" />
@@ -271,7 +265,7 @@ const ClientJobPaymentSection: React.FC<Props> = ({
             <h3>
               {isProcessing ? "Processing Payment..." : (modalConfig.type === "online" ? "Online Payment" : "Confirm Cash Payment")}
             </h3>
-            
+
             {!isProcessing && (
               <div className="qw-modal-amount-tag">
                 <span className="label">Amount to Pay</span>
@@ -306,15 +300,15 @@ const ClientJobPaymentSection: React.FC<Props> = ({
             )}
 
             <div className="qw-confirm-actions">
-              <button 
-                className="qw-confirm-btn-cancel" 
+              <button
+                className="qw-confirm-btn-cancel"
                 onClick={() => setModalConfig({ ...modalConfig, isOpen: false })}
                 disabled={isProcessing}
               >
                 Cancel
               </button>
-              <button 
-                className={`qw-confirm-btn-proceed ${modalConfig.type}`} 
+              <button
+                className={`qw-confirm-btn-proceed ${modalConfig.type}`}
                 onClick={processAction}
                 disabled={loading || isProcessing}
               >
@@ -326,7 +320,7 @@ const ClientJobPaymentSection: React.FC<Props> = ({
         document.body
       )}
 
-      <PaymentErrorModal 
+      <PaymentErrorModal
         isOpen={errorModal.isOpen}
         onClose={() => setErrorModal({ ...errorModal, isOpen: false })}
         onRetry={() => {

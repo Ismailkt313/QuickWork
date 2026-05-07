@@ -8,6 +8,7 @@ import {
   RiMapPin2Line,
   RiSearchEyeLine,
   RiBillLine,
+  RiStarLine,
 } from "react-icons/ri";
 import { NavLink, Link } from "react-router-dom";
 import "../../provider/components/ProviderSidebar.css";
@@ -64,6 +65,12 @@ const SECONDARY_NAV: NavItem[] = [
     label: "Messages",
     icon: <RiUser3Line />,
     href: "/user/messages",
+  },
+  {
+    id: "reviews",
+    label: "Reviews & Rating",
+    icon: <RiStarLine />,
+    href: "/user/reviews",
   },
   {
     id: "security",

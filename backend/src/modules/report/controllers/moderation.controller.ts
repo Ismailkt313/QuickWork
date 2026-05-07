@@ -9,7 +9,6 @@ const TakeActionSchema = z.object({
     reason: z.string().min(1, 'Reason is required')
 });
 
-
 export class ModerationController implements IModerationController {
     private _moderationService: IModerationService;
 
@@ -17,7 +16,6 @@ export class ModerationController implements IModerationController {
         this._moderationService = moderationService;
     }
 
-    
     getReports = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { status, page, limit } = req.query;
@@ -41,7 +39,6 @@ export class ModerationController implements IModerationController {
         }
     };
 
-    
     getReportDetail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params;
@@ -56,7 +53,6 @@ export class ModerationController implements IModerationController {
         }
     };
 
-    
     takeAction = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params;

@@ -10,6 +10,7 @@ import ConfirmModal from "../../../shared/components/ui/ConfirmModal";
 import { deleteConversation, deleteMessage } from "../../message/api/message.api";
 import { toast } from "react-toastify";
 import type { Conversation, Participant } from "../../message/types";
+import type { Message } from "../../message/types/message.types";
 
 const MessagesPage: React.FC = () => {
   const [user, setUser] = useState<{ id?: string; _id?: string; name?: string } | null>(null);
@@ -67,10 +68,9 @@ const MessagesPage: React.FC = () => {
       const response = await getConversations();
       if (response.success) {
         setConversations((prev) => {
-          
+
           const serverConvs = response.data || [];
 
-          
           const placeholders = prev.filter((c) => c.isPlaceholder);
           const merged = [...serverConvs];
 
@@ -146,17 +146,12 @@ const MessagesPage: React.FC = () => {
     }
   };
 
-  
   const currentUserId = user?.id || user?._id || "";
 
   useEffect(() => {
     currentUserIdRef.current = currentUserId;
-    if (currentUserId) {
-      console.log("DEBUG: currentUserId resolved as:", currentUserId);
-    }
   }, [currentUserId]);
 
-  
   useEffect(() => {
     if (
       placeholderAdded ||
@@ -176,7 +171,6 @@ const MessagesPage: React.FC = () => {
     const stringTargetId = String(targetUserId).trim();
     const stringCurrentId = String(currentUserId).trim();
 
-    
     if (stringTargetId === stringCurrentId) {
       console.warn("DEBUG: Provider is attempting to message themselves!");
     }
@@ -222,8 +216,10 @@ const MessagesPage: React.FC = () => {
   useEffect(() => {
     if (!socket) return;
 
-    const handleNewConversationMessage = (newMessage: any) => {
-      console.log("DEBUG: Received socket message in Provider MessagesPage:", newMessage);
+    const handleNewConversationMessage = (newMessage: Message & { text?: string; id?: string; conversationId?: string }) => {
+      const convId = newMessage.conversationId;
+      if (!convId) return;
+
       const currentSelectedId = selectedConvIdRef.current;
       const myUserId = currentUserIdRef.current;
 
@@ -235,13 +231,13 @@ const MessagesPage: React.FC = () => {
           String(newMessage.sender) === String(placeholderTargetId) ||
           String(newMessage.receiver) === String(placeholderTargetId);
 
-        if (involvesTarget && newMessage.conversationId) {
-          setSelectedConversationId(newMessage.conversationId);
+        if (involvesTarget) {
+          setSelectedConversationId(convId);
         }
       }
 
       setConversations((prev) => {
-        const convExists = prev.some((c) => c.id === newMessage.conversationId);
+        const convExists = prev.some((c) => c.id === convId);
 
         const updated = prev.map((conv) => {
           const phTargetId = conv.participants.find(
@@ -252,12 +248,12 @@ const MessagesPage: React.FC = () => {
             String(newMessage.receiver) === String(phTargetId);
 
           if (
-            conv.id === newMessage.conversationId ||
+            conv.id === convId ||
             (conv.isPlaceholder && involvesThisParticipant)
           ) {
             return {
               ...conv,
-              id: newMessage.conversationId,
+              id: convId as string,
               isPlaceholder: false,
               lastMessage: messageText,
               lastMessageAt: new Date(),
@@ -282,7 +278,7 @@ const MessagesPage: React.FC = () => {
     };
 
     const handleConversationDeleted = ({ conversationId }: { conversationId: string }) => {
-      console.log("DEBUG: Received conversationDeleted in Provider MessagesPage:", conversationId);
+
       setConversations((prev) => prev.filter((c) => c.id !== conversationId));
       if (selectedConvIdRef.current === conversationId) {
         setSelectedConversationId(null);

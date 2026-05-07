@@ -2,10 +2,10 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchWallet, fetchTransactions } from "../store/walletSlice";
 import type { AppDispatch, RootState } from "../../../app/store";
-import { 
-  RiWallet3Line, 
-  RiArrowUpCircleLine, 
-  RiArrowDownCircleLine, 
+import {
+  RiWallet3Line,
+  RiArrowUpCircleLine,
+  RiArrowDownCircleLine,
   RiTimeLine,
   RiInformationLine,
   RiSearchLine,
@@ -13,23 +13,24 @@ import {
   RiBankCardLine,
   RiAlertLine,
   RiBillLine,
-  RiCloseLine,
   RiDownload2Line,
   RiExternalLinkLine
 } from "react-icons/ri";
+import useDebounce from "../../../hooks/useDebounce";
 import { financeService, type WorkHistory, type IInvoice } from "../services/finance.service";
 import { confirmPayment, rejectPayment } from "../store/paymentSlice";
 import { toast } from "react-toastify";
 import InvoiceDetailModal from "../components/InvoiceDetailModal";
+import WithdrawalModal from "../components/WithdrawalModal";
 
 const ProviderEarningsPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { wallet, transactions, pagination: transactionPagination, loading: walletLoading } = useSelector((state: RootState) => state.wallet);
-  
+
   const [pendingHistory, setPendingHistory] = useState<WorkHistory[]>([]);
   const [pendingPagination, setPendingPagination] = useState<{ total: number; page: number; pages: number } | null>(null);
   const [pendingLoading, setPendingLoading] = useState(true);
-  
+
   const [allHistory, setAllHistory] = useState<WorkHistory[]>([]);
   const [invoices, setInvoices] = useState<IInvoice[]>([]);
   const [invoicePagination, setInvoicePagination] = useState<{ total: number; page: number; pages: number } | null>(null);
@@ -41,13 +42,32 @@ const ProviderEarningsPage: React.FC = () => {
   const [pendingPage, setPendingPage] = useState(1);
   const [transactionPage, setTransactionPage] = useState(1);
 
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [withdrawLoading, setWithdrawLoading] = useState(false);
+
   const [filter, setFilter] = useState<"all" | "completed" | "pending" | "withdrawal" | "charge" | "invoices">("all");
   const [searchTerm, setSearchTerm] = useState("");
 
+  const debouncedSearch = useDebounce(searchTerm, 500);
+
   useEffect(() => {
     dispatch(fetchWallet());
-    dispatch(fetchTransactions({ page: transactionPage, limit: 6 }));
-  }, [dispatch, transactionPage]);
+  }, [dispatch]);
+
+  useEffect(() => {
+    const getParams = () => {
+      const params: Record<string, any> = { page: transactionPage, limit: 6, search: debouncedSearch || undefined };
+      if (filter === "completed") params.type = "credit";
+      else if (filter === "withdrawal") params.source = "withdrawal";
+      else if (filter === "charge") params.source = "cash_fee";
+      return params;
+    };
+    dispatch(fetchTransactions(getParams()));
+  }, [dispatch, transactionPage, debouncedSearch, filter]);
+
+  useEffect(() => {
+    setTransactionPage(1);
+  }, [debouncedSearch, filter]);
 
   useEffect(() => {
     const fetchPending = async () => {
@@ -68,7 +88,7 @@ const ProviderEarningsPage: React.FC = () => {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await financeService.getProviderHistory({ limit: 1000 }); // Get all for stats
+        const res = await financeService.getProviderHistory({ limit: 1000 });
         setAllHistory(res.data);
       } catch (err) {
         console.error("Failed to fetch history for stats", err);
@@ -97,9 +117,9 @@ const ProviderEarningsPage: React.FC = () => {
     const totalEarned = allHistory
       .filter(h => h.payment.status === "completed")
       .reduce((sum, h) => sum + h.payment.providerAmount, 0);
-    
+
     const totalPending = pendingHistory.reduce((sum, h) => sum + h.payment.providerAmount, 0);
-    
+
     const totalWithdrawn = transactions
       .filter(t => t.source === "withdrawal")
       .reduce((sum, t) => sum + t.amount, 0);
@@ -107,21 +127,10 @@ const ProviderEarningsPage: React.FC = () => {
     return { totalEarned, totalPending, totalWithdrawn };
   }, [allHistory, pendingHistory, transactions]);
 
-  const filteredTransactions = useMemo(() => {
-    return transactions.filter(t => {
-      const matchesSearch = t.source.toLowerCase().includes(searchTerm.toLowerCase());
-      if (filter === "all") return matchesSearch;
-      if (filter === "completed") return t.type === "credit" && matchesSearch;
-      if (filter === "withdrawal") return t.source === "withdrawal" && matchesSearch;
-      if (filter === "charge") return t.source === "cash_fee" && matchesSearch;
-      return matchesSearch;
-    });
-  }, [transactions, filter, searchTerm]);
-
   const refreshData = async () => {
     dispatch(fetchWallet());
     dispatch(fetchTransactions({ page: transactionPage, limit: 6 }));
-    
+
     const fetchPendingData = async () => {
         const res = await financeService.getProviderHistory({ status: "pending", page: pendingPage, limit: 6 });
         setPendingHistory(res.data);
@@ -178,6 +187,21 @@ const ProviderEarningsPage: React.FC = () => {
     refreshData();
   };
 
+  const handleWithdraw = async (amount: number) => {
+    try {
+      setWithdrawLoading(true);
+      await financeService.withdraw(amount);
+      toast.success(`Successfully withdrawn ₹${amount.toLocaleString()}`);
+      setIsWithdrawModalOpen(false);
+      refreshData();
+    } catch (err: any) {
+      console.error("Withdrawal failed", err);
+      toast.error(err.response?.data?.message || "Failed to process withdrawal");
+    } finally {
+      setWithdrawLoading(false);
+    }
+  };
+
   return (
     <div className="qw-earnings-container animate-fade-in">
       <div className="qw-earnings-header">
@@ -185,10 +209,11 @@ const ProviderEarningsPage: React.FC = () => {
           <h1>Financial Overview</h1>
           <p>Track your earnings, pending payments and wallet balance</p>
         </div>
-        <button 
-          className="qw-btn-withdraw" 
+        <button
+          className="qw-btn-withdraw"
           disabled={(wallet?.balance || 0) <= 0}
           title={(wallet?.balance || 0) <= 0 ? "Insufficient balance to withdraw" : ""}
+          onClick={() => setIsWithdrawModalOpen(true)}
         >
           <RiBankCardLine size={18} />
           <span>Withdraw Funds</span>
@@ -287,13 +312,13 @@ const ProviderEarningsPage: React.FC = () => {
               </div>
               {pendingPagination && pendingPagination.pages > 1 && (
                 <div className="qw-pagination">
-                    <button 
-                        disabled={pendingPage === 1} 
+                    <button
+                        disabled={pendingPage === 1}
                         onClick={() => setPendingPage(p => p - 1)}
                     >Previous</button>
                     <span>Page {pendingPage} of {pendingPagination.pages}</span>
-                    <button 
-                        disabled={pendingPage === pendingPagination.pages} 
+                    <button
+                        disabled={pendingPage === pendingPagination.pages}
                         onClick={() => setPendingPage(p => p + 1)}
                     >Next</button>
                 </div>
@@ -309,16 +334,16 @@ const ProviderEarningsPage: React.FC = () => {
                 <div className="qw-table-controls">
                   <div className="qw-search-box">
                     <RiSearchLine />
-                    <input 
-                      type="text" 
-                      placeholder="Search transactions..." 
+                    <input
+                      type="text"
+                      placeholder="Search transactions..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
                 </div>
               </div>
-              
+
               <div className="qw-filter-tabs">
                 <button className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>All</button>
                 <button className={filter === "completed" ? "active" : ""} onClick={() => setFilter("completed")}>Earnings</button>
@@ -395,10 +420,10 @@ const ProviderEarningsPage: React.FC = () => {
                 <tbody>
                   {walletLoading ? (
                     <tr><td colSpan={5} className="text-center py-5">Loading...</td></tr>
-                  ) : filteredTransactions.length === 0 ? (
+                  ) : transactions.length === 0 ? (
                     <tr><td colSpan={5} className="text-center py-5">No transactions found</td></tr>
                   ) : (
-                    filteredTransactions.map(t => (
+                    transactions.map(t => (
                       <tr key={t._id}>
                         <td>
                           <div className="qw-td-info">
@@ -429,13 +454,13 @@ const ProviderEarningsPage: React.FC = () => {
 
             {transactionPagination && transactionPagination.pages > 1 && (
                 <div className="qw-pagination mt-4">
-                    <button 
-                        disabled={transactionPage === 1} 
+                    <button
+                        disabled={transactionPage === 1}
                         onClick={() => setTransactionPage(p => p - 1)}
                     >Previous</button>
                     <span>Page {transactionPage} of {transactionPagination.pages}</span>
-                    <button 
-                        disabled={transactionPage === transactionPagination.pages} 
+                    <button
+                        disabled={transactionPage === transactionPagination.pages}
                         onClick={() => setTransactionPage(p => p + 1)}
                     >Next</button>
                 </div>
@@ -444,12 +469,20 @@ const ProviderEarningsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Invoice Detail Modal */}
-      <InvoiceDetailModal 
+      {}
+      <InvoiceDetailModal
         isOpen={isInvoiceModalOpen}
         onClose={() => setIsInvoiceModalOpen(false)}
         invoice={selectedInvoice}
         onDownload={handleDownloadInvoice}
+      />
+
+      <WithdrawalModal
+        isOpen={isWithdrawModalOpen}
+        onClose={() => setIsWithdrawModalOpen(false)}
+        balance={wallet?.balance || 0}
+        onWithdraw={handleWithdraw}
+        loading={withdrawLoading}
       />
 
       <style>{`
@@ -855,7 +888,7 @@ const ProviderEarningsPage: React.FC = () => {
           border-color: #3b82f6;
           box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
-        
+
         .qw-pagination {
           display: flex;
           align-items: center;
@@ -865,7 +898,7 @@ const ProviderEarningsPage: React.FC = () => {
           padding-top: 24px;
           border-top: 1px solid #f1f5f9;
         }
-        
+
         .qw-pagination button {
           padding: 8px 16px;
           border-radius: 10px;
@@ -877,18 +910,18 @@ const ProviderEarningsPage: React.FC = () => {
           cursor: pointer;
           transition: all 0.2s;
         }
-        
+
         .qw-pagination button:hover:not(:disabled) {
           border-color: #3b82f6;
           color: #3b82f6;
           background: #f0f7ff;
         }
-        
+
         .qw-pagination button:disabled {
           opacity: 0.5;
           cursor: not-allowed;
         }
-        
+
         .qw-pagination span {
           font-size: 13px;
           font-weight: 600;

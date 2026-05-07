@@ -61,8 +61,8 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
           ) : (
             <div className="notification-list">
               {notifications.map(notification => (
-                <div 
-                  key={notification._id} 
+                <div
+                  key={notification._id}
                   className={`notification-item ${notification.isRead ? 'read' : 'unread'}`}
                   onClick={() => {
                     if (!notification.isRead) onMarkRead(notification._id);
@@ -74,13 +74,13 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
                 >
                   <div className="notification-icon-wrapper">
                     <div className={`type-icon ${notification.type.toLowerCase()}`}>
-                      {notification.type === 'PAYMENT' ? '💰' : 
-                       notification.type === 'JOB_ASSIGNMENT' ? '📝' : 
-                       notification.type === 'JOB_STATUS' ? '⚙️' : 
+                      {notification.type === 'PAYMENT' ? '💰' :
+                       notification.type === 'JOB_ASSIGNMENT' ? '📝' :
+                       notification.type === 'JOB_STATUS' ? '⚙️' :
                        notification.type === 'REVIEW' ? '⭐' : '📢'}
                     </div>
                   </div>
-                  
+
                   <div className="notification-content">
                     <div className="notification-top">
                       <h4>{notification.title}</h4>
@@ -88,19 +88,19 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
                     </div>
                     <p>{notification.message}</p>
                     <span className="notification-time">
-                      {new Date(notification.createdAt).toLocaleString([], { 
-                        month: 'short', 
-                        day: 'numeric', 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
+                      {new Date(notification.createdAt).toLocaleString([], {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
                       })}
                     </span>
                   </div>
 
                   <div className="notification-item-actions">
                      {!notification.isRead && (
-                      <button 
-                        className="mark-read-item-btn" 
+                      <button
+                        className="mark-read-item-btn"
                         onClick={(e) => {
                           e.stopPropagation();
                           onMarkRead(notification._id);
@@ -110,8 +110,8 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
                         <FaCheckDouble />
                       </button>
                     )}
-                    <button 
-                      className="delete-item-btn" 
+                    <button
+                      className="delete-item-btn"
                       onClick={(e) => {
                         e.stopPropagation();
                         onDelete(notification._id);

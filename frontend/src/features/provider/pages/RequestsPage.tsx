@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   RiMailOpenLine,
@@ -11,9 +11,11 @@ import {
   RiArrowRightLine,
   RiMapPinUserLine,
   RiMapPinRangeLine,
+  RiSearchLine,
 } from "react-icons/ri";
 import { toast } from "react-toastify";
 import { RequestCard } from "../components/RequestCard";
+import Pagination from "../../../components/ui/Pagination";
 import UniversalActionModal from "../components/UniversalActionModal";
 import ActionErrorModal from "../components/ActionErrorModal";
 import { acceptOffer, rejectOffer, getMyProfile } from "../services/provider.service";
@@ -23,6 +25,7 @@ import VerificationPendingModal from "../components/VerificationPendingModal";
 import { api } from "../../../services/api";
 import { ENDPOINTS } from "../../../constants/endpoints";
 import type { JobDetail } from "../types/job";
+import type { PaginationInfo } from "../../user/serviceProviders/services/providersService";
 import { useProviderLocation } from "../hooks/useProviderLocation";
 
 type FilterType = "all" | "pending" | "accepted" | "rejected";
@@ -46,37 +49,62 @@ const RequestsPage: React.FC = () => {
   const [pendingJobId, setPendingJobId] = useState<string | null>(null);
   const [verificationStatus, setVerificationStatus] = useState<string>("pending");
   const [isPendingModalOpen, setIsPendingModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    total: 0,
+    page: 1,
+    limit: 6,
+    totalPages: 1,
+    hasNext: false,
+    hasPrev: false,
+  });
+  const [counts, setCounts] = useState({
+    all: 0,
+    pending: 0,
+    accepted: 0,
+    rejected: 0,
+  });
 
   const providerLocation = useProviderLocation();
   const navigate = useNavigate();
 
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get(ENDPOINTS.JOB.OFFERS);
-      if (response.data.success) setRequests(response.data.data);
+      const response = await api.get(ENDPOINTS.JOB.OFFERS, {
+        params: {
+          page: currentPage,
+          limit: pagination.limit,
+          search: debouncedSearch || undefined,
+          filter: filter !== 'all' ? filter : undefined,
+        }
+      });
+      if (response.data.success) {
+        setRequests(response.data.data);
+        if (response.data.pagination) setPagination(response.data.pagination);
+        if (response.data.counts) setCounts(response.data.counts);
+      }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Failed to fetch requests";
       toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, debouncedSearch, filter, pagination.limit]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
 
   useEffect(() => {
     fetchRequests();
-    const fetchStatus = async () => {
-      try {
-        const response = await getMyProfile<{ verificationStatus: string }>();
-        if (response.success && response.data) {
-          setVerificationStatus(response.data.verificationStatus || "pending");
-        }
-      } catch (err: unknown) {
-        console.error("Error fetching profile status:", err);
-      }
-    };
-    fetchStatus();
-  }, []);
+  }, [fetchRequests]);
 
   const handleAccept = async (jobId: string) => {
     if (verificationStatus === "pending") { setIsPendingModalOpen(true); return; }
@@ -136,12 +164,26 @@ const RequestsPage: React.FC = () => {
   const rejectedCount = requests.filter(r => r.status === "cancelled" || r.status === "rejected").length;
 
   const tabCount = (id: string) => {
-    if (id === "all") return requests.length;
-    if (id === "pending") return pendingCount;
-    if (id === "accepted") return acceptedCount;
-    if (id === "rejected") return rejectedCount;
+    if (id === "all") return counts.all;
+    if (id === "pending") return counts.pending;
+    if (id === "accepted") return counts.accepted;
+    if (id === "rejected") return counts.rejected;
     return 0;
   };
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const response = await getMyProfile<{ verificationStatus: string }>();
+        if (response.success && response.data) {
+          setVerificationStatus(response.data.verificationStatus || "pending");
+        }
+      } catch (err: unknown) {
+        console.error("Error fetching profile status:", err);
+      }
+    };
+    fetchStatus();
+  }, []);
 
   return (
     <div style={{ minHeight: "100vh", background: "#f1f5f9", padding: "32px 32px 48px" }}>
@@ -180,25 +222,37 @@ const RequestsPage: React.FC = () => {
       </div>
 
       {}
-      <div style={{ display: "flex", gap: 6, marginBottom: 20, background: "#fff", borderRadius: 10, padding: "4px", border: "1px solid #e8edf4", width: "fit-content" }}>
-        {TABS.map(tab => {
-          const count = tabCount(tab.id);
-          const isActive = filter === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setFilter(tab.id as FilterType)}
-              style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 8, border: "none", background: isActive ? (tab.id === "pending" ? "#6366f1" : tab.id === "accepted" ? "#16a34a" : tab.id === "rejected" ? "#dc2626" : "#334155") : "transparent", color: isActive ? "#fff" : "#64748b", fontWeight: 600, fontSize: 13, cursor: "pointer", transition: "all 0.2s", whiteSpace: "nowrap" as const }}
-            >
-              {tab.icon} {tab.label}
-              {count > 0 && (
-                <span style={{ padding: "1px 6px", borderRadius: 10, fontSize: 10, fontWeight: 700, background: isActive ? "rgba(255,255,255,0.25)" : "#f1f5f9", color: isActive ? "#fff" : "#64748b" }}>
-                  {count}
-                </span>
-              )}
-            </button>
-          );
-        })}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 6, background: "#fff", borderRadius: 10, padding: "4px", border: "1px solid #e8edf4", width: "fit-content" }}>
+          {TABS.map(tab => {
+            const isActive = filter === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => { setFilter(tab.id as FilterType); setCurrentPage(1); }}
+                style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 8, border: "none", background: isActive ? (tab.id === "pending" ? "#6366f1" : tab.id === "accepted" ? "#16a34a" : tab.id === "rejected" ? "#dc2626" : "#334155") : "transparent", color: isActive ? "#fff" : "#64748b", fontWeight: 600, fontSize: 13, cursor: "pointer", transition: "all 0.2s", whiteSpace: "nowrap" as const }}
+              >
+                {tab.icon} {tab.label}
+                {tabCount(tab.id) > 0 && (
+                  <span style={{ padding: "1px 6px", borderRadius: 10, fontSize: 10, fontWeight: 700, background: isActive ? "rgba(255,255,255,0.25)" : "#f1f5f9", color: isActive ? "#fff" : "#64748b" }}>
+                    {tabCount(tab.id)}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        <div style={{ position: "relative", minWidth: 260 }}>
+          <RiSearchLine style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
+          <input
+            type="text"
+            placeholder="Search by title or client..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ width: "100%", padding: "9px 12px 9px 36px", borderRadius: 10, border: "1px solid #e2e8f0", background: "#fff", fontSize: 13, outline: "none", fontWeight: 500 }}
+          />
+        </div>
       </div>
 
       {}
@@ -229,7 +283,7 @@ const RequestsPage: React.FC = () => {
         </div>
       ) : (
         <div style={{ maxWidth: 760 }}>
-          {filteredRequests.map(request => (
+          {requests.map(request => (
             <RequestCard
               key={request.id}
               request={request}
@@ -239,6 +293,15 @@ const RequestsPage: React.FC = () => {
               isActionLoading={actionLoading === request.id}
             />
           ))}
+
+          {pagination.totalPages > 1 && (
+            <div style={{ marginTop: 32 }}>
+              <Pagination
+                pagination={pagination}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
         </div>
       )}
 

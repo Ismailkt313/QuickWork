@@ -15,16 +15,16 @@ const NotificationSchema: Schema = new Schema(
         recipient: { type: Schema.Types.ObjectId, ref: 'User', required: true },
         title: { type: String, required: true },
         message: { type: String, required: true },
-        type: { 
-            type: String, 
+        type: {
+            type: String,
             enum: ['JOB_ASSIGNMENT', 'JOB_STATUS', 'PAYMENT', 'SYSTEM', 'REVIEW'],
             default: 'SYSTEM'
         },
         link: { type: String },
         isRead: { type: Boolean, default: false }
     },
-    { 
-        timestamps: { createdAt: true, updatedAt: false } 
+    {
+        timestamps: { createdAt: true, updatedAt: false }
     }
 );
 

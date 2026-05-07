@@ -29,7 +29,6 @@ const SkillRequests: React.FC = () => {
   const [rejectionReason, setRejectionReason] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [_total, setTotal] = useState(0);
   const limit = 5;
 
   const [modal, setModal] = useState<ModalState>({
@@ -56,7 +55,6 @@ const SkillRequests: React.FC = () => {
     try {
       const result = await getPendingServiceRequests({ page: pageToFetch, limit });
       setRequests(result.data || []);
-      setTotal(result.pagination.total);
       setTotalPages(result.pagination.totalPages);
     } catch (error) {
       console.error("Failed to fetch skills", error);

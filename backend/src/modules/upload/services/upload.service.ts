@@ -60,7 +60,6 @@ export class UploadService implements IUploadService {
         });
     }
 
-
     async getUploadSignature(folder: string = 'quickwork/general') {
         const timestamp = Math.round(new Date().getTime() / 1000);
 
@@ -84,7 +83,7 @@ export class UploadService implements IUploadService {
     }
 
     async deleteImage(publicId: string): Promise<any> {
-        
+
         if (publicId.includes('/') && !publicId.startsWith('quickwork')) {
             return this._s3Service.deleteFile(publicId);
         }

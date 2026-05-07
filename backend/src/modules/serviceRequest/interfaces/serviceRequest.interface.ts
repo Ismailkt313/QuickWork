@@ -3,7 +3,6 @@ import { CreateServiceRequestDTO } from '../dtos/createServiceRequest.dto';
 import { RejectServiceRequestDTO } from "../dtos/rejectServiceRequest.dto";
 import { SKILL_STATUS } from "../../../constants/skill";
 
-
 export interface IServiceRequest extends Document {
     name: string;
     slug: string;
@@ -20,9 +19,9 @@ export interface IServiceRequest extends Document {
 export interface IServiceRequestService {
     createRequest(userId: string, dto: CreateServiceRequestDTO): Promise<{ success: boolean; message: string; data?: any }>;
     getUserRequests(userId: string): Promise<{ success: boolean; data: IServiceRequest[] }>;
-    getPendingRequests(page: number, limit: number): Promise<{ 
-        success: boolean; 
-        data: IServiceRequest[]; 
+    getPendingRequests(page: number, limit: number): Promise<{
+        success: boolean;
+        data: IServiceRequest[];
         pagination: {
             total: number;
             page: number;

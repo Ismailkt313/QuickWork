@@ -12,9 +12,14 @@ export const Adminapi = axios.create({
 });
 
 let isRefreshing = false;
-let failedQueue: any[] = [];
+interface QueueItem {
+  resolve: (token: string | null) => void;
+  reject: (error: unknown) => void;
+}
 
-const processQueue = (error: any, token: string | null = null) => {
+let failedQueue: QueueItem[] = [];
+
+const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
@@ -91,7 +96,6 @@ Adminapi.interceptors.response.use(
   },
 );
 
- 
 export const adminLogin = (data: { email: string; password: string }): Promise<AxiosResponse<IApiResponse<IAdminLoginResponse>>> => {
   return Adminapi.post(ENDPOINTS.AUTH.ADMIN_LOGIN, data);
 };
@@ -107,7 +111,6 @@ export const approveProvider = (id: string): Promise<AxiosResponse<IApiResponse<
   return Adminapi.patch(ENDPOINTS.ADMIN.APPROVE_PROVIDER(id));
 };
 
-
 export const rejectProvider = (id: string, reason?: string): Promise<AxiosResponse<IApiResponse<void>>> => {
   return Adminapi.patch(ENDPOINTS.ADMIN.REJECT_PROVIDER(id), { reason });
 };
@@ -119,7 +122,6 @@ export const getUsers = (params?: {
 }): Promise<AxiosResponse<IPaginatedResponse<IUserListItem>>> => {
   return Adminapi.get(ENDPOINTS.ADMIN.USERS, { params });
 };
-
 
 export const toggleBlockUser = (userId: string): Promise<AxiosResponse<IApiResponse<{ isBlocked: boolean }>>> => {
   return Adminapi.patch(ENDPOINTS.ADMIN.BLOCK_USER(userId));

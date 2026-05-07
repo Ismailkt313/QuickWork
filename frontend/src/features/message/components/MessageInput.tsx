@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { RiSendPlane2Fill, RiImage2Line, RiCloseLine, RiLoader4Line, RiEmotionHappyLine } from "react-icons/ri";
-import EmojiPicker from "emoji-picker-react";
+import EmojiPicker, { type EmojiClickData } from "emoji-picker-react";
 import { toast } from "react-toastify";
 import { apiClient } from "../../../services/api/apiClient";
 import { ENDPOINTS } from "../../../constants/endpoints";
@@ -32,7 +32,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const onEmojiClick = (emojiObject: any) => {
+  const onEmojiClick = (emojiObject: EmojiClickData) => {
     setText((prev) => prev + emojiObject.emoji);
   };
 
@@ -63,7 +63,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       try {
         const formData = new FormData();
         formData.append("image", selectedFile);
-
 
         const response = await apiClient.post(ENDPOINTS.UPLOAD.CHAT_IMAGE, formData, {
           headers: {

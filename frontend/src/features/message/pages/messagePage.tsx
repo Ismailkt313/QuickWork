@@ -10,6 +10,7 @@ import ConfirmModal from "../../../shared/components/ui/ConfirmModal";
 import { toast } from "react-toastify";
 import type { IUser } from "../../../types/user.types";
 import type { Conversation, Participant } from "../types";
+import type { Message } from "../types/message.types";
 
 const MessagesPage: React.FC = () => {
   const [user, setUser] = useState<IUser | null>(null);
@@ -71,7 +72,6 @@ const MessagesPage: React.FC = () => {
       setDeleteModal({ show: false, loading: false });
     }
   };
-
 
   const fetchUser = useCallback(async () => {
     try {
@@ -136,7 +136,7 @@ const executeDeleteMessage = async () => {
   setDeleteMsgModal(prev => ({ ...prev, loading: true }));
   try {
     await deleteMessage(deleteMsgModal.messageId);
-    
+
   } catch (error) {
     console.error("Failed to delete message:", error);
     toast.error("Failed to delete message");
@@ -203,9 +203,10 @@ const executeDeleteMessage = async () => {
   useEffect(() => {
     if (!socket) return;
 
-    
-    const handleNewConversationMessage = (newMessage: any) => {
-      console.log("DEBUG: Received socket message in MessagesPage:", newMessage);
+    const handleNewConversationMessage = (newMessage: Message & { text?: string; id?: string; conversationId?: string }) => {
+      const convId = newMessage.conversationId;
+      if (!convId) return;
+
       const currentSelectedId = selectedConvIdRef.current;
       const myUserId = currentUserIdRef.current;
 
@@ -217,13 +218,13 @@ const executeDeleteMessage = async () => {
           String(newMessage.sender) === String(placeholderTargetId) ||
           String(newMessage.receiver) === String(placeholderTargetId);
 
-        if (involvesTarget && newMessage.conversationId) {
-          setSelectedConversationId(newMessage.conversationId);
+        if (involvesTarget) {
+          setSelectedConversationId(convId);
         }
       }
 
       setConversations((prev) => {
-        const convExists = prev.some((c) => c.id === newMessage.conversationId);
+        const convExists = prev.some((c) => c.id === convId);
         const updated = prev.map((conv: Conversation) => {
           const phTargetId = conv.participants.find(
             (p: Participant) => String(p._id || p.id) !== String(myUserId)
@@ -233,12 +234,12 @@ const executeDeleteMessage = async () => {
             String(newMessage.receiver) === String(phTargetId);
 
           if (
-            conv.id === newMessage.conversationId ||
+            conv.id === convId ||
             (conv.isPlaceholder && involvesThisParticipant)
           ) {
             return {
               ...conv,
-              id: newMessage.conversationId,
+              id: convId as string,
               isPlaceholder: false,
               lastMessage: messageText,
               lastMessageAt: new Date(),
@@ -254,7 +255,6 @@ const executeDeleteMessage = async () => {
       });
     };
 
-    
     const handleConversationDeleted = ({ conversationId }: { conversationId: string }) => {
       setConversations((prev) => prev.filter((c) => c.id !== conversationId));
       if (selectedConvIdRef.current === conversationId) {
@@ -262,17 +262,14 @@ const executeDeleteMessage = async () => {
       }
     };
 
-    
     socket.on("receiveMessage", handleNewConversationMessage);
     socket.on("conversationDeleted", handleConversationDeleted);
 
-    
     return () => {
       socket.off("receiveMessage", handleNewConversationMessage);
       socket.off("conversationDeleted", handleConversationDeleted);
     };
   }, [socket, fetchConversations]);
-
 
   useEffect(() => {
     if (selectedConversationId && !selectedConversationId.startsWith("new-")) {
@@ -363,7 +360,7 @@ const executeDeleteMessage = async () => {
             recipientName={recipient.name}
             onDelete={handleDeleteConversation}
             onDeleteMessage={handleDeleteMessage}
-            
+
           />
         </div>
       </div>

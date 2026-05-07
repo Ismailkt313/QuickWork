@@ -29,7 +29,7 @@ export class ServiceProviderService implements IServiceProviderService {
             if (existingProvider) {
                 return {
                     success: false,
-                    message: ErrorMessages.RESOURCE_ALREADY_EXISTS 
+                    message: ErrorMessages.RESOURCE_ALREADY_EXISTS
                 };
             }
 
@@ -44,9 +44,9 @@ export class ServiceProviderService implements IServiceProviderService {
                 location: providerData.location,
                 portfolio: providerData.portfolio,
                 verification: {
-                    status: VERIFICATION_STATUS.PENDING 
+                    status: VERIFICATION_STATUS.PENDING
                 },
-                isActive: false, 
+                isActive: false,
                 submittedAt: new Date()
             };
 
@@ -83,8 +83,9 @@ export class ServiceProviderService implements IServiceProviderService {
         limit?: number;
         search?: string;
         sort?: string;
+        currentUserId?: string;
     }): Promise<{ success: boolean; message?: string; data?: ProviderListResult & { page: number; limit: number } }> {
-        const { skillId, locationId, search, sort } = params;
+        const { skillId, locationId, search, sort, currentUserId } = params;
 
         if (skillId) {
             const skillExists = await this._skillRepository.findById(skillId);
@@ -96,7 +97,7 @@ export class ServiceProviderService implements IServiceProviderService {
         const page = Math.max(1, Number(params.page) || 1);
         const limit = Math.min(MAX_LIMIT, Math.max(1, Number(params.limit) || DEFAULT_LIMIT));
 
-        const result = await this._providerRepository.findProviders({ skillId, locationId, page, limit, search, sort });
+        const result = await this._providerRepository.findProviders({ skillId, locationId, page, limit, search, sort, currentUserId });
 
         return { success: true, data: { ...result, page, limit } };
     }
@@ -122,13 +123,13 @@ export class ServiceProviderService implements IServiceProviderService {
 
     async updateProfile(userId: string, data: any): Promise<{ success: boolean; data?: any; message?: string }> {
         const updateData = { ...data };
-        
+
         if (updateData.skills && Array.isArray(updateData.skills)) {
             updateData.skills = updateData.skills.map((id: string) => new Types.ObjectId(id));
         }
 
         const updatedProvider = await this._providerRepository.updateByUserId(userId, updateData);
-        
+
         if (!updatedProvider) {
             return { success: false, message: ErrorMessages.INTERNAL_SERVER_ERROR };
         }
@@ -148,5 +149,33 @@ export class ServiceProviderService implements IServiceProviderService {
 
         await this._providerRepository.deleteByUserId(userId);
         return { success: true, message: SuccessMessages.APPLICATION_RESET };
+    }
+
+    async updateAvailability(userId: string, availability: any[]): Promise<{ success: boolean; message: string; data?: any }> {
+        const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+        for (const slot of availability) {
+            if (slot.isAvailable && (!timeRegex.test(slot.startTime) || !timeRegex.test(slot.endTime))) {
+                return { success: false, message: 'Invalid time format. Use HH:mm.' };
+            }
+        }
+
+        const updated = await this._providerRepository.updateAvailability(userId, availability);
+        if (!updated) return { success: false, message: ErrorMessages.PROVIDER_NOT_FOUND };
+
+        return { success: true, message: 'Availability updated successfully', data: updated.availability };
+    }
+
+    async addBlockedDate(userId: string, blockedDate: any): Promise<{ success: boolean; message: string; data?: any }> {
+        const updated = await this._providerRepository.addBlockedDate(userId, blockedDate);
+        if (!updated) return { success: false, message: ErrorMessages.PROVIDER_NOT_FOUND };
+
+        return { success: true, message: 'Blocked date added successfully', data: updated.blockedDates };
+    }
+
+    async deleteBlockedDate(userId: string, blockedDateId: string): Promise<{ success: boolean; message: string }> {
+        const updated = await this._providerRepository.deleteBlockedDate(userId, blockedDateId);
+        if (!updated) return { success: false, message: ErrorMessages.PROVIDER_NOT_FOUND };
+
+        return { success: true, message: 'Blocked date removed successfully' };
     }
 }

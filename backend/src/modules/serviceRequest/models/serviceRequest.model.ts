@@ -55,5 +55,4 @@ ServiceRequestSchema.pre('save', function (next) {
     next();
 });
 
-
 export const ServiceRequestModel = mongoose.model<IServiceRequest>('ServiceRequest', ServiceRequestSchema);

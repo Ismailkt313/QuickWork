@@ -6,7 +6,6 @@ import { Server } from "socket.io";
 import { setupSocket } from './chat/socket';
 import { logger } from './utils/logger';
 
-
 const startServer = async (): Promise<void> => {
     try {
         await mongoose.connect(config.MONGO_URI, {

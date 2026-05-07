@@ -13,3 +13,4 @@ const reviewService = new ReviewService(reviewRepository, assignmentRepository, 
 const reviewController = new ReviewController(reviewService);
 
 export const reviewRouter = createReviewRouter(reviewController);
+export { reviewRepository };

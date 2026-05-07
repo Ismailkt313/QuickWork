@@ -23,6 +23,8 @@ export interface JobFormData {
 
   durationType: JOB_DURATION_TYPE;
   startDate: string;
+  startTime: string;
+  endTime: string;
   days: string;
   minBudget: string;
   maxBudget: string;

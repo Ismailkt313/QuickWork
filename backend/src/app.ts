@@ -17,7 +17,6 @@ const allowedOrigins = [
 app.use(loggerMiddleware);
 app.use(cookieParser());
 
-
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {

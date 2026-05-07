@@ -5,6 +5,8 @@ import { JOB_STATUS } from '../../../constants/jobStatus';
 import { JobModel } from '../models/job.model';
 import { SkillModel } from '../../skill/models/skill.model';
 import { LocationModel } from '../../location/models/location.model';
+import { UserModel } from '../../auth/models/user.model';
+import { ServiceProviderModel } from '../../serviceProvider/models/serviceProvider.model';
 import { JobResponseDTO, mapJobToResponseDTO } from '../dtos/jobResponse.dto';
 
 export class JobRepository implements IJobRepository {
@@ -29,7 +31,6 @@ export class JobRepository implements IJobRepository {
     ): Promise<{ jobs: IJob[]; total: number }> {
         const query: any = { userId };
 
-
         if (filters?.status) {
             switch (filters.status) {
                 case 'pending':
@@ -48,20 +49,31 @@ export class JobRepository implements IJobRepository {
             }
         }
 
-
         if (filters?.status === 'direct') {
             query.visibility = 'private';
         } else if (filters?.visibility) {
             query.visibility = filters.visibility;
         }
 
-
         if (filters?.search) {
             const searchRegex = new RegExp(filters.search, 'i');
-            query.$or = [
+
+            const searchConditions: any[] = [
                 { title: searchRegex },
                 { description: searchRegex }
             ];
+
+            const matchingUsers = await UserModel.find({ name: searchRegex }).select('_id');
+            const userIds = matchingUsers.map(u => u._id);
+
+            const matchingProviders = await ServiceProviderModel.find({ userId: { $in: userIds } }).select('_id');
+            const providerIds = matchingProviders.map(p => p._id);
+
+            if (providerIds.length > 0) {
+                searchConditions.push({ hiredProviderId: { $in: providerIds } });
+            }
+
+            query.$or = searchConditions;
         }
 
         const skip = (page - 1) * limit;
@@ -133,7 +145,8 @@ export class JobRepository implements IJobRepository {
         limit: number,
         filters: any,
         skill: string[],
-        excludeJobIds?: string[]
+        excludeJobIds?: string[],
+        currentUserId?: string
     ): Promise<{ jobs: IJob[], total: number }> {
 
         const query: any = {
@@ -142,10 +155,13 @@ export class JobRepository implements IJobRepository {
             skillId: { $in: skill }
         };
 
+        if (currentUserId) {
+            query.userId = { $ne: new mongoose.Types.ObjectId(currentUserId) };
+        }
+
         if (excludeJobIds && excludeJobIds.length > 0) {
             query._id = { $nin: excludeJobIds.map(id => new mongoose.Types.ObjectId(id)) };
         }
-
 
         if (filters.skillId) {
             if (mongoose.Types.ObjectId.isValid(filters.skillId)) {
@@ -162,7 +178,6 @@ export class JobRepository implements IJobRepository {
             }
         }
 
-
         if (filters.locationId) {
             if (mongoose.Types.ObjectId.isValid(filters.locationId)) {
                 query['location.district'] = new mongoose.Types.ObjectId(filters.locationId);
@@ -178,7 +193,6 @@ export class JobRepository implements IJobRepository {
             }
         }
 
-
         if (filters.minBudget !== undefined) {
             query['budget.max'] = { $gte: Number(filters.minBudget) };
         }
@@ -186,7 +200,6 @@ export class JobRepository implements IJobRepository {
         if (filters.maxBudget !== undefined) {
             query['budget.min'] = { $lte: Number(filters.maxBudget) };
         }
-
 
         if (filters.search) {
             const searchRegex = new RegExp(filters.search, 'i');
@@ -242,6 +255,97 @@ export class JobRepository implements IJobRepository {
             .populate('location.district', 'name')
             .populate('userId', 'name email')
             .sort({ createdAt: -1 });
+    }
+
+    async findByProviderPaginated(
+        providerId: string,
+        page: number,
+        limit: number,
+        search?: string,
+        filter?: string
+    ): Promise<{ jobs: IJob[]; total: number }> {
+        const query: any = {
+            hiredProviderId: new mongoose.Types.ObjectId(providerId),
+        };
+
+        if (filter) {
+            if (filter === 'pending') query.status = JOB_STATUS.OPEN;
+            else if (filter === 'accepted') query.status = JOB_STATUS.FULLY_ASSIGNED;
+            else if (filter === 'rejected') query.status = { $in: [JOB_STATUS.CANCELLED, JOB_STATUS.REJECTED] };
+        } else {
+            query.status = {
+                $in: [
+                    JOB_STATUS.OPEN,
+                    JOB_STATUS.PARTIALLY_ASSIGNED,
+                    JOB_STATUS.FULLY_ASSIGNED,
+                    JOB_STATUS.REJECTED,
+                    JOB_STATUS.CANCELLED
+                ]
+            };
+        }
+
+        if (search) {
+            const searchRegex = new RegExp(search, 'i');
+            const matchingUsers = await UserModel.find({ name: searchRegex }).select('_id');
+            const userIds = matchingUsers.map(u => u._id);
+
+            query.$or = [
+                { title: searchRegex },
+                { description: searchRegex },
+                { userId: { $in: userIds } }
+            ];
+        }
+
+        const skip = (page - 1) * limit;
+
+        const [jobs, total] = await Promise.all([
+            JobModel.find(query)
+                .populate('skillId', 'name')
+                .populate('location.district', 'name')
+                .populate('userId', 'name email')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+            JobModel.countDocuments(query)
+        ]);
+
+        return { jobs, total };
+    }
+
+    async countByProviderGrouped(providerId: string): Promise<{
+        all: number;
+        pending: number;
+        accepted: number;
+        rejected: number;
+    }> {
+        const result = await JobModel.aggregate([
+            { $match: { hiredProviderId: new mongoose.Types.ObjectId(providerId) } },
+            {
+                $facet: {
+                    all: [{ $count: 'count' }],
+                    pending: [
+                        { $match: { status: JOB_STATUS.OPEN } },
+                        { $count: 'count' }
+                    ],
+                    accepted: [
+                        { $match: { status: JOB_STATUS.FULLY_ASSIGNED } },
+                        { $count: 'count' }
+                    ],
+                    rejected: [
+                        { $match: { status: { $in: [JOB_STATUS.CANCELLED, JOB_STATUS.REJECTED] } } },
+                        { $count: 'count' }
+                    ]
+                }
+            }
+        ]);
+
+        const facets = result[0] || {};
+        return {
+            all: facets.all?.[0]?.count || 0,
+            pending: facets.pending?.[0]?.count || 0,
+            accepted: facets.accepted?.[0]?.count || 0,
+            rejected: facets.rejected?.[0]?.count || 0,
+        };
     }
 
     async updateStatus(id: string, status: JOB_STATUS): Promise<IJob | null> {

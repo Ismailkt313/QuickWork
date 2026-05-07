@@ -49,7 +49,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     about: provider.about || "",
     hourlyRate: provider.hourlyRate || 0,
     yearsOfExperience: provider.yearsOfExperience || 0,
-    isActive: provider.isActive,
+    isActive: !!provider.isActive,
     location: provider.location || { id: "", name: "" },
     profileImage: provider.profileImage || "",
   });
@@ -122,17 +122,28 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="qw-modal-overlay">
-      <div className="qw-modal-container" style={{ maxWidth: '600px' }}>
-        <div className="qw-modal-header">
-          <div className="qw-modal-header-icon-box blue">
-            <RiEditLine size={24} />
+    <div className="qw-modal-backdrop">
+      <div className="qw-modal-content edit-profile">
+        <div className="qw-modal-header p-4 pb-0 border-0">
+          <div className="d-flex align-items-center gap-3">
+            <div className="qw-modal-header-icon-box blue" style={{
+                width: '48px',
+                height: '48px',
+                background: 'rgba(59, 130, 246, 0.1)',
+                color: '#3b82f6',
+                borderRadius: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }}>
+                <RiEditLine size={24} />
+            </div>
+            <div>
+                <h2 className="qw-modal-title h5 fw-bold m-0">Edit Professional Profile</h2>
+                <p className="qw-modal-subtitle small text-muted m-0">Update your public identity and service details</p>
+            </div>
           </div>
-          <div className="qw-modal-header-text">
-            <h2 className="qw-modal-title">Edit Professional Profile</h2>
-            <p className="qw-modal-subtitle">Update your public identity and service details</p>
-          </div>
-          <button className="qw-modal-close" onClick={onClose}>
+          <button className="btn btn-ghost btn-icon btn-sm ms-auto" onClick={onClose}>
             <RiCloseLine size={24} />
           </button>
         </div>
@@ -143,8 +154,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               {}
               <div className="col-12">
                 <div className="qw-image-upload-area p-3 border rounded-3 d-flex align-items-center gap-4">
-                   <div 
-                    className="qw-avatar-upload-preview" 
+                   <div
+                    className="qw-avatar-upload-preview"
                     onClick={() => fileInputRef.current?.click()}
                     style={{
                       width: '100px',
@@ -180,8 +191,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   <div>
                     <h5 className="mb-1">Profile Photo</h5>
                     <p className="text-muted small mb-2">JPG, PNG or GIF. Max size of 2MB.</p>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className="btn btn-outline-primary btn-sm rounded-pill"
                       onClick={() => fileInputRef.current?.click()}
                     >
@@ -283,22 +294,22 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           </form>
         </div>
 
-        <div className="qw-modal-footer">
-          <button className="qw-modal-btn-cancel" onClick={onClose} disabled={loading}>
+        <div className="qw-modal-footer p-4 pt-3 border-top d-flex gap-3">
+          <button className="btn btn-light rounded-pill px-4 flex-grow-1" onClick={onClose} disabled={loading}>
             Cancel
           </button>
-          <button 
-            type="submit" 
-            form="editProfileForm" 
-            className="qw-modal-submit-btn" 
+          <button
+            type="submit"
+            form="editProfileForm"
+            className="btn btn-primary rounded-pill px-4 flex-grow-2 d-flex align-items-center justify-content-center gap-2"
             disabled={loading || uploading}
           >
             {loading ? <RiLoader4Line className="animate-spin" size={20} /> : <RiSaveLine size={20} />}
-            <span>{loading ? "Saving Changes..." : "Save Profile"}</span>
+            <span>{loading ? "Saving..." : "Save Profile"}</span>
           </button>
         </div>
       </div>
-      
+
       <style>{`
         .qw-avatar-upload-preview:hover .qw-avatar-upload-overlay {
           opacity: 1 !important;

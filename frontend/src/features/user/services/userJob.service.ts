@@ -50,7 +50,7 @@ export const getUserJobs = async (
     if (search) params.append("search", search);
 
     const response = await api.get(`${ENDPOINTS.JOB.MY}?${params.toString()}`);
-    console.log("User Jobs Response:", response.data);
+
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;
@@ -62,7 +62,7 @@ export const getUserJobs = async (
 
 export const cancelJob = async (jobId: string) => {
   try {
-    console.log("Cancelling job:", jobId);
+
     const response = await api.put(ENDPOINTS.JOB.CANCEL(jobId));
     return response.data;
   } catch (error) {
@@ -175,13 +175,47 @@ export const submitReport = async (reportData: {
   }
 };
 
+export const getReviewsForAssignment = async (assignmentId: string) => {
+  try {
+    const response = await api.get(ENDPOINTS.REVIEW.ASSIGNMENT(assignmentId));
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message: string }>;
+    throw new Error(axiosError.response?.data?.message || "Failed to fetch reviews");
+  }
+};
+
+export const updateReview = async (reviewId: string, reviewData: {
+  rating?: number;
+  comment?: string;
+  images?: string[];
+}) => {
+  try {
+    const response = await api.put(ENDPOINTS.REVIEW.BY_ID(reviewId), reviewData);
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message: string }>;
+    throw new Error(axiosError.response?.data?.message || "Failed to update review");
+  }
+};
+
+export const deleteReview = async (reviewId: string) => {
+  try {
+    const response = await api.delete(ENDPOINTS.REVIEW.BY_ID(reviewId));
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<{ message: string }>;
+    throw new Error(axiosError.response?.data?.message || "Failed to delete review");
+  }
+};
+
 export const markAsPaidByCash = async (assignmentId: string) => {
   try {
     const response = await api.post(ENDPOINTS.ASSIGNMENT.MARK_PAID_CASH(assignmentId));
-     console.log('Mark as paid response:', response.data);
+
     return response.data;
   } catch (error) {
-    console.log('Mark as paid error:', error);
+
     const axiosError = error as AxiosError<{ message: string }>;
     throw new Error(axiosError.response?.data?.message || "Failed to mark as paid");
   }

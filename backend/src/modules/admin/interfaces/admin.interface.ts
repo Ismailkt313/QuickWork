@@ -5,9 +5,6 @@ import { ROLES } from "../../../constants/roles";
 import { VERIFICATION_STATUS } from "../../../constants/verification";
 import { IApiResponse, IPaginatedResponse } from "../../../types/api.types";
 
-
-
-
 export interface IUserListQuery {
     page: number;
     limit: number;

@@ -52,7 +52,7 @@ const AdminLogin = () => {
       setLoading(true);
       setApiError(null);
       const response = await adminLogin({ email, password });
-      console.log("Admin Login Response:", response.data.data);
+
       localStorage.setItem("adminAccessToken", response.data.data.accessToken);
       navigate("/admin");
     } catch (err) {

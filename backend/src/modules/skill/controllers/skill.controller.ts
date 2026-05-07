@@ -3,7 +3,6 @@ import { ISkillService } from '../interfaces/skill.interface';
 import { ISkillController } from '../interfaces/skill.interface';
 import {HttpStatusCode} from "../../../constants/httpStatusCode"
 
-
 export class SkillController implements ISkillController {
     private _skillService: ISkillService;
 

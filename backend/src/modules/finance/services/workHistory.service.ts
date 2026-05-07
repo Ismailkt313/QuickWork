@@ -13,7 +13,6 @@ export class WorkHistoryService implements IWorkHistoryService {
         this._jobRepo = jobRepo;
     }
 
-
     async createFromAssignment(assignment: any): Promise<IWorkHistory> {
 
         let clientId = assignment.clientId;
@@ -32,11 +31,9 @@ export class WorkHistoryService implements IWorkHistoryService {
             throw new Error('WorkHistory creation failed: clientId not found');
         }
 
-
         const totalAmount = assignment.payment?.amount || 0;
         const platformFee = totalAmount * 0.10;
         const providerAmount = totalAmount - platformFee;
-
 
         let finalStatus: 'COMPLETED' | 'CANCELLED' | 'ABSENT' = 'COMPLETED';
         if (assignment.workStatus === 'cancelled') finalStatus = 'CANCELLED';

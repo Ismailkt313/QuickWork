@@ -24,7 +24,7 @@ export class AuthController implements IAuthController {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+            maxAge: 7 * 24 * 60 * 60 * 1000
         });
     }
 
@@ -89,7 +89,7 @@ export class AuthController implements IAuthController {
             const result = await this._authService.login(dto);
             if (result.success && result.data?.refreshToken) {
                 this.setTokenCookie(res, result.data.refreshToken);
-                // Remove refreshToken from the JSON response to prevent frontend from storing it in localStorage
+
                 delete (result.data as any).refreshToken;
             }
             res.status(HttpStatusCode.OK).json(result);

@@ -5,8 +5,6 @@ import { UserModel } from "../modules/auth/models/user.model";
 import { HttpStatusCode } from "../constants/httpStatusCode";
 import { ITokenPayload } from "../modules/auth/interfaces/auth.interface";
 
-
-
 declare module "express-serve-static-core" {
     interface Request {
         user?: ITokenPayload;

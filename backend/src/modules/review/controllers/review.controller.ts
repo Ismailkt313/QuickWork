@@ -35,12 +35,16 @@ export class ReviewController implements IReviewController {
     public getReviewsForUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { userId } = req.params;
-            const reviews = await this._reviewService.getReviewsForUser(userId as string);
-            
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const reviewsRes = await this._reviewService.getReviewsForUser(userId as string, page, limit);
+
             res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: SuccessMessages.REVIEWS_FETCHED,
-                data: reviews.map(mapReviewToResponseDTO)
+                data: reviewsRes.data.map(mapReviewToResponseDTO),
+                pagination: reviewsRes.pagination,
+                meta: reviewsRes.meta
             });
         } catch (error) {
             next(error);
@@ -65,12 +69,70 @@ export class ReviewController implements IReviewController {
     public getMyReviews = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = (req.user as any).userId;
-            const reviews = await this._reviewService.getReviewsForUser(userId as string);
-            
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const reviewsRes = await this._reviewService.getReviewsForUser(userId as string, page, limit);
+
             res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: "Your reviews fetched successfully",
-                data: reviews.map(mapReviewToResponseDTO)
+                data: reviewsRes.data.map(mapReviewToResponseDTO),
+                pagination: reviewsRes.pagination,
+                meta: reviewsRes.meta
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    public getProviderReviewsForClient = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { userId } = req.params;
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+
+            const result = await this._reviewService.getProviderReviewsForClient(userId as string, page, limit);
+
+            res.status(HttpStatusCode.OK).json({
+                success: true,
+                message: "Provider reviews for client fetched successfully",
+                data: result.data,
+                pagination: result.pagination,
+                meta: result.meta
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    public updateReview = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { reviewId } = req.params;
+            const reviewerId = (req.user as any).userId;
+            const { rating, comment, images } = req.body;
+
+            const updated = await this._reviewService.updateReview(reviewId as string, reviewerId, { rating, comment, images });
+
+            res.status(HttpStatusCode.OK).json({
+                success: true,
+                message: "Review updated successfully",
+                data: mapReviewToResponseDTO(updated)
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    public deleteReview = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { reviewId } = req.params;
+            const reviewerId = (req.user as any).userId;
+
+            await this._reviewService.deleteReview(reviewId as string, reviewerId);
+
+            res.status(HttpStatusCode.OK).json({
+                success: true,
+                message: "Review deleted successfully"
             });
         } catch (error) {
             next(error);

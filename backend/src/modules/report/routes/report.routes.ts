@@ -7,10 +7,8 @@ import { ROLES } from '../../../constants/roles';
 export const createReportRouter = (reportController: ReportController): Router => {
     const router = Router();
 
-    
     router.post('/', authMiddleware, reportController.createReport);
 
-    
     router.get('/', authMiddleware, authorizeRoles(ROLES.ADMIN), reportController.getAllReports);
     router.patch('/:id', authMiddleware, authorizeRoles(ROLES.ADMIN), reportController.updateReportStatus);
 

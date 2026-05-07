@@ -22,6 +22,9 @@ export const ENDPOINTS = {
     RESET: "/provider/reset",
     ME_PROFILE: "/provider/me/profile",
     DETAILS: (id: string) => `/provider/${id}`,
+    AVAILABILITY: "/provider/availability",
+    BLOCKED_DATES: "/provider/blocked-dates",
+    BLOCKED_DATES_DELETE: (id: string) => `/provider/blocked-dates/${id}`,
   },
   JOB: {
     CREATE: "/job",
@@ -73,6 +76,7 @@ export const ENDPOINTS = {
   FINANCE: {
     WALLET_ME: "/wallet/me",
     WALLET_TRANSACTIONS: "/wallet/transactions",
+    WALLET_WITHDRAW: "/wallet/withdraw",
     WALLET_ADMIN_OVERVIEW: "/wallet/admin/overview",
     PAYMENTS_ADMIN_EARNINGS: "/payments/admin/earnings",
     PAYMENTS_HISTORY_PROVIDER: "/payments/history/provider",
@@ -92,6 +96,9 @@ export const ENDPOINTS = {
     ME: "/review/me",
     CREATE: "/review",
     USER: (id: string) => `/review/user/${id}`,
+    ASSIGNMENT: (id: string) => `/review/assignment/${id}`,
+    CLIENT_REVIEWS: (id: string) => `/review/client/${id}`,
+    BY_ID: (id: string) => `/review/${id}`,
   },
   REPORT: {
     CREATE: "/report",

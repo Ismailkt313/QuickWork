@@ -12,7 +12,6 @@ export class AdminFinanceService implements IAdminFinanceService {
         this._walletRepo = walletRepo;
     }
 
-    
     async getFinanceOverview() {
         const overview = await this._platformTransactionRepo.getAdminFinanceOverview() || {
             totalPlatformEarnings: 0,
@@ -32,15 +31,15 @@ export class AdminFinanceService implements IAdminFinanceService {
         };
     }
 
-    
     async getTransactions(query: {
         page?: number;
         limit?: number;
         paymentMethod?: string;
         startDate?: string;
         endDate?: string;
+        search?: string;
     }) {
-        const { page = 1, limit = 10, paymentMethod, startDate, endDate } = query;
+        const { page = 1, limit = 10, paymentMethod, startDate, endDate, search } = query;
         const skip = (page - 1) * limit;
 
         const filter: any = {};
@@ -52,6 +51,14 @@ export class AdminFinanceService implements IAdminFinanceService {
             filter.createdAt = {};
             if (startDate) filter.createdAt.$gte = new Date(startDate);
             if (endDate) filter.createdAt.$lte = new Date(endDate);
+        }
+
+        if (search) {
+            filter.$or = [
+                { razorpay_payment_id: { $regex: search, $options: 'i' } },
+                { $expr: { $regexMatch: { input: { $toString: "$jobId" }, regex: search, options: "i" } } },
+                { $expr: { $regexMatch: { input: { $toString: "$providerId" }, regex: search, options: "i" } } }
+            ];
         }
 
         const [transactions, total] = await this._platformTransactionRepo.getTransactionsWithCount(filter, skip, limit);

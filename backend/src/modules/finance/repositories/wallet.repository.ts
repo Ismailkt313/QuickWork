@@ -41,14 +41,50 @@ export class WalletRepository implements IWalletRepository {
         return WalletModel.find().populate('providerId');
     }
 
-    async getTransactionsWithCount(providerId: string, skip: number, limit: number): Promise<[IWalletTransaction[], number]> {
-        return Promise.all([
-            WalletTransactionModel.find({ providerId: new Types.ObjectId(providerId) })
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(limit),
-            WalletTransactionModel.countDocuments({ providerId: new Types.ObjectId(providerId) })
+    async getTransactionsWithCount(providerId: string, skip: number, limit: number, search?: string, type?: string, source?: string): Promise<[IWalletTransaction[], number]> {
+        const baseMatch: any = { providerId: new Types.ObjectId(providerId) };
+
+        if (type) baseMatch.type = type;
+        if (source) baseMatch.source = source;
+
+        const pipeline: any[] = [{ $match: baseMatch }];
+
+        if (search) {
+            const trimmed = search.trim();
+            const searchRegex = new RegExp(trimmed, 'i');
+
+            pipeline.push(
+                {
+                    $addFields: {
+                        idString: { $toString: '$_id' }
+                    }
+                },
+                {
+                    $match: {
+                        $or: [
+                            { idString: { $regex: trimmed, $options: 'i' } },
+                            { source: searchRegex },
+                            { type: searchRegex }
+                        ]
+                    }
+                }
+            );
+        }
+
+        const countPipeline = [...pipeline, { $count: 'total' }];
+        const dataPipeline = [
+            ...pipeline,
+            { $sort: { createdAt: -1 as const } },
+            { $skip: skip },
+            { $limit: limit }
+        ];
+
+        const [data, countResult] = await Promise.all([
+            WalletTransactionModel.aggregate(dataPipeline),
+            WalletTransactionModel.aggregate(countPipeline)
         ]);
+
+        return [data as IWalletTransaction[], countResult[0]?.total || 0];
     }
 
     async getPendingDues(): Promise<number> {

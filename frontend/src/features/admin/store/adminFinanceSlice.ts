@@ -9,7 +9,7 @@ interface FinanceOverview {
     totalPendingDues: number;
 }
 
-interface Transaction {
+export interface Transaction {
     _id: string;
     jobId: string;
     workHistoryId: string;
@@ -22,7 +22,7 @@ interface Transaction {
     createdAt: string;
 }
 
-interface AdminFinanceState {
+export interface AdminFinanceState {
     overview: FinanceOverview | null;
     transactions: Transaction[];
     pagination: {
@@ -88,7 +88,7 @@ const adminFinanceSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            
+
             .addCase(fetchFinanceOverview.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -101,7 +101,7 @@ const adminFinanceSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload as string;
             })
-            
+
             .addCase(fetchTransactions.pending, (state) => {
                 state.loading = true;
                 state.error = null;

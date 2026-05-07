@@ -2,6 +2,7 @@ import { AxiosError } from "axios";
 import { api } from "../../../services/api";
 import { ENDPOINTS } from "../../../constants/endpoints";
 import { cloudinaryService } from "../../../services/cloudinaryService";
+import type { Availability } from "../store/availabilitySlice";
 
 interface BaseResponse<T = unknown> {
   success: boolean;
@@ -125,8 +126,8 @@ export const acceptOffer = async (jobId: string) => {
     const err = error as AxiosError<{ message: string }>;
     throw new Error(
       err.response?.data?.message ||
-        err.message ||
-        "Failed to accept offer",
+      err.message ||
+      "Failed to accept offer",
     );
   }
 };
@@ -134,7 +135,7 @@ export const acceptOffer = async (jobId: string) => {
 export const rejectOffer = async (jobId: string) => {
   try {
     const response = await api.put(ENDPOINTS.JOB.OFFER_REJECT(jobId));
-    console.log("enthoo error ind ivida", response.data);
+
     return response.data;
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
@@ -198,9 +199,9 @@ export const submitAssignmentProof = async (
 
 export const getMyProfile = async <T = unknown>(): Promise<BaseResponse<T>> => {
   try {
-    console.log("Fetching profile...");
+
     const response = await api.get(ENDPOINTS.PROVIDER.PROFILE);
-    console.log(response.data, "response.data");
+
     return response.data;
   } catch (error) {
     const err = error as AxiosError<{ message: string }>;
@@ -322,6 +323,52 @@ export const submitReview = async (reviewData: {
   }
 };
 
+export const updateReview = async (id: string, reviewData: {
+  rating: number;
+  comment: string;
+  images?: string[];
+}) => {
+  try {
+    const response = await api.put(ENDPOINTS.REVIEW.BY_ID(id), reviewData);
+    return response.data;
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    throw new Error(err.response?.data?.message || "Failed to update review");
+  }
+};
+
+export const deleteReview = async (id: string) => {
+  try {
+    const response = await api.delete(ENDPOINTS.REVIEW.BY_ID(id));
+    return response.data;
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    throw new Error(err.response?.data?.message || "Failed to delete review");
+  }
+};
+
+export const getReviewsForAssignment = async (assignmentId: string) => {
+  try {
+    const response = await api.get(ENDPOINTS.REVIEW.ASSIGNMENT(assignmentId));
+    return response.data;
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    throw new Error(err.response?.data?.message || "Failed to fetch reviews");
+  }
+};
+
+export const getReviewsForUser = async (userId: string, page = 1, limit = 10) => {
+  try {
+    const response = await api.get(ENDPOINTS.REVIEW.USER(userId), {
+      params: { page, limit }
+    });
+    return response.data;
+  } catch (error) {
+    const err = error as AxiosError<{ message: string }>;
+    throw new Error(err.response?.data?.message || "Failed to fetch user reviews");
+  }
+};
+
 export const submitReport = async (reportData: {
   assignmentId: string;
   reportedUserId: string;
@@ -367,4 +414,49 @@ export const rejectPayment = async (id: string) => {
     const err = error as AxiosError<{ message: string }>;
     throw new Error(err.response?.data?.message || "Failed to reject payment");
   }
+};
+
+export const providerService = {
+  submitProviderApplication,
+  availableJobs,
+  fetchallskills,
+  fetchSkills,
+  fetchLocations,
+  acceptJob,
+  acceptOffer,
+  rejectOffer,
+  getAssignments,
+  getAssignmentById,
+  updateAssignmentStatus,
+  submitAssignmentProof,
+  getMyProfile,
+  updateProviderProfile,
+  uploadImage,
+  uploadMultipleImages,
+  resetProviderApplication,
+  cancelAssignmentByProvider,
+  submitReview,
+  updateReview,
+  deleteReview,
+  getReviewsForAssignment,
+  getReviewsForUser,
+  submitReport,
+  confirmPayment,
+  providerMarkAsPaid,
+  rejectPayment,
+
+  updateAvailability: async (availability: Availability[]) => {
+    const response = await api.patch(ENDPOINTS.PROVIDER.AVAILABILITY, { availability });
+    return response.data;
+  },
+
+  addBlockedDate: async (data: { startDate: string; endDate: string; reason: string }) => {
+    const response = await api.post(ENDPOINTS.PROVIDER.BLOCKED_DATES, data);
+    return response.data;
+  },
+
+  deleteBlockedDate: async (id: string) => {
+    const response = await api.delete(ENDPOINTS.PROVIDER.BLOCKED_DATES_DELETE(id));
+    return response.data;
+  },
 };
