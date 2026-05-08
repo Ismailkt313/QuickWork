@@ -33,6 +33,7 @@ export interface IWalletTransaction extends Document {
     amount: number;
     balanceAfter: number;
     createdAt: Date;
+    transactionCode: string;
 }
 
 export interface IInvoice extends Document {

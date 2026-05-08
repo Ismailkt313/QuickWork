@@ -43,12 +43,25 @@ const AssignmentSchema: Schema = new Schema(
             amount: { type: Number },
             paidAt: { type: Date },
             transactionId: { type: String }
+        },
+        assignmentCode: {
+            type: String,
+            unique: true,
+            index: true
         }
     },
     {
         timestamps: true
     }
 );
+
+AssignmentSchema.pre('save', function(next) {
+    if (this.isNew && !this.get('assignmentCode')) {
+        const { generateAssignmentCode } = require('../../../utils/idGenerator');
+        this.set('assignmentCode', generateAssignmentCode());
+    }
+    next();
+});
 AssignmentSchema.index({ freelancerId: 1 });
 AssignmentSchema.index({ jobId: 1 });
 AssignmentSchema.index({ workStatus: 1 });

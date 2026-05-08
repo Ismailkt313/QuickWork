@@ -122,7 +122,8 @@ export class JobController implements IJobController {
             }
 
             const jobId = req.params.jobId as string;
-            const result = await this._jobService.acceptOffer(jobId, userId);
+            const { amount } = req.body;
+            const result = await this._jobService.acceptOffer(jobId, userId, amount);
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);
@@ -154,7 +155,8 @@ export class JobController implements IJobController {
             }
 
             const jobId = req.params.jobId as string;
-            const result = await this._jobService.acceptJob(jobId, userId);
+            const { amount } = req.body;
+            const result = await this._jobService.acceptJob(jobId, userId, amount);
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);

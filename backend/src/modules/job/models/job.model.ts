@@ -86,7 +86,12 @@ const JobSchema: Schema = new Schema(
             enum: Object.values(JOB_STATUS),
             default: JOB_STATUS.OPEN
         },
-        rejectionReason: { type: String }
+        rejectionReason: { type: String },
+        jobCode: {
+            type: String,
+            unique: true,
+            index: true
+        }
     },
     {
         timestamps: true
@@ -98,6 +103,11 @@ JobSchema.pre('save', function(next) {
         if (this.get('visibility') === JOB_VISIBILITY.PRIVATE) {
             this.set('freelancersNeeded', 1);
         }
+    }
+
+    if (this.isNew && !this.get('jobCode')) {
+        const { generateJobCode } = require('../../../utils/idGenerator');
+        this.set('jobCode', generateJobCode());
     }
     next();
 });

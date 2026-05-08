@@ -59,6 +59,7 @@ export class JobRepository implements IJobRepository {
             const searchRegex = new RegExp(filters.search, 'i');
 
             const searchConditions: any[] = [
+                { jobCode: searchRegex },
                 { title: searchRegex },
                 { description: searchRegex }
             ];
@@ -204,6 +205,7 @@ export class JobRepository implements IJobRepository {
         if (filters.search) {
             const searchRegex = new RegExp(filters.search, 'i');
             query.$or = [
+                { jobCode: searchRegex },
                 { title: searchRegex },
                 { description: searchRegex }
             ];
@@ -290,6 +292,7 @@ export class JobRepository implements IJobRepository {
             const userIds = matchingUsers.map(u => u._id);
 
             query.$or = [
+                { jobCode: searchRegex },
                 { title: searchRegex },
                 { description: searchRegex },
                 { userId: { $in: userIds } }

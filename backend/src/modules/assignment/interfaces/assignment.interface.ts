@@ -45,6 +45,7 @@ export interface IAssignment extends Document {
     };
     createdAt: Date;
     updatedAt: Date;
+    assignmentCode: string;
 }
 
 export interface IAssignmentRepository {

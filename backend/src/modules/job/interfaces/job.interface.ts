@@ -43,6 +43,7 @@ export interface IJob extends Document {
     status: JOB_STATUS;
     createdAt: Date;
     updatedAt: Date;
+    jobCode: string;
 }
 
 export interface IJobPaginationResponse {
@@ -77,9 +78,9 @@ export interface IJobService {
     availableJobs(page: number, limit: number, filters?: any, userId?: string): Promise<IJobPaginationResponse>;
     getJobById(id: string, userId?: string): Promise<{ success: boolean; data?: JobResponseDTO; message?: string }>;
     getDirectOffers(userId: string, page?: number, limit?: number, search?: string, filter?: string): Promise<IJobPaginationResponse>;
-    acceptOffer(jobId: string, userId: string): Promise<{ success: boolean; message: string }>;
+    acceptOffer(jobId: string, userId: string, amount?: number): Promise<{ success: boolean; message: string }>;
     rejectOffer(jobId: string, userId: string, reason?: string): Promise<{ success: boolean; message: string }>;
-    acceptJob(jobId: string, userId: string): Promise<{ success: boolean; message: string }>;
+    acceptJob(jobId: string, userId: string, amount?: number): Promise<{ success: boolean; message: string }>;
     cancelJob(jobId: string, userId: string): Promise<{ success: boolean; message: string }>;
 }
 

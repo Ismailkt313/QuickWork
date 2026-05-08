@@ -23,6 +23,10 @@ export interface JobResponseDTO {
   postedAt: string;
   skills: string[];
   budget: string;
+  budgetRange: {
+    min: number;
+    max: number;
+  };
   clientRating: number;
   clientReviewsCount: number;
 
@@ -53,6 +57,7 @@ export interface JobResponseDTO {
       totalAmount: number;
     };
   }[];
+  jobCode: string;
 }
 
 export const mapJobToResponseDTO = async (job: any, assignmentData?: any, clientMetrics?: { averageRating: number, totalReviews: number }): Promise<JobResponseDTO> => {
@@ -135,6 +140,10 @@ export const mapJobToResponseDTO = async (job: any, assignmentData?: any, client
 
     skills: skill?.name ? [skill.name] : [],
     budget: formatBudget(job.budget),
+    budgetRange: {
+      min: job.budget?.min || 0,
+      max: job.budget?.max || 0,
+    },
 
     applicants: job.applicantsCount || 0,
     status: job.status,
@@ -164,5 +173,6 @@ export const mapJobToResponseDTO = async (job: any, assignmentData?: any, client
     } : undefined,
     clientRating: clientMetrics?.averageRating || 0,
     clientReviewsCount: clientMetrics?.totalReviews || 0,
+    jobCode: job.jobCode
   };
 };

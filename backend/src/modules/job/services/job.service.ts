@@ -333,7 +333,7 @@ export class JobService implements IJobService {
         };
     }
 
-    async acceptJob(jobId: string, userId: string): Promise<{ success: boolean; message: string }> {
+    async acceptJob(jobId: string, userId: string, amount?: number): Promise<{ success: boolean; message: string }> {
         const provider = await this._serviceProviderRepository.findByUserId(userId);
         if (!provider) {
             return { success: false, message: ErrorMessages.PROVIDER_NOT_FOUND };
@@ -401,6 +401,12 @@ export class JobService implements IJobService {
         if (!updatedJob) {
             return { success: false, message: ErrorMessages.JOB_FULLY_ASSIGNED };
         }
+        
+        if (amount !== undefined) {
+            if (amount < updatedJob.budget.min || amount > updatedJob.budget.max) {
+                return { success: false, message: "Amount must remain within client budget range" };
+            }
+        }
 
         const isOutOfDistrict = provider.location?.id?.toString() !== updatedJob.location?.district?._id?.toString();
 
@@ -414,6 +420,7 @@ export class JobService implements IJobService {
                 invitedAt: updatedJob.createdAt,
                 respondedAt: new Date()
             },
+            payment: amount !== undefined ? { amount, status: 'pending' } as any : undefined,
             workStatus: WORK_STATUS.ASSIGNED,
             schedule: updatedJob.schedule,
             isOutOfDistrict,
@@ -437,7 +444,7 @@ export class JobService implements IJobService {
         return { success: true, message: SuccessMessages.JOB_ACCEPTED };
     }
 
-    async acceptOffer(jobId: string, userId: string): Promise<{ success: boolean; message: string }> {
+    async acceptOffer(jobId: string, userId: string, amount?: number): Promise<{ success: boolean; message: string }> {
         const provider = await this._serviceProviderRepository.findByUserId(userId);
         if (!provider) {
             return { success: false, message: ErrorMessages.PROVIDER_NOT_FOUND };
@@ -506,6 +513,12 @@ export class JobService implements IJobService {
             return { success: false, message: ErrorMessages.OFFER_INVALID };
         }
 
+        if (amount !== undefined) {
+            if (amount < updatedJob.budget.min || amount > updatedJob.budget.max) {
+                return { success: false, message: "Amount must remain within client budget range" };
+            }
+        }
+
         await this._assignmentService.createAssignment({
             jobId: updatedJob._id as any,
             freelancerId: provider._id as any,
@@ -516,6 +529,7 @@ export class JobService implements IJobService {
                 invitedAt: updatedJob.createdAt,
                 respondedAt: new Date()
             },
+            payment: amount !== undefined ? { amount, status: 'pending' } as any : undefined,
             workStatus: WORK_STATUS.ASSIGNED,
             schedule: updatedJob.schedule,
             isOutOfDistrict,

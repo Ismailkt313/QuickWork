@@ -39,6 +39,7 @@ export interface AssignmentResponseDTO {
         paidAt?: string;
         transactionId?: string;
     };
+    assignmentCode: string;
 }
 
 export const mapAssignmentToResponseDTO = async (assignment: any): Promise<AssignmentResponseDTO> => {
@@ -80,6 +81,7 @@ export const mapAssignmentToResponseDTO = async (assignment: any): Promise<Assig
             amount: assignment.payment.amount,
             paidAt: assignment.payment.paidAt ? assignment.payment.paidAt.toISOString() : '',
             transactionId: assignment.payment.transactionId
-        } : undefined
+        } : undefined,
+        assignmentCode: assignment.assignmentCode
     };
 };

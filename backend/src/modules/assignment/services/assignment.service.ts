@@ -45,7 +45,7 @@ export class AssignmentService implements IAssignmentService {
             const job = await this._jobRepository.findById(jobId);
 
             if (job && job.budget) {
-                const amount = (job.budget.min + job.budget.max) / 2;
+                const amount = data.payment?.amount || (job.budget.min + job.budget.max) / 2;
                 data.payment = {
                     status: PAYMENT_STATUS.PENDING,
                     amount: amount
@@ -74,14 +74,19 @@ export class AssignmentService implements IAssignmentService {
         }
 
         if (search) {
+            const searchRegex = new RegExp(search, 'i');
             const matchingJobs = await this._jobRepository.find({
                 $or: [
-                    { title: { $regex: search, $options: 'i' } },
-                    { description: { $regex: search, $options: 'i' } }
+                    { jobCode: searchRegex },
+                    { title: searchRegex },
+                    { description: searchRegex }
                 ]
             });
             const jobIds = matchingJobs.map((j: any) => j._id.toString());
-            query.jobId = { $in: jobIds };
+            query.$or = [
+                { assignmentCode: searchRegex },
+                { jobId: { $in: jobIds } }
+            ];
         }
 
         const [assignments, total, allCount, activeCount, completedCount, cancelledCount] = await Promise.all([

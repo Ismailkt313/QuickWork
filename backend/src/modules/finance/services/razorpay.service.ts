@@ -5,6 +5,11 @@ import { IRazorpayService } from '../interfaces/finance.interface';
 export class RazorpayService implements IRazorpayService {
 
   async createOrder(amount: number, receiptId: string): Promise<any> {
+    if (!razorpayInstance) {
+      console.error("Razorpay Error: key_id is missing in environment variables");
+      throw new Error("Payment service is currently unavailable");
+    }
+
     const options = {
       amount: Math.round(amount * 100),
       currency: "INR",

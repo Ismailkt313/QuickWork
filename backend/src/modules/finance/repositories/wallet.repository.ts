@@ -63,6 +63,7 @@ export class WalletRepository implements IWalletRepository {
                     $match: {
                         $or: [
                             { idString: { $regex: trimmed, $options: 'i' } },
+                            { transactionCode: { $regex: searchRegex } },
                             { source: searchRegex },
                             { type: searchRegex }
                         ]
