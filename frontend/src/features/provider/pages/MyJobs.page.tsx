@@ -15,6 +15,7 @@ import {
 import { toast } from "react-toastify";
 import MyJobCard from "../components/MyJobCard";
 import { getAssignments } from "../services/provider.service";
+import useDebounce from "../../../hooks/useDebounce";
 import { AxiosError } from "axios";
 
 export interface IAssignment {
@@ -67,6 +68,7 @@ const MyJobsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [filterTab, setFilterTab] = useState<TabType>("active");
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 500);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalJobs, setTotalJobs] = useState(0);
   const [limit] = useState(10);
@@ -75,7 +77,7 @@ const MyJobsPage: React.FC = () => {
   const fetchMyJobs = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await getAssignments(currentPage, limit, searchQuery, filterTab);
+      const response = await getAssignments(currentPage, limit, debouncedSearch, filterTab);
       if (response.success) {
         setAssignments(response.data);
         setTotalJobs(response.total || response.data.length);
@@ -87,22 +89,15 @@ const MyJobsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, limit, searchQuery, filterTab]);
+  }, [currentPage, limit, debouncedSearch, filterTab]);
 
   useEffect(() => {
     fetchMyJobs();
   }, [fetchMyJobs]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (currentPage !== 1) {
-        setCurrentPage(1);
-      } else {
-        fetchMyJobs();
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchQuery, currentPage, fetchMyJobs]);
+    setCurrentPage(1);
+  }, [debouncedSearch]);
 
   const totalPages = Math.ceil(totalJobs / limit);
   const activeTab = TABS.find(t => t.id === filterTab)!;

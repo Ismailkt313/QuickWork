@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../../../services/api";
 import { ENDPOINTS } from "../../../../constants/endpoints";
 import MainLayout from "../../layout/MainLayout";
 import { useLandingData } from "../../hooks/useLandingData";
+import useDebounce from "../../../../hooks/useDebounce";
 import LocationModal from "../../landingPage/components/LocationModal";
 import type { Location } from "../../landingPage/services/landingService";
 
@@ -52,24 +53,8 @@ const AllServicesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 350);
   const [modalOpen, setModalOpen] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => {
-    if (debounceRef.current !== null) {
-      clearTimeout(debounceRef.current);
-    }
-
-    debounceRef.current = setTimeout(() => {
-      setDebouncedSearch(search);
-    }, 350);
-
-    return () => {
-      if (debounceRef.current !== null) {
-        clearTimeout(debounceRef.current);
-      }
-    };
-  }, [search]);
   const fetchSkills = useCallback(async (q: string, locId?: string) => {
     setLoading(true);
     setError(null);

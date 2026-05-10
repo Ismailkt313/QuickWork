@@ -7,6 +7,7 @@ import { getConversations, deleteConversation, deleteMessage } from "../api/mess
 import { useSearchParams } from "react-router-dom";
 import { Sidebar } from "../components/Sidebar";
 import ConfirmModal from "../../../shared/components/ui/ConfirmModal";
+import useDebounce from "../../../hooks/useDebounce";
 import { toast } from "react-toastify";
 import type { IUser } from "../../../types/user.types";
 import type { Conversation, Participant } from "../types";
@@ -21,6 +22,7 @@ const MessagesPage: React.FC = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
   const [loadingConversations, setLoadingConversations] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [searchParams] = useSearchParams();
   const [placeholderAdded, setPlaceholderAdded] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{ show: boolean; loading: boolean }>({
@@ -314,7 +316,7 @@ const MessagesPage: React.FC = () => {
     .filter((c) => {
       if (!c.participants) return false;
       const recipientInfo = getRecipientDetails(c);
-      return recipientInfo.name.toLowerCase().includes(searchQuery.toLowerCase());
+      return recipientInfo.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
     })
     .sort((a, b) => {
       const dateA = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;

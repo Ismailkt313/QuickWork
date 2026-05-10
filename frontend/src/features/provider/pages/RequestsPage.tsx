@@ -27,6 +27,7 @@ import { ENDPOINTS } from "../../../constants/endpoints";
 import type { JobDetail } from "../types/job";
 import type { PaginationInfo } from "../../user/serviceProviders/services/providersService";
 import { useProviderLocation } from "../hooks/useProviderLocation";
+import useDebounce from "../../../hooks/useDebounce";
 
 type FilterType = "all" | "pending" | "accepted" | "rejected";
 
@@ -50,7 +51,7 @@ const RequestsPage: React.FC = () => {
   const [verificationStatus, setVerificationStatus] = useState<string>("pending");
   const [isPendingModalOpen, setIsPendingModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 500);
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<PaginationInfo>({
     total: 0,
@@ -95,12 +96,8 @@ const RequestsPage: React.FC = () => {
   }, [currentPage, debouncedSearch, filter, pagination.limit]);
 
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-      setCurrentPage(1);
-    }, 500);
-    return () => clearTimeout(handler);
-  }, [searchTerm]);
+    setCurrentPage(1);
+  }, [debouncedSearch]);
 
   useEffect(() => {
     fetchRequests();

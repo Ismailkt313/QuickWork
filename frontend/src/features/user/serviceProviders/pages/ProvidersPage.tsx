@@ -6,6 +6,7 @@ import CompactProviderCard from "../../../../components/marketplace/CompactProvi
 import Pagination from "../../../../components/ui/Pagination";
 import LocationModal from "../../landingPage/components/LocationModal";
 import { useProviders } from "../../../provider/hooks/useProviders";
+import useDebounce from "../../../../hooks/useDebounce";
 import {
   getLandingData,
   type Location,
@@ -24,14 +25,8 @@ const ProvidersPage: React.FC = () => {
   );
   const [modalOpen, setModalOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debouncedSearch = useDebounce(searchInput, 500);
 
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(searchInput);
-    }, 500);
-    return () => clearTimeout(handler);
-  }, [searchInput]);
 
   useEffect(() => {
     const savedLocId = localStorage.getItem("locationId");

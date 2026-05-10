@@ -189,7 +189,7 @@ const MobileProfileDrawer: React.FC<MobileProfileDrawerProps> = ({
             <NavItem 
               icon={<RiQuestionLine />} 
               label="Help Center" 
-              onClick={() => { /* Help path */ onClose(); }} 
+              onClick={() => { navigate("/help-center"); onClose(); }} 
             />
           </div>
 

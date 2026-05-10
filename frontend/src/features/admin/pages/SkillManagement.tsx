@@ -11,6 +11,7 @@ import {
     RiArrowRightSLine
 } from "react-icons/ri";
 import { toast } from "react-toastify";
+import useDebounce from "../../../hooks/useDebounce";
 import "../admin.css";
 
 const SkillManagement: React.FC = () => {
@@ -18,8 +19,8 @@ const SkillManagement: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [search, setSearch] = useState("");
     const [searchInput, setSearchInput] = useState("");
+    const debouncedSearch = useDebounce(searchInput, 500);
     const limit = 10;
 
     // Modal states
@@ -31,7 +32,7 @@ const SkillManagement: React.FC = () => {
     const fetchSkills = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await adminSkillService.getSkills(page, limit, search);
+            const response = await adminSkillService.getSkills(page, limit, debouncedSearch);
             if (response.success) {
                 setSkills(response.data);
                 setTotalPages(response.pagination.totalPages);
@@ -42,17 +43,15 @@ const SkillManagement: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [page, search]);
+    }, [page, debouncedSearch]);
 
     useEffect(() => {
         fetchSkills();
     }, [fetchSkills]);
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        setSearch(searchInput);
+    useEffect(() => {
         setPage(1);
-    };
+    }, [debouncedSearch]);
 
     const handleToggleStatus = async (id: string) => {
         try {
@@ -141,7 +140,7 @@ const SkillManagement: React.FC = () => {
             </div>
 
             {/* Filter Bar */}
-            <form className="admin-filter-bar" onSubmit={handleSearch}>
+            <div className="admin-filter-bar">
                 <RiSearchLine className="admin-search-icon" />
                 <input
                     type="text"
@@ -150,8 +149,7 @@ const SkillManagement: React.FC = () => {
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                 />
-                <button type="submit" className="btn btn-primary btn-sm px-4 rounded-3">Search</button>
-            </form>
+            </div>
 
             {/* Table */}
             <div className="admin-table-card">

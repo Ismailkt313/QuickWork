@@ -7,6 +7,7 @@ import AuthRouter from "./app/router/AuthRouter";
 import AdminRouter from "./app/router/AdminRouter";
 import ProviderRouter from "./app/router/ProviderRouter";
 import UserRouter from "./app/router/UserRouter";
+import HelpCenterRouter from "./features/helpCenter/router/HelpCenterRouter";
 
 const App = () => {
   return (
@@ -43,6 +44,7 @@ const App = () => {
         <Route path="/provider/*" element={<ProviderRouter />} />
 
         <Route path="/user/*" element={<UserRouter />} />
+        <Route path="/help-center/*" element={<HelpCenterRouter />} />
 
         <Route path="*" element={<div>Page Not Found</div>} />
       </Routes>

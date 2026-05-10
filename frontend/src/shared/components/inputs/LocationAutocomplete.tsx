@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { FiMapPin, FiSearch, FiLoader } from "react-icons/fi";
 import { GEOAPIFY_API_KEY } from "../../../features/user/jobs/constants/locationConstants";
+import useDebounce from "../../../hooks/useDebounce";
 
 interface Suggestion {
   formatted: string;
@@ -37,6 +38,7 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   disabled,
 }) => {
   const [query, setQuery] = useState("");
+  const debouncedQuery = useDebounce(query, 300);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -92,14 +94,10 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   );
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (query && !disabled) {
-        fetchSuggestions(query);
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [query, fetchSuggestions, disabled]);
+    if (debouncedQuery && !disabled) {
+      fetchSuggestions(debouncedQuery);
+    }
+  }, [debouncedQuery, fetchSuggestions, disabled]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

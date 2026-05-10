@@ -18,8 +18,8 @@ import {
   acceptJob,
 } from "../services/provider.service";
 import { toast } from "react-toastify";
-import "../pages/style/page.css";
 import { useProviderLocation } from "../hooks/useProviderLocation";
+import useDebounce from "../../../hooks/useDebounce";
 
 const SORT_OPTS = [
   { value: "newest", label: "Newest First" },
@@ -195,6 +195,7 @@ const AvailableJobsPage: React.FC = () => {
     }[]
   >([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 400);
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [budget, setBudget] = useState("Any Budget");
@@ -267,7 +268,7 @@ const AvailableJobsPage: React.FC = () => {
           selectedLocation || undefined,
           budgetRange.min,
           budgetRange.max,
-          searchQuery || undefined,
+          debouncedSearch || undefined,
         );
 
         if (response.success) {
@@ -284,12 +285,12 @@ const AvailableJobsPage: React.FC = () => {
         setIsFetching(false);
       }
     },
-    [selectedCategory, selectedLocation, budget, searchQuery],
+    [selectedCategory, selectedLocation, budget, debouncedSearch],
   );
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedLocation, selectedCategory, budget, searchQuery]);
+  }, [selectedLocation, selectedCategory, budget, debouncedSearch]);
 
   useEffect(() => {
     fetchData(currentPage);

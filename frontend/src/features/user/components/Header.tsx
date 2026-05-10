@@ -482,6 +482,30 @@ const Header: React.FC<HeaderProps> = ({
                             </div>
 
                             <div
+                              onClick={() => {
+                                navigate("/help-center");
+                                setProfileOpen(false);
+                              }}
+                              style={{
+                                padding: "10px 16px",
+                                cursor: "pointer",
+                                fontSize: 14,
+                                fontWeight: 500,
+                                color: "#475569",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = "#f1f5f9";
+                                e.currentTarget.style.color = "#0f172a";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = "transparent";
+                                e.currentTarget.style.color = "#475569";
+                              }}
+                            >
+                              Help Center
+                            </div>
+
+                            <div
                               onClick={handleLogout}
                               style={{
                                 padding: "10px 16px",

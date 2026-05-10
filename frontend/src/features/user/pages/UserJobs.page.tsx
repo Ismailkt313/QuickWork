@@ -19,6 +19,7 @@ import { CreateJobModal } from "../jobs/components/CreateJobModal";
 import { CancelJobModal } from "../components/CancelJobModal";
 import { toast } from "react-toastify";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import useDebounce from "../../../hooks/useDebounce";
 import { AxiosError } from "axios";
 
 const JOBS_PER_PAGE = 8;
@@ -39,7 +40,7 @@ const UserJobsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [filterTab, setFilterTab] = useState(initialTab);
   const [searchTerm, setSearchTerm] = useState(initialSearch);
-  const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
+  const debouncedSearch = useDebounce(searchTerm, 400);
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [pagination, setPagination] = useState({
     total: 0,
@@ -64,7 +65,6 @@ const UserJobsPage: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isInitialMount = useRef(true);
   const isSearchInitial = useRef(true);
 
@@ -82,19 +82,8 @@ const UserJobsPage: React.FC = () => {
       isSearchInitial.current = false;
       return;
     }
-
-    if (searchTimerRef.current) {
-      clearTimeout(searchTimerRef.current);
-    }
-    searchTimerRef.current = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-      setCurrentPage(1);
-    }, 400);
-
-    return () => {
-      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-    };
-  }, [searchTerm]);
+    setCurrentPage(1);
+  }, [debouncedSearch]);
 
   useEffect(() => {
     if (isInitialMount.current) {

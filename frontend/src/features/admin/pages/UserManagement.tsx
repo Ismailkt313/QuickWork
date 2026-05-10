@@ -3,6 +3,7 @@ import { getUsers, toggleBlockUser, getUserById } from "../services/adminApi";
 import type { IUserListItem } from "../types/admin.types";
 import UserDetailModal from "../components/UserDetailModal";
 import { ROLES } from "../../../constants/roles";
+import useDebounce from "../../../hooks/useDebounce";
 import axios from "axios";
 
 interface ToastItem {
@@ -25,8 +26,8 @@ const UserManagement = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
-  const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
+  const debouncedSearch = useDebounce(searchInput, 500);
   const limit = 4;
 
   const [toasts, setToasts] = useState<ToastItem[]>([]);
@@ -58,7 +59,7 @@ const UserManagement = () => {
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await getUsers({ page, limit, search: search || undefined });
+      const res = await getUsers({ page, limit, search: debouncedSearch || undefined });
 
       setUsers(res.data.data);
       setTotal(res.data.pagination.total);
@@ -68,17 +69,15 @@ const UserManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, search]);
+  }, [page, debouncedSearch]);
 
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
     setPage(1);
-    setSearch(searchInput);
-  };
+  }, [debouncedSearch]);
 
   const openBlockConfirm = (
     userId: string,
@@ -331,7 +330,7 @@ const UserManagement = () => {
         </button>
       </div>
 
-      <form className="admin-filter-bar" onSubmit={handleSearch}>
+      <div className="admin-filter-bar">
         <i className="bi bi-search admin-search-icon"></i>
         <input
           type="text"
@@ -349,7 +348,7 @@ const UserManagement = () => {
         <button type="button" className="admin-filter-btn">
           <i className="bi bi-sliders"></i> More Filters
         </button>
-      </form>
+      </div>
 
       <div className="admin-table-card">
         {loading ? (
