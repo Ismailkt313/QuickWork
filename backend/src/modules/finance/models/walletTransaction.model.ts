@@ -1,5 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import { IWalletTransaction } from '../interfaces/finance.interface';
+import { generateTransactionCode } from '../../../utils/idGenerator';
 
 const WalletTransactionSchema = new Schema<IWalletTransaction>({
     providerId: { type: Schema.Types.ObjectId, ref: 'ServiceProvider', required: true },
@@ -17,7 +18,6 @@ const WalletTransactionSchema = new Schema<IWalletTransaction>({
 
 WalletTransactionSchema.pre('save', function(next) {
     if (this.isNew && !this.get('transactionCode')) {
-        const { generateTransactionCode } = require('../../../utils/idGenerator');
         this.set('transactionCode', generateTransactionCode());
     }
     next();

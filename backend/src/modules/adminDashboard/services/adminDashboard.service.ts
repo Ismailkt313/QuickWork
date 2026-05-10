@@ -4,7 +4,6 @@ import { ServiceProviderModel } from "../../serviceProvider/models/serviceProvid
 import { JobModel } from "../../job/models/job.model";
 import { ReportModel } from "../../report/models/report.model";
 import { PlatformTransactionModel } from "../../finance/models/platformTransaction.model";
-import { WalletTransactionModel } from "../../finance/models/walletTransaction.model";
 import { IApiResponse } from "../../../types/api.types";
 import { JOB_STATUS } from "../../../constants/jobStatus";
 import { VERIFICATION_STATUS } from "../../../constants/verification";

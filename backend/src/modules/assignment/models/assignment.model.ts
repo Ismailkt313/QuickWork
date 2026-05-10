@@ -1,6 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 import { IAssignment } from '../interfaces/assignment.interface';
 import { ASSIGNMENT_STATUS, WORK_STATUS, ASSIGNMENT_TYPE } from '../../../constants/assignment';
+import { generateAssignmentCode } from '../../../utils/idGenerator';
 
 const AssignmentSchema: Schema = new Schema(
     {
@@ -57,7 +58,6 @@ const AssignmentSchema: Schema = new Schema(
 
 AssignmentSchema.pre('save', function(next) {
     if (this.isNew && !this.get('assignmentCode')) {
-        const { generateAssignmentCode } = require('../../../utils/idGenerator');
         this.set('assignmentCode', generateAssignmentCode());
     }
     next();

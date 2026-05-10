@@ -3,6 +3,7 @@ import { IJob } from '../interfaces/job.interface';
 import { JOB_STATUS } from '../../../constants/jobStatus';
 import { JOB_VISIBILITY } from '../../../constants/jobVisibility';
 import { JOB_DURATION_TYPE } from '../../../constants/jobDuration';
+import { generateJobCode } from '../../../utils/idGenerator';
 
 const JobSchema: Schema = new Schema(
     {
@@ -106,7 +107,6 @@ JobSchema.pre('save', function(next) {
     }
 
     if (this.isNew && !this.get('jobCode')) {
-        const { generateJobCode } = require('../../../utils/idGenerator');
         this.set('jobCode', generateJobCode());
     }
     next();

@@ -58,7 +58,6 @@ const startServer = async (): Promise<void> => {
                 }
             });
 
-            {}
             setTimeout(() => {
                 logger.error('Could not close connections in time, forcefully shutting down');
                 process.exit(1);
