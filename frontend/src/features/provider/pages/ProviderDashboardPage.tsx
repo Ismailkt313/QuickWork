@@ -18,6 +18,7 @@ import {
 import ProviderStatCard from "../components/ProviderStatCard";
 import DashboardChartCard from "../components/DashboardChartCard";
 import ActivityFeed from "../components/ActivityFeed";
+import type { ActivityItem } from "../components/ActivityFeed";
 import AvailabilitySummaryCard from "../components/AvailabilitySummaryCard";
 import { providerDashboardService } from "../services/providerDashboard.service";
 import { Link } from "react-router-dom";
@@ -107,7 +108,7 @@ const ProviderDashboardPage: React.FC = () => {
 
   const formatActivity = () => {
     if (!activity) return [];
-    const items: { id: string; type: string; title: string; subtitle: string; time: string }[] = [];
+    const items: ActivityItem[] = [];
 
     activity.recentAssignments?.forEach((a) => items.push({
       id: a._id,
@@ -243,7 +244,7 @@ const ProviderDashboardPage: React.FC = () => {
                       padding: '10px 14px',
                       fontSize: '12px'
                     }}
-                    formatter={(value: number | string) => [`₹${safeNumber(value).toLocaleString()}`, 'Revenue']}
+                    formatter={(value: any) => [`₹${safeNumber(value).toLocaleString()}`, 'Revenue']}
                   />
                   <Area type="monotone" dataKey="amount" stroke="#3b82f6" strokeWidth={2.5} fillOpacity={1} fill="url(#colorAmount)" />
                 </AreaChart>
@@ -252,8 +253,8 @@ const ProviderDashboardPage: React.FC = () => {
           </div>
           <div className="pdash-col-side">
             <AvailabilitySummaryCard
-              availableToday={availability?.availableToday}
-              nextBlockedDate={availability?.nextBlockedDate}
+              availableToday={availability?.availableToday ?? false}
+              nextBlockedDate={availability?.nextBlockedDate ?? null}
               loading={loading}
             />
           </div>

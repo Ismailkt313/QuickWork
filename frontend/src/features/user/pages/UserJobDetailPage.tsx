@@ -654,8 +654,11 @@ const UserJobDetailPage: React.FC = () => {
   }) => {
     const p = provider || assignment?.provider;
     const workStatus = assignment?.workStatus || provider?.workStatus;
-    const assignmentId = assignment?.assignmentId || provider?.assignmentId;
+    const aid = assignment?.assignmentId || provider?.assignmentId;
     const payment = assignment?.payment || provider?.payment;
+
+    if (!p || !aid) return null;
+    const assignmentId: string = aid;
 
     return (
       <div className="m-provider-section">

@@ -1,7 +1,7 @@
 import React from 'react';
 import { RiBriefcaseLine, RiStarFill, RiNotification3Line } from 'react-icons/ri';
 
-interface ActivityItem {
+export interface ActivityItem {
   id: string;
   type: 'assignment' | 'review' | 'notification' | 'payment';
   title: string;

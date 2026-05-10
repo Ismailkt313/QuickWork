@@ -194,6 +194,7 @@ const MessagesPage: React.FC = () => {
         ],
         lastMessage: "Start a new conversation",
         lastMessageAt: new Date(),
+        unreadCount: 0,
         isPlaceholder: true,
       };
       setConversations((prev) => {
