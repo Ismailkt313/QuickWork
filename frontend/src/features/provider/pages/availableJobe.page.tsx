@@ -10,7 +10,16 @@ import JobCard, { type Job } from "../components/jobcard";
 import UniversalActionModal from "../components/UniversalActionModal";
 import ActionErrorModal from "../components/ActionErrorModal";
 import AcceptConfirmationModal from "../components/AcceptConfirmationModal";
-import { RiMapPinUserLine, RiMapPinRangeLine } from "react-icons/ri";
+import {
+  RiMapPinUserLine,
+  RiMapPinRangeLine,
+  RiSearchLine,
+  RiFilter3Line,
+  RiRefreshLine,
+  RiStackLine,
+  RiInboxArchiveLine,
+  RiCloseLine
+} from "react-icons/ri";
 import {
   availableJobs,
   fetchSkills,
@@ -20,11 +29,12 @@ import {
 import { toast } from "react-toastify";
 import { useProviderLocation } from "../hooks/useProviderLocation";
 import useDebounce from "../../../hooks/useDebounce";
+import "./style/page.css";
 
 const SORT_OPTS = [
   { value: "newest", label: "Newest First" },
-  { value: "budget_hi", label: "Budget: High → Low" },
-  { value: "budget_lo", label: "Budget: Low → High" },
+  { value: "budget_hi", label: "Budget: High -> Low" },
+  { value: "budget_lo", label: "Budget: Low -> High" },
   { value: "applicants", label: "Fewest Applicants" },
 ];
 
@@ -380,63 +390,81 @@ const AvailableJobsPage: React.FC = () => {
   return (
     <div className="ajp-root">
       <div className="ajp-container">
-        <div className="ajp-header">
-          <div className="ajp-header-left">
-            <h1 className="ajp-title">Available Jobs</h1>
-            <p className="ajp-subtitle">
-              Browse jobs posted by clients and apply to the ones that match
-              your skills.
-            </p>
+        {/* ─── Page Header ────────────────────────────────────────────── */}
+        <div className="ajp-header-main">
+          <div className="ajp-header-top">
+            <div className="ajp-title-group">
+              <h1 className="ajp-title">Opportunities</h1>
+              <p className="ajp-subtitle">
+                Explore and apply to jobs that match your professional skillset.
+              </p>
+            </div>
+            <div className="ajp-header-stats">
+              <div className="ajp-stat-box">
+                <span className="ajp-stat-val">{pagination.total}</span>
+                <span className="ajp-stat-lab">Total Jobs</span>
+              </div>
+              <div className="ajp-stat-divider" />
+              <div className="ajp-stat-box">
+                <span className="ajp-stat-val urgent">{urgentCount}</span>
+                <span className="ajp-stat-lab">Urgent</span>
+              </div>
+            </div>
           </div>
-          <div className="ajp-header-actions">
-            <button
-              className={`ajp-icon-btn${refreshing ? " spinning" : ""}`}
-              onClick={handleRefresh}
-              aria-label="Refresh job listings"
-              title="Refresh"
-            >
-              <IconRefresh />
-            </button>
-            <button
-              className="ajp-filter-toggle-btn"
-              onClick={() => setShowFilters((v) => !v)}
-              aria-expanded={showFilters}
-              aria-label="Toggle filters"
-            >
-              {activeChips.length > 0 && (
-                <span className="ajp-filter-dot" aria-hidden="true" />
-              )}
-              <IconFilter />
-              Filters
-              {activeChips.length > 0 && (
-                <span
-                  style={{
-                    background: "var(--qw-accent,#6c63ff)",
-                    color: "#fff",
-                    borderRadius: 20,
-                    fontSize: 10,
-                    fontWeight: 700,
-                    padding: "1px 6px",
-                    marginLeft: 2,
-                  }}
-                >
-                  {activeChips.length}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
 
-        <div className="ajp-stats-row">
-          <div className="ajp-stat-pill">
-            <span className="ajp-dot" style={{ background: "#6c63ff" }} />
-            <span className="ajp-stat-num">{pagination.total}</span>
-            <span>total jobs available</span>
-          </div>
-          <div className="ajp-stat-pill">
-            <span className="ajp-dot" style={{ background: "#ff6b6b" }} />
-            <span className="ajp-stat-num">{urgentCount}</span>
-            <span>urgent opportunities</span>
+          {/* ─── Operational Toolbar ────────────────────────────────────── */}
+          <div className="ajp-toolbar">
+            <div className="ajp-search-box">
+              <RiSearchLine className="ajp-search-icon-v2" />
+              <input
+                className="ajp-search-input-v2"
+                type="search"
+                placeholder="Search by title, skills, or keywords..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+              />
+            </div>
+
+            <div className="ajp-toolbar-actions">
+              <div className="ajp-sort-wrapper">
+                <RiStackLine className="ajp-sort-icon" />
+                <select
+                  className="ajp-sort-select-v2"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  {SORT_OPTS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="ajp-toolbar-sep" />
+
+              <button
+                className={`ajp-filter-btn-v2 ${showFilters ? "active" : ""}`}
+                onClick={() => setShowFilters((v) => !v)}
+              >
+                <RiFilter3Line />
+                <span>Filters</span>
+                {activeChips.length > 0 && (
+                  <span className="ajp-filter-count">{activeChips.length}</span>
+                )}
+              </button>
+
+              <button
+                className={`ajp-refresh-btn-v2 ${refreshing ? "spinning" : ""}`}
+                onClick={handleRefresh}
+                title="Refresh Listings"
+              >
+                <RiRefreshLine />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -445,150 +473,115 @@ const AvailableJobsPage: React.FC = () => {
           role="search"
           aria-label="Filter jobs"
         >
-          <div className="ajp-filter-group">
-            <label className="ajp-filter-label" htmlFor="filter-location">
-              Location
-            </label>
-            <select
-              id="filter-location"
-              className="ajp-filter-select"
-              value={selectedLocation}
-              onChange={(e) => {
-                setSelectedLocation(e.target.value);
-                setCurrentPage(1);
-              }}
-            >
-              <option value="">All Locations</option>
-              {locations.map((l) => (
-                <option key={l._id} value={l._id}>
-                  {l.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <div className="ajp-filter-grid-main">
+            <div className="ajp-filter-group">
+              <label className="ajp-filter-label" htmlFor="filter-location">
+                Work Location
+              </label>
+              <div className="ajp-select-wrap">
+                <select
+                  id="filter-location"
+                  className="ajp-filter-select"
+                  value={selectedLocation}
+                  onChange={(e) => {
+                    setSelectedLocation(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  <option value="">All Regions</option>
+                  {locations.map((l) => (
+                    <option key={l._id} value={l._id}>
+                      {l.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-          <div className="ajp-filter-group">
-            <label className="ajp-filter-label" htmlFor="filter-category">
-              Category
-            </label>
-            <select
-              id="filter-category"
-              className="ajp-filter-select"
-              value={selectedCategory}
-              onChange={(e) => {
-                setSelectedCategory(e.target.value);
-                setCurrentPage(1);
-              }}
-            >
-              <option value="">All Categories</option>
-              {skills.map((s) => (
-                <option key={s._id} value={s._id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          </div>
+            <div className="ajp-filter-group">
+              <label className="ajp-filter-label" htmlFor="filter-category">
+                Expertise / Category
+              </label>
+              <div className="ajp-select-wrap">
+                <select
+                  id="filter-category"
+                  className="ajp-filter-select"
+                  value={selectedCategory}
+                  onChange={(e) => {
+                    setSelectedCategory(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  <option value="">All Skillsets</option>
+                  {skills.map((s) => (
+                    <option key={s._id} value={s._id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-          <div className="ajp-filter-group">
-            <label className="ajp-filter-label" htmlFor="filter-budget">
-              Budget
-            </label>
-            <select
-              id="filter-budget"
-              className="ajp-filter-select"
-              value={budget}
-              onChange={(e) => {
-                setBudget(e.target.value);
-                setCurrentPage(1);
-              }}
-            >
-              {[
-                "Any Budget",
-                "₹0 – ₹1,000",
-                "₹1,000 – ₹5,000",
-                "₹5,000 – ₹15,000",
-                "₹15,000+",
-              ].map((b) => (
-                <option key={b}>{b}</option>
-              ))}
-            </select>
+            <div className="ajp-filter-group">
+              <label className="ajp-filter-label" htmlFor="filter-budget">
+                Budget Range
+              </label>
+              <div className="ajp-select-wrap">
+                <select
+                  id="filter-budget"
+                  className="ajp-filter-select"
+                  value={budget}
+                  onChange={(e) => {
+                    setBudget(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  {[
+                    "Any Budget",
+                    "₹0 – ₹1,000",
+                    "₹1,000 – ₹5,000",
+                    "₹5,000 – ₹15,000",
+                    "₹15,000+",
+                  ].map((b) => (
+                    <option key={b}>{b}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
 
           {activeChips.length > 0 && (
-            <div
-              className="ajp-filter-group"
-              style={{ justifyContent: "flex-end" }}
-            >
-              <label className="ajp-filter-label">&nbsp;</label>
+            <div className="ajp-filter-footer">
               <button
-                className="ajp-filter-clear-btn"
+                className="ajp-filter-reset-btn"
                 onClick={clearAllFilters}
                 type="button"
               >
-                Clear All
+                Reset All Filters
               </button>
             </div>
           )}
         </div>
 
-        <div className="ajp-search-row">
-          <div className="ajp-search-wrap">
-            <span className="ajp-search-icon" aria-hidden="true">
-              <IconSearch />
-            </span>
-            <input
-              className="ajp-search-input"
-              type="search"
-              placeholder="Search jobs by title, skill, or keyword..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              aria-label="Search jobs"
-            />
+        {activeChips.length > 0 && (
+          <div className="ajp-active-chips-v2">
+            {activeChips.map((chip) => (
+              <span key={chip.key} className="ajp-chip-v2">
+                <span className="ajp-chip-label">{chip.key}:</span>
+                <span className="ajp-chip-val">{chip.label}</span>
+                <button
+                  className="ajp-chip-close"
+                  onClick={() => removeChip(chip.key)}
+                >
+                  <RiCloseLine />
+                </button>
+              </span>
+            ))}
+            <button className="ajp-clear-all-link" onClick={clearAllFilters}>
+              Clear all filters
+            </button>
           </div>
-
-          {activeChips.length > 0 && (
-            <div className="ajp-active-chips" aria-label="Active filters">
-              {activeChips.map((chip) => (
-                <span key={chip.key} className="ajp-chip">
-                  {chip.label}
-                  <button
-                    className="ajp-chip-x"
-                    onClick={() => removeChip(chip.key)}
-                    aria-label={`Remove ${chip.label} filter`}
-                    type="button"
-                  >
-                    <IconClose />
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="ajp-sort-row">
-          <p className="ajp-results-count">
-            Showing <strong>{displayedJobs.length}</strong> of{" "}
-            <strong>{pagination.total}</strong> jobs
-          </p>
-          <div className="ajp-sort-group">
-            <span className="ajp-sort-label">Sort by:</span>
-            <select
-              className="ajp-sort-select"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              aria-label="Sort jobs"
-            >
-              {SORT_OPTS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+        )}
 
         <div className="ajp-grid" role="list" aria-label="Job listings">
           {loading ? (
@@ -678,8 +671,7 @@ const AvailableJobsPage: React.FC = () => {
                   <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
-                    className={`qw-page-btn ${page === currentPage ? "active" : ""
-                      }`}
+                    className={`qw-page-btn ${page === currentPage ? "active" : ""}`}
                   >
                     {page}
                   </button>

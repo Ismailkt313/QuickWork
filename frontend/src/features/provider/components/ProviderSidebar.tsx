@@ -254,7 +254,7 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
         </nav>
 
         { }
-        <div className="qw-sidebar-bottom">
+          <div className="qw-sidebar-bottom">
           {!provider ? (
             <div className="qw-profile-card loading">
               <div className="qw-avatar-wrap">
@@ -300,7 +300,7 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
               onClick={() => navigate("/")}
               title="Switch to Client View"
             >
-              <RiMapLine size={16} />
+              <RiMapLine size={18} />
               <span className="qw-action-label">Switch to Client</span>
               <RiArrowRightSLine size={16} className="qw-action-arrow" />
             </button>
@@ -310,11 +310,12 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
               onClick={onLogout}
               title="Sign Out"
             >
-              <RiLogoutBoxLine size={16} />
+              <RiLogoutBoxLine size={18} />
               <span className="qw-action-label">Sign Out</span>
             </button>
           </div>
         </div>
+
       </aside>
     </>
   );

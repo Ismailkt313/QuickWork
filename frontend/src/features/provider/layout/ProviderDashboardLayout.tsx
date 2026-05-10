@@ -1,11 +1,13 @@
 import React, { useState, useCallback, Suspense, useEffect } from "react";
 import { RiMenuLine, RiMapLine, RiBellLine } from "react-icons/ri";
-import { Outlet, useLocation } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
 import ProviderSidebar from "../components/ProviderSidebar";
 import FallbackScreen from "../../../components/ui/FallbackScreen";
 import { getMyProfile } from "../services/provider.service";
 import "../components/ProviderSidebar.css";
 import MobileBottomNav from "../../user/components/MobileBottomNav";
+
+import ProviderMobileNav from "../components/ProviderMobileNav";
 
 interface ProviderDashboardLayoutProps {
   activePath?: string;
@@ -69,40 +71,49 @@ const ProviderDashboardLayout: React.FC<ProviderDashboardLayoutProps> = ({
 
   return (
     <div className={`qw-layout ${shouldHideHeader ? 'hide-global-header' : ''}`}>
-      <header className={`qw-mobile-header ${shouldHideHeader ? 'hide-header' : ''}`} aria-label="Mobile navigation bar">
-        <button
-          className="qw-hamburger"
-          onClick={openMobile}
-          aria-label="Open sidebar navigation"
-          aria-expanded={mobileOpen}
-          type="button"
-        >
-          <RiMenuLine />
-        </button>
-        <div className="qw-mobile-brand flex items-center gap-2">
+      <header className={`qw-mobile-header ${shouldHideHeader ? 'hide-header' : ''}`} aria-label="Mobile navigation bar" style={{ padding: '0 16px', height: '64px', borderBottom: '1px solid rgba(15, 23, 42, 0.05)' }}>
+        <div className="qw-mobile-brand flex items-center gap-2.5">
           <div
-            className="qw-logo-mark"
-            style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0 }}
+            className="qw-logo-mark shadow-md"
+            style={{ width: 30, height: 30, borderRadius: 9, flexShrink: 0, background: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             aria-hidden="true"
           >
-            <RiMapLine size={14} color="#fff" />
+            <RiMapLine size={15} color="#fff" />
           </div>
-          Quick<span className="text-blue-600">Work</span>
+          <span className="font-extrabold tracking-tight text-lg text-slate-900">Quick<span className="text-blue-600">Work</span></span>
         </div>
-        <div className="ml-auto relative flex items-center" style={{ lineHeight: 0 }}>
+        <div className="ml-auto flex items-center gap-3">
           <button
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-100 text-slate-500 hover:bg-slate-100 transition-colors relative"
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-100/80 text-slate-500 hover:bg-slate-100 transition-all active:scale-95 relative"
             aria-label="Notifications"
             type="button"
           >
-            <RiBellLine size={18} />
+            <RiBellLine size={20} />
             <span
-              className="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500 border-2 border-white"
-              aria-label="You have new notifications"
+              className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-rose-500 border-2 border-white"
+              aria-label="New notifications"
             />
           </button>
+          
+          {isMobile && (
+            <Link to="/provider/profile" className="flex-shrink-0">
+               {provider?.avatarUrl || provider?.profileImage ? (
+                  <img
+                    src={provider.avatarUrl || provider.profileImage}
+                    alt={provider.name}
+                    className="w-10 h-10 rounded-xl object-cover border-2 border-white shadow-sm hover:border-blue-100 transition-all"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-extrabold text-[13px] shadow-sm">
+                    {provider?.initials || provider?.name?.charAt(0) || "P"}
+                  </div>
+                )}
+            </Link>
+          )}
         </div>
       </header>
+
+      {isMobile && !shouldHideHeader && <ProviderMobileNav />}
 
       <ProviderSidebar
         provider={provider}
@@ -117,8 +128,8 @@ const ProviderDashboardLayout: React.FC<ProviderDashboardLayoutProps> = ({
         aria-label="Main content"
         tabIndex={-1}
         style={{
-          paddingTop: shouldHideHeader ? 0 : "64px",
-          paddingBottom: isMobile ? (shouldHideHeader ? 0 : "calc(64px + env(safe-area-inset-bottom, 12px))") : 0
+          paddingTop: shouldHideHeader ? 0 : undefined,
+          paddingBottom: isMobile ? (shouldHideHeader ? 0 : undefined) : 0
         }}
       >
         {provider?.verificationStatus === "pending" && (
@@ -140,13 +151,17 @@ const ProviderDashboardLayout: React.FC<ProviderDashboardLayoutProps> = ({
           </div>
         )}
         <Suspense fallback={<FallbackScreen />}>
-          <Outlet />
+          <div className="max-w-7xl mx-auto w-full">
+            <Outlet />
+          </div>
         </Suspense>
       </main>
+
       {!shouldHideHeader && <MobileBottomNav />}
     </div>
   );
 };
+
 
 export default ProviderDashboardLayout;
 export type { ProviderDashboardLayoutProps };

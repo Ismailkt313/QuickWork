@@ -14,6 +14,11 @@ import {
   RiFlashlightLine,
   RiMedalLine,
   RiSparklingLine,
+  RiBriefcaseLine,
+  RiSettingsLine,
+  RiStackLine,
+  RiInboxArchiveLine,
+  RiExternalLinkLine
 } from "react-icons/ri";
 import "./style/jobcard.css";
 import { useProviderLocation } from "../hooks/useProviderLocation";
@@ -123,10 +128,10 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
       aria-label={`Job: ${job.title}`}
     >
       {}
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: job.isUrgent ? "linear-gradient(90deg,#ef4444,#f97316)" : "linear-gradient(90deg,#6366f1,#8b5cf6)", borderRadius: "16px 16px 0 0" }} />
+      <div className="jc-status-stripe" style={{ background: job.isUrgent ? "#ef4444" : "#6366f1" }} />
 
       {}
-      <div className="jc-badges-row" style={{ paddingTop: 4 }}>
+      <div className="jc-badges-row">
         {job.isUrgent && (
           <span className="jc-badge jc-badge-urgent">
             <span className="jc-badge-pulse" /> Urgent
@@ -144,12 +149,12 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
         )}
         {}
         {isMyArea === true && (
-          <span className="jc-badge" style={{ background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0" }}>
+          <span className="jc-badge jc-badge-area-success">
             <RiMapPinLine size={10} /> Your Area
           </span>
         )}
         {isMyArea === false && (
-          <span className="jc-badge" style={{ background: "#fff7ed", color: "#b45309", border: "1px solid #fde68a" }}>
+          <span className="jc-badge jc-badge-area-warning">
             <RiAlertLine size={10} /> Not Your Area
           </span>
         )}
@@ -167,7 +172,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
           <div className="jc-client-meta">
             <span className="jc-client-name"><RiUserLine size={11} /> {job.clientName}</span>
             <span className="jc-meta-sep">·</span>
-            <span className="jc-job-code" style={{ color: "#64748b", fontWeight: 600 }}>{job.jobCode}</span>
+            <span className="jc-job-code">{job.jobCode}</span>
             {job.clientRating !== undefined && (
               <><span className="jc-meta-sep">·</span><StarRating rating={job.clientRating} count={job.clientReviewsCount} /></>
             )}
@@ -184,22 +189,22 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
       <div className="jc-detail-grid">
         {}
         <div className="jc-detail-cell">
-          <div className="jc-detail-icon" style={{ background: isMyArea === false ? "#fff7ed" : "#f0fdf4", color: isMyArea === false ? "#b45309" : "#16a34a" }}>
+          <div className={`jc-detail-icon ${isMyArea === false ? 'warning' : 'success'}`}>
             <RiMapPinLine size={14} />
           </div>
           <div className="jc-detail-body">
             <div className="jc-detail-label">Location</div>
             <div className="jc-detail-val" title={job.location?.address}>
               {job.location?.address || "Not specified"}
-              {isMyArea === false && <span style={{ display: "block", fontSize: 10, color: "#b45309", fontWeight: 600, marginTop: 1 }}>⚠ Outside your area</span>}
-              {isMyArea === true && <span style={{ display: "block", fontSize: 10, color: "#16a34a", fontWeight: 600, marginTop: 1 }}>✓ Your district</span>}
+              {isMyArea === false && <span className="jc-area-hint warning">⚠ Outside your area</span>}
+              {isMyArea === true && <span className="jc-area-hint success">✓ Your district</span>}
             </div>
           </div>
         </div>
 
         {}
         <div className="jc-detail-cell">
-          <div className="jc-detail-icon" style={{ background: "#fff7ed", color: "#ea580c" }}>
+          <div className="jc-detail-icon schedule">
             <RiCalendarLine size={14} />
           </div>
           <div className="jc-detail-body">
@@ -212,7 +217,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
 
         {}
         <div className="jc-detail-cell">
-          <div className="jc-detail-icon" style={{ background: "#eff6ff", color: "#3b82f6" }}>
+          <div className="jc-detail-icon duration">
             <RiTimeLine size={14} />
           </div>
           <div className="jc-detail-body">
@@ -224,7 +229,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
         {}
         {job.freelancersNeeded !== undefined && (
           <div className="jc-detail-cell">
-            <div className="jc-detail-icon" style={{ background: "#faf5ff", color: "#9333ea" }}>
+            <div className="jc-detail-icon providers">
               <RiGroupLine size={14} />
             </div>
             <div className="jc-detail-body">
@@ -257,6 +262,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
         </div>
       </div>
 
+
       {}
       <div className="jc-actions">
         <button
@@ -272,7 +278,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
           className="jc-view-btn"
           onClick={() => onViewDetails?.(job.id)}
         >
-          <RiEyeLine size={14} /> View Details
+          <RiExternalLinkLine size={14} /> View Details
         </button>
 
         <button
@@ -282,7 +288,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
         >
           {applied
             ? <><RiCheckDoubleLine size={15} /> Applied</>
-            : <><RiFlashlightLine size={14} /> Apply Now</>
+            : <><RiBriefcaseLine size={14} /> Quick Apply</>
           }
         </button>
       </div>

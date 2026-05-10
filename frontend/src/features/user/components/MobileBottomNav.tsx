@@ -106,16 +106,16 @@ const MobileBottomNav: React.FC = () => {
         bottom: 0,
         left: 0,
         width: "100%",
-        background: "rgba(255, 255, 255, 0.98)",
-        backdropFilter: "blur(16px)",
+        background: "rgba(255, 255, 255, 0.95)",
+        backdropFilter: "blur(20px)",
         borderTop: "1px solid rgba(15, 23, 42, 0.05)",
         display: "flex",
         justifyContent: "space-around",
         alignItems: "center",
-        padding: "0 0 env(safe-area-inset-bottom, 12px)",
-        boxShadow: "0 -10px 30px -5px rgba(15, 23, 42, 0.08)",
+        padding: "0 8px env(safe-area-inset-bottom, 12px)",
+        boxShadow: "0 -8px 24px rgba(15, 23, 42, 0.05)",
         zIndex: 2000,
-        height: "calc(64px + env(safe-area-inset-bottom, 12px))",
+        height: "calc(68px + env(safe-area-inset-bottom, 12px))",
       }}
     >
       {NAV_ITEMS.map((item) => {
@@ -135,7 +135,7 @@ const MobileBottomNav: React.FC = () => {
               justifyContent: "center",
               gap: "4px",
               textDecoration: "none",
-              color: isActive ? "#3b82f6" : "#94a3b8",
+              color: isActive ? "#2563eb" : "#64748b",
               transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
               flex: 1,
               height: "100%",
@@ -147,11 +147,11 @@ const MobileBottomNav: React.FC = () => {
                 style={{
                   position: "absolute",
                   top: 0,
-                  width: "24px",
+                  width: "28px",
                   height: "3px",
-                  background: "#3b82f6",
-                  borderRadius: "0 0 4px 4px",
-                  boxShadow: "0 2px 8px rgba(59, 130, 246, 0.4)",
+                  background: "#2563eb",
+                  borderRadius: "0 0 100px 100px",
+                  boxShadow: "0 2px 10px rgba(37, 99, 235, 0.4)",
                 }}
               />
             )}
@@ -162,11 +162,10 @@ const MobileBottomNav: React.FC = () => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                width: "42px",
-                height: "32px",
+                width: "44px",
+                height: "34px",
                 borderRadius: "12px",
-                background: isActive ? "rgba(59, 130, 246, 0.08)" : "transparent",
-                transform: isActive ? "translateY(-1px)" : "translateY(0)",
+                background: isActive ? "rgba(37, 99, 235, 0.06)" : "transparent",
                 transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
               }}
             >
@@ -175,10 +174,11 @@ const MobileBottomNav: React.FC = () => {
             
             <span
               style={{
-                fontSize: "10px",
+                fontSize: "9px",
                 fontWeight: isActive ? 800 : 600,
-                letterSpacing: "0.01em",
-                opacity: isActive ? 1 : 0.8,
+                letterSpacing: "0.02em",
+                textTransform: "uppercase",
+                opacity: isActive ? 1 : 0.7,
               }}
             >
               {item.label}

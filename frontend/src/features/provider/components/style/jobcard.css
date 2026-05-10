@@ -1,21 +1,20 @@
 /* JobCard.css — QuickWork Available Jobs Card (Light Theme, Full Detail) */
 
 .jc-card {
-  background: #fff;
-  border: 1px solid #e8edf4;
-  border-radius: 16px;
-  padding: 20px 20px 16px;
+  background: var(--pdash-card-bg, #ffffff);
+  border: 1px solid var(--pdash-border, rgba(15, 23, 42, 0.06));
+  border-radius: var(--pdash-radius, 16px);
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   position: relative;
   overflow: hidden;
-  transition: box-shadow 0.22s ease, transform 0.22s ease;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--pdash-shadow-sm, 0 1px 3px rgba(0,0,0,0.04));
   animation: cardIn 0.35s both;
   width: 100%;
   box-sizing: border-box;
-  min-width: 0;
 }
 
 @keyframes cardIn {
@@ -24,9 +23,9 @@
 }
 
 .jc-card:hover {
-  transform: translateY(-3px);
-  border-color: #c7d2fe;
-  box-shadow: 0 6px 20px rgba(99,102,241,0.1), 0 2px 8px rgba(0,0,0,0.06);
+  transform: translateY(-4px);
+  border-color: rgba(99, 102, 241, 0.2);
+  box-shadow: var(--pdash-shadow, 0 4px 20px -4px rgba(15, 23, 42, 0.1));
 }
 
 /* ─── Badges ─────────────────────────────────────────────────── */
@@ -127,11 +126,11 @@
 .jc-detail-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 12px;
   background: #f8fafc;
-  border-radius: 12px;
-  padding: 10px 12px;
-  border: 1px solid #f1f5f9;
+  border-radius: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(15, 23, 42, 0.03);
 }
 
 .jc-detail-cell {
@@ -159,8 +158,8 @@
 }
 
 .jc-detail-val {
-  font-size: 12px; font-weight: 600;
-  color: #1e293b;
+  font-size: 13px; font-weight: 600;
+  color: var(--ajp-text);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
@@ -200,10 +199,10 @@
 
 .jc-info-val {
   font-family: 'Syne', sans-serif;
-  font-size: 16px; font-weight: 800;
+  font-size: 18px; font-weight: 800;
 }
-.jc-info-val.budget            { color: #6366f1; }
-.jc-info-val.applicants-count  { color: #0f172a; }
+.jc-info-val.budget            { color: var(--ajp-accent); }
+.jc-info-val.applicants-count  { color: var(--ajp-text); }
 
 /* ─── Actions Row ────────────────────────────────────────────── */
 .jc-actions {
@@ -235,21 +234,55 @@
 .jc-view-btn:hover { background: #f8fafc; border-color: #a5b4fc; color: #6366f1; }
 
 .jc-apply-btn {
-  display: flex; align-items: center; gap: 5px;
-  flex: 1.3; height: 38px; border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1.3;
+  height: 42px;
+  border-radius: 12px;
   border: none;
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
-  color: #fff; font-size: 12.5px; font-weight: 700;
+  background: var(--ajp-text);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
   justify-content: center;
-  cursor: pointer; transition: all 0.2s ease;
-  box-shadow: 0 3px 10px rgba(99,102,241,0.28);
+  cursor: pointer;
+  transition: var(--ajp-transition);
 }
+
 .jc-apply-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(99,102,241,0.38);
+  background: var(--ajp-accent);
+  transform: scale(1.02);
 }
-.jc-apply-btn.applied {
-  background: #f0fdf4;
-  border: 1.5px solid #bbf7d0; color: #16a34a;
-  box-shadow: none; cursor: default;
+
+.jc-status-stripe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 16px 16px 0 0;
+}
+
+.jc-badge-area-success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+.jc-badge-area-warning { background: #fff7ed; color: #b45309; border: 1px solid #fde68a; }
+
+.jc-area-hint {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+.jc-area-hint.success { color: #16a34a; }
+.jc-area-hint.warning { color: #b45309; }
+
+.jc-detail-icon.success   { background: #f0fdf4; color: #16a34a; }
+.jc-detail-icon.warning   { background: #fff7ed; color: #b45309; }
+.jc-detail-icon.schedule  { background: #fff7ed; color: #ea580c; }
+.jc-detail-icon.duration  { background: #eff6ff; color: #3b82f6; }
+@media (max-width: 480px) {
+  .jc-card { padding: 20px; }
+  .jc-detail-grid { grid-template-columns: 1fr; gap: 10px; }
+  .jc-actions { flex-direction: column; align-items: stretch; }
+  .jc-save-btn { width: 100%; }
 }
