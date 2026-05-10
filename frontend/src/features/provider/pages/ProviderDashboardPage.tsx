@@ -244,7 +244,7 @@ const ProviderDashboardPage: React.FC = () => {
                       padding: '10px 14px',
                       fontSize: '12px'
                     }}
-                    formatter={(value: any) => [`₹${safeNumber(value).toLocaleString()}`, 'Revenue']}
+                    formatter={(value: number | string | ReadonlyArray<number | string> | undefined | null) => [`₹${safeNumber(Array.isArray(value) ? value[0] : value).toLocaleString()}`, 'Revenue'] as [React.ReactNode, string]}
                   />
                   <Area type="monotone" dataKey="amount" stroke="#3b82f6" strokeWidth={2.5} fillOpacity={1} fill="url(#colorAmount)" />
                 </AreaChart>

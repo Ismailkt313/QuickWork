@@ -34,7 +34,7 @@ const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
                 />
                 <Tooltip
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                    formatter={(value: any) => [`₹${Number(value).toLocaleString()}`, 'Revenue']}
+                    formatter={(value: number | string | ReadonlyArray<number | string> | undefined | null) => [`₹${Number(Array.isArray(value) ? value[0] : (value || 0)).toLocaleString()}`, 'Revenue'] as [React.ReactNode, string]}
                 />
                 <Area
                     type="monotone"
