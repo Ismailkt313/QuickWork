@@ -4,7 +4,10 @@ import { Request, Response, NextFunction } from 'express'
 export interface ISkill extends Document {
     name: string;
     slug: string;
+    description?: string;
+    isActive: boolean;
     createdAt: Date;
+    updatedAt?: Date;
 }
 
 export interface ISkillRepository {
@@ -12,9 +15,12 @@ export interface ISkillRepository {
     findByName(name: string): Promise<ISkill | null>
     findBySlug(slug: string): Promise<ISkill | null>;
     create(skillData: Partial<ISkill>, session?: any): Promise<ISkill>;
+    update(id: string, skillData: Partial<ISkill>): Promise<ISkill | null>;
+    delete(id: string): Promise<boolean>;
     skills(filter: any): Promise<ISkill[] | null>;
     getServices():Promise<ISkill[]>;
     getAllSkills(search?: string, locationId?: string): Promise<ISkill[]>;
+    getAdminSkills(page: number, limit: number, search?: string): Promise<{ data: ISkill[], total: number }>;
     getSkills(): Promise<ISkill[]>;
     getMySkill(userId: string):Promise<ISkill[]>
 }
@@ -22,12 +28,23 @@ export interface ISkillRepository {
 export interface ISkillService {
     searchSkills(query: string): Promise<{ success: boolean; data?: ISkill[] }>;
     getAllSkills(search?: string, locationId?: string): Promise<{ success: boolean; data: ISkill[] }>;
+    getAdminSkills(page: number, limit: number, search?: string): Promise<{ success: boolean; data: ISkill[], pagination: any }>;
+    createSkill(skillData: Partial<ISkill>): Promise<{ success: boolean; message: string; data?: ISkill }>;
+    updateSkill(id: string, skillData: Partial<ISkill>): Promise<{ success: boolean; message: string; data?: ISkill }>;
+    deleteSkill(id: string): Promise<{ success: boolean; message: string }>;
+    toggleSkillStatus(id: string): Promise<{ success: boolean; message: string; data?: ISkill }>;
     getSkills(): Promise<{ success: boolean; data: ISkill[] }>;
     getMySkills(userId: any):Promise<{success: boolean, data:ISkill[]}>
 }
+
 export interface ISkillController {
     searchSkills(req: any, res: any, next: any): Promise<void>;
     getAllSkills(req: any, res: any, next: any): Promise<void>;
+    getAdminSkills(req: any, res: any, next: any): Promise<void>;
+    createSkill(req: any, res: any, next: any): Promise<void>;
+    updateSkill(req: any, res: any, next: any): Promise<void>;
+    deleteSkill(req: any, res: any, next: any): Promise<void>;
+    toggleSkillStatus(req: any, res: any, next: any): Promise<void>;
     getSkills(req: any, res: any, next: any): Promise<void>;
     myskills(req: Request, res: Response, next: NextFunction): Promise<void>;
 }

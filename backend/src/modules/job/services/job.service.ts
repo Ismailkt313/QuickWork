@@ -377,8 +377,13 @@ export class JobService implements IJobService {
             return { success: false, message: "Provider has blocked this date" };
         }
 
+        const activeAssignments = existingAssignments.filter(a => 
+            !['completed', 'cancelled', 'absent'].includes(a.workStatus) && 
+            a.invite?.status !== 'rejected'
+        );
+
         const hasConflict = AvailabilityValidator.doesOverlapWithAssignments(
-            existingAssignments,
+            activeAssignments,
             job.schedule.startDate,
             job.schedule.startTime,
             job.schedule.endTime
@@ -483,8 +488,13 @@ export class JobService implements IJobService {
             return { success: false, message: "Provider has blocked this date" };
         }
 
+        const activeAssignments = existingAssignments.filter(a => 
+            !['completed', 'cancelled', 'absent'].includes(a.workStatus) && 
+            a.invite?.status !== 'rejected'
+        );
+
         const hasConflict = AvailabilityValidator.doesOverlapWithAssignments(
-            existingAssignments,
+            activeAssignments,
             job.schedule.startDate,
             job.schedule.startTime,
             job.schedule.endTime

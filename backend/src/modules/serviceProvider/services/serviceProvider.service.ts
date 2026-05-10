@@ -43,6 +43,12 @@ export class ServiceProviderService implements IServiceProviderService {
                 hourlyRate: providerData.hourlyRate,
                 location: providerData.location,
                 portfolio: providerData.portfolio,
+                availability: (["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"] as const).map(day => ({
+                    day,
+                    isAvailable: true,
+                    startTime: "00:00",
+                    endTime: "23:59"
+                })),
                 verification: {
                     status: VERIFICATION_STATUS.PENDING
                 },

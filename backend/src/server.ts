@@ -28,9 +28,46 @@ const startServer = async (): Promise<void> => {
         });
         setupSocket(io);
         app.set("io", io);
-        httpServer.listen(config.PORT, () => {
+        const server = httpServer.listen(config.PORT, () => {
             logger.info(`Server connected on port ${config.PORT}`);
         });
+
+        const gracefulShutdown = async (signal: string) => {
+            logger.info(`${signal} received. Starting graceful shutdown...`);
+            
+            server.close(async () => {
+                logger.info('HTTP server closed.');
+                
+                try {
+                    if (io) {
+                        await new Promise<void>((resolve) => {
+                            io.close(() => {
+                                logger.info('Socket.IO server closed.');
+                                resolve();
+                            });
+                        });
+                    }
+
+                    await mongoose.connection.close();
+                    logger.info('MongoDB connection closed.');
+                    
+                    process.exit(0);
+                } catch (err) {
+                    logger.error({ err }, 'Error during graceful shutdown');
+                    process.exit(1);
+                }
+            });
+
+            {}
+            setTimeout(() => {
+                logger.error('Could not close connections in time, forcefully shutting down');
+                process.exit(1);
+            }, 10000);
+        };
+
+        process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+        process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+
     } catch (error) {
         logger.error({ error }, 'Server startup failed');
         process.exit(1);

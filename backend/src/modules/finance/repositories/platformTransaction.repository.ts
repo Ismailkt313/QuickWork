@@ -12,7 +12,7 @@ export class PlatformTransactionRepository implements IPlatformTransactionReposi
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit)
-                .populate('jobId', 'title')
+                .populate('jobId', 'title jobCode')
                 .populate('providerId', 'name email'),
             PlatformTransactionModel.countDocuments(query)
         ]);
@@ -43,6 +43,7 @@ export class PlatformTransactionRepository implements IPlatformTransactionReposi
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit)
+                .populate('jobId', 'title jobCode')
                 .lean(),
             PlatformTransactionModel.countDocuments(filter)
         ]);

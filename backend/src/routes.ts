@@ -2,6 +2,7 @@ import { Application } from "express";
 import { authRouter } from "./modules/auth";
 import { adminRouter } from "./modules/admin";
 import { serviceProviderRouter } from "./modules/serviceProvider";
+import { providerDashboardRouter } from "./modules/providerDashboard";
 import { serviceRequestRouter, adminServiceRequestRouter } from "./modules/serviceRequest";
 import { locationRouter } from "./modules/location";
 import { skillRouter } from "./modules/skill";
@@ -14,16 +15,19 @@ import { reviewRouter } from "./modules/review";
 import { reportRouter, moderationRouter } from "./modules/report";
 import { notificationRouter } from "./modules/notification";
 import { paymentRouter, walletRouter, adminFinanceRouter, invoiceRouter } from "./modules/finance";
+import { adminDashboardRouter } from "./modules/adminDashboard";
 import { API_ROUTES } from "./constants/routes";
 
 export const registerdRoutes = (app: Application) => {
     const BASE_URL = API_ROUTES.BASE
     app.use(BASE_URL + API_ROUTES.AUTH, authRouter);
     app.use(BASE_URL + API_ROUTES.ADMIN, adminRouter);
+    app.use(BASE_URL + API_ROUTES.ADMIN + '/dashboard', adminDashboardRouter);
     app.use(BASE_URL + API_ROUTES.ADMIN, adminServiceRequestRouter);
     app.use(BASE_URL + API_ROUTES.ADMIN + '/finance', adminFinanceRouter);
     app.use(BASE_URL + API_ROUTES.ADMIN + '/reports', moderationRouter);
     app.use(BASE_URL + API_ROUTES.PROVIDER, serviceProviderRouter);
+    app.use(BASE_URL + API_ROUTES.PROVIDER + '/dashboard', providerDashboardRouter);
     app.use(BASE_URL + API_ROUTES.SERVICE_REQUEST, serviceRequestRouter);
     app.use(BASE_URL + API_ROUTES.LOCATIONS, locationRouter);
     app.use(BASE_URL + API_ROUTES.SKILLS, skillRouter);

@@ -31,6 +31,61 @@ export class SkillController implements ISkillController {
         }
     }
 
+    getAdminSkills = async (req: Request, res: Response, next: any): Promise<void> => {
+        try {
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const search = req.query.search as string || undefined;
+            const result = await this._skillService.getAdminSkills(page, limit, search);
+            res.status(HttpStatusCode.OK).json(result);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    createSkill = async (req: Request, res: Response, next: any): Promise<void> => {
+        try {
+            const result = await this._skillService.createSkill(req.body);
+            const status = result.success ? HttpStatusCode.CREATED : HttpStatusCode.BAD_REQUEST;
+            res.status(status).json(result);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    updateSkill = async (req: Request, res: Response, next: any): Promise<void> => {
+        try {
+            const id = req.params.id as string;
+            const result = await this._skillService.updateSkill(id, req.body);
+            const status = result.success ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST;
+            res.status(status).json(result);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    deleteSkill = async (req: Request, res: Response, next: any): Promise<void> => {
+        try {
+            const id = req.params.id as string;
+            const result = await this._skillService.deleteSkill(id);
+            const status = result.success ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST;
+            res.status(status).json(result);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    toggleSkillStatus = async (req: Request, res: Response, next: any): Promise<void> => {
+        try {
+            const id = req.params.id as string;
+            const result = await this._skillService.toggleSkillStatus(id);
+            const status = result.success ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST;
+            res.status(status).json(result);
+        } catch (error) {
+            next(error);
+        }
+    }
+
     getSkills = async (req: Request, res: Response, next: any): Promise<void> => {
         try {
             const result = await this._skillService.getSkills();

@@ -7,6 +7,10 @@ export class AvailabilityValidator {
         startTimeStr: string,
         endTimeStr: string
     ): boolean {
+        if (!availability || !Array.isArray(availability)) {
+            return false;
+        }
+
         const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
         const jobDayName = days[jobDate.getDay()];
 
@@ -30,6 +34,10 @@ export class AvailabilityValidator {
     }
 
     static isDateBlocked(blockedDates: IBlockedDate[], jobDate: Date): boolean {
+        if (!blockedDates || !Array.isArray(blockedDates)) {
+            return false;
+        }
+
         const jobTime = jobDate.getTime();
 
         return blockedDates.some(blocked => {
@@ -47,6 +55,10 @@ export class AvailabilityValidator {
         newEndTimeStr: string,
         bufferHours: number = 1
     ): boolean {
+        if (!existingAssignments || !Array.isArray(existingAssignments)) {
+            return false;
+        }
+
         const toDateWithTime = (date: Date, timeStr: string) => {
             const d = new Date(date);
             const [hrs, mins] = timeStr.split(":").map(Number);

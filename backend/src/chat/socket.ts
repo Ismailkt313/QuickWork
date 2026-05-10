@@ -4,10 +4,13 @@ import { logger } from "../utils/logger";
 import { UserModel } from "../modules/auth/models/user.model";
 
 let io: Server;
+let isInitialized = false;
 
 export const setupSocket = (socketIo: Server) => {
+  if (isInitialized) return;
   try {
       io = socketIo;
+      isInitialized = true;
     io.use(async (socket: Socket, next) => {
         const token = socket.handshake.auth.token;
         if (!token) {

@@ -37,7 +37,7 @@ export class WorkHistoryRepository implements IWorkHistoryRepository {
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit)
-                .populate('jobId', 'title description location'),
+                .populate('jobId', 'title description location jobCode'),
             WorkHistoryModel.countDocuments(query)
         ]);
     }

@@ -14,11 +14,15 @@ const SkillSchema = new Schema<ISkill>({
         required: true,
         unique: true
     },
-    createdAt: {
-        type: Date,
-        default: Date.now
+    description: {
+        type: String,
+        trim: true
+    },
+    isActive: {
+        type: Boolean,
+        default: true
     }
-});
+}, { timestamps: true });
 
 SkillSchema.pre('save', function (next) {
     if (this.name) {
