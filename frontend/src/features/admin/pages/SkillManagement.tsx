@@ -7,8 +7,6 @@ import {
     RiPencilLine, 
     RiDeleteBinLine, 
     RiToggleLine,
-    RiCheckboxCircleLine,
-    RiCloseCircleLine,
     RiArrowLeftSLine,
     RiArrowRightSLine
 } from "react-icons/ri";
@@ -63,7 +61,7 @@ const SkillManagement: React.FC = () => {
                 toast.success(response.message);
                 setSkills(prev => prev.map(s => s._id === id ? { ...s, isActive: !s.isActive } : s));
             }
-        } catch (error) {
+        } catch {
             toast.error("Failed to update skill status");
         }
     };
@@ -90,7 +88,7 @@ const SkillManagement: React.FC = () => {
             } else {
                 toast.error(response.message);
             }
-        } catch (error) {
+        } catch {
             toast.error("Failed to save skill");
         } finally {
             setModalLoading(false);
@@ -108,7 +106,7 @@ const SkillManagement: React.FC = () => {
                 setIsDeleteModalOpen(false);
                 fetchSkills();
             }
-        } catch (error) {
+        } catch {
             toast.error("Failed to delete skill");
         } finally {
             setModalLoading(false);

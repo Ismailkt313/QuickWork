@@ -1,15 +1,10 @@
 import React from 'react';
 import type { IconType } from 'react-icons';
-import { RiArrowUpLine, RiArrowDownLine } from 'react-icons/ri';
 
 interface DashboardStatCardProps {
     title: string;
     value: string | number;
     icon: IconType;
-    trend?: {
-        value: number;
-        isUp: boolean;
-    };
     color?: string;
     loading?: boolean;
 }
@@ -18,7 +13,6 @@ const DashboardStatCard: React.FC<DashboardStatCardProps> = ({
     title,
     value,
     icon: Icon,
-    trend,
     color = 'blue',
     loading = false
 }) => {
@@ -34,15 +28,6 @@ const DashboardStatCard: React.FC<DashboardStatCardProps> = ({
             </div>
         );
     }
-
-    const colorClasses: Record<string, string> = {
-        blue: 'bg-blue-50 text-blue-600',
-        green: 'bg-emerald-50 text-emerald-600',
-        purple: 'bg-purple-50 text-purple-600',
-        orange: 'bg-orange-50 text-orange-600',
-        red: 'bg-rose-50 text-rose-600',
-        indigo: 'bg-indigo-50 text-indigo-600',
-    };
 
     return (
         <div className="admin-stat-card">

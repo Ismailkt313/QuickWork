@@ -48,7 +48,7 @@ import {
 import { AxiosError } from "axios";
 
 interface JobDetail {
-  jobCode: any;
+  jobCode: string;
   id: string;
   title: string;
   description: string;
@@ -133,7 +133,13 @@ const renderReviewCard = (
   setSelectedAssignmentId: (id: string | null) => void,
   setSelectedProviderId: (id: string | null) => void,
   setSelectedProviderName: (name: string) => void,
-  setEditReviewState: (state: any) => void,
+  setEditReviewState: (state: {
+    isEdit: boolean;
+    reviewId?: string;
+    initialRating?: number;
+    initialComment?: string;
+    initialImages?: string[];
+  }) => void,
   setIsReviewModalOpen: (open: boolean) => void,
   handleDeleteReviewClick: (id: string, assignmentId: string) => void,
 ) => {
@@ -644,7 +650,7 @@ const UserJobDetailPage: React.FC = () => {
     provider,
   }: {
     assignment?: Assignment;
-    provider?: any;
+    provider?: JobDetail["hiredProvider"];
   }) => {
     const p = provider || assignment?.provider;
     const workStatus = assignment?.workStatus || provider?.workStatus;

@@ -2,10 +2,6 @@ import React from "react";
 import {
   RiMapPinLine,
   RiFocus2Line,
-  RiMoneyDollarCircleLine,
-  RiLockLine,
-  RiGlobeLine,
-  RiTimeLine,
   RiArrowRightSLine,
 } from "react-icons/ri";
 import type { UserJob } from "../services/userJob.service";

@@ -3,8 +3,6 @@ import {
   RiCalendarLine,
   RiMapPinLine,
   RiUser3Line,
-  RiTimeLine,
-  RiMapPinRangeLine,
   RiArrowRightLine,
   RiMessage2Line,
   RiDoorOpenLine,
@@ -69,7 +67,7 @@ const DURATION_LABEL: Record<string, string> = {
 };
 
 const MyJobCard: React.FC<MyJobCardProps> = ({ assignment, onViewDetails, onMessage }) => {
-  const { job, workStatus, schedule, isOutOfDistrict, type } = assignment;
+  const { job, workStatus, schedule, type } = assignment;
   if (!job) return null;
 
   const status = STATUS_MAP[workStatus] ?? STATUS_MAP["assigned"];

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { RiNotification3Line, RiCheckDoubleLine, RiDeleteBin7Line } from "react-icons/ri";
 import { useNotifications } from "../../notification/hooks/useNotifications";
 import FallbackScreen from "../../../components/ui/FallbackScreen";

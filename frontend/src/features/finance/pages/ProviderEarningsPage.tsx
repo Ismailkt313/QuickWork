@@ -56,7 +56,7 @@ const ProviderEarningsPage: React.FC = () => {
 
   useEffect(() => {
     const getParams = () => {
-      const params: Record<string, any> = { page: transactionPage, limit: 6, search: debouncedSearch || undefined };
+      const params: Record<string, string | number | undefined> = { page: transactionPage, limit: 6, search: debouncedSearch || undefined };
       if (filter === "completed") params.type = "credit";
       else if (filter === "withdrawal") params.source = "withdrawal";
       else if (filter === "charge") params.source = "cash_fee";
@@ -194,9 +194,10 @@ const ProviderEarningsPage: React.FC = () => {
       toast.success(`Successfully withdrawn ₹${amount.toLocaleString()}`);
       setIsWithdrawModalOpen(false);
       refreshData();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Withdrawal failed", err);
-      toast.error(err.response?.data?.message || "Failed to process withdrawal");
+      const errorMessage = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to process withdrawal";
+      toast.error(errorMessage);
     } finally {
       setWithdrawLoading(false);
     }

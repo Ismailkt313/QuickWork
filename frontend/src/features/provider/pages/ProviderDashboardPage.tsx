@@ -26,12 +26,52 @@ import "./style/DashboardPage.css";
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
+interface DashboardOverview {
+  totalEarnings: number;
+  walletBalance: number;
+  activeJobs: number;
+  totalAssignments: number;
+}
+
+interface DashboardActivity {
+  recentAssignments: {
+    _id: string;
+    jobId?: { title: string };
+    workStatus?: string;
+    createdAt: string;
+  }[];
+  recentReviews: {
+    _id: string;
+    reviewerId?: { name: string };
+    rating: number;
+    comment?: string;
+    createdAt: string;
+  }[];
+}
+
+interface DashboardCharts {
+  monthlyEarnings: { month: string; amount: number }[];
+  jobStatusDistribution: { status: string; count: number }[];
+}
+
+interface DashboardPerformance {
+  completionRate: number;
+  acceptanceRate: number;
+  totalReviews: number;
+  averageRating: number;
+}
+
+interface DashboardAvailability {
+  availableToday: boolean;
+  nextBlockedDate: string | null;
+}
+
 const ProviderDashboardPage: React.FC = () => {
-  const [overview, setOverview] = useState<any>(null);
-  const [activity, setActivity] = useState<any>(null);
-  const [charts, setCharts] = useState<any>(null);
-  const [performance, setPerformance] = useState<any>(null);
-  const [availability, setAvailability] = useState<any>(null);
+  const [overview, setOverview] = useState<DashboardOverview | null>(null);
+  const [activity, setActivity] = useState<DashboardActivity | null>(null);
+  const [charts, setCharts] = useState<DashboardCharts | null>(null);
+  const [performance, setPerformance] = useState<DashboardPerformance | null>(null);
+  const [availability, setAvailability] = useState<DashboardAvailability | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,9 +92,10 @@ const ProviderDashboardPage: React.FC = () => {
       setCharts(ch.data);
       setPerformance(perf.data);
       setAvailability(avail.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching dashboard data:", err);
-      setError(err?.response?.data?.message || "Failed to load dashboard data");
+      const errorMessage = err instanceof Error ? err.message : "Failed to load dashboard data";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -66,9 +107,9 @@ const ProviderDashboardPage: React.FC = () => {
 
   const formatActivity = () => {
     if (!activity) return [];
-    const items: any[] = [];
+    const items: { id: string; type: string; title: string; subtitle: string; time: string }[] = [];
 
-    activity.recentAssignments?.forEach((a: any) => items.push({
+    activity.recentAssignments?.forEach((a) => items.push({
       id: a._id,
       type: 'assignment',
       title: a.jobId?.title || 'Job Assignment',
@@ -76,7 +117,7 @@ const ProviderDashboardPage: React.FC = () => {
       time: new Date(a.createdAt).toLocaleDateString()
     }));
 
-    activity.recentReviews?.forEach((r: any) => items.push({
+    activity.recentReviews?.forEach((r) => items.push({
       id: r._id,
       type: 'review',
       title: `Review from ${r.reviewerId?.name || 'Client'}`,
@@ -202,7 +243,7 @@ const ProviderDashboardPage: React.FC = () => {
                       padding: '10px 14px',
                       fontSize: '12px'
                     }}
-                    formatter={(value: any) => [`₹${safeNumber(value).toLocaleString()}`, 'Revenue']}
+                    formatter={(value: number | string) => [`₹${safeNumber(value).toLocaleString()}`, 'Revenue']}
                   />
                   <Area type="monotone" dataKey="amount" stroke="#3b82f6" strokeWidth={2.5} fillOpacity={1} fill="url(#colorAmount)" />
                 </AreaChart>
@@ -260,7 +301,7 @@ const ProviderDashboardPage: React.FC = () => {
                     paddingAngle={4}
                     dataKey="count"
                   >
-                    {(charts?.jobStatusDistribution || []).map((_entry: any, index: number) => (
+                    {(charts?.jobStatusDistribution || []).map((_entry: { status: string; count: number }, index: number) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -276,7 +317,7 @@ const ProviderDashboardPage: React.FC = () => {
               </ResponsiveContainer>
               {(charts?.jobStatusDistribution || []).length > 0 && (
                 <div className="grid grid-cols-2 gap-2 mt-4">
-                  {(charts?.jobStatusDistribution || []).map((entry: any, index: number) => (
+                  {(charts?.jobStatusDistribution || []).map((entry: { status: string; count: number }, index: number) => (
                     <div key={entry.status || index} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-50 transition-colors">
                       <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
                       <div className="flex flex-col min-w-0">

@@ -79,7 +79,7 @@ Adminapi.interceptors.response.use(
         const { accessToken } = response.data.data;
         
         // CRITICAL: Check if the refreshed token actually belongs to an admin
-        const decoded: any = jwtDecode(accessToken);
+        const decoded = jwtDecode<{ role: string }>(accessToken);
         if (decoded.role !== 'admin') {
            throw new Error("Refreshed token is not an admin token");
         }

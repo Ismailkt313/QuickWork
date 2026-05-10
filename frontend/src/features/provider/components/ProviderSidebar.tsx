@@ -12,7 +12,6 @@ import {
   RiArrowRightSLine,
   RiMapLine,
   RiInboxArchiveLine,
-  RiTimeLine,
 } from "react-icons/ri";
 import { NavLink, Link } from "react-router-dom";
 import "./ProviderSidebar.css";

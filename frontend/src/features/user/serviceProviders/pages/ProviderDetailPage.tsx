@@ -50,13 +50,6 @@ const ProviderDetailPage: React.FC = () => {
   const [reviewMeta, setReviewMeta] = useState({ averageRating: 0, totalReviews: 0 });
   const [reviewPagination, setReviewPagination] = useState({ page: 1, totalPages: 1, hasNext: false });
 
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 992);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   useEffect(() => {
     getLandingData()

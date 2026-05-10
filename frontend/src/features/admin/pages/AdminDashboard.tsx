@@ -186,10 +186,10 @@ const AdminDashboard: React.FC = () => {
                             title="Operational Records"
                             data={activities.filter(a => a.type === 'payment' || a.type === 'report').slice(0, 5)}
                             columns={[
-                                { header: 'Action', render: (a: any) => <span className="font-bold text-slate-800">{a.title}</span> },
-                                { header: 'Description', render: (a: any) => <span className="text-slate-500">{a.description}</span> },
-                                { header: 'User', render: (a: any) => <span className="text-xs font-medium bg-slate-100 px-2 py-1 rounded">{a.user?.name || 'System'}</span> },
-                                { header: 'Time', render: (a: any) => <span className="text-xs text-slate-400">{new Date(a.timestamp).toLocaleDateString()}</span> }
+                                { header: 'Action', render: (a: RecentActivity) => <span className="font-bold text-slate-800">{a.title}</span> },
+                                { header: 'Description', render: (a: RecentActivity) => <span className="text-slate-500">{a.description}</span> },
+                                { header: 'User', render: (a: RecentActivity) => <span className="text-xs font-medium bg-slate-100 px-2 py-1 rounded">{a.user?.name || 'System'}</span> },
+                                { header: 'Time', render: (a: RecentActivity) => <span className="text-xs text-slate-400">{new Date(a.timestamp).toLocaleDateString()}</span> }
                             ]}
                             loading={loading}
                         />

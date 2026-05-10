@@ -36,10 +36,6 @@ const WalletPage: React.FC = () => {
     );
   }, [dispatch, page, debouncedSearch]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [debouncedSearch]);
-
   const isNegative = (wallet?.balance || 0) < 0;
   const totalPages = pagination?.pages || 1;
 
@@ -124,7 +120,10 @@ const WalletPage: React.FC = () => {
                   placeholder="Search by ID, source..."
                   style={{ width: "260px" }}
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setPage(1);
+                  }}
                 />
               </div>
             </div>

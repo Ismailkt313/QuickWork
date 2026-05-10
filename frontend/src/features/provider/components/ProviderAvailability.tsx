@@ -27,71 +27,23 @@ interface AvailabilityItem {
   isAvailable: boolean;
 }
 
-const ProviderAvailability: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const { availability, blockedDates, loading } = useSelector((state: RootState) => state.availability);
+const AvailabilityForm: React.FC<{ initialData: AvailabilityItem[]; loading: boolean; onSave: (data: AvailabilityItem[]) => void }> = ({ initialData, loading, onSave }) => {
+    const [localAvailability, setLocalAvailability] = useState<AvailabilityItem[]>(initialData);
 
-  const [localAvailability, setLocalAvailability] = useState<AvailabilityItem[]>([]);
-  const [newBlocked, setNewBlocked] = useState({ startDate: "", endDate: "", reason: "" });
+    const handleToggleDay = (day: string) => {
+        setLocalAvailability(prev =>
+          prev.map(a => a.day === day ? { ...a, isAvailable: !a.isAvailable } : a)
+        );
+      };
+    
+      const handleTimeChange = (day: string, field: "startTime" | "endTime", value: string) => {
+        setLocalAvailability(prev =>
+          prev.map(a => a.day === day ? { ...a, [field]: value } : a)
+        );
+      };
 
-  useEffect(() => {
-    dispatch(fetchMyAvailability());
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (availability && availability.length > 0) {
-      setLocalAvailability(availability);
-    } else if (!loading) {
-      setLocalAvailability(DAYS.map(day => ({
-        day,
-        startTime: "09:00",
-        endTime: "18:00",
-        isAvailable: true
-      })));
-    }
-  }, [availability, loading]);
-
-  const handleToggleDay = (day: string) => {
-    setLocalAvailability(prev =>
-      prev.map(a => a.day === day ? { ...a, isAvailable: !a.isAvailable } : a)
-    );
-  };
-
-  const handleTimeChange = (day: string, field: "startTime" | "endTime", value: string) => {
-    setLocalAvailability(prev =>
-      prev.map(a => a.day === day ? { ...a, [field]: value } : a)
-    );
-  };
-
-  const handleSaveAvailability = () => {
-    dispatch(updateAvailability(localAvailability));
-  };
-
-  const handleAddBlocked = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newBlocked.startDate || !newBlocked.endDate || !newBlocked.reason) return;
-
-    const start = new Date(newBlocked.startDate);
-    const today = new Date();
-    today.setHours(0,0,0,0);
-
-    if (start < today) {
-        toast.error("Cannot block dates in the past");
-        return;
-    }
-
-    if (new Date(newBlocked.endDate) < start) {
-        toast.error("End date cannot be before start date");
-        return;
-    }
-
-    dispatch(addBlockedDate(newBlocked));
-    setNewBlocked({ startDate: "", endDate: "", reason: "" });
-  };
-
-  return (
-    <div className="qw-availability-container">
-      <div className="qw-section-card">
+      return (
+        <div className="qw-section-card">
         <div className="qw-section-title">
           <div className="d-flex align-items-center gap-2">
             <RiTimeLine className="text-primary" />
@@ -99,7 +51,7 @@ const ProviderAvailability: React.FC = () => {
           </div>
           <button
             className="qw-btn-save"
-            onClick={handleSaveAvailability}
+            onClick={() => onSave(localAvailability)}
             disabled={loading}
           >
             <RiSaveLine /> {loading ? "Saving..." : "Save Schedule"}
@@ -146,6 +98,66 @@ const ProviderAvailability: React.FC = () => {
           ))}
         </div>
       </div>
+      );
+};
+
+const ProviderAvailability: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { availability, blockedDates, loading } = useSelector((state: RootState) => state.availability);
+
+  const [newBlocked, setNewBlocked] = useState({ startDate: "", endDate: "", reason: "" });
+
+  useEffect(() => {
+    dispatch(fetchMyAvailability());
+  }, [dispatch]);
+
+  const handleSaveAvailability = (data: AvailabilityItem[]) => {
+    dispatch(updateAvailability(data));
+  };
+
+  const handleAddBlocked = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newBlocked.startDate || !newBlocked.endDate || !newBlocked.reason) return;
+
+    const start = new Date(newBlocked.startDate);
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    if (start < today) {
+        toast.error("Cannot block dates in the past");
+        return;
+    }
+
+    if (new Date(newBlocked.endDate) < start) {
+        toast.error("End date cannot be before start date");
+        return;
+    }
+
+    dispatch(addBlockedDate(newBlocked));
+    setNewBlocked({ startDate: "", endDate: "", reason: "" });
+  };
+
+  const initialData = availability && availability.length > 0 
+    ? availability 
+    : DAYS.map(day => ({
+        day,
+        startTime: "09:00",
+        endTime: "18:00",
+        isAvailable: true
+      }));
+
+  return (
+    <div className="qw-availability-container">
+      {loading && availability.length === 0 ? (
+          <div className="text-center py-20">Loading schedule...</div>
+      ) : (
+          <AvailabilityForm 
+            key={availability?.length || 0}
+            initialData={initialData} 
+            loading={loading} 
+            onSave={handleSaveAvailability} 
+          />
+      )}
 
       <div className="qw-section-card mt-4">
         <div className="qw-section-title">

@@ -9,16 +9,12 @@ import {
   RiArrowRightSLine,
   RiSkipBackLine,
   RiSkipForwardLine,
-  RiNotification3Line, 
-  RiUser3Line, 
   RiArrowUpDownLine, 
-  RiMenu5Fill,
   RiSearch2Line
 } from "react-icons/ri";
 import { getUserJobs, cancelJob, type UserJob } from "../services/userJob.service";
 import UserJobCard from "../components/UserJobCard";
 import CompactUserJobCard from "../components/CompactUserJobCard";
-import MobileBottomNav from "../components/MobileBottomNav";
 import { CreateJobModal } from "../jobs/components/CreateJobModal";
 import { CancelJobModal } from "../components/CancelJobModal";
 import { toast } from "react-toastify";

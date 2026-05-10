@@ -20,6 +20,48 @@ interface MobileProfileDrawerProps {
   onLogout: () => void;
 }
 
+interface NavItemProps {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  color?: string;
+  showArrow?: boolean;
+}
+
+const NavItem: React.FC<NavItemProps> = ({
+  icon,
+  label,
+  onClick,
+  color = "#475569",
+  showArrow = true,
+}) => (
+  <div
+    onClick={onClick}
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: "14px",
+      padding: "16px 20px",
+      cursor: "pointer",
+      transition: "background 0.2s ease",
+    }}
+    className="mobile-nav-row"
+  >
+    <span style={{ fontSize: "20px", color, display: "flex" }}>{icon}</span>
+    <span
+      style={{
+        fontSize: "15px",
+        fontWeight: 600,
+        color: "#1e293b",
+        flex: 1,
+      }}
+    >
+      {label}
+    </span>
+    {showArrow && <RiArrowRightSLine color="#cbd5e1" size={18} />}
+  </div>
+);
+
 const MobileProfileDrawer: React.FC<MobileProfileDrawerProps> = ({
   isOpen,
   onClose,
@@ -29,37 +71,6 @@ const MobileProfileDrawer: React.FC<MobileProfileDrawerProps> = ({
   const navigate = useNavigate();
 
   if (!isOpen) return null;
-
-  const NavItem = ({ 
-    icon, 
-    label, 
-    onClick, 
-    color = "#475569",
-    showArrow = true 
-  }: { 
-    icon: React.ReactNode, 
-    label: string, 
-    onClick: () => void,
-    color?: string,
-    showArrow?: boolean
-  }) => (
-    <div
-      onClick={onClick}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "14px",
-        padding: "16px 20px",
-        cursor: "pointer",
-        transition: "background 0.2s ease",
-      }}
-      className="mobile-nav-row"
-    >
-      <span style={{ fontSize: "20px", color, display: "flex" }}>{icon}</span>
-      <span style={{ fontSize: "15px", fontWeight: 600, color: "#1e293b", flex: 1 }}>{label}</span>
-      {showArrow && <RiArrowRightSLine color="#cbd5e1" size={18} />}
-    </div>
-  );
 
   return (
     <>

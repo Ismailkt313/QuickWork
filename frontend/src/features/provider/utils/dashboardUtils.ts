@@ -7,7 +7,7 @@
  * Safely converts any value to a number.
  * Returns fallback for null, undefined, NaN, Infinity, or non-numeric strings.
  */
-export const safeNumber = (value: any, fallback = 0): number => {
+export const safeNumber = (value: unknown, fallback = 0): number => {
   if (value === null || value === undefined || value === '') return fallback;
   const num = Number(value);
   if (!Number.isFinite(num)) return fallback;
@@ -18,7 +18,7 @@ export const safeNumber = (value: any, fallback = 0): number => {
  * Safely formats a number as INR currency.
  * Handles null/undefined/NaN gracefully, always returns a formatted string.
  */
-export const safeCurrency = (value: any, locale = 'en-IN'): string => {
+export const safeCurrency = (value: unknown, locale = 'en-IN'): string => {
   const num = safeNumber(value);
   try {
     return new Intl.NumberFormat(locale, {
@@ -35,7 +35,7 @@ export const safeCurrency = (value: any, locale = 'en-IN'): string => {
  * Safely formats a value as a percentage string.
  * Clamps between 0-100 by default for progress bars.
  */
-export const safePercentage = (value: any, precision = 0, clamp = false): string => {
+export const safePercentage = (value: unknown, precision = 0, clamp = false): string => {
   let num = safeNumber(value);
   if (clamp) {
     num = Math.max(0, Math.min(100, num));
@@ -46,7 +46,7 @@ export const safePercentage = (value: any, precision = 0, clamp = false): string
 /**
  * Clamps a number value between min and max for safe progress bar rendering.
  */
-export const clampedNumber = (value: any, min = 0, max = 100): number => {
+export const clampedNumber = (value: unknown, min = 0, max = 100): number => {
   return Math.max(min, Math.min(max, safeNumber(value)));
 };
 
@@ -54,7 +54,7 @@ export const clampedNumber = (value: any, min = 0, max = 100): number => {
  * Safely formats a decimal (e.g. rating) to fixed precision.
  * Returns "0.0" instead of "NaN" on bad input.
  */
-export const safeDecimal = (value: any, precision = 1): string => {
+export const safeDecimal = (value: unknown, precision = 1): string => {
   return safeNumber(value).toFixed(precision);
 };
 
@@ -62,10 +62,10 @@ export const safeDecimal = (value: any, precision = 1): string => {
  * Safely formats a date string for display.
  * Returns a graceful fallback for invalid/missing dates.
  */
-export const formatDate = (date: any): string => {
+export const formatDate = (date: unknown): string => {
   if (!date) return 'No date';
   try {
-    const d = new Date(date);
+    const d = new Date(date as string | number | Date);
     if (isNaN(d.getTime())) return 'Invalid date';
     return d.toLocaleDateString(undefined, {
       month: 'short',
@@ -80,7 +80,7 @@ export const formatDate = (date: any): string => {
 /**
  * Returns a safe string, preventing "undefined" or "null" from rendering.
  */
-export const safeString = (value: any, fallback = '—'): string => {
+export const safeString = (value: unknown, fallback = '—'): string => {
   if (value === null || value === undefined || value === '') return fallback;
   return String(value);
 };

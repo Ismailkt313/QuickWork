@@ -11,7 +11,6 @@ import { NotificationModal } from "../../notification/components/NotificationMod
 import { useNotifications } from "../../notification/hooks/useNotifications";
 import { FaBell } from "react-icons/fa";
 import { RiBriefcaseLine } from "react-icons/ri";
-import MobileBottomNav from "./MobileBottomNav";
 import MobileProfileDrawer from "./MobileProfileDrawer";
 import type { Location } from "../landingPage/services/landingService";
 
@@ -29,7 +28,6 @@ const Header: React.FC<HeaderProps> = ({
   onClearLocation,
 }) => {
   const navigate = useNavigate();
-  const [navOpen, setNavOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -182,7 +180,7 @@ const Header: React.FC<HeaderProps> = ({
           {!isMobile && (
             <>
               <div 
-                className={`navbar-collapse ${navOpen ? 'd-block' : 'd-none'} d-lg-flex justify-content-between flex-grow-1`}
+                className="navbar-collapse d-none d-lg-flex justify-content-between flex-grow-1"
               >
                 <ul className="navbar-nav mx-auto gap-1">
                   {[

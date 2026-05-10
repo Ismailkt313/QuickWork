@@ -5,14 +5,9 @@ import {
   RiExternalLinkLine,
   RiSearchLine,
   RiFilter3Line,
-  RiWallet3Line,
-  RiHistoryLine,
-  RiArrowRightSLine,
   RiBillLine,
   RiMoneyDollarCircleLine,
-  RiTimeLine,
-  RiArrowUpLine,
-  RiArrowDownLine
+  RiTimeLine
 } from "react-icons/ri";
 import { financeService, type IInvoice } from "../services/finance.service";
 import { fetchWallet } from "../store/walletSlice";
@@ -23,7 +18,7 @@ import "./UserWallet.css";
 
 const PaymentHistoryPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { wallet, loading: walletLoading } = useSelector((state: RootState) => state.wallet);
+  const { wallet } = useSelector((state: RootState) => state.wallet);
   
   const [invoices, setInvoices] = useState<IInvoice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -259,7 +254,7 @@ const PaymentHistoryPage: React.FC = () => {
             className="filter-btn"
             style={{ paddingLeft: '40px', paddingRight: '24px', appearance: 'none', height: '100%', outline: 'none' }}
             value={filterMethod}
-            onChange={(e) => setFilterMethod(e.target.value as any)}
+            onChange={(e) => setFilterMethod(e.target.value as "all" | "online" | "cash")}
           >
             <option value="all">All Methods</option>
             <option value="online">Online Payment</option>

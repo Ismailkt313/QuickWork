@@ -3,18 +3,12 @@ import {
   RiMapPinLine,
   RiTimeLine,
   RiCalendarEventLine,
-  RiCheckLine,
-  RiCloseLine,
   RiMessage2Line,
-  RiMoneyDollarCircleLine,
   RiArrowRightLine,
-  RiFileTextLine,
   RiCheckDoubleLine,
   RiCloseCircleLine,
   RiGroupLine,
-  RiAlertLine,
   RiVerifiedBadgeLine,
-  RiUserLine,
   RiFlashlightLine,
 } from "react-icons/ri";
 import type { JobDetail } from "../types/job";

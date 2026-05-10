@@ -15,8 +15,6 @@ import {
   RiDashboardFill,
   RiFileList3Line,
   RiFileList3Fill,
-  RiUserStarLine,
-  RiUserStarFill,
 } from "react-icons/ri";
 
 const MobileBottomNav: React.FC = () => {
