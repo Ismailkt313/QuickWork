@@ -50,6 +50,14 @@ const ProviderDetailPage: React.FC = () => {
   const [reviewMeta, setReviewMeta] = useState({ averageRating: 0, totalReviews: 0 });
   const [reviewPagination, setReviewPagination] = useState({ page: 1, totalPages: 1, hasNext: false });
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 992);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   useEffect(() => {
     getLandingData()
       .then((d) => setLocations(d.locations))
@@ -177,12 +185,168 @@ const ProviderDetailPage: React.FC = () => {
       onSelectLocation={() => { }}
       onClearLocation={() => { }}
     >
-      <div
-        style={{
-          background: "linear-gradient(135deg,#0f172a 0%,#1e293b 100%)",
-          padding: "32px 0 80px",
-        }}
-      >
+      <>
+        <style>{`
+        .provider-detail-hero {
+          background: linear-gradient(135deg,#0f172a 0%,#1e293b 100%);
+          padding: 32px 0 80px;
+        }
+        .profile-container-mobile {
+          margin-top: -60px;
+          padding: 16px;
+        }
+        .mobile-hero-card {
+          background: #fff;
+          border-radius: 20px;
+          padding: 20px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+          margin-bottom: 20px;
+        }
+        .mobile-avatar-row {
+          display: flex;
+          gap: 16px;
+          align-items: center;
+          margin-bottom: 16px;
+        }
+        .mobile-avatar {
+          width: 80px;
+          height: 80px;
+          border-radius: 16px;
+          object-fit: cover;
+          border: 3px solid #fff;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .mobile-hero-info h2 {
+          font-size: 18px;
+          font-weight: 800;
+          color: #0f172a;
+          margin-bottom: 4px;
+        }
+        .mobile-rating-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          background: #fef3c7;
+          color: #92400e;
+          padding: 2px 8px;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 700;
+        }
+        .mobile-actions-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+          margin-bottom: 24px;
+        }
+        .mobile-action-btn {
+          height: 48px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+          font-size: 14px;
+          border: none;
+          transition: all 0.2s;
+        }
+        .btn-primary-mobile {
+          background: linear-gradient(135deg,#3b82f6,#2563eb);
+          color: #fff;
+          box-shadow: 0 4px 12px rgba(37,99,235,0.2);
+        }
+        .btn-secondary-mobile {
+          background: #fff;
+          border: 1.5px solid #e2e8f0 !important;
+          color: #1e293b;
+        }
+        .mobile-stats-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+          margin-bottom: 24px;
+        }
+        .mobile-stat-card {
+          background: #f8fafc;
+          border: 1px solid #f1f5f9;
+          padding: 12px;
+          border-radius: 14px;
+          text-align: center;
+        }
+        .mobile-stat-value {
+          font-size: 16px;
+          font-weight: 800;
+          color: #0f172a;
+          display: block;
+        }
+        .mobile-stat-label {
+          font-size: 10px;
+          color: #94a3b8;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          font-weight: 600;
+        }
+        .mobile-section {
+          background: #fff;
+          border-radius: 20px;
+          padding: 20px;
+          margin-bottom: 16px;
+          box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+          border: 1px solid #f1f5f9;
+        }
+        .mobile-section-title {
+          font-size: 16px;
+          font-weight: 800;
+          color: #0f172a;
+          margin-bottom: 12px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .skill-chip-mobile {
+          display: inline-block;
+          padding: 6px 12px;
+          background: #eff6ff;
+          color: #2563eb;
+          border-radius: 10px;
+          font-size: 12px;
+          font-weight: 600;
+          margin-right: 6px;
+          margin-bottom: 6px;
+        }
+        .portfolio-grid-mobile {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
+        }
+        .portfolio-item-mobile {
+          aspect-ratio: 4/3;
+          border-radius: 12px;
+          overflow: hidden;
+          background: #f1f5f9;
+        }
+        .availability-chip {
+          display: flex;
+          justify-content: space-between;
+          padding: 8px 12px;
+          background: #f8fafc;
+          border-radius: 10px;
+          margin-bottom: 6px;
+          font-size: 13px;
+        }
+        .review-card-mobile {
+          border-bottom: 1px solid #f1f5f9;
+          padding-bottom: 16px;
+          margin-bottom: 16px;
+        }
+        .review-header-mobile {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 8px;
+        }
+      `}</style>
+
+      <div className="provider-detail-hero">
         <div className="container">
           <div className="d-flex align-items-center gap-2 mb-3">
             <span
@@ -205,7 +369,6 @@ const ProviderDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
-
       <div
         className="container"
         style={{
@@ -756,6 +919,7 @@ const ProviderDetailPage: React.FC = () => {
         availability={provider.availability}
         blockedDates={provider.blockedDates}
       />
+      </>
     </MainLayout>
   );
 };

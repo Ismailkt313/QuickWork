@@ -13,11 +13,12 @@ export interface Transaction {
   amount: number;
   balanceAfter: number;
   createdAt: string;
+  transactionCode: string;
 }
 
 export interface WorkHistory {
   _id: string;
-  jobId: { _id: string; title: string };
+  jobId: { _id: string; title: string; jobCode?: string };
   clientId: string;
   providerId: string;
   finalStatus: string;
@@ -40,7 +41,7 @@ export interface IInvoice {
   description: string;
   _id: string;
   invoiceNumber: string;
-  jobId: { _id: string; title: string };
+  jobId: { _id: string; title: string; jobCode?: string };
   client: { name: string; email: string };
   provider: { name: string; email: string };
   total: number;

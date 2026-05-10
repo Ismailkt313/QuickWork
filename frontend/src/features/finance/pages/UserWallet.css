@@ -1,0 +1,583 @@
+/* UserWallet.css - Modern Marketplace Wallet Styles */
+
+/* Base Container */
+.qw-payment-history-container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 20px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Page Header */
+.qw-page-header {
+    margin-bottom: 32px;
+}
+
+.qw-page-header h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 32px;
+    color: #0f172a;
+    margin-bottom: 8px;
+}
+
+.qw-page-header p {
+    color: #64748b;
+    font-size: 16px;
+}
+
+/* Wallet Balance Card - NEW */
+.qw-wallet-balance-card {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    border-radius: 24px;
+    padding: 32px;
+    color: #ffffff;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.qw-wallet-balance-card::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.qw-balance-label {
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 0.8;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.qw-balance-value {
+    font-size: 42px;
+    font-weight: 800;
+    margin-bottom: 24px;
+    display: block;
+}
+
+.qw-balance-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.qw-stat-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.qw-stat-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    opacity: 0.6;
+    margin-bottom: 4px;
+}
+
+.qw-stat-value {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.qw-wallet-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.qw-btn-action-primary {
+    background: #ffffff;
+    color: #0f172a;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.qw-btn-action-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+}
+
+.qw-btn-action-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+/* History Controls */
+.qw-history-controls {
+    display: flex;
+    gap: 16px;
+    margin: 32px 0 24px;
+}
+
+.search-wrapper {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: 16px;
+    color: #94a3b8;
+    font-size: 20px;
+}
+
+.search-wrapper input {
+    width: 100%;
+    padding: 14px 16px 14px 48px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.search-wrapper input:focus {
+    outline: none;
+    border-color: #0f172a;
+    box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.05);
+}
+
+.filter-wrapper {
+    position: relative;
+}
+
+.filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 24px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #0f172a;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    height: 100%;
+}
+
+/* Desktop Table View */
+.qw-history-card {
+    background: #fff;
+    border-radius: 24px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+}
+
+.qw-table-container {
+    overflow-x: auto;
+}
+
+.qw-history-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.qw-history-table th {
+    text-align: left;
+    padding: 20px 24px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #94a3b8;
+    background: #fcfcfd;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.qw-history-table td {
+    padding: 24px;
+    border-bottom: 1px solid #f8fafc;
+}
+
+.history-row {
+    transition: background 0.2s;
+}
+
+.history-row:hover {
+    background: #f8fafc;
+}
+
+.invoice-num {
+    font-weight: 700;
+    color: #0f172a;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+}
+
+.job-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.job-title {
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
+
+.provider-name {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.amount-paid {
+    font-weight: 800;
+    color: #0f172a;
+    font-size: 16px;
+}
+
+.method-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 100px;
+    text-transform: uppercase;
+}
+
+.method-badge.online { background: #eff6ff; color: #3b82f6; }
+.method-badge.cash { background: #f0fdf4; color: #16a34a; }
+
+.action-group {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.icon-btn.view:hover { color: #3b82f6; border-color: #3b82f6; background: #f0f7ff; }
+.icon-btn.download:hover { color: #16a34a; border-color: #16a34a; background: #f0fdf4; }
+
+/* Pagination */
+.qw-pagination {
+    padding: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.qw-pagination button {
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.qw-pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* MOBILE STYLES - Premium Wallet Experience */
+@media (max-width: 768px) {
+    .qw-payment-history-container {
+        padding: 0;
+        margin: 0;
+        background: #f8fafc;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+
+    /* Mobile Header */
+    .qw-page-header {
+        background: #ffffff;
+        padding: 20px 20px 10px;
+        margin-bottom: 0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+    }
+
+    .qw-page-header h1 {
+        font-size: 22px;
+        margin-bottom: 4px;
+    }
+
+    .qw-page-header p {
+        font-size: 13px;
+    }
+
+    /* Mobile Wallet Card */
+    .qw-wallet-section {
+        padding: 20px;
+        background: #ffffff;
+        border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+    }
+
+    .qw-wallet-balance-card {
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 0;
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.2);
+    }
+
+    .qw-balance-label {
+        font-size: 12px;
+    }
+
+    .qw-balance-value {
+        font-size: 32px;
+        margin-bottom: 20px;
+    }
+
+    .qw-balance-stats {
+        gap: 8px;
+        padding-top: 20px;
+    }
+
+    .qw-stat-label {
+        font-size: 9px;
+    }
+
+    .qw-stat-value {
+        font-size: 13px;
+    }
+
+    /* Mobile Controls */
+    .qw-history-controls {
+        flex-direction: column;
+        padding: 16px 20px;
+        gap: 12px;
+        margin: 0;
+        background: #ffffff;
+    }
+
+    .search-wrapper input {
+        padding: 12px 16px 12px 44px;
+        border-radius: 12px;
+        font-size: 13px;
+    }
+
+    .filter-wrapper {
+        overflow-x: auto;
+        display: flex;
+        gap: 8px;
+        padding-bottom: 4px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .filter-wrapper::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Mobile Filter Chips (replacing select on mobile) */
+    .qw-mobile-filter-chips {
+        display: flex;
+        gap: 8px;
+    }
+
+    .qw-filter-chip {
+        white-space: nowrap;
+        padding: 8px 16px;
+        background: #f1f5f9;
+        color: #64748b;
+        border-radius: 100px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid transparent;
+        transition: all 0.2s;
+    }
+
+    .qw-filter-chip.active {
+        background: #0f172a;
+        color: #ffffff;
+    }
+
+    /* Transaction List (Mobile Card View) */
+    .qw-history-card {
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0 20px 100px;
+    }
+
+    .qw-table-container {
+        display: none; /* Hide table on mobile */
+    }
+
+    .qw-mobile-transaction-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .qw-mobile-tx-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid rgba(15, 23, 42, 0.05);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+        transition: all 0.2s;
+    }
+
+    .qw-mobile-tx-card:active {
+        transform: scale(0.98);
+        background: #f8fafc;
+    }
+
+    .qw-tx-left {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .qw-tx-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: #0f172a;
+    }
+
+    .qw-tx-icon.online { background: #eff6ff; color: #3b82f6; }
+    .qw-tx-icon.cash { background: #f0fdf4; color: #16a34a; }
+
+    .qw-tx-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .qw-tx-title {
+        font-weight: 700;
+        font-size: 14px;
+        color: #0f172a;
+        margin-bottom: 2px;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .qw-tx-meta {
+        font-size: 11px;
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .qw-tx-right {
+        text-align: right;
+    }
+
+    .qw-tx-amount {
+        font-weight: 800;
+        font-size: 16px;
+        color: #0f172a;
+        margin-bottom: 4px;
+    }
+
+    .qw-tx-status {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 100px;
+        text-transform: uppercase;
+        background: #f1f5f9;
+        color: #64748b;
+    }
+
+    .qw-tx-status.paid { background: #f0fdf4; color: #16a34a; }
+    .qw-tx-status.pending { background: #fffbeb; color: #f59e0b; }
+    .qw-tx-status.failed { background: #fef2f2; color: #ef4444; }
+    .qw-tx-status.refunded { background: #eff6ff; color: #3b82f6; }
+
+    /* Empty State */
+    .qw-empty-state {
+        padding: 60px 20px;
+        text-align: center;
+        background: #ffffff;
+        border-radius: 24px;
+        margin-top: 20px;
+        border: 2px dashed #e2e8f0;
+    }
+
+    .qw-empty-icon {
+        font-size: 64px;
+        color: #e2e8f0;
+        margin-bottom: 16px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .qw-empty-state h3 {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .qw-empty-state p {
+        font-size: 14px;
+        color: #64748b;
+    }
+}
+
+/* Animations */
+.animate-fade-in { animation: fadeIn 0.6s ease-out; }
+.animate-pop-in { animation: popIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes popIn {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.qw-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .5; }
+}
+
+.text-right { text-align: right; }

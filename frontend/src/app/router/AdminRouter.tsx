@@ -11,6 +11,7 @@ const AdminDashboard = lazy(() => import("../../features/admin/pages/AdminDashbo
 const UserManagement = lazy(() => import("../../features/admin/pages/UserManagement"));
 const SkillRequests = lazy(() => import("../../features/admin/pages/SkillRequests"));
 const ProviderManagement = lazy(() => import("../../features/admin/pages/ProviderManagement"));
+const SkillManagement = lazy(() => import("../../features/admin/pages/SkillManagement"));
 const AdminFinancePage = lazy(() => import("../../features/finance/pages/AdminFinancePage"));
 const AdminReportsPage = lazy(() => import("../../features/admin/pages/AdminReportsPage"));
 const AdminReportDetailPage = lazy(() => import("../../features/admin/pages/AdminReportDetailPage"));
@@ -41,6 +42,7 @@ const AdminRouter = () => {
           <Route path="users" element={<UserManagement />} />
           <Route path="skill-requests" element={<SkillRequests />} />
           <Route path="providers" element={<ProviderManagement />} />
+          <Route path="skills" element={<SkillManagement />} />
           <Route path="transactions" element={<AdminFinancePage />} />
           <Route path="reports" element={<AdminReportsPage />} />
           <Route path="reports/:id" element={<AdminReportDetailPage />} />

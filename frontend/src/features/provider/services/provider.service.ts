@@ -100,9 +100,9 @@ export const fetchLocations = async () => {
   }
 };
 
-export const acceptJob = async (jobId: string) => {
+export const acceptJob = async (jobId: string, amount?: number) => {
   try {
-    const response = await api.post(ENDPOINTS.JOB.ACCEPT(jobId));
+    const response = await api.post(ENDPOINTS.JOB.ACCEPT(jobId), { amount });
     if (!response.data.success) {
       throw new Error(response.data.message || "Failed to accept job");
     }
@@ -115,9 +115,9 @@ export const acceptJob = async (jobId: string) => {
   }
 };
 
-export const acceptOffer = async (jobId: string) => {
+export const acceptOffer = async (jobId: string, amount?: number) => {
   try {
-    const response = await api.put(ENDPOINTS.JOB.OFFER_ACCEPT(jobId));
+    const response = await api.put(ENDPOINTS.JOB.OFFER_ACCEPT(jobId), { amount });
     if (!response.data.success) {
       throw new Error(response.data.message || "Failed to accept offer");
     }

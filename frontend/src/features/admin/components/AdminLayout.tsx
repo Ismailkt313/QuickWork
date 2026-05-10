@@ -20,7 +20,7 @@ const AdminLayout = () => {
         onClose={() => setSidebarOpen(false)}
       />
 
-      <main className="admin-content">
+      <main className="admin-content min-w-0">
         <div className="mobile-header">
           <button
             className="mobile-hamburger"

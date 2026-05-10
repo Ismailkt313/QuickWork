@@ -15,6 +15,7 @@ import {
 } from "../services/userJob.service";
 import ReviewModal from "../components/ReviewModal";
 import ReportIssueModal from "../components/ReportIssueModal";
+import { CancelJobModal } from "../components/CancelJobModal";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
@@ -40,10 +41,14 @@ import CancellationModal from "../../provider/components/CancellationModal";
 import ReportAbsenceModal from "../../provider/components/ReportAbsenceModal";
 import UniversalActionModal from "../../provider/components/UniversalActionModal";
 import ClientJobPaymentSection from "../../finance/components/ClientJobPaymentSection";
-import { financeService, type WorkHistory } from "../../finance/services/finance.service";
+import {
+  financeService,
+  type WorkHistory,
+} from "../../finance/services/finance.service";
 import { AxiosError } from "axios";
 
 interface JobDetail {
+  jobCode: any;
   id: string;
   title: string;
   description: string;
@@ -118,23 +123,117 @@ interface Review {
   createdAt: string;
 }
 
+// ─── Shared Helpers ───
+
+const renderReviewCard = (
+  assignmentId: string,
+  providerName: string,
+  providerId: string,
+  assignmentReviews: Record<string, Review>,
+  setSelectedAssignmentId: (id: string | null) => void,
+  setSelectedProviderId: (id: string | null) => void,
+  setSelectedProviderName: (name: string) => void,
+  setEditReviewState: (state: any) => void,
+  setIsReviewModalOpen: (open: boolean) => void,
+  handleDeleteReviewClick: (id: string, assignmentId: string) => void,
+) => {
+  const review = assignmentReviews[assignmentId];
+  if (!review) return null;
+
+  return (
+    <div className="qw-review-card-mini mt-3 p-3 rounded-4 border bg-light shadow-sm">
+      <div className="d-flex justify-content-between align-items-start mb-2">
+        <div className="d-flex align-items-center gap-2">
+          <div className="d-flex text-warning">
+            {[...Array(5)].map((_, i) =>
+              i < review.rating ? (
+                <RiStarFill key={i} size={14} />
+              ) : (
+                <RiStarLine key={i} size={14} />
+              ),
+            )}
+          </div>
+          <span className="small text-muted fw-bold">
+            {new Date(review.createdAt).toLocaleDateString()}
+          </span>
+        </div>
+        <div className="d-flex gap-2">
+          <button
+            className="btn btn-sm btn-link p-0 text-primary fw-bold text-decoration-none"
+            style={{ fontSize: "12px" }}
+            onClick={() => {
+              setSelectedAssignmentId(assignmentId);
+              setSelectedProviderId(providerId);
+              setSelectedProviderName(providerName);
+              setEditReviewState({
+                isEdit: true,
+                reviewId: review.id,
+                initialRating: review.rating,
+                initialComment: review.comment,
+                initialImages: review.images,
+              });
+              setIsReviewModalOpen(true);
+            }}
+          >
+            Edit
+          </button>
+          <button
+            className="btn btn-sm btn-link p-0 text-danger fw-bold text-decoration-none"
+            style={{ fontSize: "12px" }}
+            onClick={() => handleDeleteReviewClick(review.id, assignmentId)}
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+      <p className="small text-dark mb-2 fw-medium">{review.comment}</p>
+      {review.images && review.images.length > 0 && (
+        <div className="d-flex gap-2 overflow-auto pb-1 qw-mini-images">
+          {review.images.map((img, i) => (
+            <img
+              key={i}
+              src={img}
+              alt="review"
+              className="rounded-2 shadow-sm border"
+              style={{ width: 44, height: 44, objectFit: "cover" }}
+            />
+          ))}
+        </div>
+      )}
+      <style>{`
+        .qw-mini-images::-webkit-scrollbar { height: 4px; }
+        .qw-mini-images::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+      `}</style>
+    </div>
+  );
+};
+
 const UserJobDetailPage: React.FC = () => {
   const { jobId } = useParams<{ jobId: string }>();
   const navigate = useNavigate();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [paymentHistories, setPaymentHistories] = useState<Record<string, WorkHistory>>({});
+  const [paymentHistories, setPaymentHistories] = useState<
+    Record<string, WorkHistory>
+  >({});
 
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isJobCancelModalOpen, setIsJobCancelModalOpen] = useState(false);
   const [isAbsenceModalOpen, setIsAbsenceModalOpen] = useState(false);
-  const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<
+    string | null
+  >(null);
   const [selectedProviderName, setSelectedProviderName] = useState<string>("");
-  const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
+  const [selectedProviderId, setSelectedProviderId] = useState<string | null>(
+    null,
+  );
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isPaymentConfirmOpen, setIsPaymentConfirmOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [assignmentReviews, setAssignmentReviews] = useState<Record<string, Review>>({});
+  const [assignmentReviews, setAssignmentReviews] = useState<
+    Record<string, Review>
+  >({});
   const [editReviewState, setEditReviewState] = useState<{
     isEdit: boolean;
     reviewId?: string;
@@ -143,25 +242,36 @@ const UserJobDetailPage: React.FC = () => {
     initialImages?: string[];
   }>({ isEdit: false });
   const [isDeleteReviewModalOpen, setIsDeleteReviewModalOpen] = useState(false);
-  const [reviewToDelete, setReviewToDelete] = useState<{ id: string; assignmentId: string } | null>(null);
+  const [reviewToDelete, setReviewToDelete] = useState<{
+    id: string;
+    assignmentId: string;
+  } | null>(null);
 
   const hasAwaitingPayment = React.useMemo(() => {
-    if (job?.hiredProvider?.payment?.status === 'awaiting_confirmation') return true;
-    return assignments.some(a => a.payment?.status === 'awaiting_confirmation');
+    if (job?.hiredProvider?.payment?.status === "awaiting_confirmation")
+      return true;
+    return assignments.some(
+      (a) => a.payment?.status === "awaiting_confirmation",
+    );
   }, [job, assignments]);
 
   const handleCancelAssignment = async (notes: string) => {
     if (!selectedAssignmentId) return;
     try {
       setLoading(true);
-      const response = await cancelAssignmentByClient(selectedAssignmentId, notes);
+      const response = await cancelAssignmentByClient(
+        selectedAssignmentId,
+        notes,
+      );
       if (response.success) {
         toast.success("Assignment cancelled successfully");
         fetchData();
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
-      toast.error(axiosError.response?.data?.message || "Failed to cancel assignment");
+      toast.error(
+        axiosError.response?.data?.message || "Failed to cancel assignment",
+      );
     } finally {
       setLoading(false);
       setSelectedAssignmentId(null);
@@ -169,8 +279,11 @@ const UserJobDetailPage: React.FC = () => {
   };
 
   const handleCancelJob = async () => {
+    setIsJobCancelModalOpen(true);
+  };
+
+  const confirmCancelJob = async () => {
     if (!jobId) return;
-    if (!window.confirm("Are you sure you want to cancel this job offer?")) return;
 
     try {
       setLoading(true);
@@ -178,6 +291,7 @@ const UserJobDetailPage: React.FC = () => {
       if (response.success) {
         toast.success("Job offer cancelled successfully");
         fetchData();
+        setIsJobCancelModalOpen(false);
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
@@ -191,27 +305,41 @@ const UserJobDetailPage: React.FC = () => {
     if (!selectedAssignmentId) return;
     try {
       setLoading(true);
-      const response = await reportAbsence(selectedAssignmentId, notes, evidence);
+      const response = await reportAbsence(
+        selectedAssignmentId,
+        notes,
+        evidence,
+      );
       if (response.success) {
         toast.success("Absence reported successfully");
         fetchData();
       }
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
-      toast.error(axiosError.response?.data?.message || "Failed to report absence");
+      toast.error(
+        axiosError.response?.data?.message || "Failed to report absence",
+      );
     } finally {
       setLoading(false);
       setSelectedAssignmentId(null);
     }
   };
 
-  const handleReviewSubmit = async (rating: number, comment: string, images: string[]) => {
+  const handleReviewSubmit = async (
+    rating: number,
+    comment: string,
+    images: string[],
+  ) => {
     if (!selectedAssignmentId || !selectedProviderId) return;
     try {
       setLoading(true);
       let response;
       if (editReviewState.isEdit && editReviewState.reviewId) {
-        response = await updateReview(editReviewState.reviewId, { rating, comment, images });
+        response = await updateReview(editReviewState.reviewId, {
+          rating,
+          comment,
+          images,
+        });
       } else {
         response = await submitReview({
           assignmentId: selectedAssignmentId,
@@ -230,12 +358,16 @@ const UserJobDetailPage: React.FC = () => {
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
       const status = axiosError.response?.status;
-      const message = axiosError.message || "An unexpected error occurred during review";
+      const message =
+        axiosError.message || "An unexpected error occurred during review";
 
       if (status === 409) {
-        toast.warning("You have already submitted a review for this provider on this assignment.", {
-          autoClose: 5000,
-        });
+        toast.warning(
+          "You have already submitted a review for this provider on this assignment.",
+          {
+            autoClose: 5000,
+          },
+        );
         setIsReviewModalOpen(false);
       } else {
         toast.error(message);
@@ -264,7 +396,9 @@ const UserJobDetailPage: React.FC = () => {
       });
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
-      toast.error(axiosError.response?.data?.message || "Failed to delete review");
+      toast.error(
+        axiosError.response?.data?.message || "Failed to delete review",
+      );
     } finally {
       setLoading(false);
       setIsDeleteReviewModalOpen(false);
@@ -272,7 +406,11 @@ const UserJobDetailPage: React.FC = () => {
     }
   };
 
-  const handleReportSubmit = async (reason: string, description: string, images: string[]) => {
+  const handleReportSubmit = async (
+    reason: string,
+    description: string,
+    images: string[],
+  ) => {
     if (!selectedAssignmentId || !selectedProviderId) return;
     try {
       setLoading(true);
@@ -287,7 +425,10 @@ const UserJobDetailPage: React.FC = () => {
       toast.success(response.message || "Report submitted successfully");
     } catch (error) {
       const axiosError = error as AxiosError<{ message: string }>;
-      toast.error(axiosError.response?.data?.message || "An unexpected error occurred during report");
+      toast.error(
+        axiosError.response?.data?.message ||
+        "An unexpected error occurred during report",
+      );
     } finally {
       setLoading(false);
     }
@@ -298,15 +439,17 @@ const UserJobDetailPage: React.FC = () => {
       setLoading(true);
       const response = await markAsPaidByCash(assignmentId);
       if (response.success) {
-        toast.success("Payment marked as paid by cash. Awaiting provider confirmation.");
+        toast.success(
+          "Payment marked as paid by cash. Awaiting provider confirmation.",
+        );
         fetchData(true);
       }
     } catch (error) {
-
       const axiosError = error as AxiosError<{ message: string }>;
-      toast.error(axiosError.response?.data?.message || "Failed to mark as paid");
+      toast.error(
+        axiosError.response?.data?.message || "Failed to mark as paid",
+      );
     } finally {
-
       setLoading(false);
     }
   };
@@ -319,69 +462,98 @@ const UserJobDetailPage: React.FC = () => {
           const res = await financeService.getWorkHistoryByAssignmentId(aId);
           if (res.data) histories[aId] = res.data;
         } catch (error) {
-          console.error(`Failed to fetch payment history for assignment ${aId}:`, error);
+          console.error(
+            `Failed to fetch payment history for assignment ${aId}:`,
+            error,
+          );
         }
-      })
+      }),
     );
     setPaymentHistories(histories);
   }, []);
 
-  const fetchAssignmentReviews = useCallback(async (assignmentIds: string[]) => {
-    const reviews: Record<string, Review> = {};
-    await Promise.all(
-      assignmentIds.map(async (aId) => {
-        try {
-          const res = await getReviewsForAssignment(aId);
-          if (res.success && res.data && res.data.length > 0) {
-            const clientReview = res.data.find((r: Review) => r.role === "client_to_provider");
-            if (clientReview) reviews[aId] = clientReview;
+  const fetchAssignmentReviews = useCallback(
+    async (assignmentIds: string[]) => {
+      const reviews: Record<string, Review> = {};
+      await Promise.all(
+        assignmentIds.map(async (aId) => {
+          try {
+            const res = await getReviewsForAssignment(aId);
+            if (res.success && res.data && res.data.length > 0) {
+              const clientReview = res.data.find(
+                (r: Review) => r.role === "client_to_provider",
+              );
+              if (clientReview) reviews[aId] = clientReview;
+            }
+          } catch (error) {
+            console.error(
+              `Failed to fetch reviews for assignment ${aId}:`,
+              error,
+            );
           }
-        } catch (error) {
-          console.error(`Failed to fetch reviews for assignment ${aId}:`, error);
-        }
-      })
-    );
-    setAssignmentReviews((prev) => {
-      const next = { ...prev };
-      assignmentIds.forEach(id => {
-        if (reviews[id]) next[id] = reviews[id];
-        else delete next[id];
+        }),
+      );
+      setAssignmentReviews((prev) => {
+        const next = { ...prev };
+        assignmentIds.forEach((id) => {
+          if (reviews[id]) next[id] = reviews[id];
+          else delete next[id];
+        });
+        return next;
       });
-      return next;
-    });
+    },
+    [],
+  );
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 992);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const fetchData = useCallback(async (isSilent = false) => {
-    try {
-      if (!isSilent) setLoading(true);
-      const jobRes = await getJobDetails(jobId!);
-      if (jobRes.success) {
-        setJob(jobRes.data);
-        const completedAssignmentIds: string[] = [];
-        if (jobRes.data.visibility === "public") {
-          const assignRes = await getJobAssignments(jobId!);
-          if (assignRes.success) {
-            setAssignments(assignRes.data);
-            assignRes.data.forEach((a: Assignment) => {
-              if (a.workStatus === "completed") completedAssignmentIds.push(a.assignmentId);
-            });
+  const isDirectHire = job?.visibility === "private";
+  const isRejected = job?.status === "rejected";
+
+  const fetchData = useCallback(
+    async (isSilent = false) => {
+      try {
+        if (!isSilent) setLoading(true);
+        const jobRes = await getJobDetails(jobId!);
+        if (jobRes.success) {
+          setJob(jobRes.data);
+          const completedAssignmentIds: string[] = [];
+          if (jobRes.data.visibility === "public") {
+            const assignRes = await getJobAssignments(jobId!);
+            if (assignRes.success) {
+              setAssignments(assignRes.data);
+              assignRes.data.forEach((a: Assignment) => {
+                if (a.workStatus === "completed")
+                  completedAssignmentIds.push(a.assignmentId);
+              });
+            }
+          } else if (jobRes.data.hiredProvider?.assignmentId) {
+            const hp = jobRes.data.hiredProvider;
+            if (hp.workStatus === "completed")
+              completedAssignmentIds.push(hp.assignmentId);
           }
-        } else if (jobRes.data.hiredProvider?.assignmentId) {
-          const hp = jobRes.data.hiredProvider;
-          if (hp.workStatus === "completed") completedAssignmentIds.push(hp.assignmentId);
+          if (completedAssignmentIds.length > 0) {
+            fetchPaymentHistories(completedAssignmentIds);
+            fetchAssignmentReviews(completedAssignmentIds);
+          }
         }
-        if (completedAssignmentIds.length > 0) {
-          fetchPaymentHistories(completedAssignmentIds);
-          fetchAssignmentReviews(completedAssignmentIds);
-        }
+      } catch (error) {
+        const axiosError = error as AxiosError<{ message: string }>;
+        toast.error(
+          axiosError.response?.data?.message || "Failed to load data",
+        );
+      } finally {
+        if (!isSilent) setLoading(false);
       }
-    } catch (error) {
-      const axiosError = error as AxiosError<{ message: string }>;
-      toast.error(axiosError.response?.data?.message || "Failed to load data");
-    } finally {
-      if (!isSilent) setLoading(false);
-    }
-  }, [jobId, fetchPaymentHistories, fetchAssignmentReviews]);
+    },
+    [jobId, fetchPaymentHistories, fetchAssignmentReviews],
+  );
 
   useEffect(() => {
     if (jobId) {
@@ -390,105 +562,512 @@ const UserJobDetailPage: React.FC = () => {
   }, [jobId, fetchData]);
 
   const handleTextProvider = (providerId: string, providerName: string) => {
-    navigate(`/user/messages?userId=${providerId}&name=${encodeURIComponent(providerName)}`);
+    navigate(
+      `/user/messages?userId=${providerId}&name=${encodeURIComponent(providerName)}`,
+    );
   };
 
-  const renderReviewCard = (assignmentId: string, providerName: string, providerId: string) => {
-    const review = assignmentReviews[assignmentId];
-    if (!review) return null;
+  // ─── Mobile Specific Components ───
+
+  const MobileJobHeader = () => (
+    <div className="m-job-header">
+      <button onClick={() => navigate("/user/jobs")} className="m-back-btn">
+        <RiArrowLeftLine size={20} />
+      </button>
+      <div className="m-header-info">
+        <h1 className="m-job-title">{job?.title}</h1>
+        <div className="m-status-row">
+          <span className={`m-status-chip ${job?.status}`}>
+            {job?.status.replace("_", " ")}
+          </span>
+          <span className="m-type-chip">
+            {job?.visibility === "private" ? "Direct" : "Public"}
+          </span>
+        </div>
+      </div>
+      <button className="m-more-btn">
+        <RiFlagLine size={18} />
+      </button>
+    </div>
+  );
+
+  const JobSummaryCard = () => (
+    <div className="m-summary-card">
+      <div className="m-budget-row">
+        <div className="m-budget-info">
+          <span className="m-label">Project Budget</span>
+          <span className="m-value">₹{job?.budget}</span>
+        </div>
+        <RiMoneyDollarCircleLine size={32} className="m-budget-icon" />
+      </div>
+      <div className="m-stats-grid">
+        <div className="m-stat-item">
+          <RiMapPinLine className="m-stat-icon" />
+          <div className="m-stat-text">
+            <span className="m-stat-label">Location</span>
+            <span className="m-stat-val">
+              {job?.location?.address || "Remote"}
+            </span>
+          </div>
+        </div>
+        <div className="m-stat-item">
+          <RiCalendarCheckLine className="m-stat-icon" />
+          <div className="m-stat-text">
+            <span className="m-stat-label">Start Date</span>
+            <span className="m-stat-val">{job?.startDate}</span>
+          </div>
+        </div>
+        <div className="m-stat-item">
+          <RiTimeLine className="m-stat-icon" />
+          <div className="m-stat-text">
+            <span className="m-stat-label">Duration</span>
+            <span className="m-stat-val text-capitalize">
+              {job?.durationType.replace("_", " ")}
+            </span>
+          </div>
+        </div>
+        <div className="m-stat-item">
+          <RiGroupLine className="m-stat-icon" />
+          <div className="m-stat-text">
+            <span className="m-stat-label">Providers</span>
+            <span className="m-stat-val">
+              {job?.acceptedFreelancers} / {job?.freelancersNeeded}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const MobileProviderCard = ({
+    assignment,
+    provider,
+  }: {
+    assignment?: Assignment;
+    provider?: any;
+  }) => {
+    const p = provider || assignment?.provider;
+    const workStatus = assignment?.workStatus || provider?.workStatus;
+    const assignmentId = assignment?.assignmentId || provider?.assignmentId;
+    const payment = assignment?.payment || provider?.payment;
 
     return (
-      <div className="qw-review-card-mini mt-3 p-3 rounded-4 border bg-light shadow-sm">
-        <div className="d-flex justify-content-between align-items-start mb-2">
-          <div className="d-flex align-items-center gap-2">
-            <div className="d-flex text-warning">
-              {[...Array(5)].map((_, i) => (
-                i < review.rating ? <RiStarFill key={i} size={14} /> : <RiStarLine key={i} size={14} />
-              ))}
+      <div className="m-provider-section">
+        <div className="m-provider-card">
+          <div className="m-p-main">
+            <img
+              src={p.profileImage || "https://via.placeholder.com/150"}
+              alt={p.name}
+              className="m-p-avatar"
+            />
+            <div className="m-p-info">
+              <h4 className="m-p-name">{p.name}</h4>
+              <p className="m-p-headline">
+                {p.headline || "Professional Provider"}
+              </p>
+              <div className="m-p-badges">
+                <span className={`m-work-status ${workStatus}`}>
+                  {workStatus?.replace("_", " ")}
+                </span>
+                {payment && (
+                  <span className={`m-pay-status ${payment.status}`}>
+                    ₹{payment.amount}
+                  </span>
+                )}
+              </div>
             </div>
-            <span className="small text-muted fw-bold">{new Date(review.createdAt).toLocaleDateString()}</span>
           </div>
-          <div className="d-flex gap-2">
+          <div className="m-p-actions">
             <button
-              className="btn btn-sm btn-link p-0 text-primary fw-bold text-decoration-none"
-              style={{ fontSize: '12px' }}
+              className="m-p-btn chat"
+              onClick={() => handleTextProvider(p.userId, p.name)}
+            >
+              <RiMessage2Line />
+            </button>
+            {workStatus === "completed" && !assignmentReviews[assignmentId] && (
+              <button
+                className="m-p-btn star"
+                onClick={() => {
+                  setSelectedAssignmentId(assignmentId);
+                  setSelectedProviderId(p.userId);
+                  setSelectedProviderName(p.name);
+                  setIsReviewModalOpen(true);
+                }}
+              >
+                <RiStarLine />
+              </button>
+            )}
+            <button
+              className="m-p-btn report"
               onClick={() => {
                 setSelectedAssignmentId(assignmentId);
-                setSelectedProviderId(providerId);
-                setSelectedProviderName(providerName);
-                setEditReviewState({
-                  isEdit: true,
-                  reviewId: review.id,
-                  initialRating: review.rating,
-                  initialComment: review.comment,
-                  initialImages: review.images
-                });
-                setIsReviewModalOpen(true);
+                setSelectedProviderId(p.userId);
+                setSelectedProviderName(p.name);
+                setIsReportModalOpen(true);
               }}
             >
-              Edit
-            </button>
-            <button
-              className="btn btn-sm btn-link p-0 text-danger fw-bold text-decoration-none"
-              style={{ fontSize: '12px' }}
-              onClick={() => handleDeleteReviewClick(review.id, assignmentId)}
-            >
-              Delete
+              <RiFlagLine />
             </button>
           </div>
         </div>
-        <p className="small text-dark mb-2 fw-medium">{review.comment}</p>
-        {review.images && review.images.length > 0 && (
-          <div className="d-flex gap-2 overflow-auto pb-1 qw-mini-images">
-            {review.images.map((img, i) => (
-              <img key={i} src={img} alt="review" className="rounded-2 shadow-sm border" style={{ width: 44, height: 44, objectFit: 'cover' }} />
-            ))}
+
+        {workStatus === "completed" && (
+          <div className="m-financial-details">
+            <ClientJobPaymentSection
+              assignmentId={assignmentId}
+              providerName={p.name}
+            />
+            {renderReviewCard(
+              assignmentId,
+              p.name,
+              p.userId,
+              assignmentReviews,
+              setSelectedAssignmentId,
+              setSelectedProviderId,
+              setSelectedProviderName,
+              setEditReviewState,
+              setIsReviewModalOpen,
+              handleDeleteReviewClick,
+            )}
           </div>
         )}
-        <style>{`
-          .qw-mini-images::-webkit-scrollbar { height: 4px; }
-          .qw-mini-images::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-        `}</style>
       </div>
     );
   };
 
-  if (loading) {
-    return (
-      <div
-        className="qw-page-container d-flex flex-column align-items-center justify-content-center"
-        style={{ minHeight: "60vh" }}
-      >
-        <RiLoader4Line size={48} className="text-primary qw-spin mb-3" />
-        <p className="text-muted fw-semibold fs-5">Loading job details...</p>
-        <style>{`
-                    .qw-spin { animation: qwSpin 1.2s linear infinite; }
-                    @keyframes qwSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-                `}</style>
-      </div>
-    );
-  }
+  const StickyActionBar = () => {
+    if (job?.status === "completed" || job?.status === "cancelled") return null;
 
-  if (!job) {
     return (
-      <div className="qw-page-container text-center py-5">
-        <RiErrorWarningLine size={64} className="text-danger mb-3" />
-        <h2>Job Not Found</h2>
-        <Link
-          to="/user/jobs"
-          className="btn btn-primary mt-3 rounded-pill px-4"
+      <div className="m-sticky-actions">
+        {job?.status === "open" && isDirectHire && !hasAwaitingPayment && (
+          <button className="m-action-btn cancel" onClick={handleCancelJob}>
+            Cancel Offer
+          </button>
+        )}
+        <button
+          className="m-action-btn primary"
+          onClick={() => navigate(`/user/jobs`)}
         >
-          Back to Jobs
-        </Link>
+          Manage Job
+        </button>
       </div>
     );
-  }
+  };
 
-  const isDirectHire = job.visibility === "private";
-  const isRejected = job.status === "rejected";
+  const MobileLayout = () => (
+    <div className="m-job-detail-page">
+      <MobileJobHeader />
+
+      <div className="m-scroll-content">
+        {hasAwaitingPayment && (
+          <div className="m-lock-notice">
+            <RiLoader4Line className="qw-spin" />
+            <p>
+              <strong>Job Locked:</strong> Marked as paid. Awaiting
+              confirmation.
+            </p>
+          </div>
+        )}
+
+        <JobSummaryCard />
+
+        <div className="m-section">
+          <h3 className="m-section-title">Description</h3>
+          <p className="m-job-desc">{job?.description}</p>
+        </div>
+
+        <div className="m-section">
+          <h3 className="m-section-title">
+            {isDirectHire ? "Hired Provider" : "Assigned Providers"}
+          </h3>
+          {isDirectHire ? (
+            job?.hiredProvider ? (
+              <MobileProviderCard provider={job?.hiredProvider} />
+            ) : (
+              <div className="m-empty">Unavailable</div>
+            )
+          ) : assignments.length > 0 ? (
+            <div className="m-providers-list">
+              {assignments.map((a) => (
+                <MobileProviderCard key={a.assignmentId} assignment={a} />
+              ))}
+            </div>
+          ) : (
+            <div className="m-empty">No providers assigned yet.</div>
+          )}
+        </div>
+
+        <div className="m-section">
+          <h3 className="m-section-title">Timeline</h3>
+          <div className="m-timeline-card">
+            {[
+              { label: "Job Created", date: "Done", active: true },
+              {
+                label: "Provider Assigned",
+                date: job?.acceptedFreelancers ? "Done" : "Pending",
+                active: !!job?.acceptedFreelancers,
+              },
+              {
+                label: "Work In Progress",
+                date: job?.status === "in_progress" ? "Active" : "-",
+                active: job?.status === "in_progress",
+              },
+              {
+                label: "Completion",
+                date: job?.status === "completed" ? "Done" : "-",
+                active: job?.status === "completed",
+              },
+            ].map((step, i) => (
+              <div
+                key={i}
+                className={`m-timeline-step ${step.active ? "active" : ""}`}
+              >
+                <div className="m-step-indicator" />
+                <div className="m-step-content">
+                  <span className="m-step-label">{step.label}</span>
+                  <span className="m-step-date">{step.date}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <StickyActionBar />
+
+      <style>{`
+        .m-job-detail-page {
+          background: #f8fafc;
+          min-height: 100vh;
+          padding-bottom: 180px; /* Increased to prevent content from hiding behind sticky actions */
+        }
+        .m-job-header {
+          background: white;
+          padding: 16px 20px;
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          border-bottom: 1px solid #f1f5f9;
+          position: sticky;
+          top: 0;
+          z-index: 100;
+        }
+        .m-back-btn, .m-more-btn {
+          width: 38px;
+          height: 38px;
+          border-radius: 12px;
+          background: #f8fafc;
+          border: 1px solid #f1f5f9;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #64748b;
+        }
+        .m-header-info { flex: 1; min-width: 0; }
+        .m-job-title {
+          font-family: 'Syne', sans-serif;
+          font-size: 16px;
+          font-weight: 800;
+          color: #0f172a;
+          margin: 0;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .m-status-row {
+          display: flex;
+          gap: 6px;
+          margin-top: 2px;
+        }
+        .m-status-chip {
+          font-size: 9px;
+          font-weight: 800;
+          text-transform: uppercase;
+          padding: 1px 6px;
+          border-radius: 4px;
+        }
+        .m-status-chip.open { background: #fff7ed; color: #f97316; }
+        .m-status-chip.completed { background: #f0fdf4; color: #16a34a; }
+        .m-type-chip {
+          font-size: 9px;
+          font-weight: 800;
+          color: #94a3b8;
+          text-transform: uppercase;
+        }
+
+        .m-summary-card {
+          margin: 16px;
+          background: white;
+          border-radius: 24px;
+          padding: 20px;
+          border: 1px solid #f1f5f9;
+          box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+        }
+        .m-budget-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+          padding-bottom: 20px;
+          border-bottom: 1px dashed #f1f5f9;
+        }
+        .m-budget-info { display: flex; flex-direction: column; }
+        .m-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
+        .m-value { font-size: 24px; font-weight: 800; color: #0f172a; }
+        .m-budget-icon { color: #3b82f6; opacity: 0.2; }
+
+        .m-stats-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+        }
+        .m-stat-item { display: flex; gap: 10px; align-items: flex-start; }
+        .m-stat-icon { color: #94a3b8; font-size: 16px; margin-top: 2px; }
+        .m-stat-text { display: flex; flex-direction: column; min-width: 0; }
+        .m-stat-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
+        .m-stat-val { font-size: 13px; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .m-section { padding: 16px 20px; }
+        .m-section-title {
+          font-family: 'Syne', sans-serif;
+          font-size: 14px;
+          font-weight: 800;
+          color: #0f172a;
+          margin-bottom: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.02em;
+        }
+        .m-job-desc { font-size: 14px; line-height: 1.6; color: #64748b; margin: 0; }
+
+        .m-provider-section {
+          background: white;
+          border-radius: 20px;
+          border: 1px solid #f1f5f9;
+          margin-bottom: 12px;
+          overflow: hidden;
+        }
+        .m-provider-card {
+          padding: 16px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .m-p-main { display: flex; gap: 12px; align-items: center; }
+        .m-p-avatar { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; }
+        .m-p-name { font-size: 15px; font-weight: 800; color: #0f172a; margin: 0; }
+        .m-p-headline { font-size: 12px; color: #94a3b8; margin: 0; }
+        .m-p-badges { display: flex; gap: 4px; margin-top: 4px; }
+        .m-work-status { font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: #eff6ff; color: #3b82f6; text-transform: uppercase; }
+        .m-pay-status { font-size: 9px; font-weight: 800; color: #64748b; }
+        
+        .m-p-actions { display: flex; gap: 8px; }
+        .m-p-btn {
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          border: 1px solid #f1f5f9;
+          background: #f8fafc;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #64748b;
+        }
+
+        .m-financial-details {
+          padding: 16px;
+          background: #f8fafc;
+          border-top: 1px solid #f1f5f9;
+        }
+
+        .m-timeline-card {
+          background: white;
+          border-radius: 20px;
+          padding: 20px;
+          border: 1px solid #f1f5f9;
+        }
+        .m-timeline-step {
+          display: flex;
+          gap: 16px;
+          padding-bottom: 20px;
+          position: relative;
+        }
+        .m-timeline-step:last-child { padding-bottom: 0; }
+        .m-timeline-step::before {
+          content: '';
+          position: absolute;
+          left: 5px;
+          top: 10px;
+          bottom: 0;
+          width: 2px;
+          background: #f1f5f9;
+        }
+        .m-timeline-step:last-child::before { display: none; }
+        .m-timeline-step.active::before { background: #3b82f6; }
+        
+        .m-step-indicator {
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          background: #e2e8f0;
+          border: 3px solid white;
+          box-shadow: 0 0 0 1px #f1f5f9;
+          z-index: 1;
+          margin-top: 4px;
+        }
+        .m-timeline-step.active .m-step-indicator { background: #3b82f6; }
+        .m-step-content { display: flex; flex-direction: column; }
+        .m-step-label { font-size: 13px; font-weight: 700; color: #0f172a; }
+        .m-step-date { font-size: 11px; color: #94a3b8; }
+
+        .m-sticky-actions {
+          position: fixed;
+          bottom: calc(64px + env(safe-area-inset-bottom, 12px));
+          left: 0;
+          right: 0;
+          background: white;
+          padding: 16px 20px;
+          display: flex;
+          gap: 12px;
+          border-top: 1px solid #f1f5f9;
+          box-shadow: 0 -10px 30px rgba(15, 23, 42, 0.05);
+          z-index: 990; /* Reduced to ensure it sits behind modals (9999) */
+        }
+        .m-action-btn {
+          flex: 1;
+          height: 48px;
+          border-radius: 14px;
+          font-size: 14px;
+          font-weight: 700;
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .m-action-btn.primary { background: #0f172a; color: white; }
+        .m-action-btn.cancel { background: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; }
+
+        .m-lock-notice {
+          margin: 16px;
+          padding: 12px 16px;
+          background: #eff6ff;
+          border-radius: 12px;
+          display: flex;
+          gap: 12px;
+          align-items: center;
+          color: #3b82f6;
+        }
+        .m-lock-notice p { font-size: 12px; margin: 0; font-weight: 500; }
+      `}</style>
+    </div>
+  );
 
   return (
-    <div
+    <>
+      {isMobile ? (
+        <MobileLayout />
+      ) : (
+        <div
       className="qw-page-container"
       style={{ padding: "32px", maxWidth: "1200px", margin: "0 auto" }}
     >
@@ -502,7 +1081,9 @@ const UserJobDetailPage: React.FC = () => {
         <div className="alert alert-info border-0 shadow-sm rounded-4 p-3 mb-4 d-flex align-items-center gap-3">
           <RiLoader4Line className="qw-spin text-info" size={24} />
           <div className="small fw-medium text-info-emphasis">
-            <strong>Job Locked:</strong> You have marked a payment as paid. Job details and cancellations are restricted until the provider confirms the receipt.
+            <strong>Job Locked:</strong> You have marked a payment as paid. Job
+            details and cancellations are restricted until the provider confirms
+            the receipt.
           </div>
         </div>
       )}
@@ -511,24 +1092,24 @@ const UserJobDetailPage: React.FC = () => {
           <div>
             <div className="d-flex align-items-center gap-3 mb-2">
               <span
-                className={`badge rounded-pill bg-${job.status === "open"
+                className={`badge rounded-pill bg-${job?.status === "open"
                     ? "warning text-dark"
-                    : job.status === "rejected" || job.status === "cancelled"
+                    : job?.status === "rejected" || job?.status === "cancelled"
                       ? "danger"
-                      : job.status === "completed"
+                      : job?.status === "completed"
                         ? "success"
                         : "primary"
-                  }-subtle text-${job.status === "open"
+                  }-subtle text-${job?.status === "open"
                     ? "warning text-dark"
-                    : job.status === "rejected" || job.status === "cancelled"
+                    : job?.status === "rejected" || job?.status === "cancelled"
                       ? "danger"
-                      : job.status === "completed"
+                      : job?.status === "completed"
                         ? "success"
                         : "primary"
                   } px-3 py-2 fw-bold text-uppercase`}
                 style={{ fontSize: "11px", letterSpacing: "0.5px" }}
               >
-                {job.status.replace("_", " ")}
+                {job?.status?.replace("_", " ")}
               </span>
               <span
                 className="badge rounded-pill bg-light text-dark border px-3 py-2 fw-bold text-uppercase"
@@ -536,24 +1117,38 @@ const UserJobDetailPage: React.FC = () => {
               >
                 {isDirectHire ? "Direct Hire" : "Public Hire"}
               </span>
+              {job?.jobCode && (
+                <span
+                  className="badge rounded-pill bg-secondary text-white px-3 py-2 fw-bold text-uppercase"
+                  style={{
+                    fontSize: "11px",
+                    letterSpacing: "0.5px",
+                    background: "#64748b",
+                  }}
+                >
+                  #{job?.jobCode}
+                </span>
+              )}
             </div>
             <h1
               className="fw-bold text-dark mb-1"
               style={{ fontFamily: "Syne, sans-serif", letterSpacing: "-1px" }}
             >
-              {job.title}
+              {job?.title}
             </h1>
             <div className="d-flex align-items-center gap-2 mb-3">
               <RiFocus2Line className="text-primary" size={18} />
               <span className="fw-bold text-primary small text-uppercase letter-spacing-1">
-                {job.skills && job.skills.length > 0 ? job.skills[0] : "General Service"}
+                {job?.skills && job?.skills.length > 0
+                  ? job?.skills[0]
+                  : "General Service"}
               </span>
             </div>
             <p
               className="text-muted fs-5 mb-0"
               style={{ maxWidth: "800px", lineHeight: "1.6" }}
             >
-              {job.description}
+              {job?.description}
             </p>
           </div>
         </div>
@@ -567,7 +1162,7 @@ const UserJobDetailPage: React.FC = () => {
               <RiMapPinLine className="me-1" /> Location
             </div>
             <div className="fw-semibold text-dark fs-6">
-              {job.location?.address || "Remote"}
+              {job?.location?.address || "Remote"}
             </div>
           </div>
           <div className="col-6 col-md-3">
@@ -577,7 +1172,7 @@ const UserJobDetailPage: React.FC = () => {
             >
               <RiMoneyDollarCircleLine className="me-1" /> Budget
             </div>
-            <div className="fw-semibold text-dark fs-6">{job.budget}</div>
+            <div className="fw-semibold text-dark fs-6">₹{job?.budget}</div>
           </div>
           <div className="col-6 col-md-3">
             <div
@@ -586,7 +1181,7 @@ const UserJobDetailPage: React.FC = () => {
             >
               <RiCalendarCheckLine className="me-1" /> Start Date
             </div>
-            <div className="fw-semibold text-dark fs-6">{job.startDate}</div>
+            <div className="fw-semibold text-dark fs-6">{job?.startDate}</div>
           </div>
           <div className="col-6 col-md-3">
             <div
@@ -596,7 +1191,7 @@ const UserJobDetailPage: React.FC = () => {
               <RiGroupLine className="me-1" /> Duration Type
             </div>
             <div className="fw-semibold text-dark fs-6 text-capitalize">
-              {job.durationType.replace("_", " ")}
+              {job?.durationType?.replace("_", " ")}
             </div>
           </div>
           <div className="col-6 col-md-3">
@@ -607,27 +1202,44 @@ const UserJobDetailPage: React.FC = () => {
               <RiGroupLine className="me-1" /> Providers
             </div>
             <div className="fw-semibold text-dark fs-6">
-              {job.acceptedFreelancers} / {job.freelancersNeeded} Assigned
+              {job?.acceptedFreelancers} / {job?.freelancersNeeded} Assigned
             </div>
           </div>
         </div>
       </div>
 
-      {}
       {(() => {
         const allAssignmentIds: string[] = [];
-        if (job.visibility === "private" && job.hiredProvider?.assignmentId && job.hiredProvider.workStatus === "completed") {
-          allAssignmentIds.push(job.hiredProvider.assignmentId);
+        if (
+          job?.visibility === "private" &&
+          job?.hiredProvider?.assignmentId &&
+          job?.hiredProvider?.workStatus === "completed"
+        ) {
+          allAssignmentIds.push(job?.hiredProvider?.assignmentId);
         } else {
-          assignments.filter(a => a.workStatus === "completed").forEach(a => allAssignmentIds.push(a.assignmentId));
+          assignments
+            .filter((a) => a.workStatus === "completed")
+            .forEach((a) => allAssignmentIds.push(a.assignmentId));
         }
-        const histories = allAssignmentIds.map(id => paymentHistories[id]).filter(Boolean);
+        const histories = allAssignmentIds
+          .map((id) => paymentHistories[id])
+          .filter(Boolean);
         if (histories.length === 0) return null;
 
-        const totalBudget = histories.reduce((s, h) => s + h.payment.totalAmount, 0);
-        const totalPaid = histories.filter(h => h.payment.status === "completed").reduce((s, h) => s + h.payment.totalAmount, 0);
-        const totalPending = histories.filter(h => h.payment.status !== "completed").reduce((s, h) => s + h.payment.totalAmount, 0);
-        const totalFees = histories.reduce((s, h) => s + h.payment.platformFee, 0);
+        const totalBudget = histories.reduce(
+          (s, h) => s + h.payment.totalAmount,
+          0,
+        );
+        const totalPaid = histories
+          .filter((h) => h.payment.status === "completed")
+          .reduce((s, h) => s + h.payment.totalAmount, 0);
+        const totalPending = histories
+          .filter((h) => h.payment.status !== "completed")
+          .reduce((s, h) => s + h.payment.totalAmount, 0);
+        const totalFees = histories.reduce(
+          (s, h) => s + h.payment.platformFee,
+          0,
+        );
 
         return (
           <div className="qw-payment-summary-card mb-4">
@@ -637,75 +1249,124 @@ const UserJobDetailPage: React.FC = () => {
               </div>
               <div>
                 <h4 className="qw-ps-title">Payment Summary</h4>
-                <p className="qw-ps-subtitle">{histories.length} provider{histories.length > 1 ? 's' : ''} • {histories.filter(h => h.payment.status === "completed").length} paid</p>
+                <p className="qw-ps-subtitle">
+                  {histories.length} provider{histories.length > 1 ? "s" : ""} •{" "}
+                  {
+                    histories.filter((h) => h.payment.status === "completed")
+                      .length
+                  }{" "}
+                  paid
+                </p>
               </div>
             </div>
 
             <div className="qw-ps-stats-grid">
               <div className="qw-ps-stat">
-                <div className="qw-ps-stat-icon total"><RiMoneyDollarCircleLine size={18} /></div>
+                <div className="qw-ps-stat-icon total">
+                  <RiMoneyDollarCircleLine size={18} />
+                </div>
                 <div className="qw-ps-stat-info">
                   <span className="qw-ps-stat-label">Total Amount</span>
-                  <span className="qw-ps-stat-value">₹{totalBudget.toLocaleString()}</span>
+                  <span className="qw-ps-stat-value">
+                    ₹{totalBudget.toLocaleString()}
+                  </span>
                 </div>
               </div>
               <div className="qw-ps-stat">
-                <div className="qw-ps-stat-icon paid"><RiCheckboxCircleLine size={18} /></div>
+                <div className="qw-ps-stat-icon paid">
+                  <RiCheckboxCircleLine size={18} />
+                </div>
                 <div className="qw-ps-stat-info">
                   <span className="qw-ps-stat-label">Paid</span>
-                  <span className="qw-ps-stat-value success">₹{totalPaid.toLocaleString()}</span>
+                  <span className="qw-ps-stat-value success">
+                    ₹{totalPaid.toLocaleString()}
+                  </span>
                 </div>
               </div>
               <div className="qw-ps-stat">
-                <div className="qw-ps-stat-icon pending"><RiTimeLine size={18} /></div>
+                <div className="qw-ps-stat-icon pending">
+                  <RiTimeLine size={18} />
+                </div>
                 <div className="qw-ps-stat-info">
                   <span className="qw-ps-stat-label">Pending</span>
-                  <span className="qw-ps-stat-value warning">₹{totalPending.toLocaleString()}</span>
+                  <span className="qw-ps-stat-value warning">
+                    ₹{totalPending.toLocaleString()}
+                  </span>
                 </div>
               </div>
               <div className="qw-ps-stat">
-                <div className="qw-ps-stat-icon fee"><RiHandCoinLine size={18} /></div>
+                <div className="qw-ps-stat-icon fee">
+                  <RiHandCoinLine size={18} />
+                </div>
                 <div className="qw-ps-stat-info">
                   <span className="qw-ps-stat-label">Platform Fee</span>
-                  <span className="qw-ps-stat-value muted">₹{totalFees.toLocaleString()}</span>
+                  <span className="qw-ps-stat-value muted">
+                    ₹{totalFees.toLocaleString()}
+                  </span>
                 </div>
               </div>
             </div>
 
-            {}
             <div className="qw-ps-progress-wrap">
               <div className="qw-ps-progress-bar">
                 <div
                   className="qw-ps-progress-fill"
-                  style={{ width: totalBudget > 0 ? `${(totalPaid / totalBudget) * 100}%` : '0%' }}
+                  style={{
+                    width:
+                      totalBudget > 0
+                        ? `${(totalPaid / totalBudget) * 100}%`
+                        : "0%",
+                  }}
                 />
               </div>
               <span className="qw-ps-progress-label">
-                {totalBudget > 0 ? Math.round((totalPaid / totalBudget) * 100) : 0}% paid
+                {totalBudget > 0
+                  ? Math.round((totalPaid / totalBudget) * 100)
+                  : 0}
+                % paid
               </span>
             </div>
 
-            {}
             {histories.length > 1 && (
               <div className="qw-ps-breakdown">
                 <h6 className="qw-ps-breakdown-title">Provider Breakdown</h6>
                 {histories.map((h) => {
-                  const provider = assignments.find(a => a.assignmentId === Object.keys(paymentHistories).find(k => paymentHistories[k]?._id === h._id));
+                  const provider = assignments.find(
+                    (a) =>
+                      a.assignmentId ===
+                      Object.keys(paymentHistories).find(
+                        (k) => paymentHistories[k]?._id === h._id,
+                      ),
+                  );
                   return (
                     <div key={h._id} className="qw-ps-breakdown-row">
                       <div className="qw-ps-breakdown-name">
-                        <div className="qw-ps-mini-avatar">{(provider?.provider.name || h.jobId.title || 'P').charAt(0).toUpperCase()}</div>
+                        <div className="qw-ps-mini-avatar">
+                          {(provider?.provider.name || h.jobId.title || "P")
+                            .charAt(0)
+                            .toUpperCase()}
+                        </div>
                         <span>{provider?.provider.name || h.jobId.title}</span>
                       </div>
                       <div className="qw-ps-breakdown-amount">
-                        <span className="qw-ps-amount-value">₹{h.payment.totalAmount.toLocaleString()}</span>
-                        <span className={`qw-ps-method-tag ${h.payment.status}`}>
+                        <span className="qw-ps-amount-value">
+                          ₹{h.payment.totalAmount.toLocaleString()}
+                        </span>
+                        <span
+                          className={`qw-ps-method-tag ${h.payment.status}`}
+                        >
                           {h.payment.status === "completed" ? (
-                            <><RiCheckboxCircleLine size={12} /> Paid</>
+                            <>
+                              <RiCheckboxCircleLine size={12} /> Paid
+                            </>
                           ) : h.payment.status === "awaiting_confirmation" ? (
-                            <><RiTimeLine size={12} /> Awaiting</>
+                            <>
+                              <RiTimeLine size={12} /> Awaiting
+                            </>
                           ) : (
-                            <><RiCashLine size={12} /> Pending</>
+                            <>
+                              <RiCashLine size={12} /> Pending
+                            </>
                           )}
                         </span>
                       </div>
@@ -738,7 +1399,7 @@ const UserJobDetailPage: React.FC = () => {
                 className="bg-white d-inline-block p-3 rounded-3 shadow-sm border mt-1"
                 style={{ color: "#475569", fontStyle: "normal" }}
               >
-                "{job.rejectionReason || "No reason provided."}"
+                "{job?.rejectionReason || "No reason provided."}"
               </em>
             </p>
           </div>
@@ -750,112 +1411,165 @@ const UserJobDetailPage: React.FC = () => {
       </h3>
 
       {isDirectHire ? (
-        job.hiredProvider ? (() => {
-          const hp = job.hiredProvider;
-          return (
-            <div className="provider-card mb-4">
-              <div className="d-flex align-items-center justify-content-between flex-wrap gap-4 mb-4">
-                <div className="d-flex align-items-center gap-4">
-                  <div className="position-relative">
-                    <img
-                      src={hp.profileImage || "https://via.placeholder.com/150"}
-                      alt={hp.name}
-                      style={{
-                        width: "80px",
-                        height: "80px",
-                        objectFit: "cover",
-                        borderRadius: "24px",
-                      }}
-                      className="shadow-sm border border-2 border-white"
-                    />
-                    <div className="position-absolute bottom-0 end-0 bg-success border border-2 border-white rounded-circle" style={{ width: '14px', height: '14px' }}></div>
-                  </div>
-                  <div>
-                    <div className="d-flex align-items-center gap-2 mb-1">
-                      <h4 className="fw-bold mb-0 text-dark" style={{ fontFamily: 'Syne, sans-serif' }}>{hp.name}</h4>
-                      {hp.isVerified && <RiCheckboxCircleLine className="text-primary" size={18} />}
-                    </div>
-                    <p className="text-muted mb-2 small fw-medium">{hp.headline || "Professional Service Provider"}</p>
-                    <div className="d-flex gap-2">
-                      <span className={`status-chip ${hp.workStatus === "completed" ? "bg-success-subtle text-success" :
-                          hp.workStatus === "in_progress" ? "bg-warning-subtle text-warning" : "bg-info-subtle text-info"
-                        }`}>
-                        {hp.workStatus?.replace("_", " ") || "Assigned"}
-                      </span>
-                      {job.status === "open" && (
-                        <span className="status-chip bg-amber-50 text-amber-600">Pending Response</span>
-                      )}
-                      {hp.payment && (
-                        <span className={`status-chip ${hp.payment.status === "completed" ? "bg-success-subtle text-success" :
-                            hp.payment.status === "awaiting_confirmation" ? "bg-warning-subtle text-warning" : "bg-secondary-subtle text-secondary"
-                          }`}>
-                          <RiMoneyDollarCircleLine size={12} className="me-1" />
-                          ₹{hp.payment.amount} • {hp.payment.status === "completed" ? "Paid" : hp.payment.status?.includes("awaiting") ? "Awaiting" : "Unpaid"}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="d-flex align-items-center gap-2">
-                  <button
-                    className="action-btn-circle"
-                    title="Message"
-                    onClick={() => handleTextProvider(hp.userId, hp.name)}
-                  >
-                    <RiMessage2Line size={20} />
-                  </button>
-                  {hp.workStatus === "completed" && !assignmentReviews[hp.assignmentId] && (
-                    <>
-                      <button
-                        className="action-btn-circle hover-text-primary"
-                        title="Write Review"
-                        onClick={() => {
-                          setSelectedAssignmentId(hp.assignmentId);
-                          setSelectedProviderId(hp.userId);
-                          setSelectedProviderName(hp.name);
-                          setIsReviewModalOpen(true);
+        job?.hiredProvider ? (
+          (() => {
+            const hp = job?.hiredProvider;
+            return (
+              <div className="provider-card mb-4">
+                <div className="d-flex align-items-center justify-content-between flex-wrap gap-4 mb-4">
+                  <div className="d-flex align-items-center gap-4">
+                    <div className="position-relative">
+                      <img
+                        src={
+                          hp.profileImage || "https://via.placeholder.com/150"
+                        }
+                        alt={hp.name}
+                        style={{
+                          width: "80px",
+                          height: "80px",
+                          objectFit: "cover",
+                          borderRadius: "24px",
                         }}
-                      >
-                        <RiStarLine size={20} />
-                      </button>
-                    </>
-                  )}
-                  <button
-                    className="action-btn-circle hover-text-danger"
-                    title="Report Issue"
-                    onClick={() => {
-                      setSelectedAssignmentId(hp.assignmentId);
-                      setSelectedProviderId(hp.userId);
-                      setSelectedProviderName(hp.name);
-                      setIsReportModalOpen(true);
-                    }}
-                  >
-                    <RiFlagLine size={20} />
-                  </button>
-                  {job.status === "open" && isDirectHire && !hasAwaitingPayment && (
-                    <button
-                      className="btn btn-link text-danger text-decoration-none small fw-bold px-3"
-                      onClick={handleCancelJob}
-                    >
-                      Cancel Offer
-                    </button>
-                  )}
-                </div>
-              </div>
+                        className="shadow-sm border border-2 border-white"
+                      />
+                      <div
+                        className="position-absolute bottom-0 end-0 bg-success border border-2 border-white rounded-circle"
+                        style={{ width: "14px", height: "14px" }}
+                      ></div>
+                    </div>
+                    <div>
+                      <div className="d-flex align-items-center gap-2 mb-1">
+                        <h4
+                          className="fw-bold mb-0 text-dark"
+                          style={{ fontFamily: "Syne, sans-serif" }}
+                        >
+                          {hp.name}
+                        </h4>
+                        {hp.isVerified && (
+                          <RiCheckboxCircleLine
+                            className="text-primary"
+                            size={18}
+                          />
+                        )}
+                      </div>
+                      <p className="text-muted mb-2 small fw-medium">
+                        {hp.headline || "Professional Service Provider"}
+                      </p>
+                      <div className="d-flex gap-2">
+                        <span
+                          className={`status-chip ${hp.workStatus === "completed"
+                              ? "bg-success-subtle text-success"
+                              : hp.workStatus === "in_progress"
+                                ? "bg-warning-subtle text-warning"
+                                : "bg-info-subtle text-info"
+                            }`}
+                        >
+                          {hp.workStatus?.replace("_", " ") || "Assigned"}
+                        </span>
+                        {job?.status === "open" && (
+                          <span className="status-chip bg-amber-50 text-amber-600">
+                            Pending Response
+                          </span>
+                        )}
+                        {hp.payment && (
+                          <span
+                            className={`status-chip ${hp.payment.status === "completed"
+                                ? "bg-success-subtle text-success"
+                                : hp.payment.status === "awaiting_confirmation"
+                                  ? "bg-warning-subtle text-warning"
+                                  : "bg-secondary-subtle text-secondary"
+                              }`}
+                          >
+                            <RiMoneyDollarCircleLine
+                              size={12}
+                              className="me-1"
+                            />
+                            ₹{hp.payment.amount} •{" "}
+                            {hp.payment.status === "completed"
+                              ? "Paid"
+                              : hp.payment.status?.includes("awaiting")
+                                ? "Awaiting"
+                                : "Unpaid"}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
 
-              {hp.workStatus === "completed" && (
-                <div className="pt-4 mt-2 border-top border-f1f5f9">
-                  <ClientJobPaymentSection
-                    assignmentId={hp.assignmentId}
-                    providerName={hp.name}
-                  />
-                  {renderReviewCard(hp.assignmentId, hp.name, hp.userId)}
+                  <div className="d-flex align-items-center gap-2">
+                    <button
+                      className="action-btn-circle"
+                      title="Message"
+                      onClick={() => handleTextProvider(hp.userId, hp.name)}
+                    >
+                      <RiMessage2Line size={20} />
+                    </button>
+                    {hp.workStatus === "completed" &&
+                      !assignmentReviews[hp.assignmentId] && (
+                        <>
+                          <button
+                            className="action-btn-circle hover-text-primary"
+                            title="Write Review"
+                            onClick={() => {
+                              setSelectedAssignmentId(hp.assignmentId);
+                              setSelectedProviderId(hp.userId);
+                              setSelectedProviderName(hp.name);
+                              setIsReviewModalOpen(true);
+                            }}
+                          >
+                            <RiStarLine size={20} />
+                          </button>
+                        </>
+                      )}
+                    <button
+                      className="action-btn-circle hover-text-danger"
+                      title="Report Issue"
+                      onClick={() => {
+                        setSelectedAssignmentId(hp.assignmentId);
+                        setSelectedProviderId(hp.userId);
+                        setSelectedProviderName(hp.name);
+                        setIsReportModalOpen(true);
+                      }}
+                    >
+                      <RiFlagLine size={20} />
+                    </button>
+                    {job?.status === "open" &&
+                      isDirectHire &&
+                      !hasAwaitingPayment && (
+                        <button
+                          className="btn btn-link text-danger text-decoration-none small fw-bold px-3"
+                          onClick={handleCancelJob}
+                        >
+                          Cancel Offer
+                        </button>
+                      )}
+                  </div>
                 </div>
-              )}
-            </div>
-          );
-        })() : (
+
+                {hp.workStatus === "completed" && (
+                  <div className="pt-4 mt-2 border-top border-f1f5f9">
+                    <ClientJobPaymentSection
+                      assignmentId={hp.assignmentId}
+                      providerName={hp.name}
+                    />
+                    {renderReviewCard(
+                      hp.assignmentId,
+                      hp.name,
+                      hp.userId,
+                      assignmentReviews,
+                      setSelectedAssignmentId,
+                      setSelectedProviderId,
+                      setSelectedProviderName,
+                      setEditReviewState,
+                      setIsReviewModalOpen,
+                      handleDeleteReviewClick
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })()
+        ) : (
           <div className="p-5 text-center bg-white rounded-4 shadow-sm border text-muted">
             Provider details unavailable.
           </div>
@@ -869,27 +1583,63 @@ const UserJobDetailPage: React.FC = () => {
                   <div className="d-flex align-items-center gap-3">
                     <div className="position-relative">
                       <img
-                        src={assignment.provider.profileImage || "https://via.placeholder.com/150"}
+                        src={
+                          assignment.provider.profileImage ||
+                          "https://via.placeholder.com/150"
+                        }
                         alt={assignment.provider.name}
-                        style={{ width: "56px", height: "56px", objectFit: "cover", borderRadius: "16px" }}
+                        style={{
+                          width: "56px",
+                          height: "56px",
+                          objectFit: "cover",
+                          borderRadius: "16px",
+                        }}
                         className="border border-2 border-white shadow-sm"
                       />
-                      <div className="position-absolute bottom-0 end-0 bg-success border border-1 border-white rounded-circle" style={{ width: '10px', height: '10px' }}></div>
+                      <div
+                        className="position-absolute bottom-0 end-0 bg-success border border-1 border-white rounded-circle"
+                        style={{ width: "10px", height: "10px" }}
+                      ></div>
                     </div>
                     <div>
-                      <h6 className="fw-bold mb-0 text-dark">{assignment.provider.name}</h6>
+                      <h6 className="fw-bold mb-0 text-dark">
+                        {assignment.provider.name}
+                      </h6>
                       <div className="d-flex gap-2 mt-1">
-                        <span className={`status-chip py-1 px-2 ${assignment.workStatus === "completed" ? "bg-success-subtle text-success" :
-                            assignment.workStatus === "in_progress" ? "bg-warning-subtle text-warning" : "bg-info-subtle text-info"
-                          }`} style={{ fontSize: '9px' }}>
-                          {assignment.workStatus?.replace("_", " ") || "Assigned"}
+                        <span
+                          className={`status-chip py-1 px-2 ${assignment.workStatus === "completed"
+                              ? "bg-success-subtle text-success"
+                              : assignment.workStatus === "in_progress"
+                                ? "bg-warning-subtle text-warning"
+                                : "bg-info-subtle text-info"
+                            }`}
+                          style={{ fontSize: "9px" }}
+                        >
+                          {assignment.workStatus?.replace("_", " ") ||
+                            "Assigned"}
                         </span>
                         {assignment.payment && (
-                          <span className={`status-chip py-1 px-2 ${assignment.payment.status === "completed" ? "bg-success-subtle text-success" :
-                              assignment.payment.status === "awaiting_confirmation" ? "bg-warning-subtle text-warning" : "bg-secondary-subtle text-secondary"
-                            }`} style={{ fontSize: '9px' }}>
-                            <RiMoneyDollarCircleLine size={10} className="me-1" />
-                            ₹{assignment.payment.amount} • {assignment.payment.status === "completed" ? "Paid" : assignment.payment.status === "awaiting_confirmation" ? "Awaiting" : "Unpaid"}
+                          <span
+                            className={`status-chip py-1 px-2 ${assignment.payment.status === "completed"
+                                ? "bg-success-subtle text-success"
+                                : assignment.payment.status ===
+                                  "awaiting_confirmation"
+                                  ? "bg-warning-subtle text-warning"
+                                  : "bg-secondary-subtle text-secondary"
+                              }`}
+                            style={{ fontSize: "9px" }}
+                          >
+                            <RiMoneyDollarCircleLine
+                              size={10}
+                              className="me-1"
+                            />
+                            ₹{assignment.payment.amount} •{" "}
+                            {assignment.payment.status === "completed"
+                              ? "Paid"
+                              : assignment.payment.status ===
+                                "awaiting_confirmation"
+                                ? "Awaiting"
+                                : "Unpaid"}
                           </span>
                         )}
                       </div>
@@ -899,30 +1649,36 @@ const UserJobDetailPage: React.FC = () => {
                   <div className="d-flex gap-1">
                     <button
                       className="action-btn-circle"
-                      style={{ width: '32px', height: '32px' }}
+                      style={{ width: "32px", height: "32px" }}
                       title="Message"
-                      onClick={() => handleTextProvider(assignment.provider.userId, assignment.provider.name)}
+                      onClick={() =>
+                        handleTextProvider(
+                          assignment.provider.userId,
+                          assignment.provider.name,
+                        )
+                      }
                     >
                       <RiMessage2Line size={16} />
                     </button>
-                    {assignment.workStatus === "completed" && !assignmentReviews[assignment.assignmentId] && (
-                      <button
-                        className="action-btn-circle hover-text-primary"
-                        style={{ width: '32px', height: '32px' }}
-                        title="Review"
-                        onClick={() => {
-                          setSelectedAssignmentId(assignment.assignmentId);
-                          setSelectedProviderId(assignment.provider.userId);
-                          setSelectedProviderName(assignment.provider.name);
-                          setIsReviewModalOpen(true);
-                        }}
-                      >
-                        <RiStarLine size={16} />
-                      </button>
-                    )}
+                    {assignment.workStatus === "completed" &&
+                      !assignmentReviews[assignment.assignmentId] && (
+                        <button
+                          className="action-btn-circle hover-text-primary"
+                          style={{ width: "32px", height: "32px" }}
+                          title="Review"
+                          onClick={() => {
+                            setSelectedAssignmentId(assignment.assignmentId);
+                            setSelectedProviderId(assignment.provider.userId);
+                            setSelectedProviderName(assignment.provider.name);
+                            setIsReviewModalOpen(true);
+                          }}
+                        >
+                          <RiStarLine size={16} />
+                        </button>
+                      )}
                     <button
                       className="action-btn-circle hover-text-danger"
-                      style={{ width: '32px', height: '32px' }}
+                      style={{ width: "32px", height: "32px" }}
                       title="Report"
                       onClick={() => {
                         setSelectedAssignmentId(assignment.assignmentId);
@@ -942,7 +1698,18 @@ const UserJobDetailPage: React.FC = () => {
                       assignmentId={assignment.assignmentId}
                       providerName={assignment.provider.name}
                     />
-                    {renderReviewCard(assignment.assignmentId, assignment.provider.name, assignment.provider.userId)}
+                    {renderReviewCard(
+                      assignment.assignmentId,
+                      assignment.provider.name,
+                      assignment.provider.userId,
+                      assignmentReviews,
+                      setSelectedAssignmentId,
+                      setSelectedProviderId,
+                      setSelectedProviderName,
+                      setEditReviewState,
+                      setIsReviewModalOpen,
+                      handleDeleteReviewClick,
+                    )}
                   </div>
                 )}
 
@@ -986,7 +1753,11 @@ const UserJobDetailPage: React.FC = () => {
           </p>
         </div>
       )}
+      
+        </div>
+      )}
 
+      {/* ─── Shared Modals ─── */}
       <CancellationModal
         isOpen={isCancelModalOpen}
         onClose={() => {
@@ -996,6 +1767,14 @@ const UserJobDetailPage: React.FC = () => {
         onConfirm={handleCancelAssignment}
         type="client"
       />
+
+      <CancelJobModal
+        isOpen={isJobCancelModalOpen}
+        onClose={() => setIsJobCancelModalOpen(false)}
+        onConfirm={confirmCancelJob}
+        isCancelling={loading}
+      />
+
       <ReportAbsenceModal
         isOpen={isAbsenceModalOpen}
         onClose={() => {
@@ -1036,7 +1815,9 @@ const UserJobDetailPage: React.FC = () => {
       <UniversalActionModal
         isOpen={isPaymentConfirmOpen}
         onClose={() => setIsPaymentConfirmOpen(false)}
-        onConfirm={() => selectedAssignmentId && handleMarkAsPaid(selectedAssignmentId)}
+        onConfirm={() =>
+          selectedAssignmentId && handleMarkAsPaid(selectedAssignmentId)
+        }
         title="Confirm Cash Payment"
         message="Are you sure you have paid the provider in cash? This will notify the provider to confirm receipt."
         confirmLabel="Yes, I have Paid"
@@ -1355,7 +2136,7 @@ const UserJobDetailPage: React.FC = () => {
                 .qw-ps-method-tag.awaiting_confirmation { background: #fffbeb; color: #f59e0b; }
                 .qw-ps-method-tag.pending { background: #f1f5f9; color: #64748b; }
             `}</style>
-    </div>
+    </>
   );
 };
 

@@ -17,6 +17,7 @@ import { acceptJob, getMyProfile, acceptOffer, rejectOffer } from "../services/p
 import VerificationPendingModal from "../components/VerificationPendingModal";
 import { ClientProfileModal } from "../components/ClientProfileModal";
 import RejectConfirmationModal from "../components/RejectConfirmationModal";
+import AcceptConfirmationModal from "../components/AcceptConfirmationModal";
 import Map from "../components/Map";
 import UserReviewsModal from "../components/UserReviewsModal";
 
@@ -32,6 +33,7 @@ const JobDetailPage: React.FC = () => {
   const [isPendingModalOpen,  setIsPendingModalOpen]  = React.useState(false);
   const [isProfileModalOpen,  setIsProfileModalOpen]  = React.useState(false);
   const [isRejectModalOpen,   setIsRejectModalOpen]   = React.useState(false);
+  const [isConfirmModalOpen,  setIsConfirmModalOpen]  = React.useState(false);
   const [isReviewsModalOpen,  setIsReviewsModalOpen]  = React.useState(false);
 
   const providerLocation = useProviderLocation();
@@ -43,21 +45,23 @@ const JobDetailPage: React.FC = () => {
   const handleAccept = () => {
     if (verificationStatus === "pending") { setIsPendingModalOpen(true); return; }
     if (job && job.location?.districtName !== providerLocation) setIsLocationModalOpen(true);
-    else processAccept();
+    else setIsConfirmModalOpen(true);
   };
 
-  const processAccept = async () => {
+  const processAccept = async (amount?: number) => {
     if (isAccepting || !job) return;
     setIsAccepting(true);
     try {
-      const result = job.visibility === "private" ? await acceptOffer(jobId) : await acceptJob(jobId);
+      const result = job.visibility === "private" ? await acceptOffer(jobId, amount) : await acceptJob(jobId, amount);
       if (result.success) {
         toast.success(job.visibility === "private" ? "Offer accepted!" : "Job accepted!");
+        setIsConfirmModalOpen(false);
         navigate("/provider/my-jobs");
       }
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to accept job";
       setActionError({ isOpen: true, title: msg.toLowerCase().includes("overlap") ? "Schedule Conflict" : "Action Failed", message: msg });
+      setIsConfirmModalOpen(false);
     } finally { setIsAccepting(false); }
   };
 
@@ -116,6 +120,7 @@ const JobDetailPage: React.FC = () => {
           <div style={{ background:"#fff", borderRadius:16, border:"1px solid #e8edf4", padding:"24px 28px", marginBottom:16, boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
             <JobDetailHeader
               title={job.title}
+              jobCode={job.jobCode}
               location={job.location}
               additionalDetails={job.additionalDetails}
               postedAt={job.postedAt}
@@ -175,7 +180,7 @@ const JobDetailPage: React.FC = () => {
 
       {}
       {job && (
-        <UniversalActionModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} onConfirm={processAccept} title="Location Mismatch" message="This job is outside your default work zone. Confirm you can travel." iconType="location">
+        <UniversalActionModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} onConfirm={() => { setIsLocationModalOpen(false); setIsConfirmModalOpen(true); }} title="Location Mismatch" message="This job is outside your default work zone. Confirm you can travel." iconType="location">
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginTop:12 }}>
             <div style={{ padding:"12px 14px", background:"#f8fafc", borderRadius:10, border:"1px solid #e2e8f0" }}>
               <div style={{ fontSize:9, fontWeight:700, color:"#94a3b8", textTransform:"uppercase", letterSpacing:"0.07em", display:"flex", alignItems:"center", gap:4, marginBottom:6 }}><RiMapPinUserLine size={11}/> Your Zone</div>
@@ -195,6 +200,7 @@ const JobDetailPage: React.FC = () => {
       <ClientProfileModal isOpen={isProfileModalOpen} onClose={() => setIsProfileModalOpen(false)}
         client={{ name: job?.clientName ?? "", email: job?.clientEmail, phone: job?.clientNumber, initials: job?.clientInitials ?? "", avatarUrl: job?.clientAvatarUrl, isVerified: job?.isClientVerified }}/>
       <RejectConfirmationModal isOpen={isRejectModalOpen} onClose={() => setIsRejectModalOpen(false)} onConfirm={confirmReject} jobTitle={job?.title} isActionLoading={isAccepting}/>
+      <AcceptConfirmationModal isOpen={isConfirmModalOpen} onClose={() => setIsConfirmModalOpen(false)} onConfirm={(amount) => processAccept(amount)} jobTitle={job?.title} budget={job?.budgetRange} isActionLoading={isAccepting} />
       <UserReviewsModal isOpen={isReviewsModalOpen} onClose={() => setIsReviewsModalOpen(false)} userId={job?.clientId ?? ""} userName={job?.clientName ?? ""} />
 
       <style>{`

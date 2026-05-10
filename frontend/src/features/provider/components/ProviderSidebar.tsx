@@ -12,6 +12,7 @@ import {
   RiArrowRightSLine,
   RiMapLine,
   RiInboxArchiveLine,
+  RiTimeLine,
 } from "react-icons/ri";
 import { NavLink, Link } from "react-router-dom";
 import "./ProviderSidebar.css";
@@ -55,35 +56,33 @@ const PRIMARY_NAV: NavItem[] = [
   },
   {
     id: "my-jobs",
-    label: "My Jobs",
+    label: "Assignments",
     icon: <RiBriefcaseLine />,
     href: "/provider/my-jobs",
-    badge: 3,
-    badgeVariant: "accent",
-  },
-  {
-    id: "requests",
-    label: "Requests",
-    icon: <RiInboxArchiveLine />,
-    href: "/provider/requests",
-    badge: 0,
-    badgeVariant: "warning",
-  },
-  {
-    id: "available-jobs",
-    label: "Available Jobs",
-    icon: <RiSearchLine />,
-    href: "/provider/available-jobs",
-    badge: "New",
-    badgeVariant: "warning",
   },
   {
     id: "messages",
     label: "Messages",
     icon: <RiMessage3Line />,
     href: "/provider/messages",
-    badge: 7,
-    badgeVariant: "danger",
+  },
+  {
+    id: "available-jobs",
+    label: "Available Jobs",
+    icon: <RiSearchLine />,
+    href: "/provider/available-jobs",
+  },
+  {
+    id: "requests",
+    label: "Direct Hires",
+    icon: <RiInboxArchiveLine />,
+    href: "/provider/requests",
+  },
+  {
+    id: "earnings",
+    label: "Wallet",
+    icon: <RiWalletLine />,
+    href: "/provider/wallet",
   },
 ];
 
@@ -93,12 +92,6 @@ const SECONDARY_NAV: NavItem[] = [
     label: "Reviews",
     icon: <RiStarLine />,
     href: "/provider/reviews",
-  },
-  {
-    id: "earnings",
-    label: "Earnings",
-    icon: <RiWalletLine />,
-    href: "/provider/wallet",
   },
   {
     id: "settings",
@@ -208,7 +201,7 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
 
   return (
     <>
-      {}
+      { }
       {showOnMobile && (
         <div
           className="qw-backdrop visible"
@@ -222,7 +215,7 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
         aria-label="Provider navigation"
         role="navigation"
       >
-        {}
+        { }
         <Link
           to="/provider/dashboard"
           className="qw-logo-area"
@@ -238,7 +231,7 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
           </div>
         </Link>
 
-        {}
+        { }
         <nav className="qw-nav-scroll" aria-label="Main navigation">
           <p className="qw-nav-label">Overview</p>
           {navItems.map((item) => (
@@ -261,9 +254,8 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
           ))}
         </nav>
 
-        {}
+        { }
         <div className="qw-sidebar-bottom">
-          {}
           {!provider ? (
             <div className="qw-profile-card loading">
               <div className="qw-avatar-wrap">
@@ -287,58 +279,42 @@ const ProviderSidebar: React.FC<ProviderSidebarProps> = ({
                     src={provider.avatarUrl || provider.profileImage}
                     alt={provider.name}
                     className="qw-avatar"
-                    style={{ borderRadius: 10 }}
                   />
                 ) : (
-                  <div className="qw-avatar" aria-hidden="true">
-                    {provider.initials ||
-                      (provider.name
-                        ? provider.name
-                            .split(" ")
-                            .map((n: string) => n[0])
-                            .join("")
-                            .toUpperCase()
-                        : "??")}
+                  <div className="qw-avatar">
+                    {provider.initials || provider.name?.charAt(0) || "P"}
                   </div>
                 )}
-                <span className="qw-avatar-status" aria-label="Online" />
+                <span className="qw-avatar-status" />
               </div>
               <div className="qw-profile-info">
-                <div className="qw-profile-name">
-                  {provider.name || "Provider"}
-                </div>
-                {(provider.role || provider.headline) && (
-                  <div className="qw-profile-role">
-                    {provider.role || provider.headline || "Top Rated"}
-                  </div>
-                )}
+                <div className="qw-profile-name">{provider.name || "Provider"}</div>
+                <div className="qw-profile-role">{provider.role || provider.headline || "Active Member"}</div>
               </div>
-              <span className="qw-profile-chevron" aria-hidden="true">
-                <RiArrowRightSLine />
-              </span>
+              <RiArrowRightSLine className="qw-profile-chevron" />
             </Link>
           )}
 
-          <button
-            className="qw-logout-btn"
-            onClick={() => navigate("/")}
-            type="button"
-            aria-label="Switch to client"
-          >
-            <RiMapLine aria-hidden="true" />
-            Switch to client
-          </button>
+          <div className="qw-bottom-actions">
+            <button
+              className="qw-action-btn qw-action-switch"
+              onClick={() => navigate("/")}
+              title="Switch to Client View"
+            >
+              <RiMapLine size={16} />
+              <span className="qw-action-label">Switch to Client</span>
+              <RiArrowRightSLine size={16} className="qw-action-arrow" />
+            </button>
 
-          <button
-            className="qw-logout-btn"
-            onClick={onLogout}
-            type="button"
-            aria-label="Logout"
-            style={{ marginTop: "0.5rem", color: "#ef4444" }}
-          >
-            <RiLogoutBoxLine aria-hidden="true" />
-            Logout
-          </button>
+            <button
+              className="qw-action-btn qw-action-logout"
+              onClick={onLogout}
+              title="Sign Out"
+            >
+              <RiLogoutBoxLine size={16} />
+              <span className="qw-action-label">Sign Out</span>
+            </button>
+          </div>
         </div>
       </aside>
     </>

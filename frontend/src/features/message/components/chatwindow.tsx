@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { Message } from "../types/message.types";
-import { RiUser3Line, RiDeleteBinLine } from "react-icons/ri";
+import { RiUser3Line, RiDeleteBinLine, RiArrowLeftLine, RiMessage2Line } from "react-icons/ri";
 import { format } from "date-fns";
 import { MessageInput } from "./MessageInput";
 
@@ -14,7 +14,7 @@ interface ChatWindowProps {
   onDelete: () => void;
   isDeleting?: boolean;
   onDeleteMessage: (messageId: string) => void;
-
+  onBack?: () => void;
 }
 
 export const ChatWindow = ({
@@ -26,7 +26,8 @@ export const ChatWindow = ({
   recipientName,
   onDelete,
   isDeleting,
-  onDeleteMessage
+  onDeleteMessage,
+  onBack,
 }: ChatWindowProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -40,25 +41,24 @@ export const ChatWindow = ({
 
   if (!receiverId) {
     return (
-      <div className="chat-interface d-flex align-items-center justify-content-center bg-light rounded-4 h-100 shadow-sm border">
-        <div className="text-center p-5">
+      <div className="chat-empty-state d-flex align-items-center justify-content-center bg-white rounded-4 h-100 shadow-sm border overflow-hidden">
+        <div className="text-center p-5 animate-fade-in">
           <div
-            className="avatar-circle mx-auto mb-3"
+            className="empty-icon-wrap mx-auto mb-4 d-flex align-items-center justify-content-center"
             style={{
-              width: 80,
-              height: 80,
-              background: "#e2e8f0",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: "50%",
+              width: 120,
+              height: 120,
+              background: "#eff6ff",
+              borderRadius: "40px",
+              color: "#3b82f6",
+              transform: "rotate(-5deg)",
             }}
           >
-            <RiUser3Line size={40} className="text-secondary" />
+            <RiMessage2Line size={60} />
           </div>
-          <h4 className="fw-bold text-dark">Select a conversation</h4>
-          <p className="text-secondary">
-            Choose a chat from the sidebar to start messaging
+          <h4 className="fw-bold text-dark mb-2" style={{ fontFamily: 'Syne, sans-serif' }}>Your Conversations</h4>
+          <p className="text-secondary mx-auto" style={{ maxWidth: "280px" }}>
+            Select a chat from the list to view messages and start collaborating.
           </p>
         </div>
       </div>
@@ -66,117 +66,150 @@ export const ChatWindow = ({
   }
 
   return (
-    <div className="chat-interface d-flex flex-column h-100 bg-white rounded-4 shadow-sm border overflow-hidden">
-      <div className="chat-header p-3 border-bottom bg-white d-flex align-items-center gap-3">
-        <div
-          className="avatar-circle"
-          style={{
-            width: 40,
-            height: 40,
-            background: "#f1f5f9",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: "50%",
-          }}
-        >
-          <RiUser3Line size={20} className="text-primary" />
-        </div>
-        <div>
-          <h6 className="mb-0 fw-bold text-dark">{recipientName || "Chat"}</h6>
-          <span
-            className="text-success small d-flex align-items-center gap-1"
-            style={{ fontSize: "0.75rem" }}
-          >
-            <span
-              className="bg-success rounded-circle"
-              style={{ width: 6, height: 6 }}
-            ></span>
-            Active Now
-          </span>
-          <div className="ms-auto">
+    <div className="chat-interface d-flex flex-column h-100 bg-white position-relative overflow-hidden">
+      {/* --- Production Header --- */}
+      <div className="chat-header px-3 py-2 border-bottom bg-white d-flex align-items-center justify-content-between shadow-sm"
+        style={{ 
+          minHeight: "64px",
+          paddingTop: "env(safe-area-inset-top, 0px)",
+          boxSizing: "content-box",
+          zIndex: 100,
+          position: "sticky",
+          top: 0
+        }}>
+        <div className="d-flex align-items-center gap-2">
+          {onBack && (
             <button
-              className="btn btn-outline-danger btn-sm border-0"
-              onClick={onDelete}
-              disabled={isDeleting}
-              title="Delete Conversation"
+              className="btn btn-link text-dark p-2 me-1"
+              onClick={onBack}
+              style={{ display: 'flex', alignItems: 'center', borderRadius: '12px' }}
             >
-              <RiDeleteBinLine size={20} />
+              <RiArrowLeftLine size={24} />
             </button>
+          )}
+          <div className="position-relative">
+            <div
+              className="avatar-header d-flex align-items-center justify-content-center fw-bold shadow-sm"
+              style={{
+                width: "42px",
+                height: "42px",
+                background: "linear-gradient(135deg, #6366f1, #3b82f6)",
+                color: "white",
+                borderRadius: "12px",
+                fontSize: "1.1rem",
+                fontFamily: "Syne, sans-serif",
+              }}
+            >
+              {recipientName ? recipientName[0].toUpperCase() : "?"}
+            </div>
+            <div
+              className="status-dot position-absolute bottom-0 end-0 border border-2 border-white bg-success rounded-circle"
+              style={{ width: "12px", height: "12px" }}
+            ></div>
+          </div>
+          <div className="min-width-0">
+            <h6 className="mb-0 fw-bold text-dark text-truncate" style={{ fontSize: "0.95rem" }}>
+              {recipientName || "Chat"}
+            </h6>
+            <span className="text-success fw-medium" style={{ fontSize: "0.7rem" }}>Online</span>
           </div>
         </div>
+
+        <div className="d-flex align-items-center">
+          <button
+            className="btn btn-icon-modern text-muted"
+            onClick={onDelete}
+            disabled={isDeleting}
+            style={{ width: '40px', height: '40px' }}
+          >
+            <RiDeleteBinLine size={20} />
+          </button>
+        </div>
       </div>
+
+      {/* --- Production Scroll Container --- */}
       <div
-        className="flex-grow-1 overflow-auto p-4 bg-light bg-opacity-50"
+        className="flex-grow-1 overflow-y-auto custom-scrollbar bg-slate-50"
         style={{
-          backgroundImage:
-            "linear-gradient(#f8fafc 1px, transparent 1px), linear-gradient(90deg, #f8fafc 1px, transparent 1px)",
-          backgroundSize: "20px 20px",
+          scrollBehavior: 'smooth',
+          background: "#f8fafc",
+          padding: "20px 16px"
         }}
       >
         {loading ? (
           <div className="h-100 d-flex align-items-center justify-content-center">
-            <div className="spinner-border text-primary" role="status"></div>
+            <div className="spinner-border text-primary opacity-50" role="status"></div>
           </div>
         ) : messages.length === 0 ? (
-          <div className="h-100 d-flex flex-column align-items-center justify-content-center text-secondary opacity-50">
-            <RiUser3Line size={48} className="mb-2" />
-            <p className="small fw-medium">
-              No messages yet. Start the conversation!
-            </p>
-
+          <div className="h-100 d-flex flex-column align-items-center justify-content-center text-center opacity-40">
+            <RiUser3Line size={64} className="mb-3" />
+            <p className="small fw-bold">Start the conversation</p>
           </div>
         ) : (
-          <div className="d-flex flex-column gap-3">
-            {messages.map((msg) => {
+          <div className="d-flex flex-column gap-1">
+            {messages.map((msg, idx) => {
               const isSentByMe = msg.sender === currentUserId;
+              const prevMsg = messages[idx - 1];
+              const nextMsg = messages[idx + 1];
+              const isSameSenderAsPrev = prevMsg && prevMsg.sender === msg.sender;
+              const isSameSenderAsNext = nextMsg && nextMsg.sender === msg.sender;
+
               return (
                 <div
                   key={msg._id}
-                  className={`d-flex flex-column ${isSentByMe ? "align-items-end" : "align-items-start"} position-relative group`}
+                  className={`d-flex flex-column ${isSentByMe ? "align-items-end" : "align-items-start"} ${isSameSenderAsNext ? 'mb-0' : 'mb-2'} animate-message`}
                 >
-                  {isSentByMe && (
-                    <button
-                      onClick={() => onDeleteMessage(msg._id)}
-                      className="btn btn-sm text-danger p-0 position-absolute"
-                      style={{ right: '100%', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}
-                      title="Delete Message"
+                  <div className={`message-bubble-row d-flex align-items-center gap-2 ${isSentByMe ? "flex-row-reverse" : "flex-row"}`} style={{ maxWidth: '88%' }}>
+                    <div
+                      className={`message-bubble p-3 shadow-xs ${isSentByMe
+                          ? "bg-primary text-white"
+                          : "bg-white text-dark border-light"
+                        }`}
+                      style={{
+                        borderRadius: isSentByMe
+                          ? (isSameSenderAsPrev ? "20px 4px 4px 20px" : "20px 20px 4px 20px")
+                          : (isSameSenderAsPrev ? "4px 20px 20px 4px" : "20px 20px 20px 4px"),
+                        lineHeight: "1.4",
+                        fontSize: "0.92rem",
+                        position: "relative",
+                        wordBreak: 'break-word'
+                      }}
                     >
-                      <RiDeleteBinLine size={14} />
-                    </button>
-                  )}
+                      {msg.image && (
+                        <div className="mb-2 overflow-hidden rounded-3 border">
+                          <img
+                            src={msg.image}
+                            alt="Attachment"
+                            className="img-fluid"
+                            style={{
+                              maxHeight: "300px",
+                              width: "100%",
+                              objectFit: "cover"
+                            }}
+                          />
+                        </div>
+                      )}
+                      {msg.message && <div className="message-text">{msg.message}</div>}
 
-                  <div
-                    className={`p-2 rounded-4 shadow-sm ${isSentByMe
-                        ? "bg-primary text-white"
-                        : "bg-white text-dark border"
-                      }`}
-                    style={{ maxWidth: "75%", lineHeight: "1.4" }}
-                  >
-                    {msg.image && (
-                      <div className="mb-1">
-                        <img
-                          src={msg.image}
-                          alt="Attachment"
-                          className="img-fluid rounded-3"
-                          style={{ maxHeight: "300px", cursor: "pointer" }}
-                          onClick={() => window.open(msg.image, "_blank")}
-                        />
-                      </div>
+                      {!isSameSenderAsNext && (
+                        <div
+                          className={`message-time mt-1 opacity-60 ${isSentByMe ? "text-end" : "text-start"}`}
+                          style={{ fontSize: "0.6rem", fontWeight: 700 }}
+                        >
+                          {msg.createdAt ? format(new Date(msg.createdAt), "h:mm a") : "Just now"}
+                        </div>
+                      )}
+                    </div>
+
+                    {isSentByMe && (
+                      <button
+                        onClick={() => onDeleteMessage(msg._id)}
+                        className="btn btn-sm text-danger p-1 delete-msg-btn transition-all"
+                        title="Delete Message"
+                      >
+                        <RiDeleteBinLine size={12} />
+                      </button>
                     )}
-                    {msg.message && (
-                      <div className={msg.image ? "px-2 py-1" : "p-1"}>
-                        {msg.message}
-                      </div>
-                    )}
-                  </div>
-                  <div
-                    className="px-2 mt-1 opacity-50"
-                    style={{ fontSize: "0.65rem" }}
-                  >
-                    {msg.createdAt
-                      ? format(new Date(msg.createdAt), "h:mm a")
-                      : ""}
                   </div>
                 </div>
               );
@@ -186,12 +219,42 @@ export const ChatWindow = ({
         )}
       </div>
 
-      <div className="p-3 bg-white border-top">
+      {/* --- Production Input Fixed at Bottom --- */}
+      <div className="chat-footer p-3 bg-white border-top shadow-lg"
+        style={{ paddingBottom: "calc(16px + env(safe-area-inset-bottom, 12px))" }}>
         <MessageInput
           onSend={(text, imageUrl) => sendMessage(receiverId, text, imageUrl)}
           disabled={loading}
         />
       </div>
+
+      <style>{`
+        .animate-message { animation: messageIn 0.2s ease-out; }
+        @keyframes messageIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .delete-msg-btn { opacity: 0; }
+        .message-bubble-row:hover .delete-msg-btn { opacity: 0.4; }
+        .delete-msg-btn:hover { opacity: 1 !important; }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        
+        .shadow-xs { box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05); }
+        .border-light { border: 1px solid #f1f5f9 !important; }
+        
+        .btn-icon-modern {
+          width: 38px;
+          height: 38px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 10px;
+          transition: all 0.2s;
+          border: none;
+          background: transparent;
+        }
+        .btn-icon-modern:hover { background: #f1f5f9; color: var(--qw-accent) !important; }
+      `}</style>
     </div>
   );
 };

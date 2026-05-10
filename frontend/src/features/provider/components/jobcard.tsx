@@ -40,8 +40,10 @@ export interface Job {
   postedAt: string;
   skills: string[];
   budget: string;
-  budgetMin?: number;
-  budgetMax?: number;
+  budgetRange: {
+    min: number;
+    max: number;
+  };
   applicants: number;
   startDate: string;
   endDate: string;
@@ -55,6 +57,7 @@ export interface Job {
   isSaved?: boolean;
   isApplied?: boolean;
   animationDelay?: number;
+  jobCode: string;
 }
 
 interface JobCardProps {
@@ -163,6 +166,8 @@ const JobCard: React.FC<JobCardProps> = ({ job, onApply, onViewDetails, onSave }
           <h3 className="jc-job-title" title={job.title}>{job.title}</h3>
           <div className="jc-client-meta">
             <span className="jc-client-name"><RiUserLine size={11} /> {job.clientName}</span>
+            <span className="jc-meta-sep">·</span>
+            <span className="jc-job-code" style={{ color: "#64748b", fontWeight: 600 }}>{job.jobCode}</span>
             {job.clientRating !== undefined && (
               <><span className="jc-meta-sep">·</span><StarRating rating={job.clientRating} count={job.clientReviewsCount} /></>
             )}

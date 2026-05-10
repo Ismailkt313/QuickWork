@@ -3,6 +3,8 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import type { Location } from ".././landingPage/services/landingService";
 
+import MobileBottomNav from "../components/MobileBottomNav";
+
 interface MainLayoutProps {
   children: React.ReactNode;
   locations?: Location[];
@@ -18,6 +20,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   onSelectLocation,
   onClearLocation,
 }) => {
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 992);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 992);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <div
       style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
@@ -28,8 +38,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         onSelectLocation={onSelectLocation}
         onClearLocation={onClearLocation}
       />
-      <main style={{ flex: 1 }}>{children}</main>
+      <main 
+        style={{ 
+          flex: 1,
+          paddingBottom: isMobile ? "calc(74px + env(safe-area-inset-bottom, 12px))" : 0
+        }}
+      >
+        {children}
+      </main>
       <Footer />
+      <MobileBottomNav />
     </div>
   );
 };

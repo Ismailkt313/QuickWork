@@ -2,6 +2,7 @@ import { api } from "../../../../services/api";
 import { ENDPOINTS } from "../../../../constants/endpoints";
 
 export interface ProviderItem {
+  averageRating: string;
   id: string;
   headline: string;
   profileImage: string;

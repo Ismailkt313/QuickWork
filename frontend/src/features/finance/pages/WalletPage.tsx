@@ -164,7 +164,7 @@ const WalletPage: React.FC = () => {
                             {new Date(tx.createdAt).toLocaleDateString()}
                           </span>
                           <span className="text-muted small ms-2" style={{ fontFamily: "monospace", fontSize: "10px", opacity: 0.6 }}>
-                            ID: {tx._id.slice(-8).toUpperCase()}
+                            ID: {tx.transactionCode}
                           </span>
                         </div>
                       </div>

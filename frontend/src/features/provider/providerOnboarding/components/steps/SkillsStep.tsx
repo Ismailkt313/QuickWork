@@ -17,15 +17,23 @@ import {
   type Location,
 } from "../../../../location/services/location.service";
 import { debounce } from "../../../../../utils/debounce";
+import { 
+  RiSearchLine, 
+  RiCloseLine, 
+  RiAddLine, 
+  RiTimeLine, 
+  RiMapPinLine, 
+  RiArrowLeftLine, 
+  RiArrowRightLine,
+  RiHammerFill
+} from "react-icons/ri";
 
 const SkillsStep: React.FC = () => {
   const dispatch = useDispatch();
   const { formData } = useSelector((state: RootState) => state.onboarding);
 
   const [skillQuery, setSkillQuery] = useState("");
-  const [skillResults, setSkillResults] = useState<
-    { id: string; name: string }[]
-  >([]);
+  const [skillResults, setSkillResults] = useState<{ id: string; name: string }[]>([]);
   const [isSearchingSkills, setIsSearchingSkills] = useState(false);
   const [showSkillDropdown, setShowSkillDropdown] = useState(false);
   const skillInputRef = useRef<HTMLDivElement>(null);
@@ -88,16 +96,12 @@ const SkillsStep: React.FC = () => {
         }
       }
     };
-
     loadLocations();
   }, [formData.location]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (
-        skillInputRef.current &&
-        !skillInputRef.current.contains(e.target as Node)
-      ) {
+      if (skillInputRef.current && !skillInputRef.current.contains(e.target as Node)) {
         setShowSkillDropdown(false);
       }
     };
@@ -108,52 +112,30 @@ const SkillsStep: React.FC = () => {
   const reachedLimit = (formData.skills?.length || 0) >= 10;
 
   return (
-    <div className="container py-3 py-md-5" style={{ maxWidth: "680px" }}>
-      <div className="card border-0 shadow-sm rounded-4 p-4 p-md-5">
-        <div className="text-center mb-4">
-          <h4 className="fw-bold">Define Your Expertise & Service Area</h4>
-          <p className="text-secondary small">
-            Help clients understand what you offer and where you work.
-          </p>
+    <div className="max-w-[680px] mx-auto py-6">
+      <div className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-slate-100">
+        <div className="text-center mb-10">
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-2">Define Your Expertise</h2>
+          <p className="text-slate-500 font-medium text-sm">Help clients understand what you offer and where you work.</p>
         </div>
 
-        <div className="row g-4">
-          <div className="col-12">
-            <label className="form-label fw-bold small">
+        <div className="space-y-10">
+          <div className="space-y-3">
+            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest px-1">
               Skills & Expertise
             </label>
 
-            <div ref={skillInputRef} className="position-relative">
+            <div ref={skillInputRef} className="relative">
               <div
-                className="d-flex align-items-center gap-2 px-3 rounded-3"
-                style={{
-                  border: showSkillDropdown
-                    ? "2px solid #3b82f6"
-                    : "2px solid #e2e8f0",
-                  background: reachedLimit ? "#f8fafc" : "#fff",
-                  transition: "border-color 0.15s",
-                  minHeight: 44,
-                }}
+                className={`flex items-center gap-3 px-5 rounded-2xl border-2 transition-all min-h-[56px] ${
+                  showSkillDropdown ? "border-blue-400 bg-white ring-4 ring-blue-50" : "border-slate-100 bg-slate-50"
+                } ${reachedLimit ? "opacity-60 cursor-not-allowed" : ""}`}
               >
-                <i
-                  className="bi bi-search text-muted"
-                  style={{ fontSize: 14 }}
-                />
+                <RiSearchLine className="text-slate-400" size={18} />
                 <input
                   type="text"
-                  style={{
-                    flex: 1,
-                    border: "none",
-                    outline: "none",
-                    fontSize: 14,
-                    background: "transparent",
-                    padding: "8px 0",
-                  }}
-                  placeholder={
-                    reachedLimit
-                      ? "Maximum 10 skills reached"
-                      : "Search skills (e.g. Plumbing, Cleaning…)"
-                  }
+                  className="flex-1 bg-transparent border-none outline-none text-sm font-bold text-slate-700 placeholder:text-slate-300 placeholder:font-medium py-3"
+                  placeholder={reachedLimit ? "Maximum 10 skills reached" : "Search skills (e.g. Plumbing, Cleaning…)"}
                   value={skillQuery}
                   disabled={reachedLimit}
                   onChange={(e) => {
@@ -171,291 +153,169 @@ const SkillsStep: React.FC = () => {
                   onFocus={() => setShowSkillDropdown(true)}
                 />
                 {isSearchingSkills && (
-                  <div
-                    className="spinner-border spinner-border-sm text-primary"
-                    role="status"
-                  />
+                  <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                 )}
                 {skillQuery && !isSearchingSkills && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSkillQuery("");
-                      setSkillResults([]);
-                    }}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "#94a3b8",
-                      fontSize: 16,
-                      cursor: "pointer",
-                      lineHeight: 1,
-                      padding: 0,
-                    }}
-                  >
-                    ✕
+                  <button type="button" onClick={() => { setSkillQuery(""); setSkillResults([]); }} className="text-slate-400 hover:text-slate-600">
+                    <RiCloseLine size={20} />
                   </button>
                 )}
               </div>
 
               {showSkillDropdown && skillQuery.trim() && (
-                <div
-                  className="position-absolute w-100 bg-white rounded-3 border shadow"
-                  style={{
-                    top: "calc(100% + 4px)",
-                    zIndex: 50,
-                    overflow: "hidden",
-                    maxHeight: 280,
-                    overflowY: "auto",
-                  }}
-                >
-                  {isSearchingSkills ? (
-                    <div className="p-3 text-center text-muted small">
-                      <div
-                        className="spinner-border spinner-border-sm me-2"
-                        role="status"
-                      />
-                      Searching skills…
-                    </div>
-                  ) : skillResults.length > 0 ? (
-                    <>
-                      {skillResults
-                        .filter(
-                          (s) => !formData.skills?.some((fs) => fs.id === s.id),
-                        )
-                        .map((skill) => (
+                <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-2xl border border-slate-100 shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="max-h-[320px] overflow-y-auto custom-scrollbar">
+                    {isSearchingSkills ? (
+                      <div className="p-8 text-center text-slate-400 font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-3">
+                        <div className="w-4 h-4 border-2 border-slate-200 border-t-blue-600 rounded-full animate-spin" />
+                        Scanning Skills Database…
+                      </div>
+                    ) : skillResults.length > 0 ? (
+                      <div className="p-2 space-y-1">
+                        {skillResults
+                          .filter((s) => !formData.skills?.some((fs) => fs.id === s.id))
+                          .map((skill) => (
+                            <button
+                              key={skill.id}
+                              type="button"
+                              onClick={() => handleAddSkill(skill)}
+                              className="flex items-center gap-3 w-full text-left p-3 rounded-xl hover:bg-blue-50 transition-colors group"
+                            >
+                              <div className="w-9 h-9 bg-slate-50 text-slate-400 rounded-lg flex items-center justify-center group-hover:bg-white group-hover:text-blue-600 transition-colors">
+                                <RiHammerFill size={18} />
+                              </div>
+                              <span className="font-bold text-slate-700 capitalize text-sm">{skill.name}</span>
+                              <div className="ml-auto flex items-center gap-1 text-[10px] font-black text-slate-300 uppercase group-hover:text-blue-600">
+                                <RiAddLine size={14} />
+                                <span>Add</span>
+                              </div>
+                            </button>
+                          ))}
+                        <div className="p-3 border-t border-slate-50 mt-1">
                           <button
-                            key={skill.id}
                             type="button"
-                            onMouseDown={(e) => {
-                              e.preventDefault();
-                              handleAddSkill(skill);
-                            }}
-                            className="d-flex align-items-center gap-2 w-100 text-start border-0 bg-transparent px-3 py-2"
-                            style={{
-                              fontSize: 14,
-                              transition: "background 0.1s",
-                            }}
-                            onMouseEnter={(e) => {
-                              (
-                                e.currentTarget as HTMLElement
-                              ).style.background = "#f0f9ff";
-                            }}
-                            onMouseLeave={(e) => {
-                              (
-                                e.currentTarget as HTMLElement
-                              ).style.background = "transparent";
-                            }}
+                            onClick={handleRequestSkill}
+                            className="flex items-center gap-3 w-full p-3 rounded-xl bg-blue-50/50 text-blue-600 hover:bg-blue-50 transition-colors group"
                           >
-                            <span
-                              style={{
-                                width: 28,
-                                height: 28,
-                                borderRadius: 6,
-                                background: "#eff6ff",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontSize: 13,
-                                flexShrink: 0,
-                              }}
-                            >
-                              🛠️
-                            </span>
-                            <span
-                              style={{
-                                fontWeight: 500,
-                                color: "#1e293b",
-                                textTransform: "capitalize",
-                              }}
-                            >
-                              {skill.name}
-                            </span>
-                            <span
-                              style={{
-                                marginLeft: "auto",
-                                fontSize: 11,
-                                color: "#94a3b8",
-                              }}
-                            >
-                              + Add
+                            <RiAddLine size={18} className="group-hover:scale-110 transition-transform" />
+                            <span className="text-[11px] font-black uppercase tracking-widest">
+                              Request \"{skillQuery}\"
                             </span>
                           </button>
-                        ))}
-                      <div
-                        style={{
-                          borderTop: "1px solid #f1f5f9",
-                          padding: "10px 12px",
-                        }}
-                      >
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-10 text-center">
+                        <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mb-6">
+                          No direct matches for \"{skillQuery}\"
+                        </p>
                         <button
                           type="button"
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            handleRequestSkill();
-                          }}
-                          className="d-flex align-items-center gap-2 w-100 text-start border-0 bg-transparent rounded-2 px-2 py-1"
-                          style={{ fontSize: 13, color: "#3b82f6" }}
-                          onMouseEnter={(e) => {
-                            (e.currentTarget as HTMLElement).style.background =
-                              "#eff6ff";
-                          }}
-                          onMouseLeave={(e) => {
-                            (e.currentTarget as HTMLElement).style.background =
-                              "transparent";
-                          }}
+                          onClick={handleRequestSkill}
+                          className="px-6 py-3 bg-blue-600 text-white rounded-xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-blue-100 hover:bg-blue-700"
                         >
-                          <i className="bi bi-plus-circle" />
-                          Request{" "}
-                          <strong style={{ margin: "0 4px" }}>
-                            "{skillQuery}"
-                          </strong>{" "}
-                          as a new skill
+                          Propose as new skill
                         </button>
                       </div>
-                    </>
-                  ) : (
-                    <div className="p-3 text-center">
-                      <p className="text-muted small mb-2">
-                        No skills found matching <strong>"{skillQuery}"</strong>
-                      </p>
-                      <button
-                        type="button"
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          handleRequestSkill();
-                        }}
-                        className="btn btn-sm btn-primary rounded-pill px-3"
-                      >
-                        <i className="bi bi-plus me-1" />
-                        Request this skill
-                      </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               )}
             </div>
 
             {(formData.skills?.length || 0) > 0 && (
-              <div className="d-flex flex-wrap gap-2 mt-3">
+              <div className="flex flex-wrap gap-2 mt-4 px-1">
                 {formData.skills?.map((skill) => (
-                  <span
+                  <div
                     key={skill.name}
-                    className={`badge rounded-pill d-flex align-items-center gap-2 py-2 px-3 border ${
+                    className={`group flex items-center gap-2 py-2 pl-4 pr-3 rounded-xl border transition-all ${
                       skill.isRequested
-                        ? "bg-light text-primary border-primary border-opacity-25"
-                        : "bg-primary bg-opacity-10 text-primary border-transparent"
+                        ? "bg-amber-50 text-amber-700 border-amber-100"
+                        : "bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-100"
                     }`}
                   >
-                    {skill.name}
+                    <span className="text-xs font-black uppercase tracking-tight">{skill.name}</span>
                     {skill.isRequested && (
-                      <i
-                        className="bi bi-clock small"
-                        title="Pending Approval"
-                      />
+                      <RiTimeLine className="text-amber-500" size={14} title="Pending Verification" />
                     )}
-                    <i
-                      className="bi bi-x-circle-fill"
-                      style={{ cursor: "pointer", opacity: 0.6 }}
+                    <button
                       onClick={() => dispatch(removeSkill(skill.name))}
-                    />
-                  </span>
+                      className="text-current opacity-40 hover:opacity-100 transition-opacity"
+                    >
+                      <RiCloseLine size={16} />
+                    </button>
+                  </div>
                 ))}
               </div>
             )}
-            <div className="form-text text-muted small mt-2">
-              {formData.skills?.length || 0}/10 skills selected • Minimum 1
-              required
+            <div className="px-1 flex justify-between items-center">
+              <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
+                {formData.skills?.length || 0}/10 Expertises
+              </span>
+              <span className="text-[10px] font-bold text-slate-400 tracking-tight">Min. 1 required</span>
             </div>
           </div>
 
-          <div className="col-12">
-            <label className="form-label fw-bold small">Hourly Rate</label>
-            <div className="row align-items-center">
-              <div className="col-sm-6">
-                <div className="input-group bg-light rounded-2 overflow-hidden">
-                  <span className="input-group-text border-0 bg-transparent ps-3 fw-bold">
-                    ₹
-                  </span>
-                  <input
-                    type="number"
-                    className="form-control border-0 bg-transparent ps-0"
-                    placeholder="e.g. 500"
-                    value={formData.hourlyRate || ""}
-                    onChange={(e) =>
-                      dispatch(setHourlyRate(Number(e.target.value)))
-                    }
-                    min="1"
-                  />
-                </div>
-                <div className="form-text text-muted small mt-1">
-                  Set a competitive rate based on your experience.
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-12">
-            <label className="form-label fw-bold small">
-              Primary Service Area
+          <div className="space-y-3">
+            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest px-1">
+              Service Value (Hourly)
             </label>
-            <div className="position-relative">
-              <div className="input-group bg-light rounded-2 overflow-hidden shadow-sm">
-                <span className="input-group-text border-0 bg-transparent ps-3">
-                  <i className="bi bi-geo-alt text-muted" />
-                </span>
-                <select
-                  className="form-select border-0 bg-transparent ps-0"
-                  value={selectedLocationId}
-                  onChange={(e) => {
-                    const loc = locations.find(
-                      (l) => String(l.id) === e.target.value,
-                    );
-                    setSelectedLocationId(e.target.value);
-                    dispatch(
-                      setLocation(loc ? { name: loc.name, id: loc.id } : null),
-                    );
-                  }}
-                >
-                  <option value="">Select your district</option>
-                  {locations.map((loc) => (
-                    <option key={loc.id} value={loc.id}>
-                      {loc.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <div className="relative max-w-[240px]">
+              <div className="absolute left-5 top-1/2 -translate-y-1/2 font-black text-slate-400 text-lg">₹</div>
+              <input
+                type="number"
+                className="w-full pl-10 pr-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-700 font-bold text-sm focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-50 outline-none transition-all placeholder:text-slate-300"
+                placeholder="e.g. 500"
+                value={formData.hourlyRate || ""}
+                onChange={(e) => dispatch(setHourlyRate(Number(e.target.value)))}
+                min="1"
+              />
+            </div>
+            <p className="text-[10px] text-slate-400 font-medium px-1">Set a competitive rate based on your market level.</p>
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest px-1">
+              Primary Service Region
+            </label>
+            <div className="relative group">
+              <RiMapPinLine className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-blue-500 transition-colors" size={18} />
+              <select
+                className="w-full pl-12 pr-10 py-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-700 font-bold text-sm focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-50 outline-none appearance-none transition-all cursor-pointer"
+                value={selectedLocationId}
+                onChange={(e) => {
+                  const loc = locations.find((l) => String(l.id) === e.target.value);
+                  setSelectedLocationId(e.target.value);
+                  dispatch(setLocation(loc ? { name: loc.name, id: loc.id } : null));
+                }}
+              >
+                <option value="">Select Target District</option>
+                {locations.map((loc) => (
+                  <option key={loc.id} value={loc.id}>{loc.name}</option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
 
-        <div className="d-flex justify-content-between mt-5 pt-4 border-top">
+        <div className="flex items-center justify-between mt-16 pt-8 border-t border-slate-100">
           <button
             onClick={() => dispatch(setCurrentStep(1))}
-            className="btn btn-link text-secondary text-decoration-none fw-bold"
+            className="flex items-center gap-2 text-slate-400 hover:text-slate-600 font-black text-xs uppercase tracking-widest transition-colors"
           >
-            <i className="bi bi-arrow-left me-2" />
+            <RiArrowLeftLine size={18} />
             Back
           </button>
           <button
             disabled={!isValid}
             onClick={() => dispatch(setCurrentStep(3))}
-            className="btn btn-primary px-5 py-2 fw-bold rounded-pill shadow"
+            className="flex items-center gap-2 bg-blue-600 text-white px-10 py-4 rounded-2xl font-black text-sm shadow-lg shadow-blue-100 hover:bg-blue-700 disabled:bg-slate-100 disabled:text-slate-300 disabled:shadow-none transition-all hover:scale-105 active:scale-95"
           >
-            Review & Next
-            <i className="bi bi-arrow-right ms-2" />
+            Confirm & Review
+            <RiArrowRightLine size={18} />
           </button>
         </div>
       </div>
-
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-                input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-                input[type=number] { -moz-appearance: textfield; }
-            `,
-        }}
-      />
     </div>
   );
 };

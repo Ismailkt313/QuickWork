@@ -44,64 +44,44 @@ const OnboardingLayout: React.FC = () => {
   };
 
   return (
-    <div className="onboarding-system min-vh-100 bg-white">
-      <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom py-3">
-        <div className="container" style={{ maxWidth: 1100 }}>
-          <div className="d-flex align-items-center gap-2">
-            <div
-              className="d-flex align-items-center justify-content-center rounded-3"
-              style={{
-                width: 34,
-                height: 34,
-                background: "linear-gradient(135deg, #3b82f6, #6366f1)",
-              }}
-            >
-              <span className="text-white fw-bold" style={{ fontSize: 15 }}>
-                Q
-              </span>
+    <div className="onboarding-system min-h-screen bg-slate-50">
+      <nav className="w-full bg-white border-b border-slate-100 py-4 px-6 sticky top-0 z-50">
+        <div className="max-w-[1100px] mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2.5 group cursor-pointer" onClick={() => navigate("/")}>
+            <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-blue-600 text-white font-black shadow-lg shadow-blue-200 transition-transform group-hover:scale-105">
+              Q
             </div>
-            <span
-              className="fw-bold fs-5 tracking-tight"
-              onClick={() => navigate("/")}
-            >
-              QuickWork
+            <span className="text-xl font-black text-slate-900 tracking-tight">
+              Quick<span className="text-blue-600">Work</span>
             </span>
           </div>
-          <div className="ms-auto">
-            <span className="text-muted small d-none d-md-inline me-3">
-              Need help?
+          <div className="flex items-center gap-6">
+            <span className="hidden md:inline text-xs font-bold text-slate-400 uppercase tracking-widest">
+              Professional Integration
             </span>
-            <button className="btn btn-outline-secondary btn-sm rounded-pill px-3">
-              Support
+            <button className="px-5 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-all shadow-sm">
+              Get Help
             </button>
           </div>
         </div>
       </nav>
 
-      <div className="main-content slide-up">
+      <div className="max-w-[1100px] mx-auto py-10 px-4 slide-up">
         <StepIndicator currentStep={currentStep} totalSteps={totalSteps} />
-        {renderStep()}
+        <div className="mt-8">
+          {renderStep()}
+        </div>
       </div>
 
       <style
         dangerouslySetInnerHTML={{
           __html: `
         .slide-up {
-          animation: slideUp 0.6s ease-out;
+          animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
         @keyframes slideUp {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
-        }
-        .transition-all {
-          transition: all 0.3s ease;
-        }
-        .bg-light {
-          background-color: #f8f9fa !important;
-        }
-        .form-control:focus, .form-select:focus {
-          box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-          background-color: #fff !important;
         }
       `,
         }}

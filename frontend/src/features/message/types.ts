@@ -15,6 +15,7 @@ export interface Participant {
 }
 
 export interface Conversation {
+  unreadCount: number;
   id: string;
   participants: Participant[];
   lastMessage?: string;

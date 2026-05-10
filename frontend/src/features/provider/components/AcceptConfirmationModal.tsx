@@ -3,14 +3,16 @@ import {
   RiCheckDoubleLine,
   RiCloseLine,
   RiArrowRightLine,
+  RiInformationLine,
 } from "react-icons/ri";
 
 interface AcceptConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (amount: number) => void;
   jobTitle?: string;
   isActionLoading?: boolean;
+  budget?: { min: number; max: number };
 }
 
 const AcceptConfirmationModal: React.FC<AcceptConfirmationModalProps> = ({
@@ -19,8 +21,31 @@ const AcceptConfirmationModal: React.FC<AcceptConfirmationModalProps> = ({
   onConfirm,
   jobTitle = "this job",
   isActionLoading = false,
+  budget,
 }) => {
+  const suggestedAmount = budget ? (budget.min + budget.max) / 2 : 0;
+  const [amount, setAmount] = React.useState<string>(suggestedAmount.toString());
+  const [error, setError] = React.useState<string>("");
+
+  React.useEffect(() => {
+    if (budget) {
+      setAmount(((budget.min + budget.max) / 2).toString());
+    }
+  }, [budget]);
+
   if (!isOpen) return null;
+
+  const handleConfirm = () => {
+    const numAmount = Number(amount);
+    if (budget) {
+      if (numAmount < budget.min || numAmount > budget.max) {
+        setError(`Amount must be between ₹${budget.min} and ₹${budget.max}`);
+        return;
+      }
+    }
+    setError("");
+    onConfirm(numAmount);
+  };
 
   return (
     <div
@@ -29,7 +54,7 @@ const AcceptConfirmationModal: React.FC<AcceptConfirmationModalProps> = ({
     >
       <div
         className="qw-modal-content animate-pop-in"
-        style={{ maxWidth: "480px" }}
+        style={{ maxWidth: "520px" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div
@@ -56,48 +81,24 @@ const AcceptConfirmationModal: React.FC<AcceptConfirmationModalProps> = ({
         <div className="text-center">
           <div className="position-relative d-inline-block mb-4">
             <div
-              style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                width: "120px",
-                height: "120px",
-                background:
-                  "radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%)",
-                zIndex: -1,
-              }}
-            />
-            <div
               className="d-flex align-items-center justify-content-center"
               style={{
-                width: "84px",
-                height: "84px",
-                borderRadius: "28px",
-                background: "white",
+                width: "72px",
+                height: "72px",
+                borderRadius: "24px",
+                background: "#eef2ff",
                 color: "#6366f1",
-                boxShadow:
-                  "0 12px 30px rgba(0,0,0,0.08), inset 0 0 0 1px rgba(0,0,0,0.02)",
                 position: "relative",
               }}
             >
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  borderRadius: "28px",
-                  background: "#eef2ff",
-                  opacity: 0.4,
-                }}
-              />
-              <RiCheckDoubleLine size={42} style={{ position: "relative" }} />
+              <RiCheckDoubleLine size={36} />
             </div>
           </div>
 
           <h3
             className="fw-bold text-dark mb-2 px-3"
             style={{
-              fontFamily: "Syne, sans-serif",
+              fontFamily: "Outfit, sans-serif",
               letterSpacing: "-0.03em",
               fontSize: "1.75rem",
               lineHeight: 1.2,
@@ -111,13 +112,70 @@ const AcceptConfirmationModal: React.FC<AcceptConfirmationModalProps> = ({
             style={{ fontSize: "15px", lineHeight: "1.6", maxWidth: "400px" }}
           >
             You are about to accept{" "}
-            <span className="text-dark fw-bold">{jobTitle}</span>. Once
-            accepted, you are expected to fulfill the job requirements.
+            <span className="text-dark fw-bold">{jobTitle}</span>.
           </p>
+
+          {budget && (
+            <div className="mb-4 text-start rounded-4" style={{ 
+              background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)", 
+              padding: "24px",
+              border: "1px solid #e2e8f0"
+            }}>
+              <div className="mb-4 d-flex justify-content-between align-items-center">
+                <div>
+                  <span style={{ fontSize: "11px", color: "#64748b", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em" }}>Budget Range</span>
+                  <div style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>₹{budget.min} — ₹{budget.max}</div>
+                </div>
+                <div style={{ padding: "6px 12px", background: "white", borderRadius: "10px", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
+                  <span style={{ fontSize: "11px", color: "#64748b", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em" }}>Suggested</span>
+                  <div style={{ fontSize: "14px", fontWeight: 800, color: "#6366f1" }}>₹{suggestedAmount}</div>
+                </div>
+              </div>
+
+              <div className="mb-0">
+                <label style={{ fontSize: "11px", color: "#475569", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "8px", display: "block" }}>
+                  Confirm Final Payment Amount (₹)
+                </label>
+                <div className="position-relative">
+                  <input
+                    type="number"
+                    className={`form-control ${error ? 'is-invalid' : ''}`}
+                    style={{ 
+                      fontSize: '22px', 
+                      fontWeight: '900', 
+                      padding: '12px 16px',
+                      borderRadius: '14px',
+                      border: '2px solid #cbd5e1',
+                      transition: 'all 0.2s',
+                      boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)'
+                    }}
+                    value={amount}
+                    onChange={(e) => {
+                      setAmount(e.target.value);
+                      setError("");
+                    }}
+                    placeholder="0"
+                  />
+                  {error && <div className="invalid-feedback fw-bold mt-2 ps-1" style={{ fontSize: "13px" }}>{error}</div>}
+                </div>
+                <div className="mt-3 d-flex align-items-center gap-2 text-muted" style={{ fontSize: '11px', fontWeight: 600 }}>
+                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#6366f1" }}></div>
+                  This amount must stay within the client's budget range.
+                </div>
+                <div className="mt-3 p-2 rounded-3 d-flex align-items-start gap-2" style={{ background: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.2)" }}>
+                  <RiInformationLine size={16} className="mt-1 flex-shrink-0" style={{ color: "#d97706" }} />
+                  <div style={{ fontSize: "12px", color: "#b45309", fontWeight: 600, lineHeight: "1.4" }}>
+                    A 10% platform fee will be deducted from your final payment.
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="d-flex flex-column gap-3 mt-4">
             <button
               className="btn-action-primary"
-              onClick={onConfirm}
+              onClick={handleConfirm}
               disabled={isActionLoading}
             >
               {isActionLoading ? (
@@ -128,7 +186,7 @@ const AcceptConfirmationModal: React.FC<AcceptConfirmationModalProps> = ({
                 />
               ) : (
                 <span className="position-relative z-1 d-flex align-items-center justify-content-center gap-2">
-                  Yes, I Confirm Acceptance
+                  Accept & Confirm Amount
                   <RiArrowRightLine size={18} />
                 </span>
               )}

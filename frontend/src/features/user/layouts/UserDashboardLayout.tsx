@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import UserSidebar from "../components/UserSidebar";
 import { RiMenuLine, RiMapPin2Line } from "react-icons/ri";
-import { useNavigate, Outlet } from "react-router-dom";
+import { useNavigate, Outlet, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { api } from "../../../services/api";
 import { logout } from "../../auth/services/authApi";
 import { ENDPOINTS } from "../../../constants/endpoints";
 import "../../provider/components/ProviderSidebar.css";
+import MobileBottomNav from "../components/MobileBottomNav";
 
 const UserDashboardLayout: React.FC = () => {
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
@@ -16,6 +17,17 @@ const UserDashboardLayout: React.FC = () => {
     profileImage?: { url: string; public_id: string };
   } | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Scroll Lock Management
+  useEffect(() => {
+    if (showMobileSidebar) {
+      document.body.classList.add("qw-sidebar-open");
+    } else {
+      document.body.classList.remove("qw-sidebar-open");
+    }
+    return () => document.body.classList.remove("qw-sidebar-open");
+  }, [showMobileSidebar]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -33,7 +45,6 @@ const UserDashboardLayout: React.FC = () => {
           }
         } catch (error) {
           console.error("Failed to fetch profile:", error);
-
           try {
             const decoded = jwtDecode(token) as { name?: string; email?: string };
             setUser({
@@ -60,21 +71,51 @@ const UserDashboardLayout: React.FC = () => {
     navigate("/auth/login");
   };
 
+  useEffect(() => {
+    const handleToggle = () => setShowMobileSidebar(true);
+    window.addEventListener("qw-toggle-sidebar", handleToggle);
+    return () => window.removeEventListener("qw-toggle-sidebar", handleToggle);
+  }, []);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 992);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const isMessaging = location.pathname.includes("/messages");
+  const hasActiveChat = new URLSearchParams(location.search).get("userId") ||
+    new URLSearchParams(location.search).get("conversationId") ||
+    new URLSearchParams(location.search).get("id");
+
+  // Granular visibility logic
+  // Hide global header on all messaging pages to allow module-specific headers
+  const shouldHideGlobalHeader = isMobile && isMessaging;
+  
+  // Keep bottom nav visible everywhere except active chat to maximize viewport
+  const shouldHideBottomNav = isMobile && isMessaging && hasActiveChat;
+
   return (
-    <div className="qw-layout">
-      <header className="qw-mobile-header">
-        <button
-          className="qw-hamburger"
-          onClick={() => setShowMobileSidebar(true)}
-          aria-label="Open navigation"
-        >
-          <RiMenuLine />
-        </button>
-        <div className="qw-mobile-brand">
-          <RiMapPin2Line className="text-primary me-2" />
-          Quick<span>Work</span>
-        </div>
-      </header>
+    <div className={`qw-layout ${shouldHideGlobalHeader ? 'has-custom-header' : ''}`}>
+      {/* Mobile Header Shell */}
+      {!shouldHideGlobalHeader && (
+        <header className="qw-mobile-header">
+          <button
+            className="qw-hamburger"
+            onClick={() => setShowMobileSidebar(true)}
+            aria-label="Open navigation"
+          >
+            <RiMenuLine />
+          </button>
+          <div className="qw-mobile-brand">
+            <RiMapPin2Line className="text-primary me-2" />
+            Quick<span>Work</span>
+          </div>
+        </header>
+      )}
+
+      {/* Sidebar Shell */}
       <UserSidebar
         showOnMobile={showMobileSidebar}
         onCloseMobile={() => setShowMobileSidebar(false)}
@@ -86,11 +127,22 @@ const UserDashboardLayout: React.FC = () => {
           profileImage: user?.profileImage,
         }}
       />
-      <main className="qw-main-content">
-        <div className="container-fluid p-0">
+
+      {/* Main Content Shell */}
+      <main
+        className="qw-main-content"
+        style={{
+          paddingTop: shouldHideGlobalHeader ? 0 : undefined,
+          paddingBottom: shouldHideBottomNav ? 0 : undefined
+        }}
+      >
+        <div className="container-fluid p-0 h-100">
           <Outlet />
         </div>
       </main>
+
+      {/* Persistent Bottom Nav Shell */}
+      {!shouldHideBottomNav && <MobileBottomNav />}
     </div>
   );
 };

@@ -10,6 +10,9 @@ import { CreateJobModal } from "../jobs/components/CreateJobModal";
 import { NotificationModal } from "../../notification/components/NotificationModal";
 import { useNotifications } from "../../notification/hooks/useNotifications";
 import { FaBell } from "react-icons/fa";
+import { RiBriefcaseLine } from "react-icons/ri";
+import MobileBottomNav from "./MobileBottomNav";
+import MobileProfileDrawer from "./MobileProfileDrawer";
 import type { Location } from "../landingPage/services/landingService";
 
 interface HeaderProps {
@@ -30,7 +33,7 @@ const Header: React.FC<HeaderProps> = ({
   const [modalOpen, setModalOpen] = useState(false);
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token") && localStorage.getItem("token") !== "undefined";
   const [profileOpen, setProfileOpen] = useState(false);
   const [user, setUser] = useState<{ name: string; email: string } | null>(
     null,
@@ -60,7 +63,7 @@ const Header: React.FC<HeaderProps> = ({
         } catch (error) {
           console.error("Failed to fetch profile:", error);
           try {
-            const decoded = jwtDecode(token) as { name?: string; email?: string };
+            const decoded = jwtDecode(localStorage.getItem("token")!) as { name?: string; email?: string };
             setUser({
               name: decoded.name || "User",
               email: decoded.email || "",
@@ -110,6 +113,14 @@ const Header: React.FC<HeaderProps> = ({
     };
   }, []);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 992);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const userInitials = user?.name
     ? user.name
         .split(" ")
@@ -122,30 +133,33 @@ const Header: React.FC<HeaderProps> = ({
   return (
     <>
       <nav
-        className="navbar navbar-expand-lg sticky-top"
+        className="navbar navbar-expand-lg navbar-light sticky-top"
         style={{
           background: "rgba(255,255,255,0.97)",
           backdropFilter: "blur(12px)",
           borderBottom: "1px solid #e8edf5",
           boxShadow: "0 1px 12px rgba(0,0,0,0.06)",
-          minHeight: 64,
+          minHeight: isMobile ? 60 : 64,
+          zIndex: 1000,
+          padding: isMobile ? "0 16px" : undefined
         }}
       >
-        <div className="container">
+        <div className={isMobile ? "w-100 d-flex justify-content-between align-items-center" : "container"}>
+          {/* --- Brand --- */}
           <a
             className="navbar-brand d-flex align-items-center gap-2 text-decoration-none"
             href="/"
           >
             <div
               style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
+                width: 32,
+                height: 32,
+                borderRadius: 8,
                 background: "linear-gradient(135deg, #3b82f6, #6366f1)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: 18,
+                fontSize: 16,
                 color: "#fff",
                 fontWeight: 800,
               }}
@@ -155,7 +169,7 @@ const Header: React.FC<HeaderProps> = ({
             <span
               style={{
                 fontWeight: 800,
-                fontSize: 18,
+                fontSize: 17,
                 color: "#0f172a",
                 letterSpacing: "-0.02em",
               }}
@@ -164,378 +178,475 @@ const Header: React.FC<HeaderProps> = ({
             </span>
           </a>
 
-          <button
-            className="navbar-toggler border-0"
-            type="button"
-            onClick={() => setNavOpen(!navOpen)}
-          >
-            <span className="navbar-toggler-icon" />
-          </button>
-
-          <div className={`collapse navbar-collapse${navOpen ? " show" : ""}`}>
-            <ul className="navbar-nav mx-auto gap-1">
-              {[
-                { label: "Browse Services", href: "/user/services" },
-                { label: "How it Works", href: "/#how-it-works" },
-              ].map((item) => (
-                <li className="nav-item" key={item.label}>
-                  <a
-                    href={item.href}
-                    className="nav-link px-3"
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 500,
-                      color: "#475569",
-                      borderRadius: 8,
-                      transition: "all 0.15s",
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLAnchorElement).style.color =
-                        "#1e293b";
-                      (e.currentTarget as HTMLAnchorElement).style.background =
-                        "#f1f5f9";
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLAnchorElement).style.color =
-                        "#475569";
-                      (e.currentTarget as HTMLAnchorElement).style.background =
-                        "transparent";
-                    }}
-                  >
-                    {item.label}
-                  </a>
-                </li>
-              ))}
-              <li className="nav-item">
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (!token) navigate("/auth/login");
-                    else setIsJobModalOpen(true);
-                  }}
-                  className="nav-link px-3 border-0 bg-transparent w-100 text-start"
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 500,
-                    color: "#475569",
-                    borderRadius: 8,
-                    transition: "all 0.15s",
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.color =
-                      "#1e293b";
-                    (e.currentTarget as HTMLButtonElement).style.background =
-                      "#f1f5f9";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.color =
-                      "#475569";
-                    (e.currentTarget as HTMLButtonElement).style.background =
-                      "transparent";
-                  }}
-                >
-                  Create Job
-                </button>
-              </li>
-            </ul>
-
-            <div className="d-flex align-items-center gap-2 mt-3 mt-lg-0">
-              <button
-                onClick={() => setModalOpen(true)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "7px 14px",
-                  borderRadius: 20,
-                  cursor: "pointer",
-                  border: "1.5px solid",
-                  borderColor: selectedLocation ? "#bfdbfe" : "#e2e8f0",
-                  background: selectedLocation ? "#eff6ff" : "#f8fafc",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: selectedLocation ? "#1d4ed8" : "#64748b",
-                  transition: "all 0.15s",
-                  whiteSpace: "nowrap",
-                }}
+          {/* --- Desktop Navigation --- */}
+          {!isMobile && (
+            <>
+              <div 
+                className={`navbar-collapse ${navOpen ? 'd-block' : 'd-none'} d-lg-flex justify-content-between flex-grow-1`}
               >
-                <span>📍</span>
-                <span
-                  style={{
-                    maxWidth: 120,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  {selectedLocation?.name ?? "Choose Location"}
-                </span>
-              </button>
-
-              {token ? (
-                <div className="d-flex align-items-center gap-3">
-                  <div style={{ position: "relative" }}>
+                <ul className="navbar-nav mx-auto gap-1">
+                  {[
+                    { label: "Browse Services", href: "/user/services" },
+                    { label: "How it Works", href: "/#how-it-works" },
+                  ].map((item) => (
+                    <li className="nav-item" key={item.label}>
+                      <a
+                        href={item.href}
+                        className="nav-link px-3"
+                        style={{
+                          fontSize: 14,
+                          fontWeight: 500,
+                          color: "#475569",
+                          borderRadius: 8,
+                          transition: "all 0.15s",
+                        }}
+                        onMouseEnter={(e) => {
+                          (e.currentTarget as HTMLAnchorElement).style.color =
+                            "#1e293b";
+                          (e.currentTarget as HTMLAnchorElement).style.background =
+                            "#f1f5f9";
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.currentTarget as HTMLAnchorElement).style.color =
+                            "#475569";
+                          (e.currentTarget as HTMLAnchorElement).style.background =
+                            "transparent";
+                        }}
+                      >
+                        {item.label}
+                      </a>
+                    </li>
+                  ))}
+                  <li className="nav-item">
                     <button
-                      onClick={() => setIsNotificationOpen(true)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (!token) navigate("/auth/login");
+                        else setIsJobModalOpen(true);
+                      }}
+                      className="nav-link px-3 border-0 bg-transparent w-100 text-start"
                       style={{
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        fontSize: "20px",
-                        display: "flex",
-                        alignItems: "center",
-                        color: "#64748b",
-                        padding: "8px",
-                        borderRadius: "50%",
-                        transition: "all 0.2s",
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: "#475569",
+                        borderRadius: 8,
+                        transition: "all 0.15s",
                       }}
                       onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLButtonElement).style.background = "#f1f5f9";
-                        (e.currentTarget as HTMLButtonElement).style.color = "#3b82f6";
+                        (e.currentTarget as HTMLButtonElement).style.color =
+                          "#1e293b";
+                        (e.currentTarget as HTMLButtonElement).style.background =
+                          "#f1f5f9";
                       }}
                       onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLButtonElement).style.background = "none";
-                        (e.currentTarget as HTMLButtonElement).style.color = "#64748b";
+                        (e.currentTarget as HTMLButtonElement).style.color =
+                          "#475569";
+                        (e.currentTarget as HTMLButtonElement).style.background =
+                          "transparent";
                       }}
-                      aria-label="Notifications"
                     >
-                      <FaBell />
+                      Create Job
                     </button>
-                    {unreadCount > 0 && (
-                      <span
-                        style={{
-                          position: "absolute",
-                          top: 5,
-                          right: 5,
-                          width: 18,
-                          height: 18,
-                          background: "#ef4444",
-                          color: "#fff",
-                          fontSize: "10px",
-                          fontWeight: 700,
-                          borderRadius: "50%",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          border: "2px solid #fff",
-                        }}
-                      >
-                        {unreadCount > 9 ? "9+" : unreadCount}
-                      </span>
-                    )}
-                  </div>
+                  </li>
+                </ul>
 
-                  <div
-                    style={{ position: "relative" }}
-                    className="profile-dropdown-container"
-                  >
+                <div className="d-flex align-items-center gap-2 mt-3 mt-lg-0">
                   <button
-                    onClick={() => setProfileOpen(!profileOpen)}
+                    onClick={() => setModalOpen(true)}
                     style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      fontSize: "26px",
                       display: "flex",
                       alignItems: "center",
-                      color: "#475569",
+                      gap: 6,
+                      padding: "7px 14px",
+                      borderRadius: 20,
+                      cursor: "pointer",
+                      border: "1.5px solid",
+                      borderColor: selectedLocation ? "#bfdbfe" : "#e2e8f0",
+                      background: selectedLocation ? "#eff6ff" : "#f8fafc",
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: selectedLocation ? "#1d4ed8" : "#64748b",
+                      transition: "all 0.15s",
+                      whiteSpace: "nowrap",
                     }}
-                    aria-label="User menu"
                   >
-                    <FaUserCircle />
-                  </button>
-                  {profileOpen && (
-                    <div
+                    <span>📍</span>
+                    <span
                       style={{
-                        position: "absolute",
-                        right: 0,
-                        top: 45,
-                        width: 220,
-                        background: "#fff",
-                        border: "1px solid #e2e8f0",
-                        borderRadius: 12,
-                        boxShadow: "0 10px 25px rgba(0,0,0,0.12)",
+                        maxWidth: 120,
                         overflow: "hidden",
-                        zIndex: 1000,
+                        textOverflow: "ellipsis",
                       }}
                     >
-                      <div
-                        onClick={() => {
-                          navigate("/user/profile");
-                          setProfileOpen(false);
-                        }}
-                        style={{
-                          padding: "16px",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "12px",
-                          borderBottom: "1px solid #f1f5f9",
-                          transition: "background 0.15s",
-                        }}
-                        className="dropdown-identity-header"
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.background = "#f8fafc")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.background = "#fff")
-                        }
-                      >
-                        <div
+                      {selectedLocation?.name ?? "Choose Location"}
+                    </span>
+                  </button>
+
+                  {token ? (
+                    <div className="d-flex align-items-center gap-3">
+                      <div style={{ position: "relative" }}>
+                        <button
+                          onClick={() => setIsNotificationOpen(true)}
                           style={{
-                            width: 38,
-                            height: 38,
-                            borderRadius: "50%",
-                            background:
-                              "linear-gradient(135deg, #3b82f6, #6366f1)",
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            fontSize: "20px",
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "center",
-                            color: "#fff",
-                            fontSize: 13,
-                            fontWeight: 700,
-                            flexShrink: 0,
+                            color: "#64748b",
+                            padding: "8px",
+                            borderRadius: "50%",
+                            transition: "all 0.2s",
                           }}
-                        >
-                          {userInitials}
-                        </div>
-                        <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            minWidth: 0,
+                          onMouseEnter={(e) => {
+                            (e.currentTarget as HTMLButtonElement).style.background = "#f1f5f9";
+                            (e.currentTarget as HTMLButtonElement).style.color = "#3b82f6";
                           }}
+                          onMouseLeave={(e) => {
+                            (e.currentTarget as HTMLButtonElement).style.background = "none";
+                            (e.currentTarget as HTMLButtonElement).style.color = "#64748b";
+                          }}
+                          aria-label="Notifications"
                         >
+                          <FaBell />
+                        </button>
+                        {unreadCount > 0 && (
                           <span
                             style={{
-                              fontSize: 14,
+                              position: "absolute",
+                              top: 5,
+                              right: 5,
+                              width: 18,
+                              height: 18,
+                              background: "#ef4444",
+                              color: "#fff",
+                              fontSize: "10px",
                               fontWeight: 700,
-                              color: "#0f172a",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
+                              borderRadius: "50%",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              border: "2px solid #fff",
                             }}
                           >
-                            {user?.name || "QuickWork User"}
+                            {unreadCount > 9 ? "9+" : unreadCount}
                           </span>
-                          <span style={{ fontSize: 11, color: "#64748b" }}>
-                            View Profile
-                          </span>
-                        </div>
+                        )}
                       </div>
 
-                      <div style={{ padding: "6px 0" }}>
+                      <div
+                        style={{ position: "relative" }}
+                        className="profile-dropdown-container"
+                      >
+                      <button
+                        onClick={() => setProfileOpen(!profileOpen)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          fontSize: "26px",
+                          display: "flex",
+                          alignItems: "center",
+                          color: "#475569",
+                        }}
+                        aria-label="User menu"
+                      >
+                        <FaUserCircle />
+                      </button>
+                      {profileOpen && (
                         <div
-                          onClick={() => {
-                            navigate("/user/jobs");
-                            setProfileOpen(false);
-                          }}
                           style={{
-                            padding: "10px 16px",
-                            cursor: "pointer",
-                            fontSize: 14,
-                            fontWeight: 500,
-                            color: "#475569",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = "#f1f5f9";
-                            e.currentTarget.style.color = "#0f172a";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = "transparent";
-                            e.currentTarget.style.color = "#475569";
+                            position: "absolute",
+                            right: 0,
+                            top: 45,
+                            width: 220,
+                            background: "#fff",
+                            border: "1px solid #e2e8f0",
+                            borderRadius: 12,
+                            boxShadow: "0 10px 25px rgba(0,0,0,0.12)",
+                            overflow: "hidden",
+                            zIndex: 1000,
                           }}
                         >
-                          My Jobs
-                        </div>
+                          <div
+                            onClick={() => {
+                              navigate("/user/profile");
+                              setProfileOpen(false);
+                            }}
+                            style={{
+                              padding: "16px",
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "12px",
+                              borderBottom: "1px solid #f1f5f9",
+                              transition: "background 0.15s",
+                            }}
+                            className="dropdown-identity-header"
+                            onMouseEnter={(e) =>
+                              (e.currentTarget.style.background = "#f8fafc")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.currentTarget.style.background = "#fff")
+                            }
+                          >
+                            <div
+                              style={{
+                                width: 38,
+                                height: 38,
+                                borderRadius: "50%",
+                                background:
+                                  "linear-gradient(135deg, #3b82f6, #6366f1)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: "#fff",
+                                fontSize: 13,
+                                fontWeight: 700,
+                                flexShrink: 0,
+                              }}
+                            >
+                              {userInitials}
+                            </div>
+                            <div
+                              style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                minWidth: 0,
+                              }}
+                            >
+                              <span
+                                style={{
+                                  fontSize: 14,
+                                  fontWeight: 700,
+                                  color: "#0f172a",
+                                  whiteSpace: "nowrap",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                }}
+                              >
+                                {user?.name || "QuickWork User"}
+                              </span>
+                              <span style={{ fontSize: 11, color: "#64748b" }}>
+                                View Profile
+                              </span>
+                            </div>
+                          </div>
 
-                        <div
-                          onClick={() => {
-                            navigate("/user/messages");
-                            setProfileOpen(false);
-                          }}
-                          style={{
-                            padding: "10px 16px",
-                            cursor: "pointer",
-                            fontSize: 14,
-                            fontWeight: 500,
-                            color: "#475569",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = "#f1f5f9";
-                            e.currentTarget.style.color = "#0f172a";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = "transparent";
-                            e.currentTarget.style.color = "#475569";
-                          }}
-                        >
-                          Messages
-                        </div>
+                          <div style={{ padding: "6px 0" }}>
+                            <div
+                              onClick={() => {
+                                navigate("/user/jobs");
+                                setProfileOpen(false);
+                              }}
+                              style={{
+                                padding: "10px 16px",
+                                cursor: "pointer",
+                                fontSize: 14,
+                                fontWeight: 500,
+                                color: "#475569",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = "#f1f5f9";
+                                e.currentTarget.style.color = "#0f172a";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = "transparent";
+                                e.currentTarget.style.color = "#475569";
+                              }}
+                            >
+                              My Jobs
+                            </div>
 
-                        <div
-                          onClick={handleLogout}
-                          style={{
-                            padding: "10px 16px",
-                            cursor: "pointer",
-                            fontSize: 14,
-                            fontWeight: 600,
-                            color: "#ef4444",
-                            borderTop: "1px solid #f1f5f9",
-                            marginTop: 4,
-                          }}
-                          onMouseEnter={(e) =>
-                            (e.currentTarget.style.background = "#fef2f2")
-                          }
-                          onMouseLeave={(e) =>
-                            (e.currentTarget.style.background = "transparent")
-                          }
-                        >
-                          Logout
+                            <div
+                              onClick={() => {
+                                navigate("/user/messages");
+                                setProfileOpen(false);
+                              }}
+                              style={{
+                                padding: "10px 16px",
+                                cursor: "pointer",
+                                fontSize: 14,
+                                fontWeight: 500,
+                                color: "#475569",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = "#f1f5f9";
+                                e.currentTarget.style.color = "#0f172a";
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = "transparent";
+                                e.currentTarget.style.color = "#475569";
+                              }}
+                            >
+                              Messages
+                            </div>
+
+                            <div
+                              onClick={handleLogout}
+                              style={{
+                                padding: "10px 16px",
+                                cursor: "pointer",
+                                fontSize: 14,
+                                fontWeight: 600,
+                                color: "#ef4444",
+                                borderTop: "1px solid #f1f5f9",
+                                marginTop: 4,
+                              }}
+                              onMouseEnter={(e) =>
+                                (e.currentTarget.style.background = "#fef2f2")
+                              }
+                              onMouseLeave={(e) =>
+                                (e.currentTarget.style.background = "transparent")
+                              }
+                            >
+                              Logout
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
+                  </div>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => navigate("/auth/login")}
+                        style={{
+                          padding: "8px 18px",
+                          borderRadius: 10,
+                          border: "1.5px solid #e2e8f0",
+                          background: "#fff",
+                          color: "#1e293b",
+                          fontSize: 13,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Login
+                      </button>
+                      <button
+                        onClick={() => navigate("/auth/signup")}
+                        style={{
+                          padding: "8px 18px",
+                          borderRadius: 10,
+                          border: "none",
+                          background: "linear-gradient(135deg,#3b82f6,#2563eb)",
+                          color: "#fff",
+                          fontSize: 13,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          boxShadow: "0 4px 12px rgba(59,130,246,0.3)",
+                        }}
+                      >
+                        Sign Up
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
-              ) : (
-                <>
-                  <button
-                    onClick={() => navigate("/auth/login")}
-                    style={{
-                      padding: "8px 18px",
-                      borderRadius: 10,
-                      border: "1.5px solid #e2e8f0",
-                      background: "#fff",
-                      color: "#1e293b",
-                      fontSize: 13,
-                      fontWeight: 600,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Login
-                  </button>
-                  <button
-                    onClick={() => navigate("/auth/signup")}
-                    style={{
-                      padding: "8px 18px",
-                      borderRadius: 10,
-                      border: "none",
-                      background: "linear-gradient(135deg,#3b82f6,#2563eb)",
-                      color: "#fff",
-                      fontSize: 13,
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      boxShadow: "0 4px 12px rgba(59,130,246,0.3)",
-                    }}
-                  >
-                    Sign Up
-                  </button>
-                </>
-              )}
+            </>
+          )}
+
+          {/* --- Mobile Action Bar --- */}
+          {isMobile && (
+            <div className="d-flex align-items-center gap-3">
+              {/* Add Job Icon */}
+              <button
+                onClick={() => { if (!token) navigate("/auth/login"); else setIsJobModalOpen(true); }}
+                style={{
+                  background: "#eff6ff",
+                  border: "none",
+                  width: 38,
+                  height: 38,
+                  borderRadius: "10px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#3b82f6",
+                  fontSize: "18px"
+                }}
+                aria-label="Create Job"
+              >
+                <RiBriefcaseLine />
+              </button>
+
+              {/* Notification Icon */}
+              <div style={{ position: "relative" }}>
+                <button
+                  onClick={() => setIsNotificationOpen(true)}
+                  style={{
+                    background: "#f8fafc",
+                    border: "none",
+                    width: 38,
+                    height: 38,
+                    borderRadius: "10px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#64748b",
+                    fontSize: "18px"
+                  }}
+                  aria-label="Notifications"
+                >
+                  <FaBell />
+                </button>
+                {unreadCount > 0 && (
+                  <span style={{
+                    position: "absolute",
+                    top: -2,
+                    right: -2,
+                    width: 16,
+                    height: 16,
+                    background: "#ef4444",
+                    color: "#fff",
+                    fontSize: "9px",
+                    fontWeight: 700,
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    border: "2px solid #fff"
+                  }}>
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </div>
+
+              {/* Profile Icon */}
+              <button
+                onClick={() => setProfileOpen(true)}
+                style={{
+                  background: "linear-gradient(135deg, #3b82f6, #6366f1)",
+                  border: "none",
+                  width: 38,
+                  height: 38,
+                  borderRadius: "10px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#fff",
+                  fontSize: "13px",
+                  fontWeight: 700,
+                  boxShadow: "0 4px 10px rgba(59, 130, 246, 0.2)"
+                }}
+              >
+                {userInitials}
+              </button>
             </div>
-          </div>
+          )}
         </div>
       </nav>
+
+      {/* --- Mobile Global Navigation Components --- */}
+      {isMobile && (
+        <MobileProfileDrawer 
+          isOpen={profileOpen} 
+          onClose={() => setProfileOpen(false)}
+          user={user ? { ...user, initials: userInitials } : null}
+          onLogout={handleLogout}
+        />
+      )}
 
       <LocationModal
         isOpen={modalOpen}

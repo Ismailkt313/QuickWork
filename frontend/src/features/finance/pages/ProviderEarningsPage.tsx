@@ -286,7 +286,10 @@ const ProviderEarningsPage: React.FC = () => {
                     pendingHistory.map(p => (
                         <div key={p._id} className="qw-pending-item">
                           <div className="qw-pending-info">
-                            <h6>{p.jobId?.title || "Assignment"}</h6>
+                            <h6>
+                              {p.jobId?.title || "Assignment"}
+                              {p.jobId?.jobCode && <span style={{ marginLeft: 8, fontSize: 11, background: '#f1f5f9', padding: '2px 6px', borderRadius: 4, color: '#64748b', fontWeight: 600 }}>#{p.jobId.jobCode}</span>}
+                            </h6>
                             <p>Completed on {new Date(p.endedAt).toLocaleDateString()}</p>
                           </div>
                           <div className="qw-pending-amount">
@@ -379,7 +382,12 @@ const ProviderEarningsPage: React.FC = () => {
                               <div className="qw-td-icon credit"><RiBillLine /></div>
                               <div>
                                 <span className="qw-td-title">{inv.invoiceNumber}</span>
-                                <span className="qw-td-sub">{inv.jobId?.title}</span>
+                                <span className="qw-td-sub">
+                                  {inv.jobId?.jobCode && <span style={{ marginRight: 6, fontWeight: 600 }}>#{inv.jobId.jobCode}</span>}
+                                  {inv.jobId?.title}
+                                </span>
+
+                                
                               </div>
                             </div>
                           </td>

@@ -12,6 +12,7 @@ import {
 } from "react-icons/ri";
 import { uploadToCloudinary } from "../../../utils/cloudinary";
 import { AxiosError } from "axios";
+import { createPortal } from "react-dom";
 
 interface UserProfile {
   name: string;
@@ -57,6 +58,24 @@ const UpdateProfileModal: React.FC<UpdateProfileModalProps> = ({
 }) => {
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 992);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 992);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
   const displayPreview = selectedFile ? previewUrl : (user?.profileImage?.url || null);
 
@@ -137,148 +156,181 @@ const UpdateProfileModal: React.FC<UpdateProfileModalProps> = ({
 
   if (!isOpen) return null;
 
-  return (
+  const modalContent = (
     <div
-      className="modal show d-block"
+      className="qw-modal-overlay"
       style={{
-        backgroundColor: "rgba(0,0,0,0.5)",
-        backdropFilter: "blur(4px)",
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        backgroundColor: "rgba(15,23,42,0.65)",
+        backdropFilter: "blur(8px)",
+        display: "flex",
+        alignItems: isMobile ? "flex-end" : "center",
+        justifyContent: "center",
+        animation: "qwFadeIn 0.2s ease",
       }}
       onClick={(e) => e.target === e.currentTarget && handleClose()}
     >
-      <div className="modal-dialog modal-dialog-centered">
-        <div className="modal-content border-0 shadow rounded-4 overflow-hidden animate-slide-up">
-          <div className="modal-header border-0 bg-primary text-white p-4">
-            <h5 className="modal-title fw-bold">Update Profile</h5>
+      <div 
+        className="qw-modal-content"
+        style={{
+          width: "100%",
+          maxWidth: isMobile ? "100%" : "480px",
+          background: "#fff",
+          borderRadius: isMobile ? "24px 24px 0 0" : "24px",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          boxShadow: "0 25px 70px rgba(0,0,0,0.25)",
+          animation: isMobile ? "qwMobileSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)" : "qwSlideUp 0.3s cubic-bezier(.34,1.56,.64,1)",
+        }}
+      >
+        {isMobile && (
+          <div style={{ 
+            width: 40, 
+            height: 4, 
+            background: "#e2e8f0", 
+            borderRadius: 2, 
+            margin: "12px auto 0",
+            flexShrink: 0
+          }} />
+        )}
+        <div className="modal-header border-0 bg-primary text-white p-4" style={{ flexShrink: 0 }}>
+          <h5 className="modal-title fw-bold m-0">Update Profile</h5>
+          <button
+            type="button"
+            className="btn-close btn-close-white"
+            onClick={handleClose}
+            aria-label="Close"
+          ></button>
+        </div>
+        <form onSubmit={handleSubmit(onSubmit)} style={{ overflowY: "auto", flexGrow: 1 }}>
+          <div className="modal-body p-4">
+            <div className="text-center mb-4">
+              <div className="position-relative d-inline-block">
+                <div
+                  className="overflow-hidden rounded-circle border border-4 border-light shadow-sm bg-light d-flex align-items-center justify-content-center"
+                  style={{ width: "100px", height: "100px" }}
+                >
+                  {displayPreview ? (
+                    <img
+                      src={displayPreview}
+                      alt="Preview"
+                      className="w-100 h-100 object-fit-cover"
+                    />
+                  ) : (
+                    <div className="text-secondary opacity-50">
+                      <RiUser3Line size={48} />
+                    </div>
+                  )}
+                </div>
+                <label
+                  htmlFor="profile-upload"
+                  className="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-2 shadow-sm border border-2 border-white d-flex align-items-center justify-content-center cursor-pointer"
+                  style={{ width: "36px", height: "36px", cursor: "pointer" }}
+                >
+                  <RiCameraLine size={18} />
+                  <input
+                    id="profile-upload"
+                    type="file"
+                    className="d-none"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                </label>
+              </div>
+              <p className="small text-secondary mt-2 mb-0">
+                Click the camera icon to change photo
+              </p>
+            </div>
+
+            <div className="mb-4 text-start">
+              <label className="form-label small fw-bold text-secondary mb-2">
+                Full Name
+              </label>
+              <div className="input-group">
+                <span className="input-group-text bg-light border-end-0 text-secondary px-3">
+                  <RiUser3Line />
+                </span>
+                <input
+                  {...register("name")}
+                  type="text"
+                  className={`form-control bg-light border-start-0 ps-0 ${errors.name ? "is-invalid" : ""}`}
+                  placeholder="Enter your full name"
+                  style={{ height: "48px", fontSize: isMobile ? "16px" : "14px" }}
+                />
+              </div>
+              {errors.name && (
+                <div className="text-danger small mt-1 ps-1">
+                  {errors.name.message}
+                </div>
+              )}
+            </div>
+
+            <div className="mb-3 text-start">
+              <label className="form-label small fw-bold text-secondary mb-2">
+                Phone Number
+              </label>
+              <div className="input-group">
+                <span className="input-group-text bg-light border-end-0 text-secondary px-3">
+                  <RiPhoneLine />
+                </span>
+                <input
+                  {...register("number")}
+                  type="text"
+                  className={`form-control bg-light border-start-0 ps-0 ${errors.number ? "is-invalid" : ""}`}
+                  placeholder="Enter your phone number"
+                  style={{ height: "48px", fontSize: isMobile ? "16px" : "14px" }}
+                />
+              </div>
+              {errors.number && (
+                <div className="text-danger small mt-1 ps-1">
+                  {errors.number.message}
+                </div>
+              )}
+            </div>
+          </div>
+          <div 
+            className="modal-footer border-0 p-4 pt-0 d-flex gap-2"
+            style={{ paddingBottom: isMobile ? "calc(16px + env(safe-area-inset-bottom))" : "24px" }}
+          >
             <button
               type="button"
-              className="btn-close btn-close-white"
+              className="btn btn-light rounded-3 px-4 fw-bold flex-grow-1"
+              style={{ height: "50px" }}
               onClick={handleClose}
-              aria-label="Close"
-            ></button>
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary rounded-3 px-4 fw-bold flex-grow-2"
+              disabled={isSubmitting}
+              style={{ minWidth: "140px", height: "50px" }}
+            >
+              {isSubmitting ? (
+                <span className="spinner-border spinner-border-sm" role="status"></span>
+              ) : (
+                <>
+                  <RiSaveLine className="me-2" />
+                  Save Changes
+                </>
+              )}
+            </button>
           </div>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="modal-body p-4">
-              <div className="text-center mb-4">
-                <div className="position-relative d-inline-block">
-                  <div
-                    className="overflow-hidden rounded-circle border border-4 border-light shadow-sm bg-light d-flex align-items-center justify-content-center"
-                    style={{ width: "100px", height: "100px" }}
-                  >
-                    {displayPreview ? (
-                      <img
-                        src={displayPreview}
-                        alt="Preview"
-                        className="w-100 h-100 object-fit-cover"
-                      />
-                    ) : (
-                      <div className="text-secondary opacity-50">
-                        <RiUser3Line size={48} />
-                      </div>
-                    )}
-                  </div>
-                  <label
-                    htmlFor="profile-upload"
-                    className="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-2 shadow-sm border border-2 border-white d-flex align-items-center justify-content-center cursor-pointer"
-                    style={{ width: "36px", height: "36px", cursor: "pointer" }}
-                  >
-                    <RiCameraLine size={18} />
-                    <input
-                      id="profile-upload"
-                      type="file"
-                      className="d-none"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                    />
-                  </label>
-                </div>
-                <p className="small text-secondary mt-2 mb-0">
-                  Click the camera icon to change photo
-                </p>
-                <p
-                  className="extra-small text-muted"
-                  style={{ fontSize: "10px" }}
-                >
-                  JPG, PNG or GIF (Max 2MB)
-                </p>
-              </div>
-
-              <div className="mb-3 text-start">
-                <label className="form-label small fw-bold text-secondary">
-                  Full Name
-                </label>
-                <div className="input-group">
-                  <span className="input-group-text bg-light border-end-0 text-secondary">
-                    <RiUser3Line />
-                  </span>
-                  <input
-                    {...register("name")}
-                    type="text"
-                    className={`form-control bg-light border-start-0 ps-0 ${errors.name ? "is-invalid" : ""}`}
-                    placeholder="Enter your full name"
-                  />
-                  {errors.name && (
-                    <div className="invalid-feedback d-block text-danger small mt-1">
-                      {errors.name.message}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="mb-1 text-start">
-                <label className="form-label small fw-bold text-secondary">
-                  Phone Number
-                </label>
-                <div className="input-group">
-                  <span className="input-group-text bg-light border-end-0 text-secondary">
-                    <RiPhoneLine />
-                  </span>
-                  <input
-                    {...register("number")}
-                    type="text"
-                    className={`form-control bg-light border-start-0 ps-0 ${errors.number ? "is-invalid" : ""}`}
-                    placeholder="Enter your phone number"
-                  />
-                  {errors.number && (
-                    <div className="invalid-feedback d-block text-danger small mt-1">
-                      {errors.number.message}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="modal-footer border-0 p-4 pt-0 d-flex gap-2">
-              <button
-                type="button"
-                className="btn btn-light rounded-3 px-4 fw-bold flex-grow-1"
-                onClick={handleClose}
-                disabled={isSubmitting}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="btn btn-primary rounded-3 px-4 fw-bold flex-grow-2"
-                disabled={isSubmitting}
-                style={{ minWidth: "140px" }}
-              >
-                {isSubmitting ? (
-                  <span
-                    className="spinner-border spinner-border-sm me-2"
-                    role="status"
-                    aria-hidden="true"
-                  ></span>
-                ) : (
-                  <RiSaveLine className="me-1" />
-                )}
-                Save Changes
-              </button>
-            </div>
-          </form>
-        </div>
+        </form>
       </div>
+      <style>{`
+        @keyframes qwFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes qwSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes qwMobileSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+      `}</style>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
 export default UpdateProfileModal;

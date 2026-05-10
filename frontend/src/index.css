@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
 
 * {
   margin: 0;
@@ -581,7 +582,8 @@ body {
   background-color: #dbeafe;
 }
 
-/* Toastify & Modal Z-Index Fix - Ensuring toasts are always on top of blurred overlays */
+/* ─── Premium Mobile-Optimized Toast Notifications ─── */
+
 .Toastify__toast-container {
   z-index: 999999 !important;
 }
@@ -593,13 +595,57 @@ body {
   z-index: 9999 !important;
 }
 
-/* Ensure Toast containers for all positions are elevated */
-.Toastify__toast-container--top-right,
-.Toastify__toast-container--top-left,
-.Toastify__toast-container--top-center,
-.Toastify__toast-container--bottom-right,
-.Toastify__toast-container--bottom-left,
-.Toastify__toast-container--bottom-center {
-  z-index: 999999 !important;
+@media (max-width: 768px) {
+  /* Override react-toastify's default full-width, flush-edge mobile styling */
+  .Toastify__toast-container {
+    width: calc(100% - 32px) !important;
+    left: 16px !important;
+    right: 16px !important;
+    /* Float safely below standard mobile headers (approx 70px) and safe areas */
+    top: max(env(safe-area-inset-top, 16px) + 72px, 72px) !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Prevent toasts from snapping to the bottom where they overlap bottom navs/keyboards */
+  .Toastify__toast-container--bottom-center,
+  .Toastify__toast-container--bottom-left,
+  .Toastify__toast-container--bottom-right {
+    top: auto !important;
+    bottom: max(env(safe-area-inset-bottom, 16px) + 90px, 90px) !important;
+  }
+
+  .Toastify__toast {
+    margin-bottom: 12px !important;
+    border-radius: 16px !important; /* Restore premium rounded corners */
+    padding: 14px 16px !important;
+    min-height: auto !important;
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  .Toastify__toast-body {
+    padding: 0 !important;
+    align-items: flex-start !important; /* Align text to top when wrapped */
+    margin: 0 !important;
+  }
+
+  .Toastify__toast-body > div:last-child {
+    line-height: 1.4 !important;
+    word-break: break-word !important;
+    padding-right: 8px !important;
+  }
+
+  /* Touch-friendly close button alignment */
+  .Toastify__close-button {
+    align-self: flex-start !important;
+    margin-top: -2px !important;
+    padding: 4px !important;
+    opacity: 0.6 !important;
+  }
+
+  /* Limit stacked height on mobile to prevent full-screen blockages */
+  .Toastify__toast-container--stacked {
+    max-height: calc(100vh - 200px) !important;
+    overflow-y: visible !important;
+  }
 }
-

@@ -168,7 +168,7 @@ const ProviderProfilePage: React.FC = () => {
             </div>
 
             {}
-            <div className="qw-section-card">
+            <div className="qw-section-card" id="portfolio">
               <div className="qw-section-title">
                 <div className="d-flex align-items-center gap-2">
                   <RiStarFill className="text-warning" />

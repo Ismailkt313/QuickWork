@@ -1,10 +1,12 @@
 import React, { useState, useCallback, Suspense, useEffect } from "react";
 import { RiMenuLine, RiMapLine, RiBellLine } from "react-icons/ri";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import ProviderSidebar from "../components/ProviderSidebar";
 import FallbackScreen from "../../../components/ui/FallbackScreen";
 import { getMyProfile } from "../services/provider.service";
 import "../components/ProviderSidebar.css";
+import MobileBottomNav from "../../user/components/MobileBottomNav";
+
 interface ProviderDashboardLayoutProps {
   activePath?: string;
   provider?: {
@@ -28,6 +30,14 @@ const ProviderDashboardLayout: React.FC<ProviderDashboardLayoutProps> = ({
   const [provider, setProvider] =
     useState<ProviderDashboardLayoutProps["provider"]>(initialProvider);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 992);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   useEffect(() => {
     if (!initialProvider) {
       const fetchProfile = async () => {
@@ -50,9 +60,16 @@ const ProviderDashboardLayout: React.FC<ProviderDashboardLayoutProps> = ({
   const openMobile = useCallback(() => setMobileOpen(true), []);
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
+  const location = useLocation();
+  const isMessaging = location.pathname.includes("/messages");
+  const hasActiveChat = new URLSearchParams(location.search).get("userId") || 
+                       new URLSearchParams(location.search).get("conversationId") ||
+                       new URLSearchParams(location.search).get("id");
+  const shouldHideHeader = isMobile && isMessaging && hasActiveChat;
+
   return (
-    <div className="qw-layout">
-      <header className="qw-mobile-header" aria-label="Mobile navigation bar">
+    <div className={`qw-layout ${shouldHideHeader ? 'hide-global-header' : ''}`}>
+      <header className={`qw-mobile-header ${shouldHideHeader ? 'hide-header' : ''}`} aria-label="Mobile navigation bar">
         <button
           className="qw-hamburger"
           onClick={openMobile}
@@ -62,7 +79,7 @@ const ProviderDashboardLayout: React.FC<ProviderDashboardLayoutProps> = ({
         >
           <RiMenuLine />
         </button>
-        <div className="qw-mobile-brand d-flex align-items-center gap-2">
+        <div className="qw-mobile-brand flex items-center gap-2">
           <div
             className="qw-logo-mark"
             style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0 }}
@@ -70,40 +87,18 @@ const ProviderDashboardLayout: React.FC<ProviderDashboardLayoutProps> = ({
           >
             <RiMapLine size={14} color="#fff" />
           </div>
-          Quick<span>Work</span>
+          Quick<span className="text-blue-600">Work</span>
         </div>
-        <div className="ms-auto position-relative" style={{ lineHeight: 0 }}>
+        <div className="ml-auto relative flex items-center" style={{ lineHeight: 0 }}>
           <button
-            style={{
-              background: "rgba(255,255,255,0.06)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: 9,
-              width: 36,
-              height: 36,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              color: "#e8eaf0",
-              fontSize: 18,
-              position: "relative",
-            }}
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-100 text-slate-500 hover:bg-slate-100 transition-colors relative"
             aria-label="Notifications"
             type="button"
           >
-            <RiBellLine />
+            <RiBellLine size={18} />
             <span
+              className="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500 border-2 border-white"
               aria-label="You have new notifications"
-              style={{
-                position: "absolute",
-                top: 7,
-                right: 7,
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                background: "#ff6b6b",
-                border: "2px solid #0d0f14",
-              }}
             />
           </button>
         </div>
@@ -121,27 +116,25 @@ const ProviderDashboardLayout: React.FC<ProviderDashboardLayoutProps> = ({
         id="main-content"
         aria-label="Main content"
         tabIndex={-1}
+        style={{
+          paddingTop: shouldHideHeader ? 0 : "64px",
+          paddingBottom: isMobile ? (shouldHideHeader ? 0 : "calc(64px + env(safe-area-inset-bottom, 12px))") : 0
+        }}
       >
         {provider?.verificationStatus === "pending" && (
           <div
-            className="alert alert-warning border-0 mb-4 mx-3 mx-lg-5 mt-4 d-flex align-items-center gap-3 shadow-sm rounded-4"
-            style={{
-              background: "#fffbeb",
-              borderLeft: "4px solid #f59e0b !important",
-            }}
+            className="mx-4 lg:mx-8 mt-6 p-4 bg-amber-50 border border-amber-100 rounded-2xl flex items-center gap-4 shadow-sm"
             role="alert"
           >
-            <div className="bg-white p-2 rounded-3 shadow-sm text-warning">
+            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-amber-500 shadow-sm flex-shrink-0">
               <RiBellLine size={20} />
             </div>
             <div>
-              <h4 className="fw-bold mb-0 small" style={{ color: "#92400e" }}>
-                Profile under verification
+              <h4 className="text-sm font-black text-amber-900 mb-0.5 uppercase tracking-wide">
+                Account Verification Pending
               </h4>
-              <p className="mb-0 text-amber-800 small" style={{ opacity: 0.8 }}>
-                Your application is being reviewed by our admin team. You can
-                explore the dashboard, but job interactions are restricted until
-                approval.
+              <p className="text-xs text-amber-800 font-medium opacity-90 leading-relaxed">
+                Your application is currently being reviewed. You can explore your dashboard, but some job interactions will be restricted until your profile is approved.
               </p>
             </div>
           </div>
@@ -150,6 +143,7 @@ const ProviderDashboardLayout: React.FC<ProviderDashboardLayoutProps> = ({
           <Outlet />
         </Suspense>
       </main>
+      {!shouldHideHeader && <MobileBottomNav />}
     </div>
   );
 };

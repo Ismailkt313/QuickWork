@@ -11,7 +11,7 @@ interface FinanceOverview {
 
 export interface Transaction {
     _id: string;
-    jobId: string;
+    jobId: { _id: string; title: string; jobCode?: string };
     workHistoryId: string;
     providerId: string;
     type: string;

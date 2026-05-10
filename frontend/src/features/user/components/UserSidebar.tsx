@@ -9,6 +9,7 @@ import {
   RiSearchEyeLine,
   RiBillLine,
   RiStarLine,
+  RiCloseLine
 } from "react-icons/ri";
 import { NavLink, Link } from "react-router-dom";
 import "../../provider/components/ProviderSidebar.css";
@@ -114,15 +115,22 @@ const UserSidebar: React.FC<UserSidebarProps> = ({
 
   return (
     <>
-      {showOnMobile && (
-        <div className="qw-backdrop visible" onClick={onCloseMobile} />
-      )}
+      <div 
+        className={`qw-backdrop ${showOnMobile ? "visible" : ""}`} 
+        onClick={onCloseMobile} 
+      />
 
-      <aside className={`qw-sidebar${showOnMobile ? " open" : ""}`}>
+      <aside className={`qw-sidebar ${showOnMobile ? "open" : ""}`}>
+        {/* Mobile Close Button */}
+        <button className="qw-sidebar-close d-lg-none" onClick={onCloseMobile}>
+          <RiCloseLine size={24} />
+        </button>
+
         <Link
           to="/"
           className="qw-logo-area"
           onClick={handleNavClick}
+          style={{ paddingTop: "calc(18px + env(safe-area-inset-top, 0px))" }}
         >
           <div className="qw-logo-mark">
             <RiMapPin2Line size={18} />
@@ -155,7 +163,10 @@ const UserSidebar: React.FC<UserSidebarProps> = ({
           ))}
         </nav>
 
-        <div className="qw-sidebar-bottom">
+        <div 
+          className="qw-sidebar-bottom"
+          style={{ paddingBottom: "calc(14px + env(safe-area-inset-bottom, 12px))" }}
+        >
           <Link
             to="/user/profile"
             className="qw-profile-card"
@@ -190,6 +201,26 @@ const UserSidebar: React.FC<UserSidebarProps> = ({
           </button>
         </div>
       </aside>
+
+      <style>{`
+        .qw-sidebar-close {
+          position: absolute;
+          top: calc(12px + env(safe-area-inset-top, 0px));
+          right: 12px;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          border: none;
+          background: var(--qw-surface-2);
+          color: var(--qw-text);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10;
+          transition: var(--qw-transition);
+        }
+        .qw-sidebar-close:active { transform: scale(0.9); }
+      `}</style>
     </>
   );
 };

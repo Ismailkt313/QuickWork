@@ -218,7 +218,7 @@ const MyJobsPage: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "24px" }}>
             {assignments.map((as) => (
               <MyJobCard
                 key={as.id}

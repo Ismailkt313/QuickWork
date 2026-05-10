@@ -1,45 +1,379 @@
-/* DashboardPage.css — QuickWork Provider Dashboard Layout */
+/* ═══════════════════════════════════════════════════════════════════
+   DashboardPage.css — QuickWork Provider Dashboard Layout System
+   Professional SaaS-grade spacing, responsive grid, card styles
+   ═══════════════════════════════════════════════════════════════════ */
 
+/* ─── Shell & Container ────────────────────────────────────────── */
 .dashboard-shell {
   width: 100%;
   min-height: 100vh;
+  background-color: #f8fafc;
+  background-image:
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.03) 0, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.02) 0, transparent 50%);
 }
 
 .dashboard-container {
-  max-width: 1240px;
+  max-width: 1440px;
   margin: 0 auto;
-  padding: 40px 40px 100px;
+  padding: 28px 28px 64px;
   width: 100%;
-  animation: fadeIn 0.4s ease-out;
+  animation: dashboardFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+@keyframes dashboardFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ─── Responsive ─────────────────────────────────────────────── */
+/* ─── Page Header ──────────────────────────────────────────────── */
+.pdash-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
 
-@media (max-width: 1200px) {
+.pdash-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.025em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.2;
+}
+
+.pdash-badge-live {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #2563eb;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  padding: 3px 8px;
+  border-radius: 6px;
+  line-height: 1;
+}
+
+.pdash-subtitle {
+  color: #64748b;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.pdash-btn-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pdash-btn-icon:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.pdash-btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #0f172a;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.pdash-btn-primary:hover {
+  background: #1e293b;
+  color: #fff;
+}
+
+/* ─── Stats Grid (4 columns) ──────────────────────────────────── */
+.pdash-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+/* ─── Shared Card Styles ──────────────────────────────────────── */
+.provider-stat-card {
+  background: #ffffff;
+  border: 1px solid #e8edf4;
+  border-radius: 14px;
+  padding: 18px 20px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.provider-stat-card:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  border-color: #d1d9e6;
+  transform: translateY(-1px);
+}
+
+.provider-chart-card {
+  background: #ffffff;
+  border: 1px solid #e8edf4;
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: box-shadow 0.2s ease;
+}
+
+.provider-chart-card:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+/* ─── Two-Column Row (Charts + Schedule) ──────────────────────── */
+.pdash-row-2col {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.pdash-col-main {
+  min-width: 0;
+}
+
+.pdash-col-side {
+  min-width: 0;
+}
+
+/* ─── Three-Column Row (Activity + Charts + Performance) ──────── */
+.pdash-row-3col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+/* ─── Activity Card ───────────────────────────────────────────── */
+.pdash-activity-card {
+  background: #ffffff;
+  border: 1px solid #e8edf4;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 480px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: box-shadow 0.2s ease;
+}
+
+.pdash-activity-card:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.pdash-card-header {
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  background: #fafbfd;
+}
+
+.pdash-activity-scroll {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: #e2e8f0 transparent;
+}
+
+.pdash-activity-scroll::-webkit-scrollbar {
+  width: 3px;
+}
+
+.pdash-activity-scroll::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 3px;
+}
+
+.pdash-card-footer {
+  padding: 12px 20px;
+  border-top: 1px solid #f1f5f9;
+  background: #fafbfd;
+  flex-shrink: 0;
+}
+
+.pdash-link-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #3b82f6;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.pdash-link-action:hover {
+  color: #2563eb;
+}
+
+/* ─── Responsive Breakpoints ──────────────────────────────────── */
+
+/* Large tablets / small desktops */
+@media (max-width: 1280px) {
   .dashboard-container {
-    padding: 32px 32px 80px;
+    padding: 24px 24px 56px;
+  }
+
+  .pdash-row-3col {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .pdash-row-3col > :first-child {
+    grid-column: 1 / -1;
   }
 }
 
-@media (max-width: 991px) {
-  .dashboard-container {
-    padding: 24px 24px 60px;
+/* Tablets */
+@media (max-width: 1024px) {
+  .pdash-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .pdash-row-2col {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .pdash-row-3col {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .pdash-row-3col > :first-child {
+    grid-column: 1 / -1;
+  }
+
+  .pdash-activity-card {
+    max-height: 400px;
   }
 }
 
-@media (max-width: 640px) {
+/* Below tablet */
+@media (max-width: 768px) {
   .dashboard-container {
-    padding: 20px 16px 40px;
+    padding: 20px 16px 48px;
+  }
+
+  .pdash-header {
+    margin-bottom: 20px;
+  }
+
+  .pdash-title {
+    font-size: 1.25rem;
+  }
+
+  .pdash-subtitle {
+    font-size: 0.75rem;
+  }
+
+  .pdash-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .pdash-row-3col {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .pdash-row-3col > :first-child {
+    grid-column: auto;
+  }
+
+  .pdash-activity-card {
+    max-height: 360px;
+  }
+
+  .provider-stat-card {
+    padding: 14px 16px;
+  }
+
+  .provider-chart-card {
+    padding: 16px;
   }
 }
 
-/* ─── Skeleton Overrides ───────────────────────────────────── */
-.placeholder-glow .placeholder {
-  background-color: var(--qw-surface-2, #f1f5f9);
-  opacity: 0.15;
+/* Mobile */
+@media (max-width: 480px) {
+  .dashboard-container {
+    padding: 14px 12px 40px;
+  }
+
+  .pdash-stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .pdash-btn-primary span {
+    display: none;
+  }
+
+  .pdash-btn-primary {
+    padding: 8px;
+    border-radius: 10px;
+  }
+
+  .pdash-title {
+    font-size: 1.125rem;
+  }
+
+  .provider-stat-card {
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
+
+  .provider-chart-card {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .pdash-activity-card {
+    border-radius: 12px;
+    max-height: 320px;
+  }
+
+  .pdash-card-header {
+    padding: 12px 14px 10px;
+  }
+
+  .pdash-card-footer {
+    padding: 10px 14px;
+  }
 }

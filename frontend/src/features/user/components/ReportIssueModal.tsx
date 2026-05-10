@@ -205,7 +205,7 @@ const ReportIssueModal: React.FC<ReportIssueModalProps> = ({
           align-items: center;
           justify-content: center;
           padding: 24px;
-          z-index: 999999;
+          z-index: 9999;
           overflow-y: auto;
         }
 
@@ -219,15 +219,21 @@ const ReportIssueModal: React.FC<ReportIssueModalProps> = ({
           position: relative;
           margin: auto;
           max-height: 90vh;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .qw-modal-form {
           overflow-y: auto;
+          padding-right: 4px;
           scrollbar-width: thin;
           scrollbar-color: #cbd5e1 transparent;
         }
 
-        .qw-modal-content::-webkit-scrollbar { width: 6px; }
-        .qw-modal-content::-webkit-scrollbar-track { background: transparent; }
-        .qw-modal-content::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
-        .qw-modal-content::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
+        .qw-modal-form::-webkit-scrollbar { width: 6px; }
+        .qw-modal-form::-webkit-scrollbar-track { background: transparent; }
+        .qw-modal-form::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+        .qw-modal-form::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
 
         .qw-modal-title {
           font-family: 'Syne', sans-serif;
@@ -418,6 +424,28 @@ const ReportIssueModal: React.FC<ReportIssueModalProps> = ({
         @keyframes popIn {
           from { opacity: 0; transform: scale(0.95) translateY(20px); }
           to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+          .qw-modal-overlay {
+            padding: 0;
+            align-items: flex-end; /* Snap to bottom like a sheet */
+          }
+          .qw-modal-content {
+            padding: 24px;
+            padding-bottom: max(24px, env(safe-area-inset-bottom));
+            border-radius: 24px 24px 0 0;
+            margin: 0;
+            max-height: 85vh; /* Leave room for mobile keyboard */
+          }
+          .qw-textarea {
+            font-size: 16px; /* Prevent iOS input zoom */
+          }
+          .animate-pop-in { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+          @keyframes slideUp {
+            from { opacity: 0; transform: translateY(100%); }
+            to { opacity: 1; transform: translateY(0); }
+          }
         }
       `}</style>
     </div>,

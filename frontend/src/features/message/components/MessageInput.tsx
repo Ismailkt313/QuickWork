@@ -93,44 +93,61 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   };
 
   return (
-    <div className="chat-footer position-relative">
+    <div className="message-input-production position-relative">
       {showEmojiPicker && (
         <div
           ref={pickerRef}
+          className="emoji-picker-container shadow-2xl"
           style={{
             position: "absolute",
             bottom: "100%",
-            left: "10px",
+            left: "0",
             zIndex: 1000,
-            marginBottom: "10px"
+            marginBottom: "12px",
+            animation: "popIn 0.2s cubic-bezier(0, 0, 0.2, 1)"
           }}
         >
-          <EmojiPicker onEmojiClick={onEmojiClick} width={300} height={400} />
+          <EmojiPicker 
+            onEmojiClick={onEmojiClick} 
+            width={window.innerWidth < 400 ? 280 : 340} 
+            height={380}
+            previewConfig={{ showPreview: false }}
+          />
         </div>
       )}
+
       {previewUrl && (
-        <div className="p-2 border-bottom bg-light d-flex align-items-center gap-2">
+        <div className="file-preview-pill p-2 mb-2 bg-light border d-flex align-items-center gap-3 animate-slide-up" 
+             style={{ borderRadius: '14px', borderStyle: 'dashed' }}>
           <div className="position-relative">
             <img
               src={previewUrl}
               alt="Preview"
-              className="rounded-3 border"
-              style={{ width: "60px", height: "60px", objectFit: "cover" }}
+              className="rounded-3 shadow-sm"
+              style={{ width: "44px", height: "44px", objectFit: "cover" }}
             />
             <button
-              className="position-absolute top-0 end-0 translate-middle badge rounded-pill bg-danger border-0"
+              className="position-absolute top-0 end-0 translate-middle btn btn-danger rounded-circle p-0 d-flex align-items-center justify-content-center"
               onClick={removeSelectedFile}
-              style={{ padding: "4px" }}
+              style={{ width: "18px", height: "18px", fontSize: '10px', border: '2px solid #fff' }}
             >
-              <RiCloseLine size={12} />
+              <RiCloseLine />
             </button>
           </div>
-          <div className="small text-muted flex-grow-1">
+          <div className="small text-dark fw-bold text-truncate flex-grow-1">
             {selectedFile?.name}
           </div>
         </div>
       )}
-      <div className="chat-input-wrapper d-flex align-items-center gap-2 p-2">
+
+      <div 
+        className="composer-wrap d-flex align-items-end gap-2 p-2"
+        style={{ 
+          background: "#f1f5f9", 
+          borderRadius: "24px",
+          transition: 'all 0.2s'
+        }}
+      >
         <input
           type="file"
           className="d-none"
@@ -138,37 +155,51 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           ref={fileInputRef}
           onChange={handleFileChange}
         />
-        <button
-          className="btn btn-link text-muted p-2"
-          onClick={() => setShowEmojiPicker((prev) => !prev)}
-          disabled={disabled || isUploading}
-          type="button"
-        >
-          <RiEmotionHappyLine size={24} />
-        </button>
-        <button
-          className="btn btn-link text-muted p-2"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={disabled || isUploading}
-          type="button"
-        >
-          <RiImage2Line size={24} />
-        </button>
+        
+        <div className="d-flex align-items-center mb-1 ps-1">
+          <button
+            className="btn-composer-action text-slate-500"
+            onClick={() => setShowEmojiPicker((prev) => !prev)}
+            disabled={disabled || isUploading}
+            type="button"
+          >
+            <RiEmotionHappyLine size={22} />
+          </button>
+          <button
+            className="btn-composer-action text-slate-500"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={disabled || isUploading}
+            type="button"
+          >
+            <RiImage2Line size={22} />
+          </button>
+        </div>
+
         <textarea
-          className="chat-input flex-grow-1 border-0 shadow-none"
-          placeholder="Type a message..."
+          className="composer-textarea flex-grow-1 border-0 bg-transparent py-2 px-1"
+          placeholder="Message..."
           rows={1}
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyPress}
           disabled={disabled || isUploading}
-          style={{ resize: "none", outline: "none" }}
+          style={{ 
+            resize: "none", 
+            outline: "none", 
+            fontSize: "0.95rem", 
+            maxHeight: "150px",
+            lineHeight: "1.4",
+            fontWeight: "500"
+          }}
         />
+
         <button
-          className="chat-send-btn btn btn-primary rounded-circle d-flex align-items-center justify-content-center p-2"
+          className={`btn-send-production d-flex align-items-center justify-content-center transition-all ${
+            (!text.trim() && !selectedFile) ? 'disabled' : 'active'
+          }`}
           onClick={handleSend}
           disabled={disabled || isUploading || (!text.trim() && !selectedFile)}
-          style={{ width: "40px", height: "40px" }}
+          style={{ width: "40px", height: "40px", flexShrink: 0, borderRadius: '14px' }}
         >
           {isUploading ? (
             <RiLoader4Line className="animate-spin" size={20} />
@@ -177,10 +208,43 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           )}
         </button>
       </div>
+
       <style>{`
-        .animate-spin { animation: spin 1s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .btn-composer-action {
+          width: 36px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          transition: all 0.2s;
+          border: none;
+          background: transparent;
+        }
+        .btn-composer-action:hover { background: rgba(15, 23, 42, 0.05); color: var(--qw-accent) !important; }
+        
+        .btn-send-production {
+          background: #3b82f6;
+          color: white;
+          border: none;
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        .btn-send-production.disabled {
+          background: #e2e8f0;
+          color: #94a3b8;
+          box-shadow: none;
+          opacity: 0.5;
+        }
+        .btn-send-production.active:hover { transform: scale(1.05); background: #2563eb; }
+        .btn-send-production.active:active { transform: scale(0.95); }
+        
+        .animate-slide-up { animation: slideUp 0.2s ease-out; }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.9) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .composer-textarea::-webkit-scrollbar { width: 0; }
+        .composer-wrap:focus-within { background: #e2e8f0 !important; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1); }
       `}</style>
     </div>
-  );
+  );;
 };

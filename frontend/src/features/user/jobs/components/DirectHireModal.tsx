@@ -217,43 +217,43 @@ export const DirectHireModal: React.FC<DirectHireModalProps> = ({
     }
 
     if (formData.startDate && formData.startTime && formData.endTime) {
-        const jobDate = new Date(formData.startDate);
-        const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-        const jobDayName = days[jobDate.getDay()];
+      const jobDate = new Date(formData.startDate);
+      const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+      const jobDayName = days[jobDate.getDay()];
 
-        const daySched = availability.find(a => a.day.toLowerCase() === jobDayName.toLowerCase());
-        if (daySched) {
-            if (!daySched.isAvailable) {
-                newErrors.startDate = `Provider is not available on ${jobDayName}s`;
-            } else {
-                const toMinutes = (t: string) => {
-                    const [h, m] = t.split(":").map(Number);
-                    return h * 60 + m;
-                };
-                const pStart = toMinutes(daySched.startTime);
-                const pEnd = toMinutes(daySched.endTime);
-                const jStart = toMinutes(formData.startTime);
-                const jEnd = toMinutes(formData.endTime);
+      const daySched = availability.find(a => a.day.toLowerCase() === jobDayName.toLowerCase());
+      if (daySched) {
+        if (!daySched.isAvailable) {
+          newErrors.startDate = `Provider is not available on ${jobDayName}s`;
+        } else {
+          const toMinutes = (t: string) => {
+            const [h, m] = t.split(":").map(Number);
+            return h * 60 + m;
+          };
+          const pStart = toMinutes(daySched.startTime);
+          const pEnd = toMinutes(daySched.endTime);
+          const jStart = toMinutes(formData.startTime);
+          const jEnd = toMinutes(formData.endTime);
 
-                if (jStart < pStart || jEnd > pEnd) {
-                    newErrors.startTime = `Must be within provider's hours (${daySched.startTime} - ${daySched.endTime})`;
-                }
-            }
+          if (jStart < pStart || jEnd > pEnd) {
+            newErrors.startTime = `Must be within provider's hours (${daySched.startTime} - ${daySched.endTime})`;
+          }
         }
+      }
 
-        const jobTime = jobDate.getTime();
-        const isBlocked = blockedDates.some(b => {
-            const start = new Date(b.startDate);
-            start.setHours(0,0,0,0);
-            const end = new Date(b.endDate);
-            end.setHours(23,59,59,999);
-            const target = new Date(jobTime);
-            target.setHours(12,0,0,0);
-            return target.getTime() >= start.getTime() && target.getTime() <= end.getTime();
-        });
-        if (isBlocked) {
-            newErrors.startDate = "This date is marked as blocked by the provider";
-        }
+      const jobTime = jobDate.getTime();
+      const isBlocked = blockedDates.some(b => {
+        const start = new Date(b.startDate);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(b.endDate);
+        end.setHours(23, 59, 59, 999);
+        const target = new Date(jobTime);
+        target.setHours(12, 0, 0, 0);
+        return target.getTime() >= start.getTime() && target.getTime() <= end.getTime();
+      });
+      if (isBlocked) {
+        newErrors.startDate = "This date is marked as blocked by the provider";
+      }
     }
 
     setErrors(newErrors);

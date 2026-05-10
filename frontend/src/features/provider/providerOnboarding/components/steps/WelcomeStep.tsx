@@ -1,5 +1,12 @@
+import React from "react";
 import { useDispatch } from "react-redux";
 import { setCurrentStep } from "../../../providerOnboarding/store/onboardingSlice";
+import { 
+  RiVerifiedBadgeFill, 
+  RiMegaphoneFill, 
+  RiMoneyDollarCircleFill, 
+  RiTimeLine 
+} from "react-icons/ri";
 
 const WelcomeStep: React.FC = () => {
   const dispatch = useDispatch();
@@ -9,62 +16,56 @@ const WelcomeStep: React.FC = () => {
   };
 
   return (
-    <div className="container py-5" style={{ maxWidth: "900px" }}>
-      <div className="text-center mb-5">
-        <h1 className="fw-bold mb-3">Build Your Professional Profile</h1>
-        <p className="text-secondary fs-5">
-          Join verified professionals and start receiving trusted client
-          requests.
+    <div className="max-w-[900px] mx-auto py-12 px-4">
+      <div className="text-center mb-16">
+        <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-4">
+          Build Your Professional Profile
+        </h1>
+        <p className="text-lg md:text-xl text-slate-500 font-medium max-w-2xl mx-auto">
+          Join verified professionals and start receiving trusted client requests.
         </p>
       </div>
 
-      <div className="row g-4 mb-5">
-        <div className="col-md-4">
-          <div className="card h-100 border-0 shadow-sm p-4 text-center">
-            <div className="mb-3 text-primary">
-              <i className="bi bi-patch-check-fill fs-1"></i>
-            </div>
-            <h5 className="fw-bold">Verified Badge</h5>
-            <p className="text-secondary small mb-0">
-              Get an exclusive badge that builds immediate trust with potential
-              clients.
-            </p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        <div className="bg-white rounded-3xl p-8 text-center shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+          <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <RiVerifiedBadgeFill size={32} />
           </div>
+          <h5 className="text-lg font-black text-slate-800 mb-3">Verified Badge</h5>
+          <p className="text-slate-500 text-sm leading-relaxed font-medium">
+            Get an exclusive badge that builds immediate trust with potential clients.
+          </p>
         </div>
-        <div className="col-md-4">
-          <div className="card h-100 border-0 shadow-sm p-4 text-center">
-            <div className="mb-3 text-success">
-              <i className="bi bi-megaphone-fill fs-1"></i>
-            </div>
-            <h5 className="fw-bold">Direct Client Leads</h5>
-            <p className="text-secondary small mb-0">
-              Receive high-quality leads directly in your inbox without any
-              bidding wars.
-            </p>
+
+        <div className="bg-white rounded-3xl p-8 text-center shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+          <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <RiMegaphoneFill size={32} />
           </div>
+          <h5 className="text-lg font-black text-slate-800 mb-3">Direct Leads</h5>
+          <p className="text-slate-500 text-sm leading-relaxed font-medium">
+            Receive high-quality leads directly in your inbox without any bidding wars.
+          </p>
         </div>
-        <div className="col-md-4">
-          <div className="card h-100 border-0 shadow-sm p-4 text-center">
-            <div className="mb-3 text-warning">
-              <i className="bi bi-cash-stack fs-1"></i>
-            </div>
-            <h5 className="fw-bold">Flexible Earnings</h5>
-            <p className="text-secondary small mb-0">
-              Set your own rates and keep 100% of what you earn with zero hidden
-              fees.
-            </p>
+
+        <div className="bg-white rounded-3xl p-8 text-center shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+          <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <RiMoneyDollarCircleFill size={32} />
           </div>
+          <h5 className="text-lg font-black text-slate-800 mb-3">Flexible Earnings</h5>
+          <p className="text-slate-500 text-sm leading-relaxed font-medium">
+            Set your own rates and keep 100% of what you earn with zero hidden fees.
+          </p>
         </div>
       </div>
 
       <div className="text-center">
-        <p className="text-muted mb-4">
-          <i className="bi bi-clock me-2"></i>
-          Takes 5–7 minutes
-        </p>
+        <div className="flex items-center justify-center gap-2 text-slate-400 font-bold text-xs uppercase tracking-widest mb-6">
+          <RiTimeLine size={16} />
+          <span>Takes 5–7 minutes</span>
+        </div>
         <button
           onClick={handleStart}
-          className="btn btn-primary btn-lg px-5 py-3 fw-bold rounded-pill shadow"
+          className="bg-blue-600 text-white px-10 py-5 rounded-2xl font-black text-lg shadow-lg shadow-blue-200 hover:bg-blue-700 hover:scale-105 active:scale-95 transition-all"
         >
           Start Application
         </button>

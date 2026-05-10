@@ -112,19 +112,19 @@ const RequestsPage: React.FC = () => {
     setIsConfirmModalOpen(true);
   };
 
-  const handleConfirmAfterSelection = () => {
+  const handleConfirmAfterSelection = (amount: number) => {
     setIsConfirmModalOpen(false);
     const jobId = pendingJobId;
     if (!jobId) return;
     const job = requests.find(r => r.id === jobId);
     if (job && job.location?.districtName !== providerLocation) setIsLocationModalOpen(true);
-    else confirmAccept(jobId);
+    else confirmAccept(jobId, amount);
   };
 
-  const confirmAccept = async (jobId: string) => {
+  const confirmAccept = async (jobId: string, amount?: number) => {
     try {
       setActionLoading(jobId);
-      const response = await acceptOffer(jobId);
+      const response = await acceptOffer(jobId, amount);
       if (response.success) { toast.success("Invitation accepted! Job is now assigned to you."); fetchRequests(); }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Failed to accept invitation";
@@ -282,7 +282,7 @@ const RequestsPage: React.FC = () => {
           </button>
         </div>
       ) : (
-        <div style={{ maxWidth: 760 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "24px" }}>
           {requests.map(request => (
             <RequestCard
               key={request.id}
@@ -343,6 +343,7 @@ const RequestsPage: React.FC = () => {
         onClose={() => { setIsConfirmModalOpen(false); setPendingJobId(null); }}
         onConfirm={handleConfirmAfterSelection}
         jobTitle={requests.find(r => r.id === pendingJobId)?.title}
+        budget={requests.find(r => r.id === pendingJobId)?.budgetRange}
         isActionLoading={!!(pendingJobId && actionLoading === pendingJobId)}
       />
 

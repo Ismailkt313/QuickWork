@@ -2,6 +2,7 @@
     display: flex;
     min-height: 100vh;
     background: #f1f5f9;
+    font-family: 'Inter', sans-serif;
 }
 
 .admin-sidebar {
@@ -126,6 +127,7 @@
     margin-left: 250px;
     padding: 2rem 2.5rem;
     min-height: 100vh;
+    min-width: 0;
 }
 
 .admin-breadcrumb {

@@ -2,6 +2,7 @@ import axios, { type AxiosResponse } from "axios";
 import { ENDPOINTS } from "../../../constants/endpoints";
 import type { IApiResponse, IPaginatedResponse } from "../../../types/api.types";
 import type { IUserListItem, IServiceProviderDetails, IAdminLoginResponse } from "../types/admin.types";
+import { jwtDecode } from "jwt-decode";
 const apiUrl = import.meta.env.VITE_API_URL;
 export const Adminapi = axios.create({
   baseURL: `${apiUrl}/api/v1`,
@@ -45,6 +46,7 @@ Adminapi.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // Handle 401 Unauthorized (Token Expired)
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
@@ -75,6 +77,13 @@ Adminapi.interceptors.response.use(
         );
 
         const { accessToken } = response.data.data;
+        
+        // CRITICAL: Check if the refreshed token actually belongs to an admin
+        const decoded: any = jwtDecode(accessToken);
+        if (decoded.role !== 'admin') {
+           throw new Error("Refreshed token is not an admin token");
+        }
+
         localStorage.setItem("adminAccessToken", accessToken);
         Adminapi.defaults.headers.common["Authorization"] = "Bearer " + accessToken;
         originalRequest.headers["Authorization"] = "Bearer " + accessToken;
@@ -90,6 +99,14 @@ Adminapi.interceptors.response.use(
       } finally {
         isRefreshing = false;
       }
+    }
+
+    // Handle 403 Forbidden (Wrong Role)
+    if (error.response?.status === 403 && !originalRequest.url?.includes("/admin/login")) {
+      console.warn("Admin access forbidden. Redirecting to login...");
+      localStorage.removeItem("adminAccessToken");
+      localStorage.removeItem("adminRefreshToken");
+      window.location.href = `/admin/login?error=unauthorized`;
     }
 
     return Promise.reject(error);
@@ -133,4 +150,8 @@ export const getProviderById = (providerId: string): Promise<AxiosResponse<IApiR
 
 export const getUserById = (userId: string): Promise<AxiosResponse<IApiResponse<IUserListItem>>> => {
   return Adminapi.get(ENDPOINTS.ADMIN.USER_DETAILS(userId));
+};
+
+export const adminLogout = (): Promise<AxiosResponse<IApiResponse<void>>> => {
+  return Adminapi.post(ENDPOINTS.AUTH.LOGOUT);
 };

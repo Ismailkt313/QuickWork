@@ -83,149 +83,244 @@ const MyJobCard: React.FC<MyJobCardProps> = ({ assignment, onViewDetails, onMess
     <div
       style={{
         background: "#fff",
-        borderRadius: 16,
-        border: "1px solid #e8edf4",
-        marginBottom: 16,
+        borderRadius: "20px",
+        border: "1px solid #f1f5f9",
+        marginBottom: "18px",
         overflow: "hidden",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.04)",
-        transition: "box-shadow 0.2s ease, transform 0.2s ease",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.02), 0 10px 25px -5px rgba(0,0,0,0.03)",
+        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
         position: "relative",
       }}
       onMouseEnter={e => {
-        (e.currentTarget as HTMLDivElement).style.boxShadow = "0 4px 12px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.07)";
-        (e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)";
+        (e.currentTarget as HTMLDivElement).style.boxShadow = "0 20px 40px -12px rgba(0,0,0,0.08)";
+        (e.currentTarget as HTMLDivElement).style.transform = "translateY(-4px)";
+        (e.currentTarget as HTMLDivElement).style.borderColor = "#e2e8f0";
       }}
       onMouseLeave={e => {
-        (e.currentTarget as HTMLDivElement).style.boxShadow = "0 1px 4px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.04)";
+        (e.currentTarget as HTMLDivElement).style.boxShadow = "0 1px 3px rgba(0,0,0,0.02), 0 10px 25px -5px rgba(0,0,0,0.03)";
         (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
+        (e.currentTarget as HTMLDivElement).style.borderColor = "#f1f5f9";
       }}
     >
-      {}
-      <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: 3, background: `linear-gradient(90deg, ${status.text}, ${status.text}88)` }} />
+      {/* --- Progress Accent Line --- */}
+      <div style={{ 
+        position: "absolute", 
+        top: 0, 
+        left: 0, 
+        width: "100%", 
+        height: "4px", 
+        background: `linear-gradient(90deg, ${status.text}, ${status.text}33)` 
+      }} />
 
-      <div style={{ padding: "20px 24px 0" }}>
-        {}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {}
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700, background: status.bg, color: status.text, border: `1px solid ${status.border}`, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+      <div style={{ padding: "24px 24px 20px" }}>
+        {/* --- Header: Status & Type --- */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+            <span style={{ 
+              display: "inline-flex", 
+              alignItems: "center", 
+              gap: "6px", 
+              padding: "4px 12px", 
+              borderRadius: "8px", 
+              fontSize: "10px", 
+              fontWeight: 800, 
+              background: status.bg, 
+              color: status.text, 
+              border: `1px solid ${status.border}`, 
+              textTransform: "uppercase", 
+              letterSpacing: "0.05em" 
+            }}>
               {status.icon} {status.label}
             </span>
-            {}
-            {type === "direct" && (
-              <span style={{ padding: "4px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700, background: "#faf5ff", color: "#9333ea", border: "1px solid #e9d5ff", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            
+            {type === "direct" ? (
+              <span style={{ 
+                padding: "4px 10px", 
+                borderRadius: "8px", 
+                fontSize: "10px", 
+                fontWeight: 800, 
+                background: "#f5f3ff", 
+                color: "#7c3aed", 
+                border: "1px solid #ddd6fe", 
+                textTransform: "uppercase" 
+              }}>
                 Direct Hire
               </span>
-            )}
-            {type === "open" && (
-              <span style={{ padding: "4px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700, background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            ) : (
+              <span style={{ 
+                padding: "4px 10px", 
+                borderRadius: "8px", 
+                fontSize: "10px", 
+                fontWeight: 800, 
+                background: "#f0fdf4", 
+                color: "#15803d", 
+                border: "1px solid #bbf7d0", 
+                textTransform: "uppercase" 
+              }}>
                 Open Job
               </span>
             )}
-            {isOutOfDistrict && (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "4px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700, background: "#fffbeb", color: "#b45309", border: "1px solid #fde68a", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                <RiMapPinRangeLine /> Out of Zone
-              </span>
-            )}
-            {}
-            {workStatus === "completed" && assignment.payment?.status !== "completed" && (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700, background: "#fff7ed", color: "#ea580c", border: "1px solid #fed7aa", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                <RiMoneyDollarCircleLine size={13} /> Payment Pending
-              </span>
-            )}
           </div>
-          {}
-          <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>
+
+          <div style={{ textAlign: "right" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "4px", justifyContent: "flex-end" }}>
               <RiMoneyDollarCircleLine size={16} color="#6366f1" />
-              <span style={{ fontSize: 17, fontWeight: 800, color: "#0f172a", fontFamily: "Syne, sans-serif" }}>
+              <span style={{ fontSize: "20px", fontWeight: 800, color: "#0f172a", fontFamily: "Syne, sans-serif" }}>
                 ₹{assignment.payment?.amount ?? job.budget}
               </span>
             </div>
-            <div style={{ fontSize: 10, color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", marginTop: 1 }}>
-              {assignment.payment?.amount ? "Total Payment" : "Est. Per Provider"}
+            <div style={{ fontSize: "9px", color: "#94a3b8", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", marginTop: "2px" }}>
+              {assignment.payment?.amount ? "Final Payout" : "Total Budget"}
             </div>
           </div>
         </div>
 
-        {}
-        <div style={{ marginBottom: 14 }}>
-          <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: "#0f172a", fontFamily: "Syne, sans-serif", lineHeight: 1.3 }}>
-            <RiBriefcaseLine style={{ marginRight: 6, color: "#6366f1", verticalAlign: "middle", fontSize: 16 }} />
+        {/* --- Title Section --- */}
+        <div style={{ marginBottom: "20px" }}>
+          <h3 style={{ 
+            margin: "0 0 6px", 
+            fontSize: "18px", 
+            fontWeight: 800, 
+            color: "#0f172a", 
+            fontFamily: "Syne, sans-serif", 
+            lineHeight: 1.2,
+            letterSpacing: "-0.02em"
+          }}>
             {job.title}
           </h3>
-          <p style={{ margin: "6px 0 0", fontSize: 13, color: "#64748b", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+          <p style={{ 
+            margin: 0, 
+            fontSize: "13.5px", 
+            color: "#64748b", 
+            lineHeight: 1.6, 
+            display: "-webkit-box", 
+            WebkitLineClamp: 2, 
+            WebkitBoxOrient: "vertical", 
+            overflow: "hidden" 
+          }}>
             {job.description}
           </p>
         </div>
 
-        {}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10, background: "#f8fafc", borderRadius: 12, padding: "12px 14px", marginBottom: 16, border: "1px solid #f1f5f9" }}>
-          {}
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", color: "#3b82f6", fontSize: 15, flexShrink: 0 }}>
-              <RiUser3Line />
+        {/* --- Info Grid --- */}
+        <div style={{ 
+          display: "grid", 
+          gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", 
+          gap: "12px", 
+          background: "#fafafa", 
+          padding: "16px", 
+          borderRadius: "16px",
+          border: "1px solid #f1f5f9",
+          marginBottom: "16px"
+        }}>
+          {/* Client */}
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <div style={{ width: "32px", height: "32px", borderRadius: "10px", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", color: "#3b82f6", boxShadow: "0 2px 4px rgba(0,0,0,0.03)" }}>
+              <RiUser3Line size={16} />
             </div>
-            <div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em" }}>Client</div>
-              <div style={{ fontSize: 12.5, fontWeight: 600, color: "#1e293b" }}>{job.clientName}</div>
-            </div>
-          </div>
-          {}
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", color: "#16a34a", fontSize: 15, flexShrink: 0 }}>
-              <RiMapPinLine />
-            </div>
-            <div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em" }}>Location</div>
-              <div style={{ fontSize: 12.5, fontWeight: 600, color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 140 }}>{job.location?.address || "Not specified"}</div>
-            </div>
-          </div>
-          {}
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: "#fff7ed", display: "flex", alignItems: "center", justifyContent: "center", color: "#ea580c", fontSize: 15, flexShrink: 0 }}>
-              <RiCalendarLine />
-            </div>
-            <div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em" }}>Schedule</div>
-              <div style={{ fontSize: 12.5, fontWeight: 600, color: "#1e293b" }}>
-                {formatDate(startDate)}{isMultiDay ? ` → ${formatDate(endDate)}` : ""}
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: "9px", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase" }}>Client</div>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#334155", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {job.clientName}
               </div>
             </div>
           </div>
-          {}
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: "#faf5ff", display: "flex", alignItems: "center", justifyContent: "center", color: "#9333ea", fontSize: 15, flexShrink: 0 }}>
-              <RiTimeLine />
+
+          {/* Location */}
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <div style={{ width: "32px", height: "32px", borderRadius: "10px", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", color: "#10b981", boxShadow: "0 2px 4px rgba(0,0,0,0.03)" }}>
+              <RiMapPinLine size={16} />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: "9px", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase" }}>Location</div>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#334155", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {job.location?.address?.split(',')[0] || "Remote"}
+              </div>
+            </div>
+          </div>
+
+          {/* Schedule */}
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <div style={{ width: "32px", height: "32px", borderRadius: "10px", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", color: "#f59e0b", boxShadow: "0 2px 4px rgba(0,0,0,0.03)" }}>
+              <RiCalendarLine size={16} />
             </div>
             <div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em" }}>Duration</div>
-              <div style={{ fontSize: 12.5, fontWeight: 600, color: "#1e293b" }}>
-                {job.durationType ? (DURATION_LABEL[job.durationType] ?? job.durationType) : "—"}
-                {job.durationType === "multi_day" && job.days ? ` (${job.days} days)` : ""}
+              <div style={{ fontSize: "9px", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase" }}>Schedule</div>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#334155" }}>
+                {formatDate(startDate)}{isMultiDay ? "..." : ""}
+              </div>
+            </div>
+          </div>
+
+          {/* Type */}
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <div style={{ width: "32px", height: "32px", borderRadius: "10px", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", color: "#ec4899", boxShadow: "0 2px 4px rgba(0,0,0,0.03)" }}>
+              <RiBriefcaseLine size={16} />
+            </div>
+            <div>
+              <div style={{ fontSize: "9px", fontWeight: 800, color: "#94a3b8", textTransform: "uppercase" }}>Duration</div>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#334155" }}>
+                {job.durationType ? (DURATION_LABEL[job.durationType] || "Custom") : "Standard"}
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {}
-      <div style={{ padding: "0 24px 20px", display: "flex", gap: 10 }}>
+      {/* --- Footer Actions --- */}
+      <div style={{ 
+        padding: "16px 24px", 
+        background: "#fcfcfd", 
+        borderTop: "1px solid #f1f5f9", 
+        display: "flex", 
+        gap: "12px",
+        alignItems: "center"
+      }}>
         <button
           onClick={() => onMessage?.(job.clientId, job.clientName)}
-          style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 18px", borderRadius: 10, border: "1.5px solid #e2e8f0", background: "#fff", color: "#475569", fontWeight: 600, fontSize: 13, cursor: "pointer", transition: "all 0.2s", flexShrink: 0 }}
+          style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: "8px", 
+            padding: "0 18px", 
+            height: "42px", 
+            borderRadius: "12px", 
+            border: "1.5px solid #e2e8f0", 
+            background: "#fff", 
+            color: "#475569", 
+            fontWeight: 700, 
+            fontSize: "13px", 
+            cursor: "pointer", 
+            transition: "all 0.2s" 
+          }}
           onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#6366f1"; (e.currentTarget as HTMLButtonElement).style.color = "#6366f1"; }}
           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#e2e8f0"; (e.currentTarget as HTMLButtonElement).style.color = "#475569"; }}
         >
-          <RiMessage2Line size={16} /> Message
+          <RiMessage2Line size={18} /> Chat
         </button>
+        <div style={{ flex: 1 }} />
         <button
           onClick={() => onViewDetails?.(assignment.id)}
-          style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "10px 18px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer", boxShadow: "0 4px 14px rgba(99,102,241,0.3)", transition: "all 0.2s" }}
-          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 6px 20px rgba(99,102,241,0.45)"; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 14px rgba(99,102,241,0.3)"; }}
+          style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: "8px", 
+            padding: "0 24px", 
+            height: "42px", 
+            borderRadius: "12px", 
+            border: "none", 
+            background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)", 
+            color: "#fff", 
+            fontWeight: 800, 
+            fontSize: "13.5px", 
+            cursor: "pointer", 
+            boxShadow: "0 4px 12px rgba(99,102,241,0.25)",
+            transition: "all 0.2s" 
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 8px 20px rgba(99,102,241,0.35)"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.02)"; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 4px 12px rgba(99,102,241,0.25)"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
         >
-          Manage Assignment <RiArrowRightLine size={16} />
+          Manage Work <RiArrowRightLine size={16} />
         </button>
       </div>
     </div>

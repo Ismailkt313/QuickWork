@@ -7,11 +7,11 @@ import { useProviderLocation } from "../hooks/useProviderLocation";
 
 interface JobLocation { address: string; lat: number; lng: number; districtId: string; districtName?: string; }
 interface JobDetailHeaderProps {
-  title: string; isUrgent?: boolean; isNew?: boolean;
+  title: string; isUrgent?: boolean; isNew?: boolean; jobCode?: string;
   postedAt: string; location: JobLocation | null; additionalDetails?: string;
 }
 
-const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({ title, isUrgent, isNew, postedAt, location, additionalDetails }) => {
+const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({ title, isUrgent, isNew, jobCode, postedAt, location, additionalDetails }) => {
   const providerLocation = useProviderLocation();
   const jobDistrict = location?.districtName?.toLowerCase().trim() ?? "";
   const myDistrict  = providerLocation?.toLowerCase().trim() ?? "";
@@ -33,6 +33,7 @@ const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({ title, isUrgent, isNe
         {badge("#f0fdf4","#059669","rgba(16,185,129,0.2)", <RiShieldCheckLine size={11}/>, "Verified Job")}
         {isMyArea === true  && badge("#f0fdf4","#16a34a","#bbf7d0", <RiMapPinLine size={11}/>, "Your Area")}
         {isMyArea === false && badge("#fff7ed","#b45309","#fde68a", <RiAlertLine  size={11}/>, "Not Your Area")}
+        {jobCode && badge("#f1f5f9","#475569","#cbd5e1", null, `#${jobCode}`)}
       </div>
 
       {}

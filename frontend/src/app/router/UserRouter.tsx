@@ -36,36 +36,43 @@ const PaymentHistoryPage = lazy(
 const UserRouter = () => {
   return (
     <Suspense fallback={<FallbackScreen />}>
-      <AuthGuard>
-        <Routes>
-          <Route path="services" element={<AllServicesPage />} />
-          <Route path="services/:skillId" element={<ProvidersPage />} />
-          <Route
-            path="services/provider/:providerId"
-            element={<ProviderDetailPage />}
-          />
-          <Route element={<UserDashboardLayout />}>
-            <Route path="jobs" element={<UserJobsPage />} />
-            <Route path="jobs/:jobId" element={<UserJobDetailPage />} />
-            <Route path="profile" element={<UserProfilePage />} />
-            <Route path="reviews" element={<UserReviewsPage />} />
-            <Route path="security" element={<UserProfilePage />} />
-            <Route path="messages" element={<MessagesPage />} />
-            <Route path="payment-history" element={<PaymentHistoryPage />} />
-            <Route
-              path="saved"
-              element={
-                <div className="container py-5">
-                  <h2 className="fw-bold h3 mb-4">Saved Providers</h2>
-                  <p className="text-muted">
-                    Library of your favorite service providers.
-                  </p>
-                </div>
-              }
-            />
-          </Route>
-        </Routes>
-      </AuthGuard>
+      <Routes>
+        <Route path="services" element={<AllServicesPage />} />
+        <Route path="services/:skillId" element={<ProvidersPage />} />
+        <Route
+          path="services/provider/:providerId"
+          element={<ProviderDetailPage />}
+        />
+        <Route
+          path="*"
+          element={
+            <AuthGuard>
+              <Routes>
+                <Route element={<UserDashboardLayout />}>
+                  <Route path="jobs" element={<UserJobsPage />} />
+                  <Route path="jobs/:jobId" element={<UserJobDetailPage />} />
+                  <Route path="profile" element={<UserProfilePage />} />
+                  <Route path="reviews" element={<UserReviewsPage />} />
+                  <Route path="security" element={<UserProfilePage />} />
+                  <Route path="messages" element={<MessagesPage />} />
+                  <Route path="payment-history" element={<PaymentHistoryPage />} />
+                  <Route
+                    path="saved"
+                    element={
+                      <div className="container py-5">
+                        <h2 className="fw-bold h3 mb-4">Saved Providers</h2>
+                        <p className="text-muted">
+                          Library of your favorite service providers.
+                        </p>
+                      </div>
+                    }
+                  />
+                </Route>
+              </Routes>
+            </AuthGuard>
+          }
+        />
+      </Routes>
     </Suspense>
   );
 };

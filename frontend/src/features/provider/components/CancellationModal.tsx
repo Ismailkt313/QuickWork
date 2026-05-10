@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import {
   RiCloseLine,
   RiErrorWarningLine,
@@ -47,7 +48,7 @@ const CancellationModal: React.FC<CancellationModalProps> = ({
     }
   };
 
-  return (
+  return createPortal(
     <div
       className="qw-modal-overlay"
       onClick={isSubmitting ? undefined : onClose}
@@ -139,7 +140,8 @@ const CancellationModal: React.FC<CancellationModalProps> = ({
           align-items: center;
           justify-content: center;
           padding: 20px;
-          z-index: 5000;
+          z-index: 9999;
+          overflow-y: auto;
         }
         .qw-modal-content {
           background: #ffffff;
@@ -148,6 +150,13 @@ const CancellationModal: React.FC<CancellationModalProps> = ({
           border-radius: 32px;
           box-shadow: 0 30px 60px -12px rgba(15, 23, 42, 0.2);
           position: relative;
+          max-height: 90vh;
+          display: flex;
+          flex-direction: column;
+        }
+        form {
+          overflow-y: auto;
+          scrollbar-width: thin;
         }
         .qw-modal-close-btn {
           position: absolute;
@@ -188,8 +197,31 @@ const CancellationModal: React.FC<CancellationModalProps> = ({
           from { opacity: 0; transform: scale(0.95); }
           to { opacity: 1; transform: scale(1); }
         }
+
+        @media (max-width: 768px) {
+          .qw-modal-overlay {
+            padding: 0;
+            align-items: flex-end; /* Snap to bottom like a sheet */
+          }
+          .qw-modal-content {
+            padding: 24px;
+            padding-bottom: max(24px, env(safe-area-inset-bottom));
+            border-radius: 24px 24px 0 0;
+            margin: 0;
+            max-height: 85vh; /* Leave room for mobile keyboard */
+          }
+          textarea.form-control {
+            font-size: 16px !important; /* Prevent iOS input zoom */
+          }
+          .animate-pop-in { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+          @keyframes slideUp {
+            from { opacity: 0; transform: translateY(100%); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        }
       `}</style>
-    </div>
+    </div>,
+    document.body
   );
 };
 

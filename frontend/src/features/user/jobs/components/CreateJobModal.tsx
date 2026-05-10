@@ -1,6 +1,7 @@
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import {
   FiBriefcase,
   FiAlignLeft,
@@ -101,8 +102,20 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
     return () => document.removeEventListener("keydown", handleKey);
   }, [isOpen, onClose]);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
+
   useEffect(() => {
-    document.body.style.overflow = isOpen ? "hidden" : "";
+    const handleResize = () => setIsMobile(window.innerWidth < 992);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
     return () => {
       document.body.style.overflow = "";
     };
@@ -323,12 +336,13 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
     { label: "Multiple Days", value: "multi_day" },
   ];
 
-  return (
+  return createPortal(
     <div
       ref={backdropRef}
       onClick={(e) => {
         if (e.target === backdropRef.current) onClose();
       }}
+      className="qw-modal-overlay"
       style={{
         position: "fixed",
         inset: 0,
@@ -342,42 +356,56 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
       }}
     >
       <div
+        className="qw-modal-content"
         style={{
           background: "#fff",
-          borderRadius: 24,
+          borderRadius: isMobile ? "24px 24px 0 0" : 24,
           width: "100%",
           maxWidth: 720,
-          maxHeight: "90vh",
+          maxHeight: isMobile ? "85vh" : "90vh",
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
           boxShadow: "0 25px 70px rgba(0,0,0,0.25)",
-          animation: "qwSlideUp 0.3s cubic-bezier(.34,1.56,.64,1)",
-          margin: "20px",
+          margin: isMobile ? "0" : "20px",
+          position: isMobile ? "fixed" : "relative",
+          bottom: isMobile ? 0 : "auto",
         }}
       >
+        {isMobile && (
+          <div style={{ 
+            width: 40, 
+            height: 4, 
+            background: "#e2e8f0", 
+            borderRadius: 2, 
+            margin: "12px auto 0",
+            flexShrink: 0
+          }} />
+        )}
         <div
+          className="qw-modal-header"
           style={{
-            padding: "24px 32px",
+            padding: isMobile ? "16px 20px" : "24px 32px",
             borderBottom: "1px solid #f1f5f9",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
             background: "linear-gradient(to right, #f8fafc, #fff)",
+            flexShrink: 0,
           }}
         >
           <div className="d-flex align-items-center gap-3">
             <div
               style={{
-                width: 48,
-                height: 48,
+                width: isMobile ? 40 : 48,
+                height: isMobile ? 40 : 48,
                 borderRadius: 12,
                 background: "linear-gradient(135deg, #3b82f6, #2563eb)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 color: "#fff",
-                fontSize: 20,
+                fontSize: isMobile ? 18 : 20,
               }}
             >
               <FiZap />
@@ -387,15 +415,17 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
                 style={{
                   margin: 0,
                   fontWeight: 800,
-                  fontSize: 18,
+                  fontSize: isMobile ? 16 : 18,
                   color: "#0f172a",
                 }}
               >
                 Post a New Job
               </h5>
-              <p style={{ margin: "2px 0 0", fontSize: 14, color: "#64748b" }}>
-                Connect with skilled providers instantly
-              </p>
+              {!isMobile && (
+                <p style={{ margin: "2px 0 0", fontSize: 14, color: "#64748b" }}>
+                  Connect with skilled providers instantly
+                </p>
+              )}
             </div>
           </div>
           <button
@@ -420,9 +450,17 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
             <FiX />
           </button>
         </div>
-        <div style={{ overflowY: "auto", padding: "32px" }}>
+        <div 
+          className="qw-modal-body"
+          style={{ 
+            overflowY: "auto", 
+            padding: isMobile ? "20px" : "32px",
+            flexGrow: 1,
+            scrollbarWidth: "none"
+          }}
+        >
           <form onSubmit={handleSubmit}>
-            <div className="row g-4">
+            <div className={`row ${isMobile ? 'g-3' : 'g-4'}`}>
               <div className="col-12">
                 <FormInput
                   label="Job Title"
@@ -618,34 +656,56 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
               </div>
               <div className="col-12 mt-3">
                 <div style={{
-                  padding: "16px 20px",
-                  background: "#f8fafc",
-                  borderRadius: "12px",
-                  border: "1px dashed #cbd5e1",
+                  padding: "20px",
+                  background: "linear-gradient(135deg, #f8fafc, #f1f5f9)",
+                  borderRadius: "16px",
+                  border: "1px solid #e2e8f0",
                   display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center"
+                  flexDirection: "column",
+                  gap: "12px"
                 }}>
-                  <div>
-                    <span style={{ fontSize: "14px", color: "#64748b", fontWeight: 600 }}>Total Estimated Job Budget</span>
-                    <div style={{ fontSize: "18px", color: "#0f172a", fontWeight: 700 }}>
-                      ₹{(Number(formData.minBudget) || 0) * (Number(formData.freelancersNeeded) || 1)} - ₹{(Number(formData.maxBudget) || 0) * (Number(formData.freelancersNeeded) || 1)}
+
+                  
+
+                  <div style={{ 
+                    display: "flex", 
+                    justifyContent: isMobile ? "center" : "space-between", 
+                    alignItems: isMobile ? "flex-start" : "center",
+                    flexDirection: isMobile ? "column" : "row",
+                    gap: isMobile ? "12px" : "0"
+                  }}>
+                    <div style={{ textAlign: isMobile ? "center" : "left", width: isMobile ? "100%" : "auto" }}>
+                      <span style={{ fontSize: "11px", color: "#64748b", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Project Budget Range</span>
+                      <div style={{ fontSize: isMobile ? "20px" : "24px", color: "#2563eb", fontWeight: 900 }}>
+                        ₹{(Number(formData.minBudget) || 0) * (Number(formData.freelancersNeeded) || 1)} - ₹{(Number(formData.maxBudget) || 0) * (Number(formData.freelancersNeeded) || 1)}
+                      </div>
                     </div>
-                  </div>
-                  <div style={{ padding: "8px 12px", background: "#e0f2fe", color: "#0369a1", borderRadius: "8px", fontSize: "12px", fontWeight: 700 }}>
-                    For {formData.freelancersNeeded || 1} Provider(s)
+                    <div style={{ 
+                      padding: "8px 12px", 
+                      background: "#dcfce7", 
+                      color: "#15803d", 
+                      borderRadius: "8px", 
+                      fontSize: "12px", 
+                      fontWeight: 700,
+                      alignSelf: isMobile ? "center" : "auto"
+                    }}>
+                      {formData.freelancersNeeded || 1} Provider(s)
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             <div
+              className="qw-modal-actions"
               style={{
-                marginTop: 32,
-                paddingTop: 24,
+                marginTop: isMobile ? 24 : 32,
+                paddingTop: isMobile ? 16 : 24,
                 borderTop: "1px solid #f1f5f9",
                 display: "flex",
-                gap: 16,
+                flexDirection: isMobile ? "column-reverse" : "row",
+                gap: 12,
+                paddingBottom: isMobile ? "calc(12px + env(safe-area-inset-bottom))" : 0
               }}
             >
               <button
@@ -659,6 +719,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
                   fontWeight: 600,
                   border: "1px solid #e2e8f0",
                   transition: "all 0.2s",
+                  height: isMobile ? 54 : "auto"
                 }}
               >
                 Cancel
@@ -675,6 +736,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
                   border: "none",
                   boxShadow: "0 8px 20px rgba(59,130,246,0.25)",
                   transition: "all 0.2s",
+                  height: isMobile ? 54 : "auto"
                 }}
               >
                 {isSubmitting ? "Posting..." : "Post Job Now"}
@@ -684,14 +746,34 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
         </div>
       </div>
 
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-                @keyframes qwFadeIn { from { opacity: 0; } to { opacity: 1; } }
-                @keyframes qwSlideUp { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
-            `,
-        }}
-      />
-    </div>
+      <style>{`
+        @keyframes qwFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes qwSlideUp { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes qwMobileSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .qw-modal-content {
+          animation: qwSlideUp 0.3s cubic-bezier(.34,1.56,.64,1);
+        }
+
+        @media (max-width: 768px) {
+          .qw-modal-overlay {
+            align-items: flex-end !important;
+            padding: 0 !important;
+          }
+          .qw-modal-content {
+            animation: qwMobileSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            border-radius: 24px 24px 0 0 !important;
+            max-height: 90vh !important;
+          }
+          input, textarea, select {
+            font-size: 16px !important; /* Prevent iOS zoom */
+          }
+          .qw-modal-body::-webkit-scrollbar {
+            display: none;
+          }
+        }
+      `}</style>
+    </div>,
+    document.body
   );
 };

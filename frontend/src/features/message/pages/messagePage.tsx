@@ -3,7 +3,7 @@ import { useSocket } from "../hooks/useSocket";
 import { useMessages } from "../hooks/useMessages";
 import { ChatWindow } from "../components/chatwindow";
 import { getMe } from "../../auth/services/authApi";
-import { getConversations,deleteConversation,deleteMessage } from "../api/message.api";
+import { getConversations, deleteConversation, deleteMessage } from "../api/message.api";
 import { useSearchParams } from "react-router-dom";
 import { Sidebar } from "../components/Sidebar";
 import ConfirmModal from "../../../shared/components/ui/ConfirmModal";
@@ -18,6 +18,7 @@ const MessagesPage: React.FC = () => {
   const [selectedConversationId, setSelectedConversationId] = useState<
     string | null
   >(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
   const [loadingConversations, setLoadingConversations] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchParams] = useSearchParams();
@@ -43,6 +44,12 @@ const MessagesPage: React.FC = () => {
     loadMessages,
     loading: loadingMessages,
   } = useMessages(socket, selectedConversationId);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 992);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const selectedConvIdRef = useRef(selectedConversationId);
   const currentUserIdRef = useRef("");
@@ -90,7 +97,7 @@ const MessagesPage: React.FC = () => {
       const response = await getConversations();
       if (response.success) {
         setConversations((prev) => {
-           const serverConvs = response.data || [];
+          const serverConvs = response.data || [];
 
           const placeholders = prev.filter((c) => c.isPlaceholder);
           const merged = [...serverConvs];
@@ -127,23 +134,23 @@ const MessagesPage: React.FC = () => {
     fetchUser();
     fetchConversations();
   }, [fetchUser, fetchConversations]);
-const handleDeleteMessage = (messageId: string) => {
-  setDeleteMsgModal({ show: true, loading: false, messageId });
-};
+  const handleDeleteMessage = (messageId: string) => {
+    setDeleteMsgModal({ show: true, loading: false, messageId });
+  };
 
-const executeDeleteMessage = async () => {
-  if (!deleteMsgModal.messageId) return;
-  setDeleteMsgModal(prev => ({ ...prev, loading: true }));
-  try {
-    await deleteMessage(deleteMsgModal.messageId);
+  const executeDeleteMessage = async () => {
+    if (!deleteMsgModal.messageId) return;
+    setDeleteMsgModal(prev => ({ ...prev, loading: true }));
+    try {
+      await deleteMessage(deleteMsgModal.messageId);
 
-  } catch (error) {
-    console.error("Failed to delete message:", error);
-    toast.error("Failed to delete message");
-  } finally {
-    setDeleteMsgModal({ show: false, loading: false, messageId: "" });
-  }
-};
+    } catch (error) {
+      console.error("Failed to delete message:", error);
+      toast.error("Failed to delete message");
+    } finally {
+      setDeleteMsgModal({ show: false, loading: false, messageId: "" });
+    }
+  };
   const currentUserId = user?.id || user?._id || "";
 
   useEffect(() => {
@@ -173,8 +180,9 @@ const executeDeleteMessage = async () => {
       setPlaceholderAdded(true);
     } else if (targetUserName) {
       const placeholderId = `new-${stringTargetId}`;
-      const placeholderConv = {
+      const placeholderConv: Conversation = {
         id: placeholderId,
+        unreadCount: 0,
         participants: [
           { _id: stringCurrentId, name: user?.name || "Client" },
           { _id: stringTargetId, name: targetUserName },
@@ -329,41 +337,134 @@ const executeDeleteMessage = async () => {
 
   return (
     <div
-      className="container-fluid py-4 h-100"
-      style={{ minHeight: "calc(100vh - 100px)" }}
+      className={`chat-page-wrapper ${isMobile ? "is-mobile" : ""}`}
+      style={{
+        height: isMobile ? "calc(100vh - 65px)" : "calc(100vh - 100px)",
+        background: "#f8fafc",
+        overflow: "hidden",
+      }}
     >
-      <div className="mb-4 text-center">
-        <h1 className="h3 fw-bold text-dark mb-1">Messages</h1>
-        <p className="text-secondary small">Chat with your service providers</p>
+      {!isMobile && (
+        <div className="chat-header-desktop p-4 text-center border-bottom bg-white">
+          <h1 className="h4 fw-bold text-dark mb-1">Messages</h1>
+          <p className="text-secondary small mb-0">Chat with your service providers</p>
+        </div>
+      )}
+
+      <div className={`chat-layout-container ${isMobile ? "mobile-stack" : "desktop-grid"}`}>
+        {(!isMobile || !selectedConversationId) && (
+          <div className="chat-sidebar-area">
+            <Sidebar
+              conversations={filteredConversations}
+              activeConversationId={selectedConversationId}
+              onSelect={setSelectedConversationId}
+              loading={loadingConversations}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              getRecipientDetails={getRecipientDetails}
+              isMobile={isMobile}
+            />
+          </div>
+        )}
+
+        {(!isMobile || selectedConversationId) && (
+          <div className={`chat-window-area ${isMobile && !selectedConversationId ? "d-none" : ""}`}>
+            <ChatWindow
+              messages={messages}
+              loading={loadingMessages}
+              sendMessage={sendMessage}
+              receiverId={recipient.id}
+              currentUserId={currentUserId}
+              recipientName={recipient.name}
+              onDelete={handleDeleteConversation}
+              onDeleteMessage={handleDeleteMessage}
+              onBack={isMobile ? () => setSelectedConversationId(null) : undefined}
+            />
+          </div>
+        )}
       </div>
 
-      <div className="row g-4" style={{ height: "calc(100vh - 220px)" }}>
-        <div className="col-12 col-md-4 col-lg-3 h-100">
-          <Sidebar
-            conversations={filteredConversations}
-            activeConversationId={selectedConversationId}
-            onSelect={setSelectedConversationId}
-            loading={loadingConversations}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            getRecipientDetails={getRecipientDetails}
-          />
-        </div>
+      {/* --- Design Tokens & Layout CSS --- */}
+      <style>{`
+        .chat-page-wrapper {
+          display: flex;
+          flex-direction: column;
+          background: #f8fafc;
+        }
 
-        <div className="col-12 col-md-8 col-lg-9 h-100">
-          <ChatWindow
-            messages={messages}
-            loading={loadingMessages}
-            sendMessage={sendMessage}
-            receiverId={recipient.id}
-            currentUserId={currentUserId}
-            recipientName={recipient.name}
-            onDelete={handleDeleteConversation}
-            onDeleteMessage={handleDeleteMessage}
+        .chat-page-wrapper.is-mobile {
+          height: 100%;
+          height: 100dvh;
+          position: relative;
+          z-index: var(--z-index-content);
+          width: 100%;
+          background: #fff;
+        }
 
-          />
-        </div>
-      </div>
+        .chat-layout-container {
+          flex: 1;
+          display: flex;
+          overflow: hidden;
+          position: relative;
+          height: 100%;
+        }
+
+        .desktop-grid {
+          display: grid;
+          grid-template-columns: 320px 1fr;
+          gap: 0;
+          padding: 24px;
+          max-width: 1400px;
+          margin: 0 auto;
+          width: 100%;
+          height: calc(100vh - 164px); /* Account for header + padding */
+        }
+
+        @media (min-width: 1200px) {
+          .desktop-grid { grid-template-columns: 380px 1fr; }
+        }
+
+        .mobile-stack {
+          width: 100%;
+          height: 100%;
+        }
+
+        .chat-sidebar-area, .chat-window-area {
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+        }
+
+        .is-mobile .chat-sidebar-area, 
+        .is-mobile .chat-window-area {
+          width: 100%;
+          position: absolute;
+          inset: 0;
+          background: #fff;
+        }
+
+        .is-mobile .chat-sidebar-area {
+          z-index: 1;
+          padding-top: 0;
+          padding-bottom: 74px; /* Space for bottom nav if not hidden */
+        }
+
+        /* When global header/footer are hidden (active chat) */
+        .is-mobile .chat-window-area {
+          z-index: 10;
+          animation: slideInRight 0.25s cubic-bezier(0, 0, 0.2, 1);
+        }
+
+        @keyframes slideInRight {
+          from { transform: translateX(30px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+
+        .chat-sidebar-area {
+          border-right: 1px solid #f1f5f9;
+        }
+      `}</style>
 
       <ConfirmModal
         isOpen={deleteModal.show}

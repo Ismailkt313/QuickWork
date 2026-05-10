@@ -305,7 +305,7 @@ const AvailableJobsPage: React.FC = () => {
     setIsConfirmModalOpen(true);
   };
 
-  const handleConfirmApply = () => {
+  const handleConfirmApply = (amount: number) => {
     setIsConfirmModalOpen(false);
     const jobId = pendingJobId;
     if (!jobId) return;
@@ -314,16 +314,16 @@ const AvailableJobsPage: React.FC = () => {
     if (job && job.location?.districtName !== providerLocation) {
       setIsLocationModalOpen(true);
     } else {
-      confirmApply(jobId);
+      confirmApply(jobId, amount);
     }
   };
 
-  const confirmApply = async (jobId: string) => {
+  const confirmApply = async (jobId: string, amount?: number) => {
     if (isAccepting) return;
     setIsAccepting(true);
 
     try {
-      const result = await acceptJob(jobId);
+      const result = await acceptJob(jobId, amount);
       if (result.success) {
         toast.success(`Applied for job #${jobId.slice(-4)} successfully!`);
         fetchData(currentPage);
@@ -776,6 +776,7 @@ const AvailableJobsPage: React.FC = () => {
         }}
         onConfirm={handleConfirmApply}
         jobTitle={jobs.find((j) => j.id === pendingJobId)?.title}
+        budget={jobs.find((j) => j.id === pendingJobId)?.budgetRange}
         isActionLoading={isAccepting}
       />
     </div>

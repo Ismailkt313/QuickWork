@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import MainLayout from "../../layout/MainLayout";
 import ProviderCard from "../../../../components/marketplace/ProviderCard";
+import CompactProviderCard from "../../../../components/marketplace/CompactProviderCard";
 import Pagination from "../../../../components/ui/Pagination";
 import LocationModal from "../../landingPage/components/LocationModal";
 import { useProviders } from "../../../provider/hooks/useProviders";
@@ -63,7 +64,15 @@ const ProvidersPage: React.FC = () => {
     localStorage.removeItem("locationId");
   };
 
-  const skeletons = Array.from({ length: 6 });
+  const skeletons = Array.from({ length: 8 });
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <MainLayout
@@ -72,255 +81,284 @@ const ProvidersPage: React.FC = () => {
       onSelectLocation={handleSelectLocation}
       onClearLocation={handleClearLocation}
     >
-      <div
-        style={{
-          background: "linear-gradient(135deg,#0f172a 0%,#1e293b 100%)",
-          padding: "48px 0 40px",
-        }}
-      >
+      <style>{`
+        .providers-hero {
+          background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+          padding: 64px 0 54px;
+          border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .hero-breadcrumb {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 16px;
+        }
+        
+        .breadcrumb-item {
+          color: #94a3b8;
+          font-size: 13px;
+          cursor: pointer;
+          transition: color 0.2s ease;
+        }
+        
+        .breadcrumb-item:hover { color: #fff; }
+        .breadcrumb-sep { color: #475569; font-size: 13px; }
+        .breadcrumb-active { color: #e2e8f0; font-size: 13px; }
+
+        .hero-title {
+          font-size: 36px;
+          font-weight: 800;
+          color: #fff;
+          letter-spacing: -1px;
+          margin: 0 0 8px;
+        }
+        
+        .hero-title span { color: #3b82f6; }
+        .hero-stats { color: #94a3b8; font-size: 15px; font-weight: 500; }
+
+        .filter-bar {
+          position: sticky;
+          top: 80px;
+          z-index: 100;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(12px);
+          margin-top: -32px;
+          padding: 16px 24px;
+          border-radius: 20px;
+          box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+          border: 1px solid #f1f5f9;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 20px;
+        }
+
+        .filter-left { display: flex; align-items: center; gap: 12px; flex: 1; }
+        .filter-right { display: flex; align-items: center; gap: 12px; }
+
+        .search-container {
+          position: relative;
+          flex: 1;
+          max-width: 400px;
+        }
+
+        .search-icon {
+          position: absolute;
+          left: 14px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #94a3b8;
+          font-size: 16px;
+        }
+
+        .search-input {
+          width: 100%;
+          height: 48px;
+          padding-left: 44px;
+          border-radius: 12px;
+          border: 1.5px solid #e2e8f0;
+          background: #f8fafc;
+          font-weight: 500;
+          transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+          border-color: #3b82f6;
+          background: #fff;
+          box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .location-btn {
+          height: 48px;
+          padding: 0 20px;
+          border-radius: 12px;
+          border: 1.5px solid #e2e8f0;
+          background: #fff;
+          font-weight: 600;
+          color: #1e293b;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          transition: all 0.2s ease;
+          cursor: pointer;
+        }
+
+        .location-btn:hover { border-color: #3b82f6; color: #3b82f6; }
+        .location-btn.active { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
+
+        .sort-select {
+          height: 48px;
+          padding: 0 16px;
+          border-radius: 12px;
+          border: 1.5px solid #e2e8f0;
+          background: #f8fafc;
+          font-weight: 600;
+          color: #1e293b;
+          min-width: 140px;
+        }
+
+        .provider-grid {
+          display: grid;
+          gap: 32px;
+          grid-template-columns: repeat(4, 1fr);
+          margin-top: 40px;
+        }
+
+        @media (max-width: 1500px) { .provider-grid { gap: 24px; } }
+        @media (max-width: 1300px) { .provider-grid { grid-template-columns: repeat(3, 1fr); gap: 24px; } }
+        @media (max-width: 991px) { .provider-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; } }
+
+        @media (max-width: 767px) {
+          .providers-hero { padding: 40px 0 60px; text-align: center; }
+          .hero-breadcrumb { justify-content: center; }
+          .hero-title { font-size: 26px; }
+          
+          .filter-bar {
+            top: 70px;
+            margin-top: -40px;
+            padding: 12px;
+            gap: 8px;
+            flex-direction: column;
+            border-radius: 16px;
+          }
+          .filter-left, .filter-right { width: 100%; }
+          .search-container { max-width: none; }
+          .search-input { height: 44px; padding-left: 38px; font-size: 14px; }
+          .search-icon { left: 12px; font-size: 14px; }
+          .location-btn { height: 44px; padding: 0 12px; font-size: 13px; flex: 1; }
+          .sort-select { height: 44px; min-width: 100px; flex: 1; font-size: 13px; }
+          
+          .provider-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 24px;
+          }
+        }
+
+        @media (max-width: 420px) {
+          .provider-grid { grid-template-columns: 1fr; }
+        }
+      `}</style>
+
+      <div className="providers-hero">
         <div className="container">
-          <div className="d-flex align-items-center gap-2 mb-2">
-            <span
-              onClick={() => navigate("/")}
-              style={{ color: "#94a3b8", fontSize: 13, cursor: "pointer" }}
-            >
-              Home
-            </span>
-            <span style={{ color: "#475569", fontSize: 13 }}>/</span>
-            <span
-              onClick={() => navigate("/user/services")}
-              style={{ color: "#94a3b8", fontSize: 13, cursor: "pointer" }}
-            >
-              Services
-            </span>
-            <span style={{ color: "#475569", fontSize: 13 }}>/</span>
-            <span style={{ color: "#e2e8f0", fontSize: 13 }}>{skillName}</span>
+          <div className="hero-breadcrumb">
+            <span className="breadcrumb-item" onClick={() => navigate("/")}>Home</span>
+            <span className="breadcrumb-sep">/</span>
+            <span className="breadcrumb-item" onClick={() => navigate("/user/services")}>Services</span>
+            <span className="breadcrumb-sep">/</span>
+            <span className="breadcrumb-active">{skillName}</span>
           </div>
-          <h1
-            style={{
-              fontSize: 28,
-              fontWeight: 700,
-              color: "#fff",
-              margin: "8px 0 4px",
-            }}
-          >
-            Available <span style={{ color: "#60a5fa" }}>{skillName}s</span>{" "}
-            Near You
+          <h1 className="hero-title">
+            Available <span>{skillName}s</span>
           </h1>
-          <p style={{ color: "#94a3b8", fontSize: 14, margin: 0 }}>
+          <p className="hero-stats">
             {pagination
-              ? `${pagination.total} professional${pagination.total !== 1 ? "s" : ""} found`
-              : "Searching..."}
+              ? `${pagination.total} professional${pagination.total !== 1 ? "s" : ""} in your area`
+              : "Finding the best pros..."}
           </p>
         </div>
       </div>
 
       <div className="container py-4">
-        <div
-          className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4"
-          style={{
-            position: "sticky",
-            top: 64,
-            zIndex: 10,
-            background: "#fff",
-            margin: "0 -12px",
-            padding: "12px 12px",
-            borderRadius: 14,
-            boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
-            border: "1px solid #f1f5f9",
-          }}
-        >
-          <div className="d-flex align-items-center gap-2 flex-wrap">
+        <div className="filter-bar">
+          <div className="filter-left">
+            <div className="search-container">
+              <span className="search-icon">🔍</span>
+              <input
+                type="text"
+                placeholder="Search by name or keyword..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="form-control search-input"
+              />
+            </div>
             <button
               onClick={() => setModalOpen(true)}
-              style={{
-                padding: "8px 16px",
-                borderRadius: 10,
-                border: "1.5px solid",
-                borderColor: selectedLocation ? "#bfdbfe" : "#e2e8f0",
-                background: selectedLocation ? "#eff6ff" : "#fff",
-                color: selectedLocation ? "#1d4ed8" : "#64748b",
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-              }}
+              className={`location-btn ${selectedLocation ? 'active' : ''}`}
             >
               📍 {selectedLocation ? selectedLocation.name : "All Locations"}
             </button>
-
-            {selectedLocation && (
-              <button
-                onClick={handleClearLocation}
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: 10,
-                  border: "1px solid #fecaca",
-                  background: "#fef2f2",
-                  color: "#dc2626",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-              >
-                ✕ Clear
-              </button>
-            )}
           </div>
-
-          <div className="d-flex align-items-center gap-2 ms-auto flex-wrap">
-            <input
-              type="text"
-              placeholder="Search providers..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="form-control form-control-sm"
-              style={{
-                width: 200,
-                borderRadius: 10,
-                border: "1.5px solid #e2e8f0",
-                fontSize: 13,
-                fontWeight: 500,
-                color: "#1e293b",
-                padding: "6px 12px",
-              }}
-            />
-            <span style={{ fontSize: 12.5, color: "#94a3b8", fontWeight: 500, marginLeft: 8 }}>
-              Sort by:
-            </span>
+          <div className="filter-right">
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
-              className="form-select form-select-sm"
-              style={{
-                width: "auto",
-                borderRadius: 10,
-                border: "1.5px solid #e2e8f0",
-                fontSize: 13,
-                fontWeight: 600,
-                color: "#1e293b",
-                padding: "6px 32px 6px 12px",
-              }}
+              className="form-select sort-select"
             >
-              <option value="">Default</option>
-              <option value="price_low">Price: Low → High</option>
-              <option value="price_high">Price: High → Low</option>
-              <option value="experience">Most Experienced</option>
+              <option value="">Sort By: Default</option>
+              <option value="price_low">Price: Low to High</option>
+              <option value="price_high">Price: High to Low</option>
+              <option value="experience">Experience: High to Low</option>
             </select>
           </div>
         </div>
 
-        {loading && (
-          <div className="row g-4">
+        {loading ? (
+          <div className="provider-grid">
             {skeletons.map((_, i) => (
-              <div key={i} className="col-sm-6 col-lg-4">
-                <div
-                  className="card border-0"
-                  style={{ borderRadius: 16, overflow: "hidden" }}
-                >
-                  <div className="placeholder-glow">
-                    <div
-                      className="placeholder"
-                      style={{
-                        width: "100%",
-                        height: 200,
-                        background: "#e2e8f0",
-                      }}
-                    ></div>
-                  </div>
-                  <div className="card-body p-3">
-                    <div className="placeholder-glow">
-                      <span
-                        className="placeholder col-8 mb-2"
-                        style={{ height: 16, borderRadius: 6 }}
-                      ></span>
-                      <span
-                        className="placeholder col-5"
-                        style={{ height: 12, borderRadius: 6 }}
-                      ></span>
-                    </div>
-                    <div className="d-flex justify-content-between mt-3 placeholder-glow">
-                      <span
-                        className="placeholder col-3"
-                        style={{ height: 20, borderRadius: 6 }}
-                      ></span>
-                      <span
-                        className="placeholder col-4"
-                        style={{ height: 30, borderRadius: 10 }}
-                      ></span>
+              <div key={i} className="skeleton-placeholder">
+                <div style={{
+                  height: 280,
+                  borderRadius: 20,
+                  background: '#fff',
+                  border: '1px solid #f1f5f9',
+                  overflow: 'hidden'
+                }}>
+                  <div className="placeholder-glow h-100">
+                    <div className="placeholder w-100" style={{ height: '60%', background: '#f8fafc' }} />
+                    <div className="p-3">
+                      <div className="placeholder col-10 mb-2" style={{ height: 16, borderRadius: 4 }} />
+                      <div className="placeholder col-6" style={{ height: 12, borderRadius: 4 }} />
                     </div>
                   </div>
                 </div>
               </div>
             ))}
           </div>
-        )}
-
-        {!loading && providers.length > 0 && (
+        ) : providers.length > 0 ? (
           <>
-            <div className="row g-4">
+            <div className="provider-grid">
               {providers.map((p) => (
-                <ProviderCard key={p.id} provider={p} />
+                <div key={p.id}>
+                  {isMobile ? (
+                    <CompactProviderCard provider={p} />
+                  ) : (
+                    <ProviderCard provider={p} />
+                  )}
+                </div>
               ))}
             </div>
             {pagination && (
               <Pagination pagination={pagination} onPageChange={setPage} />
             )}
           </>
-        )}
-
-        {!loading && providers.length === 0 && (
-          <div className="text-center py-5">
-            <div style={{ fontSize: 56, marginBottom: 16 }}>🔍</div>
-            <h5 className="fw-bold" style={{ color: "#1e293b" }}>
-              No providers available for this service
-              {selectedLocation ? ` in ${selectedLocation.name}` : ""}
-            </h5>
-            <p
-              style={{
-                color: "#94a3b8",
-                fontSize: 14,
-                maxWidth: 400,
-                margin: "8px auto 24px",
-              }}
-            >
-              Try changing your location or browse other services to find what
-              you need.
+        ) : (
+          <div className="text-center py-5 mt-5">
+            <div style={{ fontSize: 64, marginBottom: 20 }}>🔎</div>
+            <h3 className="fw-bold" style={{ color: "#0f172a" }}>
+              No providers matched your search
+            </h3>
+            <p style={{ color: "#64748b", fontSize: 16, maxWidth: 500, margin: "12px auto 32px" }}>
+              Try adjusting your filters, changing the location, or searching for a different keyword.
             </p>
             <div className="d-flex justify-content-center gap-3">
               {selectedLocation && (
                 <button
                   onClick={handleClearLocation}
-                  className="btn"
-                  style={{
-                    padding: "10px 24px",
-                    borderRadius: 10,
-                    border: "1.5px solid #e2e8f0",
-                    background: "#fff",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: "#1e293b",
-                  }}
+                  className="btn btn-outline-secondary px-4 py-2 fw-bold"
+                  style={{ borderRadius: 12 }}
                 >
-                  Show All Locations
+                  Clear Location
                 </button>
               )}
               <button
                 onClick={() => navigate("/user/services")}
-                className="btn"
-                style={{
-                  padding: "10px 24px",
-                  borderRadius: 10,
-                  background: "linear-gradient(135deg,#3b82f6,#2563eb)",
-                  border: "none",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: "#fff",
-                }}
+                className="btn btn-primary px-4 py-2 fw-bold"
+                style={{ borderRadius: 12, background: 'linear-gradient(135deg,#3b82f6,#2563eb)', border: 'none' }}
               >
-                Browse Other Services
+                Explore Services
               </button>
             </div>
           </div>

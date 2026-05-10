@@ -9,9 +9,16 @@ import {
   RiArrowRightSLine,
   RiSkipBackLine,
   RiSkipForwardLine,
+  RiNotification3Line, 
+  RiUser3Line, 
+  RiArrowUpDownLine, 
+  RiMenu5Fill,
+  RiSearch2Line
 } from "react-icons/ri";
 import { getUserJobs, cancelJob, type UserJob } from "../services/userJob.service";
 import UserJobCard from "../components/UserJobCard";
+import CompactUserJobCard from "../components/CompactUserJobCard";
+import MobileBottomNav from "../components/MobileBottomNav";
 import { CreateJobModal } from "../jobs/components/CreateJobModal";
 import { CancelJobModal } from "../components/CancelJobModal";
 import { toast } from "react-toastify";
@@ -52,6 +59,14 @@ const UserJobsPage: React.FC = () => {
     completed: 0,
     cancelled: 0,
   });
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isInitialMount = useRef(true);
@@ -168,203 +183,309 @@ const UserJobsPage: React.FC = () => {
     return pages;
   };
 
-  return (
-    <div className="qw-page-container">
-      <div className="qw-page-header mb-5">
-        <div className="d-flex justify-content-between align-items-center flex-wrap gap-4">
-          <div>
-            <nav aria-label="breadcrumb" className="mb-2">
-              <ol className="breadcrumb mb-0" style={{ fontSize: "12px" }}>
-                <li className="breadcrumb-item">
-                  <Link to="/user" className="text-decoration-none text-muted">
-                    Dashboard
-                  </Link>
-                </li>
-                <li className="breadcrumb-item active" aria-current="page">
-                  My Jobs
-                </li>
-              </ol>
-            </nav>
-            <h1 className="qw-display-title mb-2">My Job Postings</h1>
-            <p className="qw-subtitle">
-              Manage and track your active service requests in real-time.
-            </p>
-          </div>
+  // ─── Sub-Components ───
+
+  const MobilePageToolbar = () => (
+    <div className="m-page-toolbar">
+      <div className="m-toolbar-content">
+        <h1 className="m-page-title">My Jobs</h1>
+        <button onClick={() => setIsCreateModalOpen(true)} className="m-toolbar-add-btn">
+          <RiAddLine size={18} /> New Job
+        </button>
+      </div>
+    </div>
+  );
+
+  const MobileJobTabs = () => (
+    <div className="m-tabs-container">
+      <div className="m-tabs-scroll">
+        {[
+          { id: "all", label: "All", count: counts.all },
+          { id: "direct", label: "Direct", count: counts.direct },
+          { id: "pending", label: "Pending", count: counts.pending },
+          { id: "ongoing", label: "Ongoing", count: counts.ongoing },
+          { id: "completed", label: "Completed", count: counts.completed },
+          { id: "cancelled", label: "Cancelled", count: counts.cancelled },
+        ].map((tab) => (
           <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="qw-btn-primary"
-            style={{ border: "none", cursor: "pointer" }}
+            key={tab.id}
+            className={`m-tab-chip ${filterTab === tab.id ? "active" : ""}`}
+            onClick={() => setFilterTab(tab.id)}
           >
-            <RiAddLine size={22} /> Create New Job
+            {tab.label}
+            {tab.count > 0 && <span className="m-chip-count">{tab.count}</span>}
           </button>
-        </div>
+        ))}
       </div>
+    </div>
+  );
 
-      <div className="qw-action-bar mb-4">
-        <div className="qw-tabs-wrapper">
-          {[
-            { id: "all", label: "All Jobs", count: counts.all },
-            { id: "direct", label: "Direct Hires", count: counts.direct },
-            { id: "pending", label: "Pending", count: counts.pending },
-            { id: "ongoing", label: "Ongoing", count: counts.ongoing },
-            { id: "completed", label: "Completed", count: counts.completed },
-            { id: "cancelled", label: "Cancelled", count: counts.cancelled },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              className={`qw-tab-btn ${filterTab === tab.id ? "active" : ""}`}
-              onClick={() => setFilterTab(tab.id)}
-            >
-              {tab.label}
-              {tab.count !== undefined && (
-                <span className="qw-tab-count">{tab.count}</span>
-              )}
-            </button>
-          ))}
-        </div>
-
-        <div className="qw-search-wrapper">
-          <RiSearchLine className="qw-search-icon" />
-          <input
-            type="text"
-            className="qw-search-input"
-            placeholder="Search your jobs..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+  const MobileJobFilterBar = () => (
+    <div className="m-filter-bar">
+      <div className="m-search-box">
+        <RiSearch2Line size={16} className="m-search-icon" />
+        <input
+          type="text"
+          placeholder="Search jobs..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
+      <button className="m-sort-btn">
+        <RiArrowUpDownLine size={16} />
+      </button>
+    </div>
+  );
 
-      <div
-        className="d-flex align-items-center justify-content-between gap-2 mb-4 px-1"
-        style={{ fontSize: "13px", color: "#64748b" }}
-      >
-        <div className="d-flex align-items-center gap-2">
-          <RiFilter3Line size={16} />
-          <span>
-            Showing <span className="fw-bold text-dark">{jobs.length}</span> of{" "}
-            <span className="fw-bold text-dark">{pagination.total}</span>{" "}
-            results for{" "}
-            <span className="fw-bold text-primary">
-              {filterTab.toUpperCase()}
-            </span>
-          </span>
-        </div>
-        {totalPages > 1 && (
-          <span className="qw-page-indicator">
-            Page <span className="fw-bold text-dark">{currentPage}</span> of{" "}
-            <span className="fw-bold text-dark">{totalPages}</span>
-          </span>
-        )}
-      </div>
-
-      <div className="row g-4">
-        {loading ? (
-          <div className="col-12 d-flex flex-column align-items-center justify-content-center py-5">
-            <RiLoader4Line size={48} className="text-primary qw-spin mb-3" />
-            <p className="text-muted fw-medium fs-5">Fetching your data...</p>
+  return (
+    <div className={`qw-page-container ${isMobile ? "m-page" : ""}`}>
+      {isMobile ? (
+        <div className="m-content-wrapper">
+          <MobilePageToolbar />
+          <MobileJobTabs />
+          <MobileJobFilterBar />
+          
+          <div className="m-results-info">
+             <span className="m-results-count">{pagination.total} Results</span>
+             {filterTab !== 'all' && <span className="m-filter-tag">{filterTab}</span>}
           </div>
-        ) : jobs.length > 0 ? (
-          jobs.map((job) => (
-            <div key={job.id} className="col-12 col-md-6 col-xl-4 col-xxl-3">
-              <UserJobCard
-                job={job}
-                onCancel={triggerCancelJob}
-                onView={(id) => navigate(`/user/jobs/${id}`)}
-                onRefresh={fetchJobs}
+
+          <div className="m-grid-container">
+            {loading ? (
+              <div className="m-loading-state">
+                <RiLoader4Line size={32} className="qw-spin" />
+                <p>Scanning marketplace...</p>
+              </div>
+            ) : jobs.length > 0 ? (
+              <div className="m-grid">
+                {jobs.map((job) => (
+                  <CompactUserJobCard
+                    key={job.id}
+                    job={job}
+                    onView={(id) => navigate(`/user/jobs/${id}`)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="m-empty-state">
+                <RiSmartphoneLine size={48} />
+                <h3>No jobs found</h3>
+                <p>Adjust your filters to see more results.</p>
+              </div>
+            )}
+          </div>
+          
+          {totalPages > 1 && (
+            <div className="m-pagination">
+               <button className="m-pag-btn" onClick={() => setCurrentPage(p => Math.max(1, p-1))} disabled={currentPage === 1}>Prev</button>
+               <span className="m-pag-info">{currentPage} / {totalPages}</span>
+               <button className="m-pag-btn" onClick={() => setCurrentPage(p => Math.min(totalPages, p+1))} disabled={currentPage === totalPages}>Next</button>
+            </div>
+          )}
+          
+          {/* MobileBottomNav is already rendered in Header.tsx based on my audit, so I should remove it from here if it's duplicated. */}
+          {/* Re-checking Header.tsx... line 644: <MobileBottomNav /> */}
+          {/* So I will NOT render it here to avoid duplication. */}
+        </div>
+      ) : (
+        <>
+          <div className="qw-page-header mb-5">
+            <div className="d-flex justify-content-between align-items-center flex-wrap gap-4">
+              <div>
+                <nav aria-label="breadcrumb" className="mb-2">
+                  <ol className="breadcrumb mb-0" style={{ fontSize: "12px" }}>
+                    <li className="breadcrumb-item">
+                      <Link to="/user" className="text-decoration-none text-muted">
+                        Dashboard
+                      </Link>
+                    </li>
+                    <li className="breadcrumb-item active" aria-current="page">
+                      My Jobs
+                    </li>
+                  </ol>
+                </nav>
+                <h1 className="qw-display-title mb-2">My Job Postings</h1>
+                <p className="qw-subtitle">
+                  Manage and track your active service requests in real-time.
+                </p>
+              </div>
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="qw-btn-primary"
+                style={{ border: "none", cursor: "pointer" }}
+              >
+                <RiAddLine size={22} /> Create New Job
+              </button>
+            </div>
+          </div>
+
+          <div className="qw-action-bar mb-4">
+            <div className="qw-tabs-wrapper">
+              {[
+                { id: "all", label: "All Jobs", count: counts.all },
+                { id: "direct", label: "Direct Hires", count: counts.direct },
+                { id: "pending", label: "Pending", count: counts.pending },
+                { id: "ongoing", label: "Ongoing", count: counts.ongoing },
+                { id: "completed", label: "Completed", count: counts.completed },
+                { id: "cancelled", label: "Cancelled", count: counts.cancelled },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  className={`qw-tab-btn ${filterTab === tab.id ? "active" : ""}`}
+                  onClick={() => setFilterTab(tab.id)}
+                >
+                  {tab.label}
+                  {tab.count !== undefined && (
+                    <span className="qw-tab-count">{tab.count}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <div className="qw-search-wrapper">
+              <RiSearchLine className="qw-search-icon" />
+              <input
+                type="text"
+                className="qw-search-input"
+                placeholder="Search your jobs..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-          ))
-        ) : (
-          <div className="col-12">
-            <div className="qw-empty-state">
-              <RiSmartphoneLine size={64} className="qw-empty-icon mb-4" />
-              <h3 className="fw-bold text-dark mb-2">No jobs to display</h3>
-              <p
-                className="text-muted mb-4 mx-auto"
-                style={{ maxWidth: "400px" }}
-              >
-                {searchTerm
-                  ? `We couldn't find any jobs matching "${searchTerm}" in the ${filterTab} category.`
-                  : `You haven't posted any jobs under ${filterTab} yet.`}
-              </p>
-              {!searchTerm && filterTab === "all" && (
-                <button
-                  onClick={() => setIsCreateModalOpen(true)}
-                  className="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-sm"
-                >
-                  Start Posting
-                </button>
-              )}
-            </div>
           </div>
-        )}
-      </div>
 
-      {!loading && totalPages > 1 && (
-        <nav className="qw-pagination-wrapper" aria-label="Jobs pagination">
-          <div className="qw-pagination">
-            <button
-              className="qw-page-btn qw-page-nav"
-              onClick={() => setCurrentPage(1)}
-              disabled={currentPage === 1}
-              aria-label="First page"
-              title="First page"
-            >
-              <RiSkipBackLine size={16} />
-            </button>
+          <div
+            className="d-flex align-items-center justify-content-between gap-2 mb-4 px-1"
+            style={{ fontSize: "13px", color: "#64748b" }}
+          >
+            <div className="d-flex align-items-center gap-2">
+              <RiFilter3Line size={16} />
+              <span>
+                Showing <span className="fw-bold text-dark">{jobs.length}</span> of{" "}
+                <span className="fw-bold text-dark">{pagination.total}</span>{" "}
+                results for{" "}
+                <span className="fw-bold text-primary">
+                  {filterTab.toUpperCase()}
+                </span>
+              </span>
+            </div>
+            {totalPages > 1 && (
+              <span className="qw-page-indicator">
+                Page <span className="fw-bold text-dark">{currentPage}</span> of{" "}
+                <span className="fw-bold text-dark">{totalPages}</span>
+              </span>
+            )}
+          </div>
 
-            <button
-              className="qw-page-btn qw-page-nav"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              aria-label="Previous page"
-              title="Previous page"
-            >
-              <RiArrowLeftSLine size={18} />
-            </button>
-
-            <div className="qw-page-numbers">
-              {getPageNumbers().map((page, idx) =>
-                typeof page === "string" ? (
-                  <span key={`dots-${idx}`} className="qw-page-dots">
-                    •••
-                  </span>
-                ) : (
-                  <button
-                    key={page}
-                    className={`qw-page-btn qw-page-num ${currentPage === page ? "active" : ""}`}
-                    onClick={() => setCurrentPage(page as number)}
-                    aria-label={`Page ${page}`}
-                    aria-current={currentPage === page ? "page" : undefined}
+          <div className="row g-4">
+            {loading ? (
+              <div className="col-12 d-flex flex-column align-items-center justify-content-center py-5">
+                <RiLoader4Line size={48} className="text-primary qw-spin mb-3" />
+                <p className="text-muted fw-medium fs-5">Fetching your data...</p>
+              </div>
+            ) : jobs.length > 0 ? (
+              jobs.map((job) => (
+                <div key={job.id} className="col-12 col-md-6 col-xl-4 col-xxl-3">
+                  <UserJobCard
+                    job={job}
+                    onCancel={triggerCancelJob}
+                    onView={(id) => navigate(`/user/jobs/${id}`)}
+                    onRefresh={fetchJobs}
+                  />
+                </div>
+              ))
+            ) : (
+              <div className="col-12">
+                <div className="qw-empty-state">
+                  <RiSmartphoneLine size={64} className="qw-empty-icon mb-4" />
+                  <h3 className="fw-bold text-dark mb-2">No jobs to display</h3>
+                  <p
+                    className="text-muted mb-4 mx-auto"
+                    style={{ maxWidth: "400px" }}
                   >
-                    {page}
-                  </button>
-                ),
-              )}
-            </div>
-
-            <button
-              className="qw-page-btn qw-page-nav"
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              aria-label="Next page"
-              title="Next page"
-            >
-              <RiArrowRightSLine size={18} />
-            </button>
-
-            <button
-              className="qw-page-btn qw-page-nav"
-              onClick={() => setCurrentPage(totalPages)}
-              disabled={currentPage === totalPages}
-              aria-label="Last page"
-              title="Last page"
-            >
-              <RiSkipForwardLine size={16} />
-            </button>
+                    {searchTerm
+                      ? `We couldn't find any jobs matching "${searchTerm}" in the ${filterTab} category.`
+                      : `You haven't posted any jobs under ${filterTab} yet.`}
+                  </p>
+                  {!searchTerm && filterTab === "all" && (
+                    <button
+                      onClick={() => setIsCreateModalOpen(true)}
+                      className="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-sm"
+                    >
+                      Start Posting
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-        </nav>
+
+          {!loading && totalPages > 1 && (
+            <nav className="qw-pagination-wrapper" aria-label="Jobs pagination">
+              <div className="qw-pagination">
+                <button
+                  className="qw-page-btn qw-page-nav"
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  aria-label="First page"
+                  title="First page"
+                >
+                  <RiSkipBackLine size={16} />
+                </button>
+
+                <button
+                  className="qw-page-btn qw-page-nav"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  aria-label="Previous page"
+                  title="Previous page"
+                >
+                  <RiArrowLeftSLine size={18} />
+                </button>
+
+                <div className="qw-page-numbers">
+                  {getPageNumbers().map((page, idx) =>
+                    typeof page === "string" ? (
+                      <span key={`dots-${idx}`} className="qw-page-dots">
+                        •••
+                      </span>
+                    ) : (
+                      <button
+                        key={page}
+                        className={`qw-page-btn qw-page-num ${currentPage === page ? "active" : ""}`}
+                        onClick={() => setCurrentPage(page as number)}
+                        aria-label={`Page ${page}`}
+                        aria-current={currentPage === page ? "page" : undefined}
+                      >
+                        {page}
+                      </button>
+                    ),
+                  )}
+                </div>
+
+                <button
+                  className="qw-page-btn qw-page-nav"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  aria-label="Next page"
+                  title="Next page"
+                >
+                  <RiArrowRightSLine size={18} />
+                </button>
+
+                <button
+                  className="qw-page-btn qw-page-nav"
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  aria-label="Last page"
+                  title="Last page"
+                >
+                  <RiSkipForwardLine size={16} />
+                </button>
+              </div>
+            </nav>
+          )}
+        </>
       )}
 
       <CreateJobModal
@@ -522,143 +643,251 @@ const UserJobsPage: React.FC = () => {
                     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
                 }
 
-                .qw-page-indicator {
-                    font-size: 13px;
-                    color: #94a3b8;
-                }
-
-                .qw-empty-state {
-                    text-align: center;
-                    padding: 80px 20px;
-                    background: white;
-                    border-radius: 24px;
-                    border: 2px dashed #e2e8f0;
-                }
-
-                .qw-empty-icon {
-                    color: #cbd5e1;
+                /* ─── Mobile Premium Styles (Operational Marketplace) ─── */
+                .m-page {
+                    padding: 0;
                     background: #f8fafc;
-                    padding: 16px;
-                    border-radius: 20px;
+                    min-height: 100vh;
+                    padding-bottom: env(safe-area-inset-bottom, 20px);
                 }
 
-                .qw-spin {
-                    animation: qwSpin 1.2s linear infinite;
-                }
-
-                @keyframes qwSpin {
-                    from { transform: rotate(0deg); }
-                    to { transform: rotate(360deg); }
-                }
-
-                /* ─── Pagination ─── */
-                .qw-pagination-wrapper {
+                .m-content-wrapper {
                     display: flex;
-                    justify-content: center;
-                    margin-top: 48px;
-                    padding-bottom: 24px;
+                    flex-direction: column;
+                    gap: 0;
                 }
 
-                .qw-pagination {
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
+                .m-page-toolbar {
                     background: white;
-                    padding: 8px 12px;
-                    border-radius: 20px;
-                    border: 1px solid rgba(15, 23, 42, 0.06);
-                    box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.06);
+                    padding: 14px 20px 10px;
+                    border-bottom: 1px solid rgba(15, 23, 42, 0.04);
                 }
 
-                .qw-page-numbers {
+                .m-toolbar-content {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+
+                .m-page-title {
+                    font-family: 'Syne', sans-serif;
+                    font-size: 20px;
+                    font-weight: 800;
+                    margin: 0;
+                    color: #0f172a;
+                    letter-spacing: -0.02em;
+                }
+
+                .m-toolbar-add-btn {
+                    background: #0f172a;
+                    color: white;
+                    border: none;
+                    padding: 6px 12px;
+                    border-radius: 10px;
+                    font-size: 12px;
+                    font-weight: 700;
                     display: flex;
                     align-items: center;
                     gap: 4px;
+                    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
                 }
 
-                .qw-page-btn {
+                .m-tabs-container {
+                    background: white;
+                    padding: 10px 0;
+                    border-bottom: 1px solid rgba(15, 23, 42, 0.04);
+                }
+
+                .m-tabs-scroll {
                     display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    border: none;
-                    background: transparent;
-                    cursor: pointer;
-                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-                    font-family: 'Syne', sans-serif;
-                    font-weight: 700;
+                    gap: 6px;
+                    overflow-x: auto;
+                    padding: 0 20px;
+                    scrollbar-width: none;
+                }
+
+                .m-tabs-scroll::-webkit-scrollbar { display: none; }
+
+                .m-tab-chip {
+                    padding: 6px 14px;
+                    border-radius: 10px;
+                    background: #f1f5f9;
                     color: #64748b;
+                    border: 1px solid transparent;
+                    font-size: 12px;
+                    font-weight: 700;
+                    white-space: nowrap;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                 }
 
-                .qw-page-btn:disabled {
-                    opacity: 0.3;
-                    cursor: not-allowed;
+                .m-tab-chip.active {
+                    background: white;
+                    color: #3b82f6;
+                    border-color: #3b82f6;
+                    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.12);
                 }
 
-                .qw-page-nav {
-                    width: 36px;
-                    height: 36px;
-                    border-radius: 12px;
+                .m-chip-count {
+                    background: rgba(100, 116, 139, 0.1);
+                    padding: 1px 5px;
+                    border-radius: 6px;
+                    font-size: 10px;
                 }
 
-                .qw-page-nav:hover:not(:disabled) {
-                    background: #f1f5f9;
-                    color: #0f172a;
-                }
-
-                .qw-page-num {
-                    min-width: 38px;
-                    height: 38px;
-                    border-radius: 14px;
-                    font-size: 14px;
-                    letter-spacing: -0.01em;
-                }
-
-                .qw-page-num:hover:not(:disabled):not(.active) {
-                    background: #f1f5f9;
-                    color: #0f172a;
-                    transform: translateY(-1px);
-                }
-
-                .qw-page-num.active {
-                    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+                .m-tab-chip.active .m-chip-count {
+                    background: #3b82f6;
                     color: white;
-                    box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.3);
-                    transform: scale(1.05);
                 }
 
-                .qw-page-dots {
+                .m-filter-bar {
+                    background: white;
+                    padding: 10px 20px;
+                    display: flex;
+                    gap: 10px;
+                    border-bottom: 1px solid rgba(15, 23, 42, 0.04);
+                    position: sticky;
+                    top: 60px; /* Adjust based on global header height */
+                    z-index: 90;
+                }
+
+                .m-search-box {
+                    flex: 1;
+                    position: relative;
+                }
+
+                .m-search-icon {
+                    position: absolute;
+                    left: 10px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    color: #94a3b8;
+                }
+
+                .m-search-box input {
+                    width: 100%;
+                    background: #f8fafc;
+                    border: 1px solid #f1f5f9;
+                    padding: 8px 12px 8px 34px;
+                    border-radius: 10px;
+                    font-size: 13px;
+                    font-weight: 500;
+                    outline: none;
+                    transition: border-color 0.2s;
+                }
+
+                .m-search-box input:focus {
+                    border-color: #3b82f6;
+                }
+
+                .m-sort-btn {
+                    width: 38px;
+                    height: 38px;
+                    background: #f8fafc;
+                    border: 1px solid #f1f5f9;
+                    border-radius: 10px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    width: 32px;
-                    height: 38px;
-                    color: #cbd5e1;
+                    color: #64748b;
+                    flex-shrink: 0;
+                }
+
+                .m-results-info {
+                    padding: 10px 20px 4px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+
+                .m-results-count {
+                    font-size: 11px;
+                    font-weight: 800;
+                    color: #94a3b8;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                }
+
+                .m-filter-tag {
+                    background: #eff6ff;
+                    color: #3b82f6;
+                    padding: 2px 8px;
+                    border-radius: 6px;
+                    text-transform: uppercase;
+                    font-size: 9px;
+                    font-weight: 800;
+                }
+
+                .m-grid-container {
+                    padding: 8px 16px;
+                }
+
+                .m-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 10px;
+                }
+
+                .m-loading-state, .m-empty-state {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 40px 20px;
+                    text-align: center;
+                    color: #64748b;
+                    background: white;
+                    border-radius: 20px;
+                    margin: 10px 0;
+                }
+
+                .m-empty-state h3 {
+                    color: #0f172a;
+                    font-weight: 800;
+                    font-size: 16px;
+                    margin: 12px 0 6px;
+                }
+
+                .m-empty-state p {
+                    font-size: 13px;
+                    margin: 0;
+                }
+
+                .m-pagination {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 16px;
+                    padding: 20px;
+                }
+
+                .m-pag-btn {
+                    background: white;
+                    border: 1px solid #f1f5f9;
+                    padding: 6px 14px;
+                    border-radius: 10px;
                     font-size: 12px;
-                    letter-spacing: 2px;
-                    user-select: none;
+                    font-weight: 700;
+                    color: #0f172a;
+                    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+                }
+
+                .m-pag-btn:disabled {
+                    opacity: 0.5;
+                    background: #f8fafc;
+                }
+
+                .m-pag-info {
+                    font-size: 12px;
+                    font-weight: 800;
+                    color: #64748b;
+                    font-family: 'Syne', sans-serif;
                 }
 
                 @media (max-width: 991px) {
-                    .qw-page-container { padding: 24px; }
-                    .qw-display-title { font-size: 2rem; }
-                    .qw-action-bar { flex-direction: column; align-items: stretch; }
-                    .qw-search-wrapper { max-width: none; }
-                }
-
-                @media (max-width: 576px) {
-                    .qw-pagination {
-                        padding: 6px 8px;
-                        gap: 3px;
-                    }
-                    .qw-page-num {
-                        min-width: 32px;
-                        height: 32px;
-                        font-size: 12px;
-                    }
-                    .qw-page-nav {
-                        width: 32px;
-                        height: 32px;
-                    }
+                    .qw-page-container:not(.m-page) { padding: 24px; }
                 }
             `}</style>
     </div>

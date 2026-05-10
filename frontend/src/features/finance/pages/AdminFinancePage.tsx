@@ -223,7 +223,14 @@ const AdminFinancePage: React.FC = () => {
                       </div>
                     </td>
                     <td className="py-3 px-4">
-                      <span className="badge bg-light text-dark font-monospace">#{tx.jobId.slice(-6).toUpperCase()}</span>
+                      <div className="d-flex flex-column">
+                        <span className="badge bg-light text-dark font-monospace w-auto d-inline-block text-start mb-1" style={{ maxWidth: "max-content" }}>
+                          #{tx.jobId?.jobCode || (tx.jobId?._id ? tx.jobId._id.slice(-6).toUpperCase() : 'N/A')}
+                        </span>
+                        <span className="text-muted small text-truncate" style={{ maxWidth: "150px" }} title={tx.jobId?.title}>
+                          {tx.jobId?.title || "Unknown Job"}
+                        </span>
+                      </div>
                     </td>
                     <td className="py-3 px-4">
                       <span className="text-muted small font-monospace">{tx.providerId}</span>

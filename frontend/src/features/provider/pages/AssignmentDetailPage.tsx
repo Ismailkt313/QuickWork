@@ -91,7 +91,9 @@ interface Assignment {
     clientEmail?: string;
     clientNumber?: string;
     additionalDetails?: string;
+    jobCode: string;
   };
+  assignmentCode: string;
   workStatus: string;
   invitedAt: string;
   respondedAt?: string;
@@ -412,7 +414,11 @@ const AssignmentDetailPage: React.FC = () => {
                 {job.visibility === "private" && <span style={{ padding: "3px 9px", borderRadius: 20, fontSize: 10, fontWeight: 700, background: "#faf5ff", color: "#9333ea", border: "1px solid #e9d5ff", textTransform: "uppercase" as const }}>Direct Hire</span>}
               </div>
 
-              <h1 style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: 26, color: "#0f172a", letterSpacing: "-0.5px", margin: "0 0 18px" }}>{job.title}</h1>
+              <h1 style={{ fontFamily: "Syne,sans-serif", fontWeight: 800, fontSize: 26, color: "#0f172a", letterSpacing: "-0.5px", margin: "0 0 4px" }}>{job.title}</h1>
+              <div style={{ display: "flex", gap: 12, marginBottom: 18 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#64748b", background: "#f1f5f9", padding: "2px 8px", borderRadius: 4 }}>JOB ID: {job.jobCode}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#64748b", background: "#f1f5f9", padding: "2px 8px", borderRadius: 4 }}>ASSIGNMENT ID: {assignment.assignmentCode}</span>
+              </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))", gap: 8, marginBottom: 16 }}>
                 <InfoCell icon={<RiMapPinLine size={16} />} label="Location" value={job.location?.address || "Remote"} bg="#f0fdf4" color="#16a34a" />

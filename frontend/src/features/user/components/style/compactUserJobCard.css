@@ -1,0 +1,184 @@
+.premium-compact-card {
+    background: white;
+    border-radius: 14px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 154px; /* Fixed height stability */
+    border: 1px solid rgba(15, 23, 42, 0.05);
+    box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.premium-compact-card:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+
+.pcc-accent {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 3.5px;
+    opacity: 0.9;
+}
+
+.pcc-main {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    flex: 1;
+}
+
+.pcc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.pcc-badge-group {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.pcc-status {
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.pcc-type-chip {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: #f8fafc;
+    color: #64748b;
+    border: 1px solid #f1f5f9;
+}
+
+.pcc-type-chip.direct {
+    color: #4f46e5;
+    background: #eef2ff;
+    border-color: #e0e7ff;
+}
+
+.pcc-date-compact {
+    font-size: 10px;
+    font-weight: 600;
+    color: #94a3b8;
+    background: #f8fafc;
+    padding: 2px 6px;
+    border-radius: 6px;
+}
+
+.pcc-body {
+    flex: 1;
+    margin-bottom: 10px;
+}
+
+.pcc-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.3;
+    margin: 0 0 6px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 36px; /* Consistency for 2 lines */
+}
+
+.pcc-meta-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pcc-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.pcc-meta-icon {
+    font-size: 12px;
+    color: #94a3b8;
+    flex-shrink: 0;
+}
+
+.pcc-meta-row span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pcc-footer {
+    padding-top: 8px;
+    border-top: 1px dashed #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pcc-financials {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+}
+
+.pcc-currency {
+    font-size: 11px;
+    font-weight: 800;
+    color: #3b82f6;
+}
+
+.pcc-amount {
+    font-size: 15px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+}
+
+.pcc-action-indicator {
+    width: 24px;
+    height: 24px;
+    background: #f8fafc;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    transition: all 0.2s;
+}
+
+.premium-compact-card:hover .pcc-action-indicator {
+    background: #0f172a;
+    color: white;
+}
+
+@media (max-width: 380px) {
+  .pcc-main {
+    padding: 10px;
+  }
+  .pcc-title {
+    font-size: 13px;
+  }
+  .pcc-budget {
+    font-size: 12px;
+  }
+}

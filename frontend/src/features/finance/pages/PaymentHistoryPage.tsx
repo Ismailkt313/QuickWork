@@ -1,22 +1,49 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   RiDownload2Line,
   RiExternalLinkLine,
   RiSearchLine,
-  RiFilter3Line
+  RiFilter3Line,
+  RiWallet3Line,
+  RiHistoryLine,
+  RiArrowRightSLine,
+  RiBillLine,
+  RiMoneyDollarCircleLine,
+  RiTimeLine,
+  RiArrowUpLine,
+  RiArrowDownLine
 } from "react-icons/ri";
 import { financeService, type IInvoice } from "../services/finance.service";
+import { fetchWallet } from "../store/walletSlice";
+import type { AppDispatch, RootState } from "../../../app/store";
 import { toast } from "react-toastify";
 import InvoiceDetailModal from "../components/InvoiceDetailModal";
+import "./UserWallet.css";
 
 const PaymentHistoryPage: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { wallet, loading: walletLoading } = useSelector((state: RootState) => state.wallet);
+  
   const [invoices, setInvoices] = useState<IInvoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState<{ total: number; page: number; pages: number } | null>(null);
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterMethod, setFilterMethod] = useState<"all" | "online" | "cash">("all");
   const [selectedInvoice, setSelectedInvoice] = useState<IInvoice | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    dispatch(fetchWallet());
+  }, [dispatch]);
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -27,7 +54,7 @@ const PaymentHistoryPage: React.FC = () => {
         setPagination(res.pagination);
       } catch (err) {
         console.error("Failed to fetch invoices", err);
-        toast.error("Failed to load payment history");
+        // toast.error("Failed to load payment history");
       } finally {
         setLoading(false);
       }
@@ -62,12 +89,152 @@ const PaymentHistoryPage: React.FC = () => {
     }
   };
 
-  const filteredInvoices = invoices.filter(inv =>
-    inv.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    inv.jobId?.title?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredInvoices = useMemo(() => {
+    return invoices.filter(inv => {
+      const matchesSearch = inv.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        inv.jobId?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        inv.jobId?.jobCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        inv.jobId?._id?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesFilter = filterMethod === "all" || inv.paymentMethod.toLowerCase() === filterMethod;
+      
+      return matchesSearch && matchesFilter;
+    });
+  }, [invoices, searchTerm, filterMethod]);
+
+  // Derive stats for wallet card
+  const stats = useMemo(() => {
+    const totalSpent = invoices.reduce((sum, inv) => sum + inv.total, 0);
+    const onlineCount = invoices.filter(inv => inv.paymentMethod.toLowerCase() === "online").length;
+    return { totalSpent, onlineCount };
+  }, [invoices]);
+
+  const renderMobileLayout = () => (
+    <div className="qw-payment-history-container animate-fade-in mobile-view">
+      <div className="qw-page-header">
+        <div className="header-info">
+          <h1>My Wallet</h1>
+          <p>Balance, transactions, and invoice history</p>
+        </div>
+      </div>
+
+      <div className="qw-wallet-section">
+        <div className="qw-wallet-balance-card">
+          <span className="qw-balance-label">Available Balance</span>
+          <h2 className="qw-balance-value">₹{(wallet?.balance || 0).toLocaleString()}</h2>
+          
+          <div className="qw-balance-stats">
+            <div className="qw-stat-item">
+              <span className="qw-stat-label">Total Spent</span>
+              <span className="qw-stat-value">₹{stats.totalSpent.toLocaleString()}</span>
+            </div>
+            <div className="qw-stat-item">
+              <span className="qw-stat-label">Refunds</span>
+              <span className="qw-stat-value">₹0</span>
+            </div>
+            <div className="qw-stat-item">
+              <span className="qw-stat-label">Methods</span>
+              <span className="qw-stat-value">{stats.onlineCount} Active</span>
+            </div>
+          </div>
+
+          <div className="qw-wallet-actions">
+            <button className="qw-btn-action-primary">Add Money</button>
+            <button className="qw-btn-action-secondary">Withdraw</button>
+          </div>
+        </div>
+      </div>
+
+      <div className="qw-history-controls">
+        <div className="search-wrapper">
+          <RiSearchLine className="search-icon" />
+          <input
+            type="text"
+            placeholder="Search payments..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="filter-wrapper">
+          <div className="qw-mobile-filter-chips">
+            <button 
+              className={`qw-filter-chip ${filterMethod === "all" ? "active" : ""}`}
+              onClick={() => setFilterMethod("all")}
+            >All</button>
+            <button 
+              className={`qw-filter-chip ${filterMethod === "online" ? "active" : ""}`}
+              onClick={() => setFilterMethod("online")}
+            >Online</button>
+            <button 
+              className={`qw-filter-chip ${filterMethod === "cash" ? "active" : ""}`}
+              onClick={() => setFilterMethod("cash")}
+            >Cash</button>
+          </div>
+        </div>
+      </div>
+
+      <div className="qw-history-card">
+        {loading ? (
+          <div className="p-5 text-center text-muted">
+            <RiTimeLine size={32} className="mb-2 opacity-50" />
+            <p>Loading transactions...</p>
+          </div>
+        ) : filteredInvoices.length === 0 ? (
+          <div className="qw-empty-state">
+            <RiBillLine className="qw-empty-icon" />
+            <h3>No payments found</h3>
+            <p>Your transaction history will appear here once you complete a job payment.</p>
+          </div>
+        ) : (
+          <div className="qw-mobile-transaction-list">
+            {filteredInvoices.map((inv) => (
+              <div 
+                key={inv._id} 
+                className="qw-mobile-tx-card"
+                onClick={() => openInvoiceDetails(inv._id)}
+              >
+                <div className="qw-tx-left">
+                  <div className={`qw-tx-icon ${inv.paymentMethod.toLowerCase()}`}>
+                    {inv.paymentMethod.toLowerCase() === "online" ? <RiMoneyDollarCircleLine /> : <RiBillLine />}
+                  </div>
+                  <div className="qw-tx-info">
+                    <span className="qw-tx-title">{inv.jobId?.title || "Quick Service"}</span>
+                    <div className="qw-tx-meta">
+                      <span>{new Date(inv.paidAt || inv.createdAt).toLocaleDateString()}</span>
+                      <span>•</span>
+                      <span>{inv.paymentMethod}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="qw-tx-right">
+                  <div className="qw-tx-amount">₹{inv.total.toLocaleString()}</div>
+                  <span className={`qw-tx-status ${inv.paymentStatus.toLowerCase() === "paid" ? "paid" : "pending"}`}>
+                    {inv.paymentStatus}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {pagination && pagination.pages > 1 && (
+          <div className="qw-pagination">
+            <button
+              disabled={page === 1}
+              onClick={() => setPage(p => p - 1)}
+            >Prev</button>
+            <span className="page-info">{page} / {pagination.pages}</span>
+            <button
+              disabled={page === pagination.pages}
+              onClick={() => setPage(p => p + 1)}
+            >Next</button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 
-  return (
+  const renderDesktopLayout = () => (
     <div className="qw-payment-history-container animate-fade-in">
       <div className="qw-page-header">
         <div className="header-info">
@@ -81,16 +248,23 @@ const PaymentHistoryPage: React.FC = () => {
           <RiSearchLine className="search-icon" />
           <input
             type="text"
-            placeholder="Search by invoice # or job title..."
+            placeholder="Search by invoice #, job title, or job ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <div className="filter-wrapper">
-          <button className="filter-btn">
-            <RiFilter3Line />
-            <span>Filter</span>
-          </button>
+          <RiFilter3Line style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', pointerEvents: 'none' }} />
+          <select 
+            className="filter-btn"
+            style={{ paddingLeft: '40px', paddingRight: '24px', appearance: 'none', height: '100%', outline: 'none' }}
+            value={filterMethod}
+            onChange={(e) => setFilterMethod(e.target.value as any)}
+          >
+            <option value="all">All Methods</option>
+            <option value="online">Online Payment</option>
+            <option value="cash">Cash Payment</option>
+          </select>
         </div>
       </div>
 
@@ -120,7 +294,10 @@ const PaymentHistoryPage: React.FC = () => {
                     </td>
                     <td>
                       <div className="job-info">
-                        <span className="job-title">{inv.jobId?.title || "Direct Service"}</span>
+                        <span className="job-title">
+                          {inv.jobId?.title || "Direct Service"}
+                          {inv.jobId?.jobCode && <span className="job-code-badge" style={{ marginLeft: 6, fontSize: 10, background: '#f1f5f9', padding: '2px 6px', borderRadius: 4, color: '#64748b' }}>{inv.jobId.jobCode}</span>}
+                        </span>
                         <span className="provider-name">Provider: {inv.provider?.name}</span>
                       </div>
                     </td>
@@ -128,7 +305,7 @@ const PaymentHistoryPage: React.FC = () => {
                       <span className="amount-paid">₹{inv.total.toLocaleString()}</span>
                     </td>
                     <td>
-                      <span className="date">{new Date(inv.paidAt).toLocaleDateString()}</span>
+                      <span className="date">{new Date(inv.paidAt || inv.createdAt).toLocaleDateString()}</span>
                     </td>
                     <td>
                       <span className={`method-badge ${inv.paymentMethod.toLowerCase()}`}>
@@ -174,212 +351,20 @@ const PaymentHistoryPage: React.FC = () => {
           </div>
         )}
       </div>
+    </div>
+  );
 
-      {}
+  return (
+    <>
+      {isMobile ? renderMobileLayout() : renderDesktopLayout()}
+
       <InvoiceDetailModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         invoice={selectedInvoice}
         onDownload={handleDownload}
       />
-
-      <style>{`
-        .qw-payment-history-container {
-          max-width: 1000px;
-          margin: 40px auto;
-          padding: 0 20px;
-          font-family: 'Inter', sans-serif;
-        }
-
-        .qw-page-header h1 {
-          font-family: 'Syne', sans-serif;
-          font-weight: 800;
-          font-size: 32px;
-          color: #0f172a;
-          margin-bottom: 8px;
-        }
-
-        .qw-page-header p {
-          color: #64748b;
-          font-size: 16px;
-        }
-
-        .qw-history-controls {
-          display: flex;
-          gap: 16px;
-          margin: 32px 0 24px;
-        }
-
-        .search-wrapper {
-          flex: 1;
-          position: relative;
-          display: flex;
-          align-items: center;
-        }
-
-        .search-icon {
-          position: absolute;
-          left: 16px;
-          color: #94a3b8;
-          font-size: 20px;
-        }
-
-        .search-wrapper input {
-          width: 100%;
-          padding: 14px 16px 14px 48px;
-          border-radius: 16px;
-          border: 1px solid #e2e8f0;
-          background: #fff;
-          font-size: 14px;
-          transition: all 0.2s;
-        }
-
-        .search-wrapper input:focus {
-          outline: none;
-          border-color: #0f172a;
-          box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.05);
-        }
-
-        .filter-btn {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 0 24px;
-          border-radius: 16px;
-          border: 1px solid #e2e8f0;
-          background: #fff;
-          color: #0f172a;
-          font-weight: 600;
-          font-size: 14px;
-          cursor: pointer;
-        }
-
-        .qw-history-card {
-          background: #fff;
-          border-radius: 24px;
-          border: 1px solid #e2e8f0;
-          overflow: hidden;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
-        }
-
-        .qw-table-container {
-          overflow-x: auto;
-        }
-
-        .qw-history-table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-
-        .qw-history-table th {
-          text-align: left;
-          padding: 20px 24px;
-          font-size: 12px;
-          font-weight: 700;
-          text-transform: uppercase;
-          color: #94a3b8;
-          background: #fcfcfd;
-          border-bottom: 1px solid #f1f5f9;
-        }
-
-        .qw-history-table td {
-          padding: 24px;
-          border-bottom: 1px solid #f8fafc;
-        }
-
-        .history-row {
-          transition: background 0.2s;
-        }
-
-        .history-row:hover {
-          background: #f8fafc;
-        }
-
-        .invoice-num {
-          font-weight: 700;
-          color: #0f172a;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 13px;
-        }
-
-        .job-title {
-          display: block;
-          font-weight: 700;
-          color: #0f172a;
-          margin-bottom: 4px;
-        }
-
-        .provider-name {
-          font-size: 12px;
-          color: #64748b;
-        }
-
-        .amount-paid {
-          font-weight: 800;
-          color: #0f172a;
-          font-size: 16px;
-        }
-
-        .method-badge {
-          font-size: 11px;
-          font-weight: 700;
-          padding: 4px 10px;
-          border-radius: 100px;
-          text-transform: uppercase;
-        }
-
-        .method-badge.online { background: #eff6ff; color: #3b82f6; }
-        .method-badge.cash { background: #f0fdf4; color: #16a34a; }
-
-        .action-group {
-          display: flex;
-          gap: 8px;
-          justify-content: flex-end;
-        }
-
-        .icon-btn {
-          width: 36px;
-          height: 36px;
-          border-radius: 10px;
-          border: 1px solid #e2e8f0;
-          background: #fff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 18px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .icon-btn.view:hover { color: #3b82f6; border-color: #3b82f6; background: #f0f7ff; }
-        .icon-btn.download:hover { color: #16a34a; border-color: #16a34a; background: #f0fdf4; }
-
-        .qw-pagination {
-          padding: 24px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          gap: 20px;
-          border-top: 1px solid #f1f5f9;
-        }
-
-        .qw-pagination button {
-          padding: 8px 16px;
-          border-radius: 10px;
-          border: 1px solid #e2e8f0;
-          background: #fff;
-          font-weight: 600;
-          font-size: 13px;
-          cursor: pointer;
-        }
-
-        .qw-pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .text-right { text-align: right; }
-        .animate-fade-in { animation: fadeIn 0.6s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-      `}</style>
-    </div>
+    </>
   );
 };
 

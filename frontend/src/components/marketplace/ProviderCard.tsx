@@ -10,30 +10,16 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider }) => {
   const navigate = useNavigate();
 
   return (
-    <div className="col-sm-6 col-lg-4">
-      <div
-        className="card border-0 h-100 overflow-hidden"
-        onClick={() => navigate(`/user/services/provider/${provider.id}`)}
-        style={{
-          borderRadius: 16,
-          boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-          transition: "all 0.22s ease",
-          cursor: "pointer",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = "translateY(-6px)";
-          e.currentTarget.style.boxShadow = "0 12px 32px rgba(59,130,246,0.15)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,0.06)";
-        }}
-      >
-        <div style={{ height: 200, overflow: "hidden", background: "#f1f5f9" }}>
+    <div
+      className="provider-card-wrapper"
+      onClick={() => navigate(`/user/services/provider/${provider.id}`)}
+    >
+      <div className="provider-card-inner">
+        <div className="provider-image-area">
           <img
             src={provider.profileImage}
             alt={provider.headline}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            className="provider-main-img"
             onError={(e) => {
               (e.target as HTMLImageElement).src =
                 "https://ui-avatars.com/api/?name=" +
@@ -42,74 +28,145 @@ const ProviderCard: React.FC<ProviderCardProps> = ({ provider }) => {
             }}
           />
         </div>
-        <div className="card-body p-3">
-          <h6
-            className="fw-bold mb-2"
-            style={{ fontSize: 15, color: "#0f172a", lineHeight: 1.3 }}
-          >
-            {provider.headline}
-          </h6>
+        <div className="provider-info-area">
+          <h6 className="provider-headline">{provider.headline}</h6>
 
-          <div className="d-flex align-items-center gap-2 mb-2">
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 4,
-                padding: "3px 10px",
-                borderRadius: 20,
-                background: "#f0fdf4",
-                color: "#16a34a",
-                fontSize: 12,
-                fontWeight: 600,
-              }}
-            >
-              🕐 {provider.yearsOfExperience}{" "}
+          <div className="provider-tags-row">
+            <span className="provider-tag tag-exp">
+              <span className="tag-icon">🕐</span> {provider.yearsOfExperience}{" "}
               {provider.yearsOfExperience === 1 ? "yr" : "yrs"}
             </span>
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 4,
-                padding: "3px 10px",
-                borderRadius: 20,
-                background: "#eff6ff",
-                color: "#2563eb",
-                fontSize: 12,
-                fontWeight: 600,
-              }}
-            >
-              📍 {provider.location.name}
+            <span className="provider-tag tag-loc">
+              <span className="tag-icon">📍</span> {provider.location.name}
             </span>
           </div>
 
-          <div className="d-flex align-items-center justify-content-between mt-3">
-            <div>
-              <span style={{ fontSize: 20, fontWeight: 700, color: "#0f172a" }}>
-                ₹{provider.hourlyRate}
-              </span>
-              <span style={{ fontSize: 12, color: "#94a3b8", marginLeft: 2 }}>
-                /hr
-              </span>
+          <div className="provider-footer">
+            <div className="provider-price-group">
+              <span className="provider-price">₹{provider.hourlyRate}</span>
+              <span className="provider-price-unit">/hr</span>
             </div>
-            <button
-              className="btn btn-sm"
-              style={{
-                padding: "6px 18px",
-                borderRadius: 10,
-                background: "linear-gradient(135deg,#3b82f6,#2563eb)",
-                color: "#fff",
-                fontSize: 12.5,
-                fontWeight: 600,
-                border: "none",
-              }}
-            >
-              View Profile
-            </button>
+            <button className="provider-view-btn">View Profile</button>
           </div>
         </div>
       </div>
+
+      <style>{`
+        .provider-card-wrapper {
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          height: 100%;
+        }
+        .provider-card-inner {
+          background: #fff;
+          border-radius: 20px;
+          border: 1px solid #f1f5f9;
+          overflow: hidden;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+          transition: inherit;
+        }
+        .provider-card-wrapper:hover .provider-card-inner {
+          transform: translateY(-8px);
+          box-shadow: 0 20px 40px rgba(59, 130, 246, 0.12);
+          border-color: #dbeafe;
+        }
+        .provider-image-area {
+          height: 220px;
+          width: 100%;
+          background: #f8fafc;
+          overflow: hidden;
+          position: relative;
+        }
+        .provider-main-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.6s ease;
+        }
+        .provider-card-wrapper:hover .provider-main-img {
+          transform: scale(1.08);
+        }
+        .provider-info-area {
+          padding: 20px;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+        }
+        .provider-headline {
+          font-size: 16px;
+          font-weight: 700;
+          color: #0f172a;
+          line-height: 1.4;
+          margin-bottom: 12px;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .provider-tags-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 20px;
+        }
+        .provider-tag {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 5px 12px;
+          border-radius: 10px;
+          font-size: 12px;
+          font-weight: 600;
+        }
+        .tag-exp { background: #f0fdf4; color: #15803d; }
+        .tag-loc { background: #eff6ff; color: #1d4ed8; }
+        .tag-icon { font-size: 11px; }
+
+        .provider-footer {
+          margin-top: auto;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding-top: 16px;
+          border-top: 1px solid #f1f5f9;
+        }
+        .provider-price {
+          font-size: 22px;
+          font-weight: 800;
+          color: #0f172a;
+          letter-spacing: -0.5px;
+        }
+        .provider-price-unit {
+          font-size: 13px;
+          color: #94a3b8;
+          margin-left: 4px;
+          font-weight: 500;
+        }
+        .provider-view-btn {
+          padding: 8px 20px;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #3b82f6, #2563eb);
+          color: #fff;
+          font-size: 13px;
+          font-weight: 700;
+          border: none;
+          box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+          transition: all 0.2s ease;
+        }
+        .provider-view-btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+        }
+
+        @media (max-width: 991px) {
+          .provider-image-area { height: 180px; }
+          .provider-headline { font-size: 15px; }
+          .provider-price { font-size: 20px; }
+        }
+      `}</style>
     </div>
   );
 };

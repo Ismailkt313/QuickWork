@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   RiErrorWarningLine,
   RiCloseLine,
@@ -70,7 +71,7 @@ const UniversalActionModal: React.FC<UniversalActionModalProps> = ({
 
   const { icon: Icon, color, bg, glow } = iconConfig[iconType];
 
-  return (
+  return createPortal(
     <div className="qw-modal-overlay" onClick={onClose}>
       <div
         className="qw-modal-content animate-pop-in"
@@ -203,7 +204,7 @@ const UniversalActionModal: React.FC<UniversalActionModalProps> = ({
           align-items: center;
           justify-content: center;
           padding: 20px;
-          z-index: 5000;
+          z-index: 9999;
           transition: all 0.3s ease;
         }
 
@@ -284,10 +285,20 @@ const UniversalActionModal: React.FC<UniversalActionModalProps> = ({
           100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
         }
 
-        @media (max-width: 576px) {
+        @media (max-width: 768px) {
+          .qw-modal-overlay {
+            padding: 0;
+            align-items: flex-end; /* Snap to bottom like a sheet */
+          }
           .qw-modal-content {
             padding: 40px 24px 28px;
-            border-radius: 32px;
+            padding-bottom: max(28px, env(safe-area-inset-bottom));
+            border-radius: 32px 32px 0 0;
+            margin: 0;
+            max-height: 85vh; /* Leave room for mobile keyboard */
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
           }
           .qw-modal-close-btn {
             top: 16px;
@@ -298,9 +309,15 @@ const UniversalActionModal: React.FC<UniversalActionModalProps> = ({
           .btn-action-primary {
             height: 56px;
           }
+          .animate-pop-in { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+          @keyframes slideUp {
+            from { opacity: 0; transform: translateY(100%); }
+            to { opacity: 1; transform: translateY(0); }
+          }
         }
       `}</style>
-    </div>
+    </div>,
+    document.body
   );
 };
 

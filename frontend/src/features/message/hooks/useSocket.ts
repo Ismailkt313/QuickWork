@@ -1,43 +1,25 @@
-import { io } from "socket.io-client";
-import { useEffect, useMemo } from "react";
+import { useEffect, useState } from "react";
+import { Socket } from "socket.io-client";
+import { socketService } from "../../../services/socket.service";
 
 export const useSocket = (token: string) => {
-  const socket = useMemo(() => {
-    if (!token) return null;
-
-    const socketUrl = import.meta.env.VITE_API_URL || "";
-
-    const newSocket = io(socketUrl, {
-      auth: {
-        token,
-      },
-      transports: ["websocket", "polling"],
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      autoConnect: false,
-    });
-
-    newSocket.on("connect", () => {
-
-    });
-
-    newSocket.on("connect_error", (error) => {
-      console.error("DEBUG: Socket connection error:", error.message);
-    });
-
-    return newSocket;
-  }, [token]);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    if (socket) {
-
-      socket.connect();
-      return () => {
-
-        socket.disconnect();
-      };
+    if (!token) {
+      socketService.disconnect();
+      setSocket(null);
+      return;
     }
-  }, [socket]);
+
+    const s = socketService.getSocket(token);
+    setSocket(s);
+
+    {}
+    return () => {
+      {}
+    };
+  }, [token]);
 
   return socket;
 };
