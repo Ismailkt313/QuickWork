@@ -14,7 +14,10 @@ const passwordSchema = z
       .min(6, "Current password must be at least 6 characters"),
     newPassword: z
       .string()
-      .min(6, "New password must be at least 6 characters"),
+      .min(6, "New password must be at least 6 characters")
+      .regex(/[A-Z]/, "Include at least one uppercase letter")
+      .regex(/[0-9]/, "Include at least one number")
+      .regex(/[^A-Za-z0-9]/, "Include at least one special character"),
     confirmPassword: z
       .string()
       .min(6, "Confirm password must be at least 6 characters"),

@@ -195,10 +195,17 @@ const UserSidebar: React.FC<UserSidebarProps> = ({
             </span>
           </Link>
 
-          <button className="qw-logout-btn" onClick={onLogout} type="button">
-            <RiLogoutBoxLine />
-            Log out
-          </button>
+          <div className="qw-bottom-actions">
+            <button 
+              className="qw-action-btn qw-action-logout" 
+              onClick={onLogout} 
+              type="button"
+              title="Sign Out"
+            >
+              <RiLogoutBoxLine size={18} />
+              <span className="qw-action-label">Sign Out</span>
+            </button>
+          </div>
         </div>
       </aside>
 

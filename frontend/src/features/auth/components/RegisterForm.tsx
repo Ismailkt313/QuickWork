@@ -9,26 +9,27 @@ function getPasswordStrength(pw: string): number {
   let s = 0;
   if (pw.length >= 8) s++;
   if (/[0-9]/.test(pw)) s++;
+  if (/[A-Z]/.test(pw)) s++;
   if (/[^A-Za-z0-9]/.test(pw)) s++;
   return s;
 }
 
 function strengthLabel(score: number): string {
-  if (score === 1) return "Weak";
-  if (score === 2) return "Medium";
-  if (score === 3) return "Strong";
+  if (score <= 2) return "Weak";
+  if (score === 3) return "Medium";
+  if (score === 4) return "Strong";
   return "";
 }
 
 function strengthBarClass(score: number): string {
-  if (score === 1) return "strength-weak";
-  if (score === 2) return "strength-medium";
+  if (score <= 2) return "strength-weak";
+  if (score === 3) return "strength-medium";
   return "strength-strong";
 }
 
 function strengthTextClass(score: number): string {
-  if (score === 1) return "text-danger";
-  if (score === 2) return "text-warning";
+  if (score <= 2) return "text-danger";
+  if (score === 3) return "text-warning";
   return "text-success";
 }
 
@@ -53,8 +54,16 @@ function validateFields(
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
     errors.email = "Enter a valid email address";
   if (password.length === 0) errors.password = "Password is required";
-  else if (password.length < 6)
-    errors.password = "Password must be at least 6 characters";
+  else if (isSignup) {
+    if (password.length < 6)
+      errors.password = "Password must be at least 6 characters";
+    else if (!/[A-Z]/.test(password))
+      errors.password = "Include at least one uppercase letter";
+    else if (!/[0-9]/.test(password))
+      errors.password = "Include at least one number";
+    else if (!/[^A-Za-z0-9]/.test(password))
+      errors.password = "Include at least one special character";
+  }
   if (isSignup) {
     if (confirmPassword.length === 0)
       errors.confirmPassword = "Please confirm your password";
@@ -263,7 +272,7 @@ const RegisterForm = ({ mode }: RegisterFormProps) => {
           ) : isSignup && password.length > 0 ? (
             <div className="mt-2">
               <div className="d-flex gap-1">
-                {[0, 1, 2].map((i) => (
+                {[0, 1, 2, 3].map((i) => (
                   <div
                     key={i}
                     className={`flex-grow-1 strength-bar rounded-pill ${i < strength ? strengthBarClass(strength) : "strength-empty"}`}
@@ -275,7 +284,7 @@ const RegisterForm = ({ mode }: RegisterFormProps) => {
                   className="text-secondary"
                   style={{ fontSize: "0.6875rem" }}
                 >
-                  Use 8+ chars, a number & symbol
+                  Use 6+ chars, uppercase, number & symbol
                 </small>
                 {strength > 0 && (
                   <small

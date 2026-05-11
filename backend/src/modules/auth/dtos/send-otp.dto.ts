@@ -31,8 +31,21 @@ export class SendOtpDto {
             errors.push("A valid email is required");
         }
 
-        if (!data.password || data.password.length < MIN_PASSWORD_LENGTH) {
-            errors.push(`Password must be at least ${MIN_PASSWORD_LENGTH} characters`);
+        if (!data.password) {
+            errors.push("Password is required");
+        } else {
+            if (data.password.length < MIN_PASSWORD_LENGTH) {
+                errors.push(`Password must be at least ${MIN_PASSWORD_LENGTH} characters`);
+            }
+            if (!/[A-Z]/.test(data.password)) {
+                errors.push("Password must contain at least one uppercase letter");
+            }
+            if (!/[0-9]/.test(data.password)) {
+                errors.push("Password must contain at least one number");
+            }
+            if (!/[!@#$%^&*(),.?":{}|<>]/.test(data.password)) {
+                errors.push("Password must contain at least one special character");
+            }
         }
 
         if (!data.confirmPassword || data.password !== data.confirmPassword) {

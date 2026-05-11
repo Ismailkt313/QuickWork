@@ -367,6 +367,19 @@ export class AuthService implements IAuthService {
             throw new AppError(ErrorMessages.INVALID_CURRENT_PASSWORD, HttpStatusCode.BAD_REQUEST);
         }
 
+        if (data.newPassword.length < 6) {
+            throw new AppError("New password must be at least 6 characters", HttpStatusCode.BAD_REQUEST);
+        }
+        if (!/[A-Z]/.test(data.newPassword)) {
+            throw new AppError("New password must contain at least one uppercase letter", HttpStatusCode.BAD_REQUEST);
+        }
+        if (!/[0-9]/.test(data.newPassword)) {
+            throw new AppError("New password must contain at least one number", HttpStatusCode.BAD_REQUEST);
+        }
+        if (!/[!@#$%^&*(),.?":{}|<>]/.test(data.newPassword)) {
+            throw new AppError("New password must contain at least one special character", HttpStatusCode.BAD_REQUEST);
+        }
+
         const hashedNewPassword = await bcrypt.hash(data.newPassword, config.BCRYPT_SALT_ROUNDS);
         await this._authRepository.updatePassword(userId, hashedNewPassword);
     }

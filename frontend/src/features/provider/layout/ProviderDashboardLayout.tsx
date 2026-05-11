@@ -1,5 +1,5 @@
 import React, { useState, useCallback, Suspense, useEffect } from "react";
-import { RiMenuLine, RiMapLine, RiBellLine } from "react-icons/ri";
+import { RiMapLine, RiBellLine } from "react-icons/ri";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import ProviderSidebar from "../components/ProviderSidebar";
 import FallbackScreen from "../../../components/ui/FallbackScreen";
@@ -59,7 +59,7 @@ const ProviderDashboardLayout: React.FC<ProviderDashboardLayoutProps> = ({
     }
   }, [initialProvider]);
 
-  const openMobile = useCallback(() => setMobileOpen(true), []);
+
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
   const location = useLocation();

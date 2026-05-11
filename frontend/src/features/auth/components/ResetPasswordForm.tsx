@@ -7,26 +7,27 @@ function getPasswordStrength(pw: string): number {
   let s = 0;
   if (pw.length >= 8) s++;
   if (/[0-9]/.test(pw)) s++;
+  if (/[A-Z]/.test(pw)) s++;
   if (/[^A-Za-z0-9]/.test(pw)) s++;
   return s;
 }
 
 function strengthLabel(score: number): string {
-  if (score === 1) return "Weak";
-  if (score === 2) return "Medium";
-  if (score === 3) return "Strong";
+  if (score <= 2) return "Weak";
+  if (score === 3) return "Medium";
+  if (score === 4) return "Strong";
   return "";
 }
 
 function strengthBarClass(score: number): string {
-  if (score === 1) return "strength-weak";
-  if (score === 2) return "strength-medium";
+  if (score <= 2) return "strength-weak";
+  if (score === 3) return "strength-medium";
   return "strength-strong";
 }
 
 function strengthTextClass(score: number): string {
-  if (score === 1) return "text-danger";
-  if (score === 2) return "text-warning";
+  if (score <= 2) return "text-danger";
+  if (score === 3) return "text-warning";
   return "text-success";
 }
 
@@ -77,6 +78,18 @@ const ResetPasswordForm = () => {
     }
     if (newPassword.length < 6) {
       setError("Password must be at least 6 characters");
+      return;
+    }
+    if (!/[A-Z]/.test(newPassword)) {
+      setError("Include at least one uppercase letter");
+      return;
+    }
+    if (!/[0-9]/.test(newPassword)) {
+      setError("Include at least one number");
+      return;
+    }
+    if (!/[^A-Za-z0-9]/.test(newPassword)) {
+      setError("Include at least one special character");
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -212,7 +225,7 @@ const ResetPasswordForm = () => {
             {newPassword.length > 0 && (
               <div className="mt-2">
                 <div className="d-flex gap-1">
-                  {[0, 1, 2].map((i) => (
+                  {[0, 1, 2, 3].map((i) => (
                     <div
                       key={i}
                       className={`flex-grow-1 strength-bar rounded-pill ${i < strength ? strengthBarClass(strength) : "strength-empty"}`}

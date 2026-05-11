@@ -227,14 +227,21 @@ const UpdateProfileModal: React.FC<UpdateProfileModalProps> = ({
                 </div>
                 <label
                   htmlFor="profile-upload"
-                  className="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-2 shadow-sm border border-2 border-white d-flex align-items-center justify-content-center cursor-pointer"
-                  style={{ width: "36px", height: "36px", cursor: "pointer" }}
+                  className="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle shadow-sm border border-2 border-white d-flex align-items-center justify-content-center cursor-pointer"
+                  style={{ width: "42px", height: "42px", cursor: "pointer", zIndex: 10 }}
                 >
-                  <RiCameraLine size={18} />
+                  <RiCameraLine size={20} />
                   <input
                     id="profile-upload"
                     type="file"
-                    className="d-none"
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      opacity: 0,
+                      width: "100%",
+                      height: "100%",
+                      cursor: "pointer",
+                    }}
                     accept="image/*"
                     onChange={handleImageChange}
                   />

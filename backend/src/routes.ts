@@ -20,7 +20,7 @@ import { API_ROUTES } from "./constants/routes";
 
 export const registerdRoutes = (app: Application) => {
     const BASE_URL = API_ROUTES.BASE
-    app.use(BASE_URL + API_ROUTES.AUTH, authRouter);
+    app.use(BASE_URL + API_ROUTES.AUTH, authRouter); 
     app.use(BASE_URL + API_ROUTES.ADMIN, adminRouter);
     app.use(BASE_URL + API_ROUTES.ADMIN + '/dashboard', adminDashboardRouter);
     app.use(BASE_URL + API_ROUTES.ADMIN, adminServiceRequestRouter);

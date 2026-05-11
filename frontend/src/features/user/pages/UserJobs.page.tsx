@@ -42,6 +42,18 @@ const UserJobsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const debouncedSearch = useDebounce(searchTerm, 400);
   const [currentPage, setCurrentPage] = useState(initialPage);
+
+  // Sync state with URL params (handles back/forward buttons)
+  useEffect(() => {
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const status = searchParams.get("status") || "all";
+    const search = searchParams.get("search") || "";
+
+    if (page !== currentPage) setCurrentPage(page);
+    if (status !== filterTab) setFilterTab(status);
+    if (search !== searchTerm) setSearchTerm(search);
+  }, [searchParams, currentPage, filterTab, searchTerm]);
+
   const [pagination, setPagination] = useState({
     total: 0,
     page: 1,
@@ -869,6 +881,87 @@ const UserJobsPage: React.FC = () => {
                     font-weight: 800;
                     color: #64748b;
                     font-family: 'Syne', sans-serif;
+                }
+
+                .qw-pagination-wrapper {
+                    margin-top: 48px;
+                    display: flex;
+                    justify-content: center;
+                    padding: 20px 0;
+                }
+
+                .qw-pagination {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    background: white;
+                    padding: 8px 16px;
+                    border-radius: 16px;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+                    border: 1px solid rgba(15, 23, 42, 0.05);
+                }
+
+                .qw-page-numbers {
+                    display: flex;
+                    gap: 6px;
+                }
+
+                .qw-page-btn {
+                    width: 38px;
+                    height: 38px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 10px;
+                    border: 1px solid #f1f5f9;
+                    background: white;
+                    color: #64748b;
+                    font-weight: 700;
+                    font-size: 13px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+
+                .qw-page-btn:hover:not(:disabled) {
+                    background: #f8fafc;
+                    color: #0f172a;
+                    border-color: #e2e8f0;
+                }
+
+                .qw-page-btn.active {
+                    background: #0f172a;
+                    color: white;
+                    border-color: #0f172a;
+                }
+
+                .qw-page-btn:disabled {
+                    opacity: 0.4;
+                    cursor: not-allowed;
+                }
+
+                .qw-page-nav {
+                    background: #f8fafc;
+                    color: #0f172a;
+                }
+
+                .qw-page-dots {
+                    width: 38px;
+                    height: 38px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #cbd5e1;
+                    font-weight: 800;
+                    font-size: 10px;
+                }
+
+                .qw-page-indicator {
+                    font-size: 12px;
+                    color: #94a3b8;
+                    font-weight: 600;
+                    background: #f8fafc;
+                    padding: 4px 10px;
+                    border-radius: 8px;
                 }
 
                 @media (max-width: 991px) {

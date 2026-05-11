@@ -10,7 +10,6 @@ import {
   RiArrowRightLine,
   RiHistoryLine,
   RiStackLine,
-  RiFlashlightLine,
   RiCalendarCheckLine,
   RiSearchLine,
   RiMessage3Line
@@ -270,7 +269,7 @@ const ProviderDashboardPage: React.FC = () => {
                       padding: '12px 16px',
                       fontSize: '12px'
                     }}
-                    formatter={(value: any) => [`₹${safeNumber(value).toLocaleString()}`, 'Revenue']}
+                    formatter={(value: unknown) => [`₹${safeNumber(value).toLocaleString()}`, 'Revenue']}
                   />
                   <Area type="monotone" dataKey="amount" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorAmount)" />
                 </AreaChart>
@@ -329,7 +328,7 @@ const ProviderDashboardPage: React.FC = () => {
                     dataKey="count"
                     stroke="none"
                   >
-                    {(charts?.jobStatusDistribution || []).map((_: any, index: number) => (
+                    {(charts?.jobStatusDistribution || []).map((_, index: number) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -345,7 +344,7 @@ const ProviderDashboardPage: React.FC = () => {
               </ResponsiveContainer>
               {(charts?.jobStatusDistribution || []).length > 0 && (
                 <div className="grid grid-cols-2 gap-2 mt-4">
-                  {(charts?.jobStatusDistribution || []).map((entry: any, index: number) => (
+                  {(charts?.jobStatusDistribution || []).map((entry, index: number) => (
                     <div key={entry.status || index} className="flex items-center gap-2 p-2 rounded-xl bg-slate-50/50">
                       <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
                       <div className="flex flex-col min-w-0">

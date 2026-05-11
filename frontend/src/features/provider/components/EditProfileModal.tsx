@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import {
   RiCloseLine,
@@ -43,7 +43,6 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   provider,
   locations,
 }) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     headline: provider.headline || "",
     about: provider.about || "",
@@ -154,9 +153,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               {}
               <div className="col-12">
                 <div className="qw-image-upload-area p-3 border rounded-3 d-flex align-items-center gap-4">
-                   <div
+                   <label
                     className="qw-avatar-upload-preview"
-                    onClick={() => fileInputRef.current?.click()}
                     style={{
                       width: '100px',
                       height: '100px',
@@ -164,9 +162,24 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                       overflow: 'hidden',
                       position: 'relative',
                       cursor: 'pointer',
-                      border: '4px solid #f1f5f9'
+                      border: '4px solid #f1f5f9',
+                      display: 'block'
                     }}
                   >
+                    <input 
+                      type="file" 
+                      onChange={handleFileChange} 
+                      accept="image/*" 
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        opacity: 0,
+                        width: '100%',
+                        height: '100%',
+                        cursor: 'pointer',
+                        zIndex: 10
+                      }} 
+                    />
                     {formData.profileImage ? (
                       <img src={formData.profileImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
@@ -187,18 +200,29 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
                     }}>
                       {uploading ? <RiLoader4Line className="animate-spin" /> : <RiCameraLine size={24} />}
                     </div>
-                  </div>
+                  </label>
                   <div>
                     <h5 className="mb-1">Profile Photo</h5>
                     <p className="text-muted small mb-2">JPG, PNG or GIF. Max size of 2MB.</p>
-                    <button
-                      type="button"
-                      className="btn btn-outline-primary btn-sm rounded-pill"
-                      onClick={() => fileInputRef.current?.click()}
+                    <label
+                      className="btn btn-outline-primary btn-sm rounded-pill cursor-pointer position-relative"
+                      style={{ cursor: 'pointer' }}
                     >
+                      <input 
+                        type="file" 
+                        onChange={handleFileChange} 
+                        accept="image/*" 
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          opacity: 0,
+                          width: '100%',
+                          height: '100%',
+                          cursor: 'pointer'
+                        }} 
+                      />
                       Choose New Photo
-                    </button>
-                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" hidden />
+                    </label>
                   </div>
                 </div>
               </div>

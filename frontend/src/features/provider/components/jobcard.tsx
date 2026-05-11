@@ -10,14 +10,9 @@ import {
   RiBookmarkFill,
   RiCheckDoubleLine,
   RiAlertLine,
-  RiEyeLine,
-  RiFlashlightLine,
   RiMedalLine,
   RiSparklingLine,
   RiBriefcaseLine,
-  RiSettingsLine,
-  RiStackLine,
-  RiInboxArchiveLine,
   RiExternalLinkLine
 } from "react-icons/ri";
 import "./style/jobcard.css";

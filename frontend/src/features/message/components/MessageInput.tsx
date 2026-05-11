@@ -148,14 +148,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           transition: 'all 0.2s'
         }}
       >
-        <input
-          type="file"
-          className="d-none"
-          accept="image/*"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-        />
-        
         <div className="d-flex align-items-center mb-1 ps-1">
           <button
             className="btn-composer-action text-slate-500"
@@ -165,14 +157,27 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           >
             <RiEmotionHappyLine size={22} />
           </button>
-          <button
-            className="btn-composer-action text-slate-500"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={disabled || isUploading}
-            type="button"
+          
+          <label
+            className="btn-composer-action text-slate-500 position-relative"
+            style={{ cursor: 'pointer', margin: 0 }}
           >
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              style={{
+                position: "absolute",
+                inset: 0,
+                opacity: 0,
+                width: "100%",
+                height: "100%",
+                cursor: "pointer",
+              }}
+              disabled={disabled || isUploading}
+            />
             <RiImage2Line size={22} />
-          </button>
+          </label>
         </div>
 
         <textarea

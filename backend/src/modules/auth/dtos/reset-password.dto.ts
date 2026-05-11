@@ -27,8 +27,21 @@ export class ResetPasswordDto {
             errors.push("A valid 6-digit OTP is required");
         }
 
-        if (!data.newPassword || data.newPassword.length < MIN_PASSWORD_LENGTH) {
-            errors.push(`New password must be at least ${MIN_PASSWORD_LENGTH} characters`);
+        if (!data.newPassword) {
+            errors.push("New password is required");
+        } else {
+            if (data.newPassword.length < MIN_PASSWORD_LENGTH) {
+                errors.push(`New password must be at least ${MIN_PASSWORD_LENGTH} characters`);
+            }
+            if (!/[A-Z]/.test(data.newPassword)) {
+                errors.push("New password must contain at least one uppercase letter");
+            }
+            if (!/[0-9]/.test(data.newPassword)) {
+                errors.push("New password must contain at least one number");
+            }
+            if (!/[!@#$%^&*(),.?":{}|<>]/.test(data.newPassword)) {
+                errors.push("New password must contain at least one special character");
+            }
         }
 
         if (errors.length > 0) {

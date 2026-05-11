@@ -207,16 +207,23 @@ const EditPortfolioModal: React.FC<EditPortfolioModalProps> = ({
               <label className="form-label font-md fw-600">
                 Project Images
               </label>
-              <div
-                className="qw-upload-zone mb-3"
-                onClick={() => fileInputRef.current?.click()}
+              <label
+                className="qw-upload-zone mb-3 d-block position-relative"
+                style={{ cursor: 'pointer' }}
               >
                 <input
                   type="file"
-                  ref={fileInputRef}
                   onChange={handleFileChange}
                   accept="image/*"
-                  hidden
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    opacity: 0,
+                    width: "100%",
+                    height: "100%",
+                    cursor: "pointer",
+                    zIndex: 2
+                  }}
                 />
                 <div className="d-flex flex-column align-items-center gap-2">
                   {uploading ? (
@@ -232,7 +239,7 @@ const EditPortfolioModal: React.FC<EditPortfolioModalProps> = ({
                   </p>
                   <p className="text-muted smaller mb-0">JPEG, PNG up to 2MB</p>
                 </div>
-              </div>
+              </label>
 
               {errors.images && (
                 <div className="text-danger small mb-3">{errors.images}</div>
