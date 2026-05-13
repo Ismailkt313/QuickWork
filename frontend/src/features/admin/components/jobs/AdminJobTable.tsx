@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { RiEyeLine, RiAlertLine, RiSearchLine, RiMapPinLine, RiUser3Line } from 'react-icons/ri';
 import { AdminJobStatusBadge } from './AdminJobStatusBadge';
 import { format } from 'date-fns';
-import { IAdminJob } from '../../types/admin.types';
+import type { IAdminJob } from '../../types/admin.types';
 
 interface AdminJobTableProps {
   jobs: IAdminJob[];
@@ -186,7 +186,9 @@ export const AdminJobTable: React.FC<AdminJobTableProps> = ({
               const district = job.location?.districtName || '—';
               const budget = job.budgetRange
                 ? `₹${job.budgetRange.min.toLocaleString()} – ₹${job.budgetRange.max.toLocaleString()}`
-                : job.budget || '—';
+                : job.budget
+                  ? `₹${job.budget.min.toLocaleString()} – ₹${job.budget.max.toLocaleString()}`
+                  : '—';
               const clientName =
                 job.userId?.name || job.clientName || 'Unknown';
               const clientInitial = clientName[0].toUpperCase();
@@ -372,7 +374,9 @@ export const AdminJobTable: React.FC<AdminJobTableProps> = ({
           const clientName = job.userId?.name || job.clientName || 'Unknown';
           const budget = job.budgetRange
             ? `₹${job.budgetRange.min.toLocaleString()} – ₹${job.budgetRange.max.toLocaleString()}`
-            : job.budget || '—';
+            : job.budget
+              ? `₹${job.budget.min.toLocaleString()} – ₹${job.budget.max.toLocaleString()}`
+              : '—';
           const district = job.location?.districtName || '—';
 
           return (

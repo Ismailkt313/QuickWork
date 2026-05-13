@@ -17,7 +17,7 @@ import { AdminJobStatusBadge } from '../components/jobs/AdminJobStatusBadge';
 import { format } from 'date-fns';
 import { toast } from 'react-toastify';
 import { AdminCancelModal } from '../components/jobs/AdminCancelModal';
-import { IAdminJob } from '../types/admin.types';
+import type { IAdminJob } from '../types/admin.types';
 import { useCallback } from 'react';
 
 const fmt = (d?: string) =>

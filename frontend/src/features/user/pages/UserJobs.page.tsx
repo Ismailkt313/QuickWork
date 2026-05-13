@@ -38,10 +38,10 @@ const UserJobsPage: React.FC = () => {
   const [isCancelling, setIsCancelling] = useState(false);
   const [jobs, setJobs] = useState<UserJob[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filterTab, setFilterTab] = useState(initialTab);
+  const [filterTab] = useState(initialTab);
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const debouncedSearch = useDebounce(searchTerm, 400);
-  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [currentPage] = useState(initialPage);
 
   const fetchJobs = useCallback(async () => {
     const page = parseInt(searchParams.get("page") || "1", 10);
@@ -79,8 +79,6 @@ const UserJobsPage: React.FC = () => {
   }, [debouncedSearch, searchParams, setSearchParams]);
 
   useEffect(() => {
-    const page = parseInt(searchParams.get("page") || "1", 10);
-    const status = searchParams.get("status") || "all";
     const search = searchParams.get("search") || "";
 
     if (search !== searchTerm) setSearchTerm(search);

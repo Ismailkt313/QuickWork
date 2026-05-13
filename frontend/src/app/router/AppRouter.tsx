@@ -20,7 +20,7 @@ import AdminDashboard from "../../features/admin/pages/AdminDashboard";
 import UserManagement from "../../features/admin/pages/UserManagement";
 import AdminJobsPage from "../../features/admin/pages/AdminJobsPage";
 import AdminJobDetailPage from "../../features/admin/pages/AdminJobDetailPage";
-import AdminDisputesPage from "../../features/admin/pages/AdminDisputesPage";
+import AdminReportsPage from "../../features/admin/pages/AdminReportsPage";
 import SkillRequests from "../../features/admin/pages/SkillRequests";
 
 import ProviderSuccessPage from "../../features/provider/providerOnboarding/components/ProviderSuccessPage";
@@ -94,7 +94,7 @@ const AppRouter = () => {
           <Route path="users" element={<UserManagement />} />
           <Route path="jobs" element={<AdminJobsPage />} />
           <Route path="jobs/:jobId" element={<AdminJobDetailPage />} />
-          <Route path="jobs/disputes" element={<AdminDisputesPage />} />
+          <Route path="jobs/disputes" element={<AdminReportsPage />} />
           <Route path="jobs/flagged" element={<AdminJobsPage defaultType="flagged" />} />
           <Route path="jobs/payments" element={<AdminJobsPage defaultType="payments" />} />
           <Route path="jobs/stalled" element={<AdminJobsPage defaultType="stalled" />} />

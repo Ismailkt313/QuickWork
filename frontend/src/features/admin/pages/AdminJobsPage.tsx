@@ -3,11 +3,15 @@ import { AdminJobHeader } from '../components/jobs/AdminJobHeader';
 import { AdminJobFilters } from '../components/jobs/AdminJobFilters';
 import { AdminJobTable } from '../components/jobs/AdminJobTable';
 import { adminJobApi, type AdminJobFilters as FilterType } from '../services/adminJobApi';
-import { IAdminJob } from '../types/admin.types';
+import type { IAdminJob } from '../types/admin.types';
 import { toast } from 'react-toastify';
 import { RiArrowLeftSLine, RiArrowRightSLine } from 'react-icons/ri';
 
-const AdminJobsPage: React.FC = () => {
+interface AdminJobsPageProps {
+  defaultType?: 'flagged' | 'payments' | 'stalled';
+}
+
+const AdminJobsPage: React.FC<AdminJobsPageProps> = ({ defaultType }) => {
   const [jobs, setJobs] = useState<IAdminJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -27,6 +31,7 @@ const AdminJobsPage: React.FC = () => {
     limit: 10,
     status: '',
     search: '',
+    type: defaultType,
   });
 
   const fetchJobs = useCallback(async () => {
