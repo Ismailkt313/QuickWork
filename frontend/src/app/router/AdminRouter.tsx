@@ -5,6 +5,8 @@ import AdminGuestGuard from "../../guards/AdminGuestGuard";
 import AdminAuthGuard from "../../guards/AdminAuthGuard";
 import AdminLayout from "../../features/admin/components/AdminLayout";
 import FallbackScreen from "../../components/ui/FallbackScreen";
+import AdminJobsPage from "../../features/admin/pages/AdminJobsPage";
+import AdminJobDetailPage from "../../features/admin/pages/AdminJobDetailPage";
 
 const AdminLoginPage = lazy(() => import("../../features/admin/pages/AdminLoginPage"));
 const AdminDashboard = lazy(() => import("../../features/admin/pages/AdminDashboard"));
@@ -40,6 +42,9 @@ const AdminRouter = () => {
         >
           <Route index element={<AdminDashboard />} />
           <Route path="users" element={<UserManagement />} />
+          <Route path="jobs" element={<AdminJobsPage />} />
+          <Route path="jobs/:jobId" element={<AdminJobDetailPage />} />
+          
           <Route path="skill-requests" element={<SkillRequests />} />
           <Route path="providers" element={<ProviderManagement />} />
           <Route path="skills" element={<SkillManagement />} />

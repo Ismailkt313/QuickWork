@@ -66,4 +66,8 @@ export class WorkHistoryRepository implements IWorkHistoryRepository {
     async getByProvider(providerId: string): Promise<IWorkHistory[]> {
         return WorkHistoryModel.find({ providerId: new Types.ObjectId(providerId) }).sort({ endedAt: -1 });
     }
+
+    async findByJob(jobId: string): Promise<IWorkHistory[]> {
+        return WorkHistoryModel.find({ jobId });
+    }
 }

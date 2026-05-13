@@ -25,3 +25,5 @@ const moderationController = new ModerationController(moderationService);
 
 export const reportRouter = createReportRouter(reportController);
 export const moderationRouter = createModerationRouter(moderationController);
+
+export { reportRepository };

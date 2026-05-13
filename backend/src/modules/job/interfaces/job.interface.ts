@@ -44,6 +44,10 @@ export interface IJob extends Document {
     createdAt: Date;
     updatedAt: Date;
     jobCode: string;
+    cancelledByAdmin?: boolean;
+    adminCancellationReason?: string;
+    cancelledBy?: Types.ObjectId;
+    cancelledAt?: Date;
 }
 
 export interface IJobPaginationResponse {
@@ -56,6 +60,13 @@ export interface IJobPaginationResponse {
         totalPages: number;
         hasNext: boolean;
         hasPrev: boolean;
+    };
+    stats?: {
+        total: number;
+        active: number;
+        disputed: number;
+        flagged: number;
+        stalled: number;
     };
     counts?: {
         all: number;
@@ -75,6 +86,7 @@ export interface IJobService {
         limit: number,
         filters?: { status?: string; search?: string; visibility?: string }
     ): Promise<IJobPaginationResponse>;
+    
     availableJobs(page: number, limit: number, filters?: any, userId?: string): Promise<IJobPaginationResponse>;
     getJobById(id: string, userId?: string): Promise<{ success: boolean; data?: JobResponseDTO; message?: string }>;
     getDirectOffers(userId: string, page?: number, limit?: number, search?: string, filter?: string): Promise<IJobPaginationResponse>;
@@ -82,6 +94,23 @@ export interface IJobService {
     rejectOffer(jobId: string, userId: string, reason?: string): Promise<{ success: boolean; message: string }>;
     acceptJob(jobId: string, userId: string, amount?: number): Promise<{ success: boolean; message: string }>;
     cancelJob(jobId: string, userId: string): Promise<{ success: boolean; message: string }>;
+    getAllJobsAdmin(
+        page: number,
+        limit: number,
+        filters?: {
+            status?: string;
+            search?: string;
+            visibility?: string;
+            isUrgent?: boolean;
+            durationType?: string;
+            skillId?: string;
+            minBudget?: number;
+            maxBudget?: number;
+            type?: 'disputed' | 'flagged' | 'stalled' | 'payments';
+        }
+    ): Promise<IJobPaginationResponse>;
+    adminGetJobDetails(jobId: string): Promise<{ success: boolean; data?: JobResponseDTO; message?: string }>;
+    adminCancelJob(jobId: string, reason: string, adminId: string): Promise<{ success: boolean; message: string }>;
 }
 
 export interface IJobRepository {
@@ -102,6 +131,20 @@ export interface IJobRepository {
         cancelled: number;
     }>;
     findAllOpen(page: number, limit: number, filters: any , skill: string[], excludeJobIds?: string[], currentUserId?: string): Promise<{ jobs: IJob[], total: number }>;
+    findAllPaginated(
+        page: number,
+        limit: number,
+        filters?: { 
+            status?: string; 
+            search?: string; 
+            visibility?: string;
+            isUrgent?: boolean;
+            durationType?: string;
+            skillId?: string;
+            minBudget?: number;
+            maxBudget?: number;
+        }
+    ): Promise<{ jobs: IJob[]; total: number }>;
     findById(id: string): Promise<IJob | null>;
     findByProvider(providerId: string): Promise<IJob[]>;
     findByProviderPaginated(
@@ -120,6 +163,7 @@ export interface IJobRepository {
     updateStatus(id: string, status: JOB_STATUS): Promise<IJob | null>;
     findByConditionAndUpdate(query: any, update: any): Promise<IJob | null>;
     find(query: any): Promise<IJob[]>;
+    count(query: any): Promise<number>;
 }
 
 export interface IJobController {
@@ -133,4 +177,7 @@ export interface IJobController {
     acceptJob(req: any, res: any, next: any): Promise<void>;
     cancelJob(req: any, res: any, next: any): Promise<void>;
     getJobAssignments(req: any, res: any, next: any): Promise<void>;
+    getAllJobsAdmin(req: any, res: any, next: any): Promise<void>;
+    getJobDetailsAdmin(req: any, res: any, next: any): Promise<void>;
+    adminCancelJob(req: any, res: any, next: any): Promise<void>;
 }

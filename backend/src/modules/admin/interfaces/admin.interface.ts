@@ -9,6 +9,8 @@ export interface IUserListQuery {
     page: number;
     limit: number;
     search?: string;
+    role?: string;
+    isBlocked?: boolean;
 }
 
 export interface IUserListItem {
@@ -20,7 +22,7 @@ export interface IUserListItem {
     createdAt: Date;
 }
 
-export interface IUserListResponse extends IPaginatedResponse<IUserListItem> {}
+export type IUserListResponse = IPaginatedResponse<IUserListItem>;
 
 export interface IServiceProviderWithUser {
   _id: Types.ObjectId
@@ -37,7 +39,7 @@ export interface IServiceProviderWithUser {
 
 export interface IAdminRepository {
     getUsers(query: IUserListQuery): Promise<IUser[]>;
-    getUserCount(search?: string): Promise<number>;
+    getUserCount(query: IUserListQuery): Promise<number>;
     toggleBlockUser(userId: string): Promise<IUser>;
     getPendingProviders(query: IUserListQuery):Promise<IServiceProviderWithUser[]>;
     getPendingProviderCount(): Promise<number>;
@@ -45,6 +47,12 @@ export interface IAdminRepository {
     rejectProvider(providerId: string, reason: string): Promise<void>;
     getProviderDetails(providerId: string): Promise<IServiceProviderDetails>;
     getUserById(userId: string): Promise<IUser | null>;
+    getProviderByUserId(userId: string): Promise<IServiceProviderDetails | null>;
+}
+
+export interface IUserWithProviderProfile {
+    user: IUser;
+    providerProfile?: IServiceProviderDetails | null;
 }
 
 export interface IAdminService {
@@ -54,7 +62,7 @@ export interface IAdminService {
     approveProvider(providerId: string): Promise<IApiResponse<void>>;
     rejectProvider(providerId: string, reason: string): Promise<IApiResponse<void>>;
     getProviderDetails(providerId: string): Promise<IApiResponse<IServiceProviderDetails>>;
-    getUserById(userId: string): Promise<IApiResponse<IUser>>;
+    getUserById(userId: string): Promise<IApiResponse<IUserWithProviderProfile>>;
 }
 
 export interface IAdminController {

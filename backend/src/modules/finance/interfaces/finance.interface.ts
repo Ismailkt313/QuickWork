@@ -125,6 +125,7 @@ export interface IWorkHistoryService {
     createFromAssignment(assignment: any): Promise<IWorkHistory>;
     getByProvider(providerId: string): Promise<IWorkHistory[]>;
     getById(id: string): Promise<IWorkHistory | null>;
+    getByAssignmentId(assignmentId: string): Promise<IWorkHistory | null>;
 }
 
 export interface IPaymentService {
@@ -178,6 +179,7 @@ export interface IWorkHistoryRepository {
     save(workHistory: IWorkHistory): Promise<IWorkHistory>;
     create(data: any): Promise<IWorkHistory>;
     getByProvider(providerId: string): Promise<IWorkHistory[]>;
+    findByJob(jobId: string): Promise<IWorkHistory[]>;
 }
 
 export interface IInvoiceRepository {

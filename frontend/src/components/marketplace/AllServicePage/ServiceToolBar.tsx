@@ -1,6 +1,7 @@
 import React from "react";
 import type { ServicesToolbarProps } from "../../../types/service/service.types";
 import type { SortOption } from "../../../types/service/service.types";
+import { CustomSelect } from "../../../shared/components/ui/CustomSelect";
 
 const ServiceToolBar: React.FC<ServicesToolbarProps> = ({
   search,
@@ -57,16 +58,17 @@ const ServiceToolBar: React.FC<ServicesToolbarProps> = ({
         <span className="qw-result-count">
           {resultCount} result{resultCount !== 1 ? "s" : ""}
         </span>
-        <select
-          className="qw-sort-select"
+        <CustomSelect
           value={sort}
-          onChange={(e) => onSort(e.target.value as SortOption)}
-          aria-label="Sort services"
-        >
-          <option value="name-asc">Name A–Z</option>
-          <option value="name-desc">Name Z–A</option>
-          <option value="newest">Newest first</option>
-        </select>
+          onChange={(v) => onSort(v as SortOption)}
+          options={[
+            { value: "name-asc", label: "Name A–Z" },
+            { value: "name-desc", label: "Name Z–A" },
+            { value: "newest", label: "Newest first" },
+          ]}
+          size="md"
+          label="Sort services"
+        />
       </div>
     </div>
   </div>

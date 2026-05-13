@@ -5,12 +5,12 @@ import {
   RiTimeLine,
   RiUser3Line,
   RiSearchLine,
-  RiFilter3Line,
   RiArrowRightSLine
 } from "react-icons/ri";
 import { reviewService, type Review } from "../services/review.service";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
+import { CustomSelect } from "../../../shared/components/ui/CustomSelect";
 
 const ProviderReviewsPage: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -115,17 +115,20 @@ const ProviderReviewsPage: React.FC = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <div className="qw-filter-select">
-              <RiFilter3Line className="icon" />
-              <select value={filterRating} onChange={(e) => setFilterRating(e.target.value === "all" ? "all" : Number(e.target.value))}>
-                <option value="all">All Ratings</option>
-                <option value="5">5 Stars</option>
-                <option value="4">4 Stars</option>
-                <option value="3">3 Stars</option>
-                <option value="2">2 Stars</option>
-                <option value="1">1 Star</option>
-              </select>
-            </div>
+            <CustomSelect
+              value={String(filterRating)}
+              onChange={(v) => setFilterRating(v === "all" ? "all" : Number(v))}
+              options={[
+                { value: "all", label: "All Ratings" },
+                { value: "5", label: "5 Stars" },
+                { value: "4", label: "4 Stars" },
+                { value: "3", label: "3 Stars" },
+                { value: "2", label: "2 Stars" },
+                { value: "1", label: "1 Star" },
+              ]}
+              placeholder="Filter by rating"
+              size="md"
+            />
           </div>
 
           {loading ? (

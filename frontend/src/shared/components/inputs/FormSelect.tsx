@@ -1,58 +1,64 @@
 import React from "react";
+import { CustomSelect, type SelectOption } from "../ui/CustomSelect";
 
-export interface SelectOption {
-  value: string | number;
-  label: string;
-}
+export type { SelectOption };
 
-interface FormSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+interface FormSelectProps {
   label: string;
   options: SelectOption[];
+  value: string;
+  onChange: (value: string) => void;
   error?: string;
   icon?: React.ReactNode;
   required?: boolean;
   placeholder?: string;
+  disabled?: boolean;
+  size?: "sm" | "md" | "lg";
 }
 
 export const FormSelect: React.FC<FormSelectProps> = ({
   label,
   options,
+  value,
+  onChange,
   error,
   icon,
   required,
   placeholder,
-  className,
-  ...props
+  disabled,
+  size = "md",
 }) => {
   return (
-    <div className="mb-4">
-      <label className="form-label fw-semibold text-dark small mb-2">
-        {label} {required && <span className="text-danger">*</span>}
+    <div style={{ marginBottom: 16 }}>
+      <label
+        style={{
+          display: "block",
+          fontSize: "0.875rem",
+          fontWeight: 600,
+          color: "#334155",
+          marginBottom: 8,
+        }}
+      >
+        {label} {required && <span style={{ color: "#ef4444" }}>*</span>}
       </label>
-      <div className="input-group">
-        {icon && (
-          <span className="input-group-text bg-light text-secondary border-end-0 px-3">
-            {icon}
-          </span>
-        )}
-        <select
-          className={`form-select ${icon ? "border-start-0 px-2" : ""} ${error ? "is-invalid border-danger" : ""} ${className || ""}`}
-          style={{ boxShadow: "none" }}
-          {...props}
-        >
-          {placeholder && (
-            <option value="" disabled>
-              {placeholder}
-            </option>
-          )}
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        {error && <div className="invalid-feedback d-block mt-1">{error}</div>}
-      </div>
+
+      <CustomSelect
+        value={value}
+        onChange={onChange}
+        options={options}
+        placeholder={placeholder ?? `Select ${label}…`}
+        icon={icon}
+        disabled={disabled}
+        size={size}
+        error={!!error}
+        fullWidth
+      />
+
+      {error && (
+        <p style={{ marginTop: 6, fontSize: "0.8125rem", color: "#ef4444", fontWeight: 500 }}>
+          {error}
+        </p>
+      )}
     </div>
   );
 };

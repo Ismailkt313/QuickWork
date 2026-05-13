@@ -20,6 +20,8 @@ export class AdminController implements IAdminController {
                 page: Math.max(1, parseInt(req.query.page as string) || 1),
                 limit: Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 10)),
                 search: (req.query.search as string) || undefined,
+                role: (req.query.role as string) || undefined,
+                isBlocked: req.query.isBlocked === 'true' ? true : req.query.isBlocked === 'false' ? false : undefined,
             };
 
             const result = await this._adminService.getUsers(query);

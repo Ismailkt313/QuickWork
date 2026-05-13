@@ -12,14 +12,16 @@ import {
   RiStackLine,
   RiCalendarCheckLine,
   RiSearchLine,
-  RiMessage3Line
+  RiMessage3Line,
+  RiArrowUpSLine,
+  RiArrowDownSLine,
+  RiFlashlightLine,
+  RiAlertLine,
 } from "react-icons/ri";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
-import ProviderStatCard from "../components/ProviderStatCard";
-import DashboardChartCard from "../components/DashboardChartCard";
 import ActivityFeed from "../components/ActivityFeed";
 import type { ActivityItem } from "../components/ActivityFeed";
 import AvailabilitySummaryCard from "../components/AvailabilitySummaryCard";
@@ -27,8 +29,9 @@ import { providerDashboardService } from "../services/providerDashboard.service"
 import { Link } from "react-router-dom";
 import { safeCurrency, safePercentage, safeNumber, safeDecimal, clampedNumber } from "../utils/dashboardUtils";
 import "./style/DashboardPage.css";
+import DashboardChartCard from "../components/DashboardChartCard";
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 interface DashboardOverview {
   totalEarnings: number;
@@ -70,6 +73,62 @@ interface DashboardAvailability {
   nextBlockedDate: string | null;
 }
 
+/* ─── Skeleton block helper ──────────────────────────────────── */
+const Skel = ({ w = "100%", h = 14, r = 8 }: { w?: string | number; h?: number; r?: number }) => (
+  <div className="pd-skeleton" style={{ width: w, height: h, borderRadius: r }} />
+);
+
+/* ─── Stat Card ──────────────────────────────────────────────── */
+interface StatCardProps {
+  label: string;
+  value: string | number;
+  icon: React.ReactNode;
+  iconClass: string;
+  colorVariant: "blue" | "green" | "amber" | "indigo";
+  trend?: { val: string; up: boolean };
+  foot?: string;
+  loading?: boolean;
+}
+
+const StatCard: React.FC<StatCardProps> = ({ label, value, icon, iconClass, colorVariant, trend, foot, loading }) => {
+  if (loading) return (
+    <div className={`pd-stat-card ${colorVariant}`}>
+      <div className="pd-stat-top">
+        <Skel w={40} h={40} r={10} />
+        <Skel w={56} h={22} r={100} />
+      </div>
+      <div>
+        <Skel w="55%" h={32} r={8} />
+        <div style={{ marginTop: 6 }}><Skel w="40%" h={11} r={6} /></div>
+      </div>
+      <div style={{ paddingTop: 10, borderTop: "1px solid rgba(15,23,42,0.06)" }}>
+        <Skel w="70%" h={11} r={6} />
+      </div>
+    </div>
+  );
+
+  return (
+    <div className={`pd-stat-card ${colorVariant}`}>
+      <div className="pd-stat-top">
+        <div className={`pd-stat-icon ${iconClass}`}>{icon}</div>
+        {trend && (
+          <div className={`pd-stat-trend ${trend.up ? "up" : "down"}`}>
+            {trend.up ? <RiArrowUpSLine size={13} /> : <RiArrowDownSLine size={13} />}
+            {trend.val}
+          </div>
+        )}
+        {!trend && <div className="pd-stat-trend neu">—</div>}
+      </div>
+      <div>
+        <div className="pd-stat-value">{value}</div>
+        <div className="pd-stat-label">{label}</div>
+      </div>
+      {foot && <div className="pd-stat-foot">{foot}</div>}
+    </div>
+  );
+};
+
+/* ─── Main Dashboard Page ────────────────────────────────────── */
 const ProviderDashboardPage: React.FC = () => {
   const [overview, setOverview] = useState<DashboardOverview | null>(null);
   const [activity, setActivity] = useState<DashboardActivity | null>(null);
@@ -90,29 +149,24 @@ const ProviderDashboardPage: React.FC = () => {
         providerDashboardService.getPerformance(),
         providerDashboardService.getAvailabilitySummary()
       ]);
-
       setOverview(ov.data);
       setActivity(act.data);
       setCharts(ch.data);
       setPerformance(perf.data);
       setAvailability(avail.data);
     } catch (err: unknown) {
-      console.error("Error fetching dashboard data:", err);
-      const errorMessage = err instanceof Error ? err.message : "Failed to load dashboard data";
-      setError(errorMessage);
+      const msg = err instanceof Error ? err.message : "Failed to load dashboard";
+      setError(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
+  useEffect(() => { fetchDashboardData(); }, []);
 
   const formatActivity = () => {
     if (!activity) return [];
     const items: ActivityItem[] = [];
-
     activity.recentAssignments?.forEach((a) => items.push({
       id: a._id,
       type: 'assignment',
@@ -120,7 +174,6 @@ const ProviderDashboardPage: React.FC = () => {
       subtitle: `Status: ${a.workStatus || 'Unknown'}`,
       time: new Date(a.createdAt).toLocaleDateString()
     }));
-
     activity.recentReviews?.forEach((r) => items.push({
       id: r._id,
       type: 'review',
@@ -128,186 +181,205 @@ const ProviderDashboardPage: React.FC = () => {
       subtitle: `${safeNumber(r.rating)} Stars${r.comment ? ` — ${r.comment.slice(0, 40)}` : ''}`,
       time: new Date(r.createdAt).toLocaleDateString()
     }));
-
     return items.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 8);
   };
+
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
   return (
     <div className="dashboard-shell">
       <div className="dashboard-container">
-        {/* ─── Premium Hero Section ─────────────────────────── */}
-        <div className="pdash-hero">
-          <div className="pdash-header">
-            <div>
-              <div className="pdash-badge-live mb-2">Operational</div>
-              <h1 className="pdash-title">
-                Workspace
-              </h1>
-              <p className="pdash-subtitle">Track your real-time performance and manage your service assignments effectively.</p>
-            </div>
-            <div className="pdash-header-actions">
-              <button
-                onClick={fetchDashboardData}
-                className="pdash-btn-icon"
-                title="Refresh Data"
-                aria-label="Refresh dashboard data"
-              >
-                <RiRefreshLine size={18} className={loading ? 'animate-spin' : ''} />
-              </button>
-              <Link to="/provider/profile" className="pdash-btn-primary">
-                <RiSettings4Line size={18} />
-                <span>Settings</span>
-              </Link>
-            </div>
-          </div>
 
-          {/* Quick Actions Bar */}
-          <div className="pdash-quick-actions">
-            <Link to="/provider/available-jobs" className="pdash-qa-item">
-              <div className="pdash-qa-icon"><RiSearchLine /></div>
-              <span className="pdash-qa-label">Find Jobs</span>
-            </Link>
-            <Link to="/provider/my-jobs" className="pdash-qa-item">
-              <div className="pdash-qa-icon"><RiCalendarCheckLine /></div>
-              <span className="pdash-qa-label">Schedule</span>
-            </Link>
-            <Link to="/provider/messages" className="pdash-qa-item">
-              <div className="pdash-qa-icon"><RiMessage3Line /></div>
-              <span className="pdash-qa-label">Chats</span>
-            </Link>
-            <Link to="/provider/wallet" className="pdash-qa-item">
-              <div className="pdash-qa-icon"><RiWallet3Line /></div>
-              <span className="pdash-qa-label">Earnings</span>
-            </Link>
-          </div>
-        </div>
-
-        {/* ─── Error Banner ─────────────────────────────────── */}
+        {/* ─── Error Banner ─────────────────────────────────────── */}
         {error && (
-          <div className="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center gap-3 animate-pulse">
-            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-rose-500 shadow-sm flex-shrink-0">!</div>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-rose-900">{error}</p>
-              <p className="text-xs text-rose-700 opacity-80">Please check your connection and retry.</p>
+          <div className="pd-error-banner" role="alert">
+            <div style={{ width: 36, height: 36, borderRadius: 9, background: "#fef2f2", display: "flex", alignItems: "center", justifyContent: "center", color: "#dc2626", flexShrink: 0 }}>
+              <RiAlertLine size={18} />
             </div>
-            <button onClick={fetchDashboardData} className="px-4 py-2 bg-rose-100 text-rose-700 text-xs font-extrabold rounded-lg hover:bg-rose-200 transition-colors">
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: "#991b1b", margin: 0 }}>{error}</p>
+              <p style={{ fontSize: 12, color: "#b91c1c", margin: "2px 0 0", opacity: 0.8 }}>Check your connection and try again.</p>
+            </div>
+            <button
+              onClick={fetchDashboardData}
+              style={{ padding: "7px 16px", background: "#fecaca", color: "#991b1b", border: "none", borderRadius: 8, fontWeight: 700, fontSize: 12, cursor: "pointer" }}
+            >
               Retry
             </button>
           </div>
         )}
 
-        {/* ─── Stat Cards Grid ──────────────────────────────── */}
-        <div className="pdash-stats-grid">
-          <ProviderStatCard
-            title="Total Revenue"
-            value={safeCurrency(overview?.totalEarnings)}
-            icon={RiMoneyDollarCircleLine}
-            colorClass="bg-blue-600"
-            loading={loading}
-          />
-          <ProviderStatCard
-            title="Wallet Balance"
-            value={safeCurrency(overview?.walletBalance)}
-            icon={RiWallet3Line}
-            colorClass="bg-emerald-600"
-            loading={loading}
-          />
-          <ProviderStatCard
-            title="Active Jobs"
-            value={safeNumber(overview?.activeJobs)}
-            icon={RiBriefcaseLine}
-            colorClass="bg-amber-600"
-            loading={loading}
-          />
-          <ProviderStatCard
-            title="Assignments"
-            value={safeNumber(overview?.totalAssignments)}
-            icon={RiStackLine}
-            colorClass="bg-indigo-600"
-            loading={loading}
-          />
-        </div>
-
-        {/* ─── Charts + Schedule Row ───────────────────────── */}
-        <div className="pdash-row-2col">
-          <div className="pdash-col-main">
-            <DashboardChartCard
-              title="Revenue Analytics"
-              subtitle="Monthly earning trends"
-              loading={loading}
-              isEmpty={!charts?.monthlyEarnings || charts.monthlyEarnings.length === 0}
-              emptyMessage="Start completing jobs to see your revenue trends"
-            >
-              <ResponsiveContainer width="100%" height={240}>
-                <AreaChart data={charts?.monthlyEarnings || []}>
-                  <defs>
-                    <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis
-                    dataKey="month"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 600 }}
-                    dy={8}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 600 }}
-                    dx={-8}
-                    tickFormatter={(value) => `₹${safeNumber(value)}`}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: '14px',
-                      border: '1px solid rgba(15, 23, 42, 0.05)',
-                      boxShadow: '0 10px 20px rgba(0,0,0,0.05)',
-                      padding: '12px 16px',
-                      fontSize: '12px'
-                    }}
-                    formatter={(value: unknown) => [`₹${safeNumber(value).toLocaleString()}`, 'Revenue']}
-                  />
-                  <Area type="monotone" dataKey="amount" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorAmount)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </DashboardChartCard>
-          </div>
-          <div className="pdash-col-side">
-            <AvailabilitySummaryCard
-              availableToday={availability?.availableToday ?? false}
-              nextBlockedDate={availability?.nextBlockedDate ?? null}
-              loading={loading}
-            />
-          </div>
-        </div>
-
-        {/* ─── Bottom Row: Activity + Charts + Performance ── */}
-        <div className="pdash-row-3col">
-          {/* Activity Feed */}
-          <div className="pdash-activity-card">
-            <div className="pdash-card-header">
-              <div>
-                <h3 className="pdash-card-title">Recent Activity</h3>
-                <p className="pdash-card-subtitle">Real-time updates</p>
+        {/* ─── Command Header ───────────────────────────────────── */}
+        <div className="pd-command">
+          <div className="pd-command-top">
+            <div className="pd-greeting-area">
+              <div className="pd-status-chip">
+                <RiFlashlightLine size={10} /> Operational
               </div>
-              <RiHistoryLine className="text-slate-300" size={18} />
+              <div className="pd-greeting-title">{greeting}, let's get to work 👋</div>
+              <div className="pd-greeting-sub">
+                {loading
+                  ? "Loading your workspace…"
+                  : `You have ${safeNumber(overview?.activeJobs)} active job${safeNumber(overview?.activeJobs) !== 1 ? "s" : ""} and ${safeNumber(overview?.totalAssignments)} total assignments.`
+                }
+              </div>
             </div>
-            <div className="pdash-activity-scroll">
-              <ActivityFeed activities={formatActivity()} loading={loading} />
-            </div>
-            <div className="pdash-card-footer">
-              <Link to="/provider/my-jobs" className="pdash-link-action">
-                <span>View All Assignments</span>
-                <RiArrowRightLine size={13} />
+            <div className="pd-command-actions">
+              <button
+                onClick={fetchDashboardData}
+                className="pd-btn-ghost"
+                title="Refresh Data"
+                aria-label="Refresh dashboard"
+              >
+                <RiRefreshLine size={17} className={loading ? "animate-spin" : ""} />
+              </button>
+              <Link to="/provider/profile" className="pd-btn-primary">
+                <RiSettings4Line size={16} />
+                Settings
               </Link>
             </div>
           </div>
 
-          {/* Task Portfolio Donut */}
+          {/* Quick Action Rail */}
+          <div className="pd-action-rail">
+            <Link to="/provider/available-jobs" className="pd-action-item">
+              <div className="pd-action-icon pd-icon-blue"><RiSearchLine size={18} /></div>
+              <div className="pd-action-info">
+                <span className="pd-action-label">Find Jobs</span>
+                <span className="pd-action-desc">Browse opportunities</span>
+              </div>
+            </Link>
+            <Link to="/provider/my-jobs" className="pd-action-item">
+              <div className="pd-action-icon pd-icon-violet"><RiCalendarCheckLine size={18} /></div>
+              <div className="pd-action-info">
+                <span className="pd-action-label">My Schedule</span>
+                <span className="pd-action-desc">Active assignments</span>
+              </div>
+              {!loading && safeNumber(overview?.activeJobs) > 0 && (
+                <span className="pd-action-badge pd-badge-blue">{safeNumber(overview?.activeJobs)}</span>
+              )}
+            </Link>
+            <Link to="/provider/messages" className="pd-action-item">
+              <div className="pd-action-icon pd-icon-green"><RiMessage3Line size={18} /></div>
+              <div className="pd-action-info">
+                <span className="pd-action-label">Messages</span>
+                <span className="pd-action-desc">Client chats</span>
+              </div>
+            </Link>
+            <Link to="/provider/wallet" className="pd-action-item">
+              <div className="pd-action-icon pd-icon-amber"><RiWallet3Line size={18} /></div>
+              <div className="pd-action-info">
+                <span className="pd-action-label">Earnings</span>
+                <span className="pd-action-desc">{loading ? "…" : safeCurrency(overview?.walletBalance)}</span>
+              </div>
+            </Link>
+          </div>
+        </div>
+
+        {/* ─── Stats Grid ───────────────────────────────────────── */}
+        <div className="pd-stats-grid">
+          <StatCard
+            label="Total Revenue"
+            value={safeCurrency(overview?.totalEarnings)}
+            icon={<RiMoneyDollarCircleLine size={20} />}
+            iconClass="pd-icon-blue"
+            colorVariant="blue"
+            trend={undefined}
+            foot="Lifetime platform earnings"
+            loading={loading}
+          />
+          <StatCard
+            label="Wallet Balance"
+            value={safeCurrency(overview?.walletBalance)}
+            icon={<RiWallet3Line size={20} />}
+            iconClass="pd-icon-green"
+            colorVariant="green"
+            trend={undefined}
+            foot="Available for withdrawal"
+            loading={loading}
+          />
+          <StatCard
+            label="Active Jobs"
+            value={safeNumber(overview?.activeJobs)}
+            icon={<RiBriefcaseLine size={20} />}
+            iconClass="pd-icon-amber"
+            colorVariant="amber"
+            trend={undefined}
+            foot="Currently in progress"
+            loading={loading}
+          />
+          <StatCard
+            label="Assignments"
+            value={safeNumber(overview?.totalAssignments)}
+            icon={<RiStackLine size={20} />}
+            iconClass="pd-icon-indigo"
+            colorVariant="indigo"
+            trend={undefined}
+            foot="All-time completed work"
+            loading={loading}
+          />
+        </div>
+
+        {/* ─── Charts + Availability ────────────────────────────── */}
+        <div className="pd-row-2col">
+          <DashboardChartCard
+            title="Revenue Analytics"
+            subtitle="Monthly earning trends"
+            loading={loading}
+            isEmpty={!charts?.monthlyEarnings || charts.monthlyEarnings.length === 0}
+            emptyMessage="Complete jobs to see your revenue trends"
+          >
+            <ResponsiveContainer width="100%" height={230}>
+              <AreaChart data={charts?.monthlyEarnings || []}>
+                <defs>
+                  <linearGradient id="pdRevGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="#6366f1" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 600 }} dy={8} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 600 }} dx={-8} tickFormatter={(v) => `₹${safeNumber(v)}`} />
+                <Tooltip
+                  contentStyle={{ borderRadius: 14, border: '1px solid rgba(15,23,42,0.06)', boxShadow: '0 10px 30px rgba(0,0,0,0.06)', padding: '10px 16px', fontSize: 12 }}
+                  formatter={(v: unknown) => [`₹${safeNumber(v).toLocaleString()}`, 'Revenue']}
+                />
+                <Area type="monotone" dataKey="amount" stroke="#6366f1" strokeWidth={2.5} fillOpacity={1} fill="url(#pdRevGrad)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </DashboardChartCard>
+
+          <AvailabilitySummaryCard
+            availableToday={availability?.availableToday ?? false}
+            nextBlockedDate={availability?.nextBlockedDate ?? null}
+            loading={loading}
+          />
+        </div>
+
+        {/* ─── Bottom Row ───────────────────────────────────────── */}
+        <div className="pd-row-3col">
+
+          {/* Activity Feed */}
+          <div className="pd-activity-card">
+            <div className="pd-card-head">
+              <div>
+                <div className="pd-card-title">Recent Activity</div>
+                <div className="pd-card-subtitle">Real-time updates</div>
+              </div>
+              <RiHistoryLine size={17} style={{ color: "#cbd5e1" }} />
+            </div>
+            <div className="pd-activity-scroll">
+              <ActivityFeed activities={formatActivity()} loading={loading} />
+            </div>
+            <div className="pd-card-foot">
+              <Link to="/provider/my-jobs" className="pd-link-action">
+                View All Assignments <RiArrowRightLine size={13} />
+              </Link>
+            </div>
+          </div>
+
+          {/* Portfolio Donut */}
           <DashboardChartCard
             title="Portfolio"
             subtitle="Job distribution"
@@ -315,41 +387,25 @@ const ProviderDashboardPage: React.FC = () => {
             isEmpty={!charts?.jobStatusDistribution || charts.jobStatusDistribution.length === 0}
             emptyMessage="No portfolio data yet"
           >
-            <div className="flex flex-col h-full justify-center">
-              <ResponsiveContainer width="100%" height={180}>
+            <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "center" }}>
+              <ResponsiveContainer width="100%" height={170}>
                 <PieChart>
-                  <Pie
-                    data={charts?.jobStatusDistribution || []}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={72}
-                    paddingAngle={6}
-                    dataKey="count"
-                    stroke="none"
-                  >
-                    {(charts?.jobStatusDistribution || []).map((_, index: number) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Pie data={charts?.jobStatusDistribution || []} cx="50%" cy="50%" innerRadius={46} outerRadius={68} paddingAngle={5} dataKey="count" stroke="none">
+                    {(charts?.jobStatusDistribution || []).map((_, i) => (
+                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: '12px',
-                      border: '1px solid rgba(15, 23, 42, 0.05)',
-                      boxShadow: '0 8px 16px rgba(0,0,0,0.05)',
-                      fontSize: '11px'
-                    }}
-                  />
+                  <Tooltip contentStyle={{ borderRadius: 12, border: '1px solid rgba(15,23,42,0.06)', boxShadow: '0 8px 20px rgba(0,0,0,0.06)', fontSize: 11 }} />
                 </PieChart>
               </ResponsiveContainer>
               {(charts?.jobStatusDistribution || []).length > 0 && (
-                <div className="grid grid-cols-2 gap-2 mt-4">
-                  {(charts?.jobStatusDistribution || []).map((entry, index: number) => (
-                    <div key={entry.status || index} className="flex items-center gap-2 p-2 rounded-xl bg-slate-50/50">
-                      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight truncate">{entry.status || 'Unknown'}</span>
-                        <span className="text-xs font-extrabold text-slate-800">{safeNumber(entry.count)}</span>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 12 }}>
+                  {(charts?.jobStatusDistribution || []).map((entry, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", background: "#f8fafc", borderRadius: 10, border: "1px solid rgba(15,23,42,0.05)" }}>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: COLORS[i % COLORS.length], flexShrink: 0 }} />
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{entry.status || "Unknown"}</div>
+                        <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a" }}>{safeNumber(entry.count)}</div>
                       </div>
                     </div>
                   ))}
@@ -358,75 +414,71 @@ const ProviderDashboardPage: React.FC = () => {
             </div>
           </DashboardChartCard>
 
-          {/* Performance Score */}
-          <div className="provider-chart-card">
-            <div className="pdash-card-header !px-0 !py-0 !bg-transparent border-none mb-6">
+          {/* Performance */}
+          <div className="pd-card">
+            <div className="pd-card-head">
               <div>
-                <h3 className="pdash-card-title">Performance</h3>
-                <p className="pdash-card-subtitle">Reliability metrics</p>
+                <div className="pd-card-title">Performance</div>
+                <div className="pd-card-subtitle">Reliability metrics</div>
               </div>
-              <div className="p-2 bg-indigo-50 rounded-xl text-indigo-600">
-                <RiCheckboxCircleLine size={18} />
+              <div style={{ width: 32, height: 32, borderRadius: 9, background: "#f5f3ff", display: "flex", alignItems: "center", justifyContent: "center", color: "#7c3aed" }}>
+                <RiCheckboxCircleLine size={16} />
               </div>
             </div>
-
-            {loading ? (
-              <div className="space-y-6 animate-pulse">
-                <div><div className="w-full h-2 bg-slate-100 rounded-full"></div></div>
-                <div><div className="w-full h-2 bg-slate-100 rounded-full"></div></div>
-                <div className="grid grid-cols-2 gap-3 pt-2">
-                  <div className="h-20 bg-slate-50 rounded-2xl"></div>
-                  <div className="h-20 bg-slate-50 rounded-2xl"></div>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-6 flex-1 flex flex-col">
-                {/* Completion Rate */}
-                <div>
-                  <div className="flex justify-between items-end mb-2">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Completion</span>
-                    <span className="text-base font-extrabold text-slate-900">{safePercentage(performance?.completionRate)}</span>
-                  </div>
-                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-emerald-500 rounded-full transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(16,185,129,0.3)]"
-                      style={{ width: `${clampedNumber(performance?.completionRate)}%` }}
-                    ></div>
+            <div className="pd-card-body">
+              {loading ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+                  <div><Skel h={10} /><div style={{ marginTop: 6 }}><Skel h={6} w="90%" /></div></div>
+                  <div><Skel h={10} /><div style={{ marginTop: 6 }}><Skel h={6} w="75%" /></div></div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 8 }}>
+                    <Skel h={72} r={12} />
+                    <Skel h={72} r={12} />
                   </div>
                 </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 18, height: "100%" }}>
+                  {/* Completion */}
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 8 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Completion</span>
+                      <span style={{ fontSize: 15, fontWeight: 800, color: "#0f172a" }}>{safePercentage(performance?.completionRate)}</span>
+                    </div>
+                    <div style={{ width: "100%", height: 6, background: "#f1f5f9", borderRadius: 100, overflow: "hidden" }}>
+                      <div style={{ width: `${clampedNumber(performance?.completionRate)}%`, height: "100%", background: "linear-gradient(90deg, #10b981, #06b6d4)", borderRadius: 100, transition: "width 1s ease" }} />
+                    </div>
+                  </div>
 
-                {/* Acceptance Rate */}
-                <div>
-                  <div className="flex justify-between items-end mb-2">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Acceptance</span>
-                    <span className="text-base font-extrabold text-slate-900">{safePercentage(performance?.acceptanceRate)}</span>
+                  {/* Acceptance */}
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 8 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Acceptance</span>
+                      <span style={{ fontSize: 15, fontWeight: 800, color: "#0f172a" }}>{safePercentage(performance?.acceptanceRate)}</span>
+                    </div>
+                    <div style={{ width: "100%", height: 6, background: "#f1f5f9", borderRadius: 100, overflow: "hidden" }}>
+                      <div style={{ width: `${clampedNumber(performance?.acceptanceRate)}%`, height: "100%", background: "linear-gradient(90deg, #6366f1, #a855f7)", borderRadius: 100, transition: "width 1s ease" }} />
+                    </div>
                   </div>
-                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-blue-500 rounded-full transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(59,130,246,0.3)]"
-                      style={{ width: `${clampedNumber(performance?.acceptanceRate)}%` }}
-                    ></div>
-                  </div>
-                </div>
 
-                {/* Summary Mini-Cards */}
-                <div className="grid grid-cols-2 gap-3 pt-2 mt-auto">
-                  <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100/50">
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Feedback</p>
-                    <p className="text-sm font-extrabold text-slate-900">{safeNumber(performance?.totalReviews)} reviews</p>
-                  </div>
-                  <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100/50">
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Rating</p>
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-extrabold text-slate-900">{safeDecimal(performance?.averageRating)}</p>
-                      <RiStarLine className="text-amber-500" size={14} />
+                  {/* Mini stats */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: "auto" }}>
+                    <div style={{ background: "#f8fafc", padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(15,23,42,0.05)" }}>
+                      <p style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", margin: "0 0 4px" }}>Feedback</p>
+                      <p style={{ fontSize: 14, fontWeight: 800, color: "#0f172a", margin: 0 }}>{safeNumber(performance?.totalReviews)} reviews</p>
+                    </div>
+                    <div style={{ background: "#f8fafc", padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(15,23,42,0.05)" }}>
+                      <p style={{ fontSize: 9, fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", margin: "0 0 4px" }}>Rating</p>
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                        <p style={{ fontSize: 14, fontWeight: 800, color: "#0f172a", margin: 0 }}>{safeDecimal(performance?.averageRating)}</p>
+                        <RiStarLine size={13} style={{ color: "#f59e0b" }} />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
+
       </div>
     </div>
   );

@@ -13,6 +13,7 @@ import {
 } from "../services/provider.service";
 import { toast } from "react-toastify";
 import "./Modals.css";
+import { CustomSelect } from "../../../shared/components/ui/CustomSelect";
 
 interface Location {
   id: string;
@@ -283,17 +284,19 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               {}
               <div className="col-12">
                 <label className="qw-field-label">Primary Service Location</label>
-                <select
-                  className={`form-select qw-modal-input ${errors.location ? 'is-invalid' : ''}`}
+                <CustomSelect
                   value={formData.location.id}
-                  onChange={(e) => {
-                    const selected = locations.find(l => l.id === e.target.value);
+                  onChange={(v) => {
+                    const selected = locations.find(l => l.id === v);
                     if (selected) setFormData({ ...formData, location: { id: selected.id, name: selected.name } });
                   }}
-                >
-                  <option value="">Select Location</option>
-                  {locations.map(loc => <option key={loc.id} value={loc.id}>{loc.name}</option>)}
-                </select>
+                  options={[
+                    ...locations.map(loc => ({ value: loc.id, label: loc.name }))
+                  ]}
+                  placeholder="Select Location"
+                  fullWidth
+                  error={!!errors.location}
+                />
               </div>
 
               {}

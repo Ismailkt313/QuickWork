@@ -138,7 +138,9 @@ export class PaymentService implements IPaymentService {
         if (!history) return { success: false, message: 'Work history not found' };
         if (history.providerId.toString() !== providerId) return { success: false, message: 'Unauthorized' };
         if (history.payment.status === 'completed') return { success: false, message: 'Payment already completed' };
-        if (history.payment.status !== 'awaiting_confirmation') return { success: false, message: 'No payment awaiting confirmation' };
+        if (history.payment.status !== 'awaiting_confirmation' && history.payment.status !== 'pending') {
+            return { success: false, message: 'No payment awaiting confirmation or pending' };
+        }
 
         history.payment.status = 'completed';
         history.payment.confirmedAt = new Date();

@@ -234,7 +234,7 @@ export class JobService implements IJobService {
                 });
             }
             const skills: string[] = await provider.skills.map((a: any) => a._id.toString())
-            const { jobs, total } = await this._jobRepository.findAllOpen(page, limit, filters, skills, Array.from(assignedJobIds), userId);
+            const { jobs, total } = await this._jobRepository.findAllOpen(page, limit=9, filters, skills, Array.from(assignedJobIds), userId);
 
         const mappedJobs = await Promise.all(jobs.map(async j => {
             const clientMetrics = await this._getClientMetrics(j.userId);
@@ -606,5 +606,164 @@ export class JobService implements IJobService {
         }
 
         return { success: true, message: SuccessMessages.JOB_CANCELLED };
+    }
+
+    async getAllJobsAdmin(
+        page: number,
+        limit: number,
+        filters?: any
+    ): Promise<import('../interfaces/job.interface').IJobPaginationResponse> {
+        
+        const finalFilters = { ...filters };
+        
+        if (filters?.type === 'stalled') {
+            const threeDaysAgo = new Date();
+            threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+            finalFilters.status = JOB_STATUS.OPEN;
+            // No assignment activity check could be added if repository supports it
+        }
+
+        const { jobs, total } = await this._jobRepository.findAllPaginated(page, limit, finalFilters);
+
+        const mappedJobs = await Promise.all(jobs.map(async (j) => {
+            let assignmentData = null;
+            if (j.hiredProviderId) {
+                assignmentData = await this._assignmentService.getAssignmentByJobAndFreelancer(
+                    j._id.toString(),
+                    (j.hiredProviderId as any)._id.toString()
+                );
+            }
+            const clientMetrics = await this._getClientMetrics(j.userId);
+            const dto = await mapJobToResponseDTO(j, assignmentData, clientMetrics);
+
+            const workHistories = await this._workHistoryRepository.findByJobAndStatus(j._id.toString(), 'COMPLETED');
+            dto.providers = workHistories.map((wh: any) => ({
+                providerId: wh.providerId.toString(),
+                finalStatus: wh.finalStatus,
+                payment: {
+                    status: wh.payment.status,
+                    totalAmount: wh.payment.totalAmount
+                }
+            }));
+
+            dto.hasPendingPayment = workHistories.some(wh => wh.payment.status !== 'completed');
+            
+            dto.applicants = await this._assignmentService.getAssignmentCountByJob(j._id.toString());
+
+            return dto;
+        }));
+
+        const stats = {
+            total: await this._jobRepository.count({}),
+            active: await this._jobRepository.count({ status: { $in: [JOB_STATUS.FULLY_ASSIGNED, JOB_STATUS.PARTIALLY_ASSIGNED, JOB_STATUS.IN_PROGRESS] } }),
+            disputed: 0, 
+            flagged: await this._jobRepository.count({ isUrgent: true }),
+            stalled: await this._jobRepository.count({ status: JOB_STATUS.OPEN, createdAt: { $lt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) } })
+        };
+
+        return {
+            success: true,
+            data: mappedJobs,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+                hasNext: page < Math.ceil(total / limit),
+                hasPrev: page > 1
+            },
+            stats
+        };
+    }
+
+    async adminGetJobDetails(jobId: string): Promise<{ success: boolean; data?: JobResponseDTO; message?: string }> {
+        const job = await this._jobRepository.findById(jobId);
+        if (!job) {
+            return { success: false, message: ErrorMessages.JOB_NOT_FOUND };
+        }
+
+        let assignmentData = null;
+        if (job.hiredProviderId) {
+             assignmentData = await this._assignmentService.getAssignmentByJobAndFreelancer(
+                job._id.toString(),
+                (job.hiredProviderId as any)._id.toString()
+            );
+        }
+
+        const clientMetrics = await this._getClientMetrics(job.userId);
+        const dto = await mapJobToResponseDTO(job, assignmentData, clientMetrics);
+
+        dto.applicants = await this._assignmentService.getAssignmentCountByJob(jobId);
+        
+        const workHistories = await this._workHistoryRepository.findByJob(jobId);
+        dto.providers = workHistories.map((wh: any) => ({
+            providerId: wh.providerId.toString(),
+            finalStatus: wh.finalStatus,
+            payment: {
+                status: wh.payment.status,
+                totalAmount: wh.payment.totalAmount
+            }
+        }));
+
+        return { success: true, data: dto };
+    }
+
+    async adminCancelJob(jobId: string, reason: string, adminId: string): Promise<{ success: boolean; message: string }> {
+        const job = await this._jobRepository.findById(jobId);
+        if (!job) {
+            return { success: false, message: ErrorMessages.JOB_NOT_FOUND };
+        }
+
+        if (job.status === JOB_STATUS.COMPLETED) {
+            return { success: false, message: "Completed jobs cannot be cancelled by administration." };
+        }
+        
+        if (job.status === JOB_STATUS.CANCELLED) {
+            return { success: false, message: "This operation is already in a cancelled state." };
+        }
+
+        const now = new Date();
+        const timestamp = now.toLocaleString();
+
+        await this._jobRepository.findByConditionAndUpdate(
+            { _id: jobId },
+            { 
+                $set: { 
+                    status: JOB_STATUS.CANCELLED,
+                    cancelledByAdmin: true,
+                    adminCancellationReason: reason,
+                    cancelledBy: adminId,
+                    cancelledAt: now
+                } 
+            }
+        );
+
+        // Notify Client
+        await this._notificationService.createNotification({
+            recipient: (job.userId as any)._id ? (job.userId as any)._id.toString() : job.userId.toString(),
+            title: `Job Cancelled by Administration`,
+            message: `Your job "${job.title}" has been cancelled by QuickWork Administration. Reason: ${reason}. Action taken at ${timestamp}.`,
+            type: 'SYSTEM' as const,
+            link: `/user/jobs/${job._id}`
+        });
+
+        // Notify All Assigned Providers
+        const assignments = await this._assignmentService.getAssignmentsByJobId(jobId);
+        for (const assignment of assignments) {
+            const providerUserId = (assignment.freelancerId as any).userId?._id?.toString() || (assignment.freelancerId as any).userId?.toString();
+            if (providerUserId) {
+                await this._notificationService.createNotification({
+                    recipient: providerUserId,
+                    title: `Assignment Cancelled by Administration`,
+                    message: `The job "${job.title}" you were assigned to has been cancelled by QuickWork Administration. Reason: ${reason}. Action taken at ${timestamp}.`,
+                    type: 'SYSTEM' as const,
+                    link: `/provider/jobs/${job._id}`
+                });
+            }
+        }
+
+        await this._assignmentService.cancelAssignmentsByJob(jobId);
+
+        return { success: true, message: `Job has been successfully cancelled by administration.` };
     }
 }

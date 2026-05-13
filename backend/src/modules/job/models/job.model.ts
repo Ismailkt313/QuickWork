@@ -92,7 +92,11 @@ const JobSchema: Schema = new Schema(
             type: String,
             unique: true,
             index: true
-        }
+        },
+        cancelledByAdmin: { type: Boolean, default: false },
+        adminCancellationReason: { type: String },
+        cancelledBy: { type: Schema.Types.ObjectId, ref: 'User' },
+        cancelledAt: { type: Date }
     },
     {
         timestamps: true

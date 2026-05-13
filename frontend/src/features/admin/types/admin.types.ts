@@ -46,3 +46,50 @@ export interface IServiceProviderDetails {
   submittedAt: string;
   createdAt: string;
 }
+
+export interface IUserWithProviderProfile {
+  user: IUserListItem;
+  providerProfile?: IServiceProviderDetails | null;
+}
+
+export interface IAdminJob {
+  _id: string;
+  id?: string;
+  jobCode: string;
+  title: string;
+  description: string;
+  createdAt: string;
+  status: string;
+  budget?: {
+    min: number;
+    max: number;
+  };
+  budgetRange?: {
+    min: number;
+    max: number;
+  };
+  userId?: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  clientName?: string;
+  location?: {
+    districtName: string;
+    address?: string;
+    additionalDetails?: string;
+  };
+  acceptedFreelancers: number;
+  freelancersNeeded: number;
+  startDate?: string;
+  endDate?: string;
+  durationType?: string;
+  days?: number;
+  clientNumber?: string;
+  hiredProviderId?: string;
+  hiredProviderName?: string;
+  visibility?: string;
+  cancelledAt?: string;
+  cancelledByAdmin?: boolean;
+  adminCancellationReason?: string;
+}

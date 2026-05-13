@@ -1,4 +1,4 @@
-import { IServiceProvider, ILocation, IPortfolioItem } from "../interfaces/serviceProvider.interface";
+import { ILocation, IPortfolioItem } from "../interfaces/serviceProvider.interface";
 
 export interface ProviderResponseDTO {
     id: string;

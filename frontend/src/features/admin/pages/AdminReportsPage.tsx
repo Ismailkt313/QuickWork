@@ -5,13 +5,13 @@ import type { AppDispatch, RootState } from "../../../app/store";
 import { fetchAdminReports } from "../store/adminReportSlice";
 import {
   RiFlagLine,
-  RiFilter3Line,
   RiArrowLeftSLine,
   RiArrowRightSLine,
   RiLoader4Line,
   RiShieldUserLine,
   RiArrowRightLine
 } from "react-icons/ri";
+import { CustomSelect } from "../../../shared/components/ui/CustomSelect";
 
 const AdminReportsPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -64,19 +64,19 @@ const AdminReportsPage: React.FC = () => {
         <div className="card-header bg-white p-4 border-bottom">
           <div className="row g-3 align-items-end">
             <div className="col-12 col-md-4">
-              <label className="form-label fw-bold small text-muted text-uppercase mb-2">
-                <RiFilter3Line size={14} className="me-1" /> Status
-              </label>
-              <select
-                className="form-select border rounded-3 py-2"
+              <label className="form-label fw-bold small text-muted text-uppercase mb-2">Status</label>
+              <CustomSelect
                 value={filters.status}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value, page: 1 })}
-              >
-                <option value="all">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="action_taken">Action Taken</option>
-                <option value="rejected">Rejected</option>
-              </select>
+                onChange={(v) => setFilters({ ...filters, status: v, page: 1 })}
+                options={[
+                  { value: "all", label: "All Status" },
+                  { value: "pending", label: "Pending" },
+                  { value: "action_taken", label: "Action Taken" },
+                  { value: "rejected", label: "Rejected" },
+                ]}
+                fullWidth
+                size="md"
+              />
             </div>
           </div>
         </div>

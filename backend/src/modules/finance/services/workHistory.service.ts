@@ -67,4 +67,8 @@ export class WorkHistoryService implements IWorkHistoryService {
     async getById(id: string): Promise<IWorkHistory | null> {
         return await this._workHistoryRepo.findById(id);
     }
+
+    async getByAssignmentId(assignmentId: string): Promise<IWorkHistory | null> {
+        return await this._workHistoryRepo.findByAssignmentId(assignmentId);
+    }
 }

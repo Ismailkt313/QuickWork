@@ -48,6 +48,7 @@ const RequestsPage: React.FC = () => {
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [actionError, setActionError] = useState<{ isOpen: boolean; title: string; message: string }>({ isOpen: false, title: "", message: "" });
   const [pendingJobId, setPendingJobId] = useState<string | null>(null);
+  const [pendingAmount, setPendingAmount] = useState<number | undefined>(undefined);
   const [verificationStatus, setVerificationStatus] = useState<string>("pending");
   const [isPendingModalOpen, setIsPendingModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -111,6 +112,7 @@ const RequestsPage: React.FC = () => {
 
   const handleConfirmAfterSelection = (amount: number) => {
     setIsConfirmModalOpen(false);
+    setPendingAmount(amount);
     const jobId = pendingJobId;
     if (!jobId) return;
     const job = requests.find(r => r.id === jobId);
@@ -127,7 +129,7 @@ const RequestsPage: React.FC = () => {
       const errorMessage = error instanceof Error ? error.message : "Failed to accept invitation";
       setActionError({ isOpen: true, title: errorMessage.toLowerCase().includes("overlap") ? "Schedule Conflict" : "Action Failed", message: errorMessage });
     } finally {
-      setActionLoading(null); setPendingJobId(null);
+      setActionLoading(null); setPendingJobId(null); setPendingAmount(undefined);
     }
   };
 
@@ -306,7 +308,7 @@ const RequestsPage: React.FC = () => {
       <UniversalActionModal
         isOpen={isLocationModalOpen}
         onClose={() => { setIsLocationModalOpen(false); setPendingJobId(null); }}
-        onConfirm={() => pendingJobId && confirmAccept(pendingJobId)}
+        onConfirm={() => pendingJobId && confirmAccept(pendingJobId, pendingAmount)}
         title="Location Mismatch"
         message="This opportunity is outside your default work zone. Confirm you can accommodate the travel requirements."
         iconType="location"

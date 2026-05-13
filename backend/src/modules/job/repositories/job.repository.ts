@@ -141,6 +141,81 @@ export class JobRepository implements IJobRepository {
         };
     }
 
+    async findAllPaginated(
+        page: number,
+        limit: number,
+        filters?: {
+            status?: string;
+            search?: string;
+            visibility?: string;
+            isUrgent?: boolean;
+            durationType?: string;
+            skillId?: string;
+            minBudget?: number;
+            maxBudget?: number;
+        }
+    ): Promise<{ jobs: IJob[]; total: number }> {
+        const query: any = {};
+
+        if (filters?.status) {
+            query.status = filters.status;
+        }
+
+        if (filters?.visibility) {
+            query.visibility = filters.visibility;
+        }
+
+        if (filters?.isUrgent !== undefined) {
+            query.isUrgent = filters.isUrgent;
+        }
+
+        if (filters?.durationType) {
+            query.durationType = filters.durationType;
+        }
+
+        if (filters?.skillId) {
+            query.skillId = new mongoose.Types.ObjectId(filters.skillId);
+        }
+
+        if (filters?.minBudget !== undefined || filters?.maxBudget !== undefined) {
+            query['budget.min'] = {};
+            if (filters.minBudget !== undefined) query['budget.min'].$gte = filters.minBudget;
+            if (filters.maxBudget !== undefined) query['budget.max'].$lte = filters.maxBudget;
+        }
+
+        if (filters?.search) {
+            const searchRegex = new RegExp(filters.search, 'i');
+            const matchingUsers = await UserModel.find({ name: searchRegex }).select('_id');
+            const userIds = matchingUsers.map(u => u._id);
+
+            query.$or = [
+                { jobCode: searchRegex },
+                { title: searchRegex },
+                { description: searchRegex },
+                { userId: { $in: userIds } }
+            ];
+        }
+
+        const skip = (page - 1) * limit;
+
+        const [jobs, total] = await Promise.all([
+            JobModel.find(query)
+                .populate('skillId', 'name')
+                .populate('location.district', 'name')
+                .populate('userId', 'name email')
+                .populate({
+                    path: 'hiredProviderId',
+                    populate: { path: 'userId', select: 'name email' }
+                })
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+            JobModel.countDocuments(query)
+        ]);
+
+        return { jobs, total };
+    }
+
     async findAllOpen(
         page: number,
         limit: number,
@@ -364,7 +439,11 @@ export class JobRepository implements IJobRepository {
     }
 
     async find(query: any): Promise<IJob[]> {
-        return await JobModel.find(query);
+        return JobModel.find(query);
+    }
+
+    async count(query: any): Promise<number> {
+        return JobModel.countDocuments(query);
     }
 
     async getJobById(jobId: string): Promise<{ success: boolean; data?: JobResponseDTO; message?: string }> {

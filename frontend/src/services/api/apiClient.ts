@@ -29,7 +29,11 @@ const processQueue = (error: unknown, token: string | null = null) => {
 };
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const isAdminRequest = config.url?.includes("/admin");
+  const token = isAdminRequest 
+    ? (localStorage.getItem("adminAccessToken") || localStorage.getItem("token"))
+    : (localStorage.getItem("token") || localStorage.getItem("adminAccessToken"));
+    
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

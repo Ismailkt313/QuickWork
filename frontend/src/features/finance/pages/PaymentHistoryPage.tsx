@@ -4,7 +4,6 @@ import {
   RiDownload2Line,
   RiExternalLinkLine,
   RiSearchLine,
-  RiFilter3Line,
   RiBillLine,
   RiMoneyDollarCircleLine,
   RiTimeLine
@@ -15,6 +14,7 @@ import type { AppDispatch, RootState } from "../../../app/store";
 import { toast } from "react-toastify";
 import InvoiceDetailModal from "../components/InvoiceDetailModal";
 import "./UserWallet.css";
+import { CustomSelect } from "../../../shared/components/ui/CustomSelect";
 
 const PaymentHistoryPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -249,17 +249,16 @@ const PaymentHistoryPage: React.FC = () => {
           />
         </div>
         <div className="filter-wrapper">
-          <RiFilter3Line style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', pointerEvents: 'none' }} />
-          <select 
-            className="filter-btn"
-            style={{ paddingLeft: '40px', paddingRight: '24px', appearance: 'none', height: '100%', outline: 'none' }}
+          <CustomSelect
             value={filterMethod}
-            onChange={(e) => setFilterMethod(e.target.value as "all" | "online" | "cash")}
-          >
-            <option value="all">All Methods</option>
-            <option value="online">Online Payment</option>
-            <option value="cash">Cash Payment</option>
-          </select>
+            onChange={(v) => setFilterMethod(v as "all" | "online" | "cash")}
+            options={[
+              { value: "all", label: "All Methods" },
+              { value: "online", label: "Online Payment" },
+              { value: "cash", label: "Cash Payment" },
+            ]}
+            size="md"
+          />
         </div>
       </div>
 

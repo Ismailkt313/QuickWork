@@ -1,5 +1,5 @@
 import React, { useState, useCallback, Suspense, useEffect } from "react";
-import { RiMapLine, RiBellLine } from "react-icons/ri";
+import { RiMapLine, RiBellLine, RiAlertLine } from "react-icons/ri";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import ProviderSidebar from "../components/ProviderSidebar";
 import FallbackScreen from "../../../components/ui/FallbackScreen";
@@ -134,19 +134,54 @@ const ProviderDashboardLayout: React.FC<ProviderDashboardLayoutProps> = ({
       >
         {provider?.verificationStatus === "pending" && (
           <div
-            className="mx-4 lg:mx-8 mt-6 p-4 bg-amber-50 border border-amber-100 rounded-2xl flex items-center gap-4 shadow-sm"
+            className="mx-4 lg:mx-8 mt-5 mb-1"
             role="alert"
           >
-            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-amber-500 shadow-sm flex-shrink-0">
-              <RiBellLine size={20} />
-            </div>
-            <div>
-              <h4 className="text-sm font-black text-amber-900 mb-0.5 uppercase tracking-wide">
-                Account Verification Pending
-              </h4>
-              <p className="text-xs text-amber-800 font-medium opacity-90 leading-relaxed">
-                Your application is currently being reviewed. You can explore your dashboard, but some job interactions will be restricted until your profile is approved.
-              </p>
+            <div style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 14,
+              background: "linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)",
+              border: "1.5px solid #fde68a",
+              borderRadius: 16,
+              padding: "14px 18px",
+              boxShadow: "0 2px 12px rgba(251,191,36,0.12)"
+            }}>
+              <div style={{
+                width: 38,
+                height: 38,
+                minWidth: 38,
+                borderRadius: 10,
+                background: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#d97706",
+                boxShadow: "0 2px 8px rgba(217,119,6,0.15)",
+              }}>
+                <RiAlertLine size={19} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h4 style={{
+                  fontSize: 11,
+                  fontWeight: 800,
+                  color: "#92400e",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  margin: "0 0 3px"
+                }}>
+                  Account Verification Pending
+                </h4>
+                <p style={{
+                  fontSize: 12.5,
+                  color: "#78350f",
+                  fontWeight: 500,
+                  margin: 0,
+                  lineHeight: 1.5
+                }}>
+                  Your application is under review. Some job interactions will be restricted until your profile is approved.
+                </p>
+              </div>
             </div>
           </div>
         )}

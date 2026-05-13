@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 const navItems = [
   { label: "Dashboard", icon: "bi-grid-1x2-fill", path: "/admin" },
   { label: "Users", icon: "bi-people-fill", path: "/admin/users" },
+  { label: "Jobs", icon: "bi-briefcase-fill", path: "/admin/jobs" },
   {
     label: "Providers",
     icon: "bi-person-badge-fill",

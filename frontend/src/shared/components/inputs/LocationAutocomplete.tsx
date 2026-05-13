@@ -25,6 +25,7 @@ interface LocationAutocompleteProps {
   helperText?: string;
   required?: boolean;
   disabled?: boolean;
+  name?: string;
 }
 
 export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
@@ -36,6 +37,7 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   helperText,
   required,
   disabled,
+  name,
 }) => {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 300);
@@ -135,6 +137,7 @@ export const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         </span>
         <input
           type="text"
+          name={name}
           className={`form-control border-start-0 px-2 ${error ? "is-invalid border-danger" : ""}`}
           style={{ boxShadow: "none" }}
           placeholder={

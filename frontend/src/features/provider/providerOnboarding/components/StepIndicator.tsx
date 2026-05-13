@@ -6,30 +6,22 @@ interface StepIndicatorProps {
 const StepIndicator = ({ currentStep, totalSteps }: StepIndicatorProps) => {
   if (currentStep === 0) return null;
 
+  const progressPercentage = (currentStep / (totalSteps - 1)) * 100;
+
   return (
-    <div className="container mt-4 mb-4" style={{ maxWidth: "700px" }}>
-      <div className="text-center mb-3">
-        <span className="badge bg-primary rounded-pill px-3 py-2 mb-2">
+    <div className="max-w-[680px] mx-auto mt-4 mb-8">
+      <div className="text-center mb-6 flex flex-col items-center gap-2">
+        <span className="bg-blue-100 text-blue-700 px-4 py-1.5 rounded-full text-[11px] font-black tracking-widest uppercase">
           Step {currentStep} of {totalSteps - 1}
         </span>
-        <h6
-          className="text-secondary fw-bold text-uppercase"
-          style={{ letterSpacing: "1px", fontSize: "10px" }}
-        >
+        <h6 className="text-slate-400 font-bold text-[10px] uppercase tracking-[2px]">
           Application Progress
         </h6>
       </div>
-      <div
-        className="progress"
-        style={{ height: "6px", backgroundColor: "#e9ecef" }}
-      >
+      <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
         <div
-          className="progress-bar bg-primary rounded-pill transition-all"
-          role="progressbar"
-          style={{
-            width: `${(currentStep / (totalSteps - 1)) * 100}%`,
-            transition: "width 0.5s ease",
-          }}
+          className="h-full bg-blue-600 rounded-full transition-all duration-500 ease-out"
+          style={{ width: `${progressPercentage}%` }}
         ></div>
       </div>
     </div>

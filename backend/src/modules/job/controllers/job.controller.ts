@@ -198,4 +198,55 @@ export class JobController implements IJobController {
             next(error);
         }
     };
+
+    getAllJobsAdmin = async (req: Request, res: Response, next: any): Promise<void> => {
+        try {
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 10;
+            const status = req.query.status as string;
+            const search = req.query.search as string;
+            const visibility = req.query.visibility as string;
+            const type = req.query.type as any;
+            const skillId = req.query.skillId as string;
+            const minBudget = req.query.minBudget ? parseInt(req.query.minBudget as string) : undefined;
+            const maxBudget = req.query.maxBudget ? parseInt(req.query.maxBudget as string) : undefined;
+
+            const result = await this._jobService.getAllJobsAdmin(page, limit, { 
+                status, search, visibility, type, skillId, minBudget, maxBudget 
+            });
+            res.status(HttpStatusCode.OK).json(result);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getJobDetailsAdmin = async (req: Request, res: Response, next: any): Promise<void> => {
+        try {
+            const jobId = req.params.jobId as string;
+            const result = await this._jobService.adminGetJobDetails(jobId);
+            if (!result.success) {
+                throw new AppError(result.message || 'Job not found', HttpStatusCode.NOT_FOUND);
+            }
+            res.status(HttpStatusCode.OK).json(result);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    adminCancelJob = async (req: Request, res: Response, next: any): Promise<void> => {
+        try {
+            const jobId = req.params.jobId as string;
+            const { reason } = req.body;
+            const adminId = (req as any).user?.userId;
+
+            if (!reason) {
+                throw new AppError('Cancellation reason is required', HttpStatusCode.BAD_REQUEST);
+            }
+
+            const result = await this._jobService.adminCancelJob(jobId, reason, adminId);
+            res.status(HttpStatusCode.OK).json(result);
+        } catch (error) {
+            next(error);
+        }
+    };
 }

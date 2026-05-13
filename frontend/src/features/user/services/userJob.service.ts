@@ -46,7 +46,14 @@ export const getUserJobs = async (
     const params = new URLSearchParams();
     params.append("page", page.toString());
     params.append("limit", limit.toString());
-    if (status && status !== "all") params.append("status", status);
+    if (status && status !== "all") {
+      if (status === "direct") {
+        params.append("visibility", "private");
+        params.append("hireType", "direct");
+      } else {
+        params.append("status", status);
+      }
+    }
     if (search) params.append("search", search);
 
     const response = await api.get(`${ENDPOINTS.JOB.MY}?${params.toString()}`);

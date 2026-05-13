@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { getUsers, toggleBlockUser, getUserById } from "../services/adminApi";
-import type { IUserListItem } from "../types/admin.types";
+import type { IUserListItem, IServiceProviderDetails } from "../types/admin.types";
 import UserDetailModal from "../components/UserDetailModal";
 import { ROLES } from "../../../constants/roles";
 import useDebounce from "../../../hooks/useDebounce";
 import axios from "axios";
+import { CustomSelect, type SelectOption } from "../../../shared/components/ui/CustomSelect";
 
 interface ToastItem {
   id: number;
@@ -19,6 +20,20 @@ interface ConfirmState {
   isBlocked: boolean;
   loading: boolean;
 }
+
+/* ─── Options ─── */
+const roleOptions: SelectOption[] = [
+  { value: "", label: "Role: All" },
+  { value: ROLES.USER, label: "Role: User" },
+  { value: ROLES.PROVIDER, label: "Role: Provider" },
+  { value: ROLES.ADMIN, label: "Role: Admin" },
+];
+
+const statusOptions: SelectOption[] = [
+  { value: "", label: "Status: All" },
+  { value: "active", label: "Status: Active" },
+  { value: "blocked", label: "Status: Blocked" },
+];
 
 const UserManagement = () => {
   const [users, setUsers] = useState<IUserListItem[]>([]);
@@ -41,6 +56,7 @@ const UserManagement = () => {
   });
 
   const [selectedUser, setSelectedUser] = useState<IUserListItem | null>(null);
+  const [selectedProviderProfile, setSelectedProviderProfile] = useState<IServiceProviderDetails | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [fetchingDetail, setFetchingDetail] = useState(false);
 
@@ -56,10 +72,20 @@ const UserManagement = () => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
+  const [filterRole, setFilterRole] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await getUsers({ page, limit, search: debouncedSearch || undefined });
+      const isBlocked = filterStatus === "blocked" ? true : filterStatus === "active" ? false : undefined;
+      const res = await getUsers({ 
+        page, 
+        limit, 
+        search: debouncedSearch || undefined,
+        role: filterRole || undefined,
+        isBlocked
+      });
 
       setUsers(res.data.data);
       setTotal(res.data.pagination.total);
@@ -69,7 +95,7 @@ const UserManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch]);
+  }, [page, debouncedSearch, filterRole, filterStatus]);
 
   useEffect(() => {
     fetchUsers();
@@ -77,7 +103,7 @@ const UserManagement = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch]);
+  }, [debouncedSearch, filterRole, filterStatus]);
 
   const openBlockConfirm = (
     userId: string,
@@ -181,7 +207,9 @@ const UserManagement = () => {
     try {
       const res = await getUserById(id);
       if (res.data && res.data.success) {
-        setSelectedUser(res.data.data);
+        const { user, providerProfile } = res.data.data;
+        setSelectedUser(user as IUserListItem);
+        setSelectedProviderProfile(providerProfile || null);
         setDetailModalOpen(true);
       } else {
         showToast("error", "Failed to fetch user details.");
@@ -339,14 +367,33 @@ const UserManagement = () => {
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
         />
-        <button type="button" className="admin-filter-btn">
-          Role: All <i className="bi bi-chevron-down"></i>
-        </button>
-        <button type="button" className="admin-filter-btn">
-          Status: Active <i className="bi bi-chevron-down"></i>
-        </button>
-        <button type="button" className="admin-filter-btn">
-          <i className="bi bi-sliders"></i> More Filters
+        
+        <CustomSelect 
+          size="sm"
+          options={roleOptions}
+          value={filterRole}
+          onChange={setFilterRole}
+          className="admin-filter-select-override"
+        />
+
+        <CustomSelect 
+          size="sm"
+          options={statusOptions}
+          value={filterStatus}
+          onChange={setFilterStatus}
+          className="admin-filter-select-override"
+        />
+
+        <button 
+          type="button" 
+          className="admin-filter-btn"
+          onClick={() => {
+            setSearchInput("");
+            setFilterRole("");
+            setFilterStatus("");
+          }}
+        >
+          <i className="bi bi-arrow-counterclockwise"></i> Reset
         </button>
       </div>
 
@@ -460,7 +507,11 @@ const UserManagement = () => {
       {detailModalOpen && selectedUser && (
         <UserDetailModal
           user={selectedUser}
-          onClose={() => setDetailModalOpen(false)}
+          providerProfile={selectedProviderProfile}
+          onClose={() => {
+            setDetailModalOpen(false);
+            setSelectedProviderProfile(null);
+          }}
           onToggleBlock={(id) => {
             const isBlocked = selectedUser.isBlocked;
             openBlockConfirm(id, selectedUser.name, isBlocked);

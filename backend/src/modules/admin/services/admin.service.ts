@@ -4,12 +4,12 @@ import {
     IUserListQuery,
     IUserListResponse,
     IServiceProviderDetails,
+    IUserWithProviderProfile,
 } from "../interfaces/admin.interface";
 import { ROLES } from "../../../constants/roles";
 import { SuccessMessages } from "../../../constants/messages/successMessages";
 import { ErrorMessages } from "../../../constants/messages/errorMessages";
 import { IApiResponse } from "../../../types/api.types";
-import { IUser } from "../../auth/interfaces/auth.interface";
 import { logger } from "../../../utils/logger";
 import { INotificationService } from "../../notification/interfaces/notification.interface";
 import { getIo } from "../../../chat/socket";
@@ -26,7 +26,7 @@ export class AdminService implements IAdminService {
     public async getUsers(query: IUserListQuery): Promise<IUserListResponse> {
         const [users, total] = await Promise.all([
             this._adminRepository.getUsers(query),
-            this._adminRepository.getUserCount(query.search),
+            this._adminRepository.getUserCount(query),
         ]);
 
         const totalPages = Math.ceil(total / query.limit);
@@ -136,15 +136,22 @@ export class AdminService implements IAdminService {
         };
     }
 
-    public async getUserById(userId: string): Promise<IApiResponse<IUser>> {
+    public async getUserById(userId: string): Promise<IApiResponse<IUserWithProviderProfile>> {
         const user = await this._adminRepository.getUserById(userId);
         if (!user) {
             throw new Error(ErrorMessages.USER_NOT_FOUND);
         }
+
+        // If user is a provider, also fetch their provider profile
+        let providerProfile: IServiceProviderDetails | null = null;
+        if (user.role === ROLES.PROVIDER) {
+            providerProfile = await this._adminRepository.getProviderByUserId(userId);
+        }
+
         return {
             success: true,
             message: SuccessMessages.USER_FETCHED || "User fetched successfully",
-            data: user,
+            data: { user, providerProfile },
         };
     }
 }

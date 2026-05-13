@@ -6,24 +6,27 @@ import { JOB_STATUS } from '../../../constants/jobStatus';
 import { Types } from 'mongoose';
 import { getObjectId } from '../../../utils/getObjectId';
 import { INotificationService } from '../../notification/interfaces/notification.interface';
-import { IWorkHistoryService } from '../../finance/interfaces/finance.interface';
+import { IWorkHistoryService, IPaymentService } from '../../finance/interfaces/finance.interface';
 
 export class AssignmentService implements IAssignmentService {
     private _assignmentRepository: IAssignmentRepository;
     private _jobRepository: IJobRepository;
     private _notificationService: INotificationService;
     private _workHistoryService: IWorkHistoryService;
-
+    private _paymentService: IPaymentService;
+    
     constructor(
         assignmentRepository: IAssignmentRepository,
         jobRepository: IJobRepository,
         notificationService: INotificationService,
-        workHistoryService: IWorkHistoryService
+        workHistoryService: IWorkHistoryService,
+        paymentService: IPaymentService
     ) {
         this._assignmentRepository = assignmentRepository;
         this._jobRepository = jobRepository;
         this._notificationService = notificationService;
         this._workHistoryService = workHistoryService;
+        this._paymentService = paymentService;
     }
 
     async checkOverlap(freelancerId: string, startDate: Date, endDate: Date): Promise<boolean> {
@@ -45,10 +48,15 @@ export class AssignmentService implements IAssignmentService {
             const job = await this._jobRepository.findById(jobId);
 
             if (job && job.budget) {
-                const amount = data.payment?.amount || (job.budget.min + job.budget.max) / 2;
+                const chosenAmount = data.payment?.amount;
+                const finalAmount = (chosenAmount !== undefined && chosenAmount !== null) 
+                    ? chosenAmount 
+                    : (job.budget.min + job.budget.max) / 2;
+
                 data.payment = {
+                    ...data.payment,
                     status: PAYMENT_STATUS.PENDING,
-                    amount: amount
+                    amount: finalAmount
                 };
             }
         }
@@ -408,6 +416,13 @@ export class AssignmentService implements IAssignmentService {
     }
 
     async confirmPayment(id: string, providerId: string): Promise<IAssignment> {
+        const history = await this._workHistoryService.getByAssignmentId(id);
+        if (history) {
+            await this._paymentService.confirmCashPayment(history._id.toString(), providerId);
+            const updated = await this._assignmentRepository.findById(id);
+            return updated!;
+        }
+
         const assignment = await this._assignmentRepository.findById(id);
         if (!assignment) throw new Error('Assignment not found');
 
@@ -429,6 +444,13 @@ export class AssignmentService implements IAssignmentService {
     }
 
     async providerMarkAsPaid(id: string, providerId: string): Promise<IAssignment> {
+        const history = await this._workHistoryService.getByAssignmentId(id);
+        if (history) {
+            await this._paymentService.confirmCashPayment(history._id.toString(), providerId);
+            const updated = await this._assignmentRepository.findById(id);
+            return updated!;
+        }
+
         const assignment = await this._assignmentRepository.findById(id);
         if (!assignment) throw new Error('Assignment not found');
 

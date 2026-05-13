@@ -1,78 +1,54 @@
 import React, { useState, useEffect } from "react";
 import OnboardingLayout from "../providerOnboarding/components/OnboardingLayout";
 import RejectionNoticeModal from "../components/RejectionNoticeModal";
-import {
-  getMyProfile,
-  resetProviderApplication,
-} from "../services/provider.service";
+import { getMyProfile, resetProviderApplication } from "../services/provider.service";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
 const BecomeProviderPage: React.FC = () => {
   const navigate = useNavigate();
-  const [checkingStatus, setCheckingStatus] = useState(true);
+  const [checking, setChecking] = useState(true);
   const [isRejected, setIsRejected] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
-    const checkStatus = async () => {
-      try {
-        const response = await getMyProfile<{ verificationStatus: string; rejectionReason?: string }>();
-
-        if (
-          response.success &&
-          response.data?.verificationStatus === "rejected"
-        ) {
+    getMyProfile<{ verificationStatus: string; rejectionReason?: string }>()
+      .then(r => {
+        if (r.success && r.data?.verificationStatus === "rejected") {
           setIsRejected(true);
-          setRejectionReason(response.data.rejectionReason || "");
+          setRejectionReason(r.data.rejectionReason || "");
         }
-      } catch (error) {
-
-        console.log(
-          "No existing provider profile or error fetching profile:",
-          error,
-        );
-      } finally {
-        setCheckingStatus(false);
-      }
-    };
-    checkStatus();
+      })
+      .catch(() => {})
+      .finally(() => setChecking(false));
   }, []);
 
   const handleRestart = async () => {
     setResetting(true);
     try {
-      const response = await resetProviderApplication();
-      if (response.success) {
-        toast.success("Application reset. You can now start fresh.");
-        setIsRejected(false);
-
-      }
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Failed to reset application";
-      toast.error(errorMessage);
+      const r = await resetProviderApplication();
+      if (r.success) { toast.success("Application reset. Start fresh!"); setIsRejected(false); }
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Reset failed");
     } finally {
       setResetting(false);
     }
   };
 
-  if (checkingStatus) {
+  if (checking) {
     return (
-      <div className="min-vh-100 d-flex align-items-center justify-content-center bg-white">
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">
-            Checking application status...
-          </span>
-        </div>
+      <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#f8fafc", gap: 16 }}>
+        <div style={{ width: 32, height: 32, borderRadius: "50%", border: "3px solid #2563eb", borderTopColor: "transparent", animation: "spin 0.7s linear infinite" }} />
+        <p style={{ fontSize: 14, color: "#94a3b8", fontWeight: 500 }}>Checking application status…</p>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
   return (
-    <div className="become-provider-page">
+    <>
       <OnboardingLayout />
-
       <RejectionNoticeModal
         isOpen={isRejected}
         onClose={() => navigate("/")}
@@ -80,7 +56,7 @@ const BecomeProviderPage: React.FC = () => {
         onRestart={handleRestart}
         loading={resetting}
       />
-    </div>
+    </>
   );
 };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   RiFilter3Line,
   RiSearchLine,
@@ -43,16 +43,49 @@ const UserJobsPage: React.FC = () => {
   const debouncedSearch = useDebounce(searchTerm, 400);
   const [currentPage, setCurrentPage] = useState(initialPage);
 
-  // Sync state with URL params (handles back/forward buttons)
+  const fetchJobs = useCallback(async () => {
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const status = searchParams.get("status") || "all";
+    const search = searchParams.get("search") || "";
+
+    try {
+      setLoading(true);
+      const response = await getUserJobs(page, JOBS_PER_PAGE, status, search || undefined);
+      if (response.success) {
+        setJobs(response.data);
+        if (response.pagination) setPagination(response.pagination);
+        if (response.counts) setCounts(response.counts);
+      }
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message: string }>;
+      toast.error(axiosError.response?.data?.message || (error as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    const urlSearch = searchParams.get("search") || "";
+    if (debouncedSearch !== urlSearch) {
+      const newParams = new URLSearchParams(searchParams);
+      if (debouncedSearch) {
+        newParams.set("search", debouncedSearch);
+      } else {
+        newParams.delete("search");
+      }
+      newParams.set("page", "1"); // Reset pagination on search change
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [debouncedSearch, searchParams, setSearchParams]);
+
   useEffect(() => {
     const page = parseInt(searchParams.get("page") || "1", 10);
     const status = searchParams.get("status") || "all";
     const search = searchParams.get("search") || "";
 
-    if (page !== currentPage) setCurrentPage(page);
-    if (status !== filterTab) setFilterTab(status);
     if (search !== searchTerm) setSearchTerm(search);
-  }, [searchParams, currentPage, filterTab, searchTerm]);
+    fetchJobs();
+  }, [searchParams, fetchJobs, currentPage, filterTab, searchTerm]);
 
   const [pagination, setPagination] = useState({
     total: 0,
@@ -60,6 +93,7 @@ const UserJobsPage: React.FC = () => {
     limit: JOBS_PER_PAGE,
     totalPages: 1,
   });
+
   const [counts, setCounts] = useState({
     all: 0,
     direct: 0,
@@ -77,63 +111,18 @@ const UserJobsPage: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const isInitialMount = useRef(true);
-  const isSearchInitial = useRef(true);
+  const handleTabChange = (newTab: string) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("status", newTab);
+    newParams.set("page", "1");
+    setSearchParams(newParams, { replace: true });
+  };
 
-  useEffect(() => {
-    const params: Record<string, string> = {};
-    if (currentPage > 1) params.page = currentPage.toString();
-    if (filterTab !== "all") params.status = filterTab;
-    if (debouncedSearch) params.search = debouncedSearch;
-
-    setSearchParams(params, { replace: true });
-  }, [currentPage, filterTab, debouncedSearch, setSearchParams]);
-
-  useEffect(() => {
-    if (isSearchInitial.current) {
-      isSearchInitial.current = false;
-      return;
-    }
-    setCurrentPage(1);
-  }, [debouncedSearch]);
-
-  useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-    setCurrentPage(1);
-  }, [filterTab]);
-
-  const fetchJobs = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await getUserJobs(
-        currentPage,
-        JOBS_PER_PAGE,
-        filterTab,
-        debouncedSearch || undefined,
-      );
-      if (response.success) {
-        setJobs(response.data);
-        if (response.pagination) {
-          setPagination(response.pagination);
-        }
-        if (response.counts) {
-          setCounts(response.counts);
-        }
-      }
-    } catch (error) {
-      const axiosError = error as AxiosError<{ message: string }>;
-      toast.error(axiosError.response?.data?.message || (error as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentPage, filterTab, debouncedSearch]);
-
-  useEffect(() => {
-    fetchJobs();
-  }, [fetchJobs]);
+  const handlePageChange = (newPage: number) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("page", newPage.toString());
+    setSearchParams(newParams, { replace: true });
+  };
 
   const triggerCancelJob = (jobId: string) => {
     setJobToCancelId(jobId);
@@ -180,8 +169,6 @@ const UserJobsPage: React.FC = () => {
     return pages;
   };
 
-  // ─── Sub-Components ───
-
   const MobilePageToolbar = () => (
     <div className="m-page-toolbar">
       <div className="m-toolbar-content">
@@ -207,7 +194,7 @@ const UserJobsPage: React.FC = () => {
           <button
             key={tab.id}
             className={`m-tab-chip ${filterTab === tab.id ? "active" : ""}`}
-            onClick={() => setFilterTab(tab.id)}
+            onClick={() => handleTabChange(tab.id)}
           >
             {tab.label}
             {tab.count > 0 && <span className="m-chip-count">{tab.count}</span>}
@@ -274,15 +261,12 @@ const UserJobsPage: React.FC = () => {
           
           {totalPages > 1 && (
             <div className="m-pagination">
-               <button className="m-pag-btn" onClick={() => setCurrentPage(p => Math.max(1, p-1))} disabled={currentPage === 1}>Prev</button>
+               <button className="m-pag-btn" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>Prev</button>
                <span className="m-pag-info">{currentPage} / {totalPages}</span>
-               <button className="m-pag-btn" onClick={() => setCurrentPage(p => Math.min(totalPages, p+1))} disabled={currentPage === totalPages}>Next</button>
+               <button className="m-pag-btn" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>Next</button>
             </div>
           )}
           
-          {/* MobileBottomNav is already rendered in Header.tsx based on my audit, so I should remove it from here if it's duplicated. */}
-          {/* Re-checking Header.tsx... line 644: <MobileBottomNav /> */}
-          {/* So I will NOT render it here to avoid duplication. */}
         </div>
       ) : (
         <>
@@ -329,7 +313,7 @@ const UserJobsPage: React.FC = () => {
                 <button
                   key={tab.id}
                   className={`qw-tab-btn ${filterTab === tab.id ? "active" : ""}`}
-                  onClick={() => setFilterTab(tab.id)}
+                  onClick={() => handleTabChange(tab.id)}
                 >
                   {tab.label}
                   {tab.count !== undefined && (
@@ -422,7 +406,7 @@ const UserJobsPage: React.FC = () => {
               <div className="qw-pagination">
                 <button
                   className="qw-page-btn qw-page-nav"
-                  onClick={() => setCurrentPage(1)}
+                  onClick={() => handlePageChange(1)}
                   disabled={currentPage === 1}
                   aria-label="First page"
                   title="First page"
@@ -432,7 +416,7 @@ const UserJobsPage: React.FC = () => {
 
                 <button
                   className="qw-page-btn qw-page-nav"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                   aria-label="Previous page"
                   title="Previous page"
@@ -450,7 +434,7 @@ const UserJobsPage: React.FC = () => {
                       <button
                         key={page}
                         className={`qw-page-btn qw-page-num ${currentPage === page ? "active" : ""}`}
-                        onClick={() => setCurrentPage(page as number)}
+                        onClick={() => handlePageChange(page as number)}
                         aria-label={`Page ${page}`}
                         aria-current={currentPage === page ? "page" : undefined}
                       >
@@ -462,7 +446,7 @@ const UserJobsPage: React.FC = () => {
 
                 <button
                   className="qw-page-btn qw-page-nav"
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
                   aria-label="Next page"
                   title="Next page"
@@ -472,7 +456,7 @@ const UserJobsPage: React.FC = () => {
 
                 <button
                   className="qw-page-btn qw-page-nav"
-                  onClick={() => setCurrentPage(totalPages)}
+                  onClick={() => handlePageChange(totalPages)}
                   disabled={currentPage === totalPages}
                   aria-label="Last page"
                   title="Last page"
@@ -640,7 +624,6 @@ const UserJobsPage: React.FC = () => {
                     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
                 }
 
-                /* ─── Mobile Premium Styles (Operational Marketplace) ─── */
                 .m-page {
                     padding: 0;
                     background: #f8fafc;
@@ -973,3 +956,4 @@ const UserJobsPage: React.FC = () => {
 };
 
 export default UserJobsPage;
+

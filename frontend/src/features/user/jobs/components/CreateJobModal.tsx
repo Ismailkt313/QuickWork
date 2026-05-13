@@ -1,5 +1,6 @@
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { AxiosError } from "axios";
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -142,6 +143,12 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
     }
   };
 
+  const handleSelectChange = (name: string) => (value: string) => {
+    handleChange({
+      target: { name, value },
+    } as React.ChangeEvent<HTMLSelectElement>);
+  };
+
   const handleLocationSelect = (loc: {
     address: string;
     lat: number;
@@ -156,29 +163,52 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
 
   const validate = () => {
     const newErrors: Partial<Record<keyof JobFormData, string>> = {};
-    if (!formData.title.trim()) newErrors.title = "Job title is required";
-    else if (formData.title.length < 5)
+
+    if (!formData.title.trim()) {
+      newErrors.title = "Job title is required";
+    } else if (formData.title.length < 5) {
       newErrors.title = "Title must be at least 5 characters";
+    }
 
-    if (!formData.description.trim())
+    if (!formData.description.trim()) {
       newErrors.description = "Description is required";
-    else if (formData.description.length < 10)
+    } else if (formData.description.length < 10) {
       newErrors.description = "Please provide at least 10 characters";
+    }
 
-    if (!formData.category) newErrors.category = "Category is required";
-    if (!formData.contactNumber)
+    if (!formData.category) {
+      newErrors.category = "Please select a service category";
+    }
+
+    if (!formData.districtId) {
+      newErrors.districtId = "Please select a district";
+    }
+
+    if (!formData.selectedLocation) {
+      newErrors.selectedLocation = "Please search and select a specific location";
+    }
+
+    if (!formData.contactNumber) {
       newErrors.contactNumber = "Contact number is required";
-    else if (formData.contactNumber.length < 10)
-      newErrors.contactNumber = "Enter a valid phone number";
+    } else if (formData.contactNumber.length < 10) {
+      newErrors.contactNumber = "Enter a valid 10-digit phone number";
+    }
 
-    if (!formData.districtId) newErrors.districtId = "District is required";
-    if (!formData.selectedLocation)
-      newErrors.selectedLocation = "Please search and select a location";
-    if (!formData.startDate) newErrors.startDate = "Start date is required";
-    if (!formData.startTime) newErrors.startTime = "Start time is required";
-    if (!formData.endTime) newErrors.endTime = "End time is required";
+    if (!formData.startDate) {
+      newErrors.startDate = "Start date is required";
+    }
 
-    if (formData.startTime && formData.endTime) {
+    if (!formData.freelancersNeeded || Number(formData.freelancersNeeded) < 1) {
+      newErrors.freelancersNeeded = "At least 1 freelancer is required";
+    }
+
+    if (!formData.startTime) {
+      newErrors.startTime = "Start time is required";
+    }
+
+    if (!formData.endTime) {
+      newErrors.endTime = "End time is required";
+    } else if (formData.startTime && formData.endTime) {
       const toMinutes = (t: string) => {
         const [h, m] = t.split(":").map(Number);
         return h * 60 + m;
@@ -199,7 +229,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
       formData.durationType === "multi_day" &&
       (!formData.days || Number(formData.days) < 1)
     ) {
-      newErrors.days = "Days must be at least 1";
+      newErrors.days = "Please enter number of days (min 1)";
     }
 
     let requiredMinBudget = 500;
@@ -214,25 +244,45 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
 
     if (!formData.minBudget || Number(formData.minBudget) < requiredMinBudget) {
       if (formData.durationType === "half_day") {
-        newErrors.minBudget = "For a half-day job, min budget per provider must be at least ₹500";
+        newErrors.minBudget = "Min budget for a half-day job is ₹500";
       } else if (formData.durationType === "full_day") {
-        newErrors.minBudget = "For a full-day job, min budget per provider must be at least ₹1000";
+        newErrors.minBudget = "Min budget for a full-day job is ₹1000";
       } else {
-        newErrors.minBudget = `For ${formData.days || 1} days, min budget per provider must be at least ₹${requiredMinBudget} (₹1000/day)`;
+        newErrors.minBudget = `Min budget for ${formData.days || 1} days is ₹${requiredMinBudget}`;
       }
     }
-    if (!formData.maxBudget || Number(formData.maxBudget) <= 0) {
-      newErrors.maxBudget = "Enter max budget";
-    } else if (Number(formData.maxBudget) < Number(formData.minBudget)) {
-      newErrors.maxBudget = "Max must be >= Min";
-    }
 
-    if (!formData.freelancersNeeded || Number(formData.freelancersNeeded) < 1) {
-      newErrors.freelancersNeeded = "At least 1 freelancer is required";
+    if (!formData.maxBudget || Number(formData.maxBudget) <= 0) {
+      newErrors.maxBudget = "Max budget is required";
+    } else if (Number(formData.maxBudget) < Number(formData.minBudget)) {
+      newErrors.maxBudget = "Max budget must be >= Min budget";
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+
+    const errorKeys = Object.keys(newErrors) as (keyof JobFormData)[];
+    if (errorKeys.length > 0) {
+      const firstErrorKey = errorKeys[0];
+      const errorMessage = newErrors[firstErrorKey];
+
+      toast.error(errorMessage, {
+        toastId: "validation-error",
+        position: "top-center",
+        autoClose: 3000,
+      });
+
+      setTimeout(() => {
+        const element = document.getElementsByName(firstErrorKey)[0];
+        if (element) {
+          element.focus();
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 100);
+
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -265,10 +315,12 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
         placeDistrict !== chosenDistrictName &&
         !formattedAddress.includes(chosenDistrictName)
       ) {
+        const errorMsg = `The selected place must be within ${selectedDistrict.name}`;
         setErrors((prev) => ({
           ...prev,
-          selectedLocation: `The selected place must be within ${selectedDistrict.name}`,
+          selectedLocation: errorMsg,
         }));
+        toast.error(errorMsg, { toastId: "location-error" });
         setIsSubmitting(false);
         return;
       }
@@ -314,9 +366,11 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
       } else {
         toast.error(result.message || "Failed to post job");
       }
-    } catch (error) {
-      console.error("Error posting job:", error);
-      toast.error("An unexpected error occurred");
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message?: string }>;
+      console.error("Error posting job:", err);
+      const errorMessage = err.response?.data?.message || "An unexpected error occurred while posting the job";
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -489,9 +543,8 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
               <div className="col-12">
                 <FormSelect
                   label="Service Category"
-                  name="category"
                   value={formData.category}
-                  onChange={handleChange}
+                  onChange={handleSelectChange("category")}
                   error={errors.category}
                   options={categoryOptions}
                   placeholder="Select a category"
@@ -502,9 +555,8 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
               <div className="col-md-6">
                 <FormSelect
                   label="Select District"
-                  name="districtId"
                   value={formData.districtId}
-                  onChange={handleChange}
+                  onChange={handleSelectChange("districtId")}
                   error={errors.districtId}
                   options={locationOptions}
                   placeholder="Choose district"
@@ -528,6 +580,7 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
                   error={errors.selectedLocation as string}
                   helperText="Make sure your district is also visible in the selected location for a successful job posting."
                   disabled={!formData.districtId}
+                  name="selectedLocation"
                   required
                 />
               </div>
@@ -556,9 +609,8 @@ export const CreateJobModal: React.FC<CreateJobModalProps> = ({
               <div className="col-md-4">
                 <FormSelect
                   label="Estimated Duration"
-                  name="durationType"
                   value={formData.durationType}
-                  onChange={handleChange}
+                  onChange={handleSelectChange("durationType")}
                   options={durationOptions}
                   icon={<FiClock />}
                 />

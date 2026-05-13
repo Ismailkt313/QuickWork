@@ -8,7 +8,7 @@ import { locationRouter } from "./modules/location";
 import { skillRouter } from "./modules/skill";
 import { uploadRouter } from "./modules/upload";
 import { landingRouter } from "./modules/landing";
-import { jobRouter } from "./modules/job";
+import { jobRouter, adminJobRouter } from "./modules/job";
 import { assignmentRouter } from "./modules/assignment";
 import messageRouter from "./modules/message";
 import { reviewRouter } from "./modules/review";
@@ -26,6 +26,7 @@ export const registerdRoutes = (app: Application) => {
     app.use(BASE_URL + API_ROUTES.ADMIN, adminServiceRequestRouter);
     app.use(BASE_URL + API_ROUTES.ADMIN + '/finance', adminFinanceRouter);
     app.use(BASE_URL + API_ROUTES.ADMIN + '/reports', moderationRouter);
+    app.use(BASE_URL + API_ROUTES.ADMIN + '/jobs', adminJobRouter);
     app.use(BASE_URL + API_ROUTES.PROVIDER, serviceProviderRouter);
     app.use(BASE_URL + API_ROUTES.PROVIDER + '/dashboard', providerDashboardRouter);
     app.use(BASE_URL + API_ROUTES.SERVICE_REQUEST, serviceRequestRouter);

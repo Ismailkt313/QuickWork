@@ -1,7 +1,7 @@
 import axios, { type AxiosResponse } from "axios";
 import { ENDPOINTS } from "../../../constants/endpoints";
 import type { IApiResponse, IPaginatedResponse } from "../../../types/api.types";
-import type { IUserListItem, IServiceProviderDetails, IAdminLoginResponse } from "../types/admin.types";
+import type { IUserListItem, IServiceProviderDetails, IAdminLoginResponse, IUserWithProviderProfile } from "../types/admin.types";
 import { jwtDecode } from "jwt-decode";
 const apiUrl = import.meta.env.VITE_API_URL;
 export const Adminapi = axios.create({
@@ -136,6 +136,8 @@ export const getUsers = (params?: {
   page?: number;
   limit?: number;
   search?: string;
+  role?: string;
+  isBlocked?: boolean;
 }): Promise<AxiosResponse<IPaginatedResponse<IUserListItem>>> => {
   return Adminapi.get(ENDPOINTS.ADMIN.USERS, { params });
 };
@@ -148,7 +150,7 @@ export const getProviderById = (providerId: string): Promise<AxiosResponse<IApiR
   return Adminapi.get(ENDPOINTS.ADMIN.PROVIDER_DETAILS(providerId));
 };
 
-export const getUserById = (userId: string): Promise<AxiosResponse<IApiResponse<IUserListItem>>> => {
+export const getUserById = (userId: string): Promise<AxiosResponse<IApiResponse<IUserWithProviderProfile>>> => {
   return Adminapi.get(ENDPOINTS.ADMIN.USER_DETAILS(userId));
 };
 

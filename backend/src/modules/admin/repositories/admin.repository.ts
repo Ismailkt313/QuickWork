@@ -11,7 +11,7 @@ import { HttpStatusCode } from "../../../constants/httpStatusCode";
 export class AdminRepository implements IAdminRepository {
 
     public async getUsers(query: IUserListQuery): Promise<IUser[]> {
-        const filter = this._buildSearchFilter(query.search);
+        const filter = this._buildSearchFilter(query);
         const skip = (query.page - 1) * query.limit;
 
         return UserModel.find(filter)
@@ -20,23 +20,31 @@ export class AdminRepository implements IAdminRepository {
             .limit(query.limit);
     }
 
-    public async getUserCount(search?: string): Promise<number> {
-        const filter = this._buildSearchFilter(search);
+    public async getUserCount(query: IUserListQuery): Promise<number> {
+        const filter = this._buildSearchFilter(query);
         return UserModel.countDocuments(filter);
     }
 
-    private _buildSearchFilter(search?: string): Record<string, unknown> {
-        if (!search || search.trim() === "") {
-            return {};
-        }
+    private _buildSearchFilter(query: IUserListQuery): Record<string, unknown> {
+        const filter: Record<string, unknown> = {};
 
-        const regex = new RegExp(search.trim(), "i");
-        return {
-            $or: [
+        if (query.search && query.search.trim() !== "") {
+            const regex = new RegExp(query.search.trim(), "i");
+            filter.$or = [
                 { name: { $regex: regex } },
                 { email: { $regex: regex } },
-            ],
-        };
+            ];
+        }
+
+        if (query.role && query.role !== "") {
+            filter.role = query.role;
+        }
+
+        if (query.isBlocked !== undefined) {
+            filter.isBlocked = query.isBlocked;
+        }
+
+        return filter;
     }
 
     public async toggleBlockUser(userId: string): Promise<IUser> {
@@ -113,5 +121,16 @@ export class AdminRepository implements IAdminRepository {
 
     public async getUserById(userId: string): Promise<IUser | null> {
         return UserModel.findById(userId);
+    }
+
+    public async getProviderByUserId(userId: string): Promise<IServiceProviderDetails | null> {
+        const provider = await ServiceProviderModel.findOne({ userId })
+            .populate('userId', 'name email phone')
+            .populate('skills', 'name')
+            .populate('location', 'name')
+            .lean();
+
+        if (!provider) return null;
+        return provider as unknown as IServiceProviderDetails;
     }
 }

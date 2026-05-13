@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { AxiosError } from "axios";
 import {
   FiBriefcase,
   FiAlignLeft,
@@ -132,6 +133,12 @@ export const DirectHireModal: React.FC<DirectHireModalProps> = ({
     }
   };
 
+  const handleSelectChange = (name: string) => (value: string) => {
+    handleChange({
+      target: { name, value },
+    } as React.ChangeEvent<HTMLSelectElement>);
+  };
+
   const handleLocationSelect = (loc: {
     address: string;
     lat: number;
@@ -146,27 +153,52 @@ export const DirectHireModal: React.FC<DirectHireModalProps> = ({
 
   const validate = () => {
     const newErrors: Partial<Record<keyof JobFormData, string>> = {};
-    if (!formData.title.trim()) newErrors.title = "Job title is required";
-    else if (formData.title.trim().length < 5)
+
+    if (!formData.title.trim()) {
+      newErrors.title = "Job title is required";
+    } else if (formData.title.trim().length < 5) {
       newErrors.title = "Min 5 characters";
+    }
 
-    if (!formData.description.trim())
+    if (!formData.description.trim()) {
       newErrors.description = "Description is required";
-    else if (formData.description.trim().length < 10)
+    } else if (formData.description.trim().length < 10) {
       newErrors.description = "Min 10 characters";
+    }
 
-    if (!formData.category) newErrors.category = "Category is required";
-    if (!formData.contactNumber)
-      newErrors.contactNumber = "Contact number is required";
-    else if (formData.contactNumber.length < 10)
-      newErrors.contactNumber = "Enter a valid phone number";
+    if (!formData.category) {
+      newErrors.category = "Category is required";
+    }
 
-    if (!formData.districtId) newErrors.districtId = "District is required";
-    if (!formData.selectedLocation)
+    if (!formData.districtId) {
+      newErrors.districtId = "District is required";
+    }
+
+    if (!formData.selectedLocation) {
       newErrors.selectedLocation = "Please search and select a location";
-    if (!formData.startDate) newErrors.startDate = "Start date is required";
-    if (!formData.startTime) newErrors.startTime = "Start time is required";
-    if (!formData.endTime) newErrors.endTime = "End time is required";
+    }
+
+    if (!formData.contactNumber) {
+      newErrors.contactNumber = "Contact number is required";
+    } else if (formData.contactNumber.length < 10) {
+      newErrors.contactNumber = "Enter a valid phone number";
+    }
+
+    if (!formData.startDate) {
+      newErrors.startDate = "Start date is required";
+    }
+
+    if (formData.durationType === "multi_day" && (!formData.days || Number(formData.days) < 1)) {
+      newErrors.days = "Days required";
+    }
+
+    if (!formData.startTime) {
+      newErrors.startTime = "Start time is required";
+    }
+
+    if (!formData.endTime) {
+      newErrors.endTime = "End time is required";
+    }
 
     if (formData.startTime && formData.endTime) {
       const toMinutes = (t: string) => {
@@ -185,43 +217,14 @@ export const DirectHireModal: React.FC<DirectHireModalProps> = ({
       }
     }
 
-    if (
-      formData.durationType === "multi_day" &&
-      (!formData.days || Number(formData.days) < 1)
-    ) {
-      newErrors.days = "Days required";
-    }
-    let requiredMinBudget = 500;
-    if (formData.durationType === "half_day") {
-      requiredMinBudget = 500;
-    } else if (formData.durationType === "full_day") {
-      requiredMinBudget = 1000;
-    } else if (formData.durationType === "multi_day") {
-      const daysCount = Number(formData.days) || 1;
-      requiredMinBudget = 1000 * daysCount;
-    }
-
-    if (!formData.minBudget || Number(formData.minBudget) < requiredMinBudget) {
-      if (formData.durationType === "half_day") {
-        newErrors.minBudget = "For a half-day job, min budget per provider must be at least ₹500";
-      } else if (formData.durationType === "full_day") {
-        newErrors.minBudget = "For a full-day job, min budget per provider must be at least ₹1000";
-      } else {
-        newErrors.minBudget = `For ${formData.days || 1} days, min budget per provider must be at least ₹${requiredMinBudget} (₹1000/day)`;
-      }
-    }
-    if (!formData.maxBudget || Number(formData.maxBudget) <= 0) {
-      newErrors.maxBudget = "Enter max budget";
-    } else if (Number(formData.maxBudget) < Number(formData.minBudget)) {
-      newErrors.maxBudget = "Max must be >= Min";
-    }
-
     if (formData.startDate && formData.startTime && formData.endTime) {
       const jobDate = new Date(formData.startDate);
       const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
       const jobDayName = days[jobDate.getDay()];
 
-      const daySched = availability.find(a => a.day.toLowerCase() === jobDayName.toLowerCase());
+      const daySched = availability.find(
+        (a) => a.day.toLowerCase() === jobDayName.toLowerCase(),
+      );
       if (daySched) {
         if (!daySched.isAvailable) {
           newErrors.startDate = `Provider is not available on ${jobDayName}s`;
@@ -242,22 +245,74 @@ export const DirectHireModal: React.FC<DirectHireModalProps> = ({
       }
 
       const jobTime = jobDate.getTime();
-      const isBlocked = blockedDates.some(b => {
+      const isBlocked = blockedDates.some((b) => {
         const start = new Date(b.startDate);
         start.setHours(0, 0, 0, 0);
         const end = new Date(b.endDate);
         end.setHours(23, 59, 59, 999);
         const target = new Date(jobTime);
         target.setHours(12, 0, 0, 0);
-        return target.getTime() >= start.getTime() && target.getTime() <= end.getTime();
+        return (
+          target.getTime() >= start.getTime() &&
+          target.getTime() <= end.getTime()
+        );
       });
       if (isBlocked) {
         newErrors.startDate = "This date is marked as blocked by the provider";
       }
     }
 
+    let requiredMinBudget = 500;
+    if (formData.durationType === "half_day") {
+      requiredMinBudget = 500;
+    } else if (formData.durationType === "full_day") {
+      requiredMinBudget = 1000;
+    } else if (formData.durationType === "multi_day") {
+      const daysCount = Number(formData.days) || 1;
+      requiredMinBudget = 1000 * daysCount;
+    }
+
+    if (!formData.minBudget || Number(formData.minBudget) < requiredMinBudget) {
+      if (formData.durationType === "half_day") {
+        newErrors.minBudget = "Min budget for a half-day job is ₹500";
+      } else if (formData.durationType === "full_day") {
+        newErrors.minBudget = "Min budget for a full-day job is ₹1000";
+      } else {
+        newErrors.minBudget = `Min budget for ${formData.days || 1} days is ₹${requiredMinBudget}`;
+      }
+    }
+
+    if (!formData.maxBudget || Number(formData.maxBudget) <= 0) {
+      newErrors.maxBudget = "Enter max budget";
+    } else if (Number(formData.maxBudget) < Number(formData.minBudget)) {
+      newErrors.maxBudget = "Max budget must be >= Min budget";
+    }
+
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+
+    const errorKeys = Object.keys(newErrors) as (keyof JobFormData)[];
+    if (errorKeys.length > 0) {
+      const firstErrorKey = errorKeys[0];
+      const errorMessage = newErrors[firstErrorKey];
+
+      toast.error(errorMessage, {
+        toastId: "direct-hire-validation-error",
+        position: "top-center",
+        autoClose: 3000,
+      });
+
+      setTimeout(() => {
+        const element = document.getElementsByName(firstErrorKey)[0];
+        if (element) {
+          element.focus();
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 100);
+
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -290,10 +345,12 @@ export const DirectHireModal: React.FC<DirectHireModalProps> = ({
         placeDistrict !== chosenDistrictName &&
         !formattedAddress.includes(chosenDistrictName)
       ) {
+        const errorMsg = `The selected place must be within ${selectedDistrict.name}`;
         setErrors((prev) => ({
           ...prev,
-          selectedLocation: `The selected place must be within ${selectedDistrict.name}`,
+          selectedLocation: errorMsg,
         }));
+        toast.error(errorMsg, { toastId: "location-error-direct" });
         setIsSubmitting(false);
         return;
       }
@@ -341,9 +398,11 @@ export const DirectHireModal: React.FC<DirectHireModalProps> = ({
       } else {
         toast.error(result.message || "Failed to hire provider");
       }
-    } catch (error) {
-      console.error("Error hiring provider:", error);
-      toast.error("An unexpected error occurred");
+    } catch (error: unknown) {
+      const err = error as AxiosError<{ message?: string }>;
+      console.error("Error hiring provider:", err);
+      const errorMessage = err.response?.data?.message || "An unexpected error occurred while sending hire request";
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -497,9 +556,8 @@ export const DirectHireModal: React.FC<DirectHireModalProps> = ({
               <div className="col-md-6">
                 <FormSelect
                   label="Service Category"
-                  name="category"
                   value={formData.category}
-                  onChange={handleChange}
+                  onChange={handleSelectChange("category")}
                   error={errors.category}
                   options={skillOptions}
                   icon={<FiGrid />}
@@ -509,9 +567,8 @@ export const DirectHireModal: React.FC<DirectHireModalProps> = ({
               <div className="col-md-6">
                 <FormSelect
                   label="Select District"
-                  name="districtId"
                   value={formData.districtId}
-                  onChange={handleChange}
+                  onChange={handleSelectChange("districtId")}
                   error={errors.districtId}
                   options={locationOptions}
                   placeholder="Choose district"
@@ -535,6 +592,7 @@ export const DirectHireModal: React.FC<DirectHireModalProps> = ({
                   error={errors.selectedLocation as string}
                   helperText="Make sure your district is also visible in the selected location for a successful job posting."
                   disabled={!formData.districtId}
+                  name="selectedLocation"
                   required
                 />
               </div>
@@ -563,9 +621,8 @@ export const DirectHireModal: React.FC<DirectHireModalProps> = ({
               <div className="col-md-6">
                 <FormSelect
                   label="Estimated Duration"
-                  name="durationType"
                   value={formData.durationType}
-                  onChange={handleChange}
+                  onChange={handleSelectChange("durationType")}
                   options={durationOptions}
                   icon={<FiClock />}
                 />

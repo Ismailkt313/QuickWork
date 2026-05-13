@@ -8,9 +8,10 @@ import LocationModal from "../../landingPage/components/LocationModal";
 import { useProviders } from "../../../provider/hooks/useProviders";
 import useDebounce from "../../../../hooks/useDebounce";
 import {
-  getLandingData,
   type Location,
 } from "../../landingPage/services/landingService";
+import { useLandingData } from "../../hooks/useLandingData";
+import { CustomSelect } from "../../../../shared/components/ui/CustomSelect";
 
 const ProvidersPage: React.FC = () => {
   const { skillId } = useParams<{ skillId: string }>();
@@ -18,46 +19,40 @@ const ProvidersPage: React.FC = () => {
   const navigate = useNavigate();
 
   const skillName = searchParams.get("name") || "Service";
+  const { 
+    locations, 
+    selectedLocation, 
+    loading: landingLoading, 
+    selectLocation, 
+    clearLocation 
+  } = useLandingData();
+  
   const [sort, setSort] = useState("");
-  const [locations, setLocations] = useState<Location[]>([]);
-  const [selectedLocation, setSelectedLocation] = useState<Location | null>(
-    null,
-  );
   const [modalOpen, setModalOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearch = useDebounce(searchInput, 500);
 
-
-  useEffect(() => {
-    const savedLocId = localStorage.getItem("locationId");
-    getLandingData()
-      .then((data) => {
-        setLocations(data.locations);
-        if (savedLocId) {
-          const found = data.locations.find((l) => l._id === savedLocId);
-          if (found) setSelectedLocation(found);
-        }
-      })
-      .catch(() => {});
-  }, []);
 
   const { providers, pagination, loading, setPage } = useProviders({
     skillId: skillId || "",
     locationId: selectedLocation?._id,
     sort,
     search: debouncedSearch,
+    enabled: !landingLoading,
   });
 
   const handleSelectLocation = (loc: Location) => {
-    setSelectedLocation(loc);
-    localStorage.setItem("locationId", loc._id);
+    selectLocation(loc);
     setModalOpen(false);
   };
 
-  const handleClearLocation = () => {
-    setSelectedLocation(null);
-    localStorage.removeItem("locationId");
+  const clearAllFilters = () => {
+    setSearchInput("");
+    setSort("");
+    clearLocation();
   };
+
+  const hasActiveFilters = !!(searchInput || selectedLocation || sort);
 
   const skeletons = Array.from({ length: 8 });
 
@@ -74,7 +69,7 @@ const ProvidersPage: React.FC = () => {
       locations={locations}
       selectedLocation={selectedLocation}
       onSelectLocation={handleSelectLocation}
-      onClearLocation={handleClearLocation}
+      onClearLocation={clearLocation}
     >
       <style>{`
         .providers-hero {
@@ -182,6 +177,29 @@ const ProvidersPage: React.FC = () => {
         .location-btn:hover { border-color: #3b82f6; color: #3b82f6; }
         .location-btn.active { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
 
+        .clear-all-btn {
+          height: 48px;
+          padding: 0 16px;
+          border-radius: 12px;
+          border: 1.5px solid #e2e8f0;
+          background: #fff;
+          font-weight: 600;
+          color: #64748b;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          white-space: nowrap;
+          font-size: 14px;
+        }
+
+        .clear-all-btn:hover {
+          background: #fef2f2;
+          color: #ef4444;
+          border-color: #fca5a5;
+        }
+
         .sort-select {
           height: 48px;
           padding: 0 16px;
@@ -222,6 +240,7 @@ const ProvidersPage: React.FC = () => {
           .search-input { height: 44px; padding-left: 38px; font-size: 14px; }
           .search-icon { left: 12px; font-size: 14px; }
           .location-btn { height: 44px; padding: 0 12px; font-size: 13px; flex: 1; }
+          .clear-all-btn { height: 44px; padding: 0 10px; font-size: 12px; }
           .sort-select { height: 44px; min-width: 100px; flex: 1; font-size: 13px; }
           
           .provider-grid {
@@ -277,16 +296,25 @@ const ProvidersPage: React.FC = () => {
             </button>
           </div>
           <div className="filter-right">
-            <select
+            {hasActiveFilters && (
+              <button
+                onClick={clearAllFilters}
+                className="clear-all-btn"
+              >
+                ✕ Clear All
+              </button>
+            )}
+            <CustomSelect
               value={sort}
-              onChange={(e) => setSort(e.target.value)}
-              className="form-select sort-select"
-            >
-              <option value="">Sort By: Default</option>
-              <option value="price_low">Price: Low to High</option>
-              <option value="price_high">Price: High to Low</option>
-              <option value="experience">Experience: High to Low</option>
-            </select>
+              onChange={setSort}
+              options={[
+                { value: "", label: "Sort By: Default" },
+                { value: "price_low", label: "Price: Low to High" },
+                { value: "price_high", label: "Price: High to Low" },
+                { value: "experience", label: "Experience: High to Low" },
+              ]}
+              size="md"
+            />
           </div>
         </div>
 
@@ -341,7 +369,7 @@ const ProvidersPage: React.FC = () => {
             <div className="d-flex justify-content-center gap-3">
               {selectedLocation && (
                 <button
-                  onClick={handleClearLocation}
+                  onClick={clearLocation}
                   className="btn btn-outline-secondary px-4 py-2 fw-bold"
                   style={{ borderRadius: 12 }}
                 >

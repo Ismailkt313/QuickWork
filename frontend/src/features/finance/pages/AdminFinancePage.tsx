@@ -8,7 +8,6 @@ import {
   RiBankCardLine,
   RiCashLine,
   RiErrorWarningLine,
-  RiFilter3Line,
   RiCalendarLine,
   RiArrowLeftSLine,
   RiArrowRightSLine,
@@ -16,6 +15,7 @@ import {
   RiHistoryLine,
   RiSearchLine
 } from "react-icons/ri";
+import { CustomSelect } from "../../../shared/components/ui/CustomSelect";
 
 const AdminFinancePage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -136,19 +136,18 @@ const AdminFinancePage: React.FC = () => {
         <div className="card-header bg-white p-4 border-bottom">
           <div className="row g-3 align-items-end">
             <div className="col-12 col-md-3">
-              <label className="form-label fw-bold small text-muted text-uppercase mb-2">
-                <RiFilter3Line size={14} className="me-1" /> Payment Method
-              </label>
-              <select
-                className="form-select border rounded-3 py-2"
-                name="paymentMethod"
+              <label className="form-label fw-bold small text-muted text-uppercase mb-2">Payment Method</label>
+              <CustomSelect
                 value={filters.paymentMethod}
-                onChange={handleFilterChange}
-              >
-                <option value="all">All Methods</option>
-                <option value="ONLINE">Online (Razorpay)</option>
-                <option value="CASH">Cash (Direct)</option>
-              </select>
+                onChange={(v) => setFilters({ ...filters, paymentMethod: v, page: 1 })}
+                options={[
+                  { value: "all", label: "All Methods" },
+                  { value: "ONLINE", label: "Online (Razorpay)" },
+                  { value: "CASH", label: "Cash (Direct)" },
+                ]}
+                fullWidth
+                size="md"
+              />
             </div>
             <div className="col-12 col-md-3">
               <label className="form-label fw-bold small text-muted text-uppercase mb-2">

@@ -29,6 +29,7 @@ import { toast } from "react-toastify";
 import { useProviderLocation } from "../hooks/useProviderLocation";
 import useDebounce from "../../../hooks/useDebounce";
 import "./style/page.css";
+import { CustomSelect } from "../../../shared/components/ui/CustomSelect";
 
 const SORT_OPTS = [
   { value: "newest", label: "Newest First" },
@@ -175,6 +176,7 @@ const AvailableJobsPage: React.FC = () => {
     message: "",
   });
   const [pendingJobId, setPendingJobId] = useState<string | null>(null);
+  const [pendingAmount, setPendingAmount] = useState<number | undefined>(undefined);
 
   const providerLocation = useProviderLocation();
 
@@ -259,6 +261,7 @@ const AvailableJobsPage: React.FC = () => {
 
   const handleConfirmApply = (amount: number) => {
     setIsConfirmModalOpen(false);
+    setPendingAmount(amount);
     const jobId = pendingJobId;
     if (!jobId) return;
 
@@ -292,6 +295,7 @@ const AvailableJobsPage: React.FC = () => {
     } finally {
       setIsAccepting(false);
       setPendingJobId(null);
+      setPendingAmount(undefined);
     }
   };
 
@@ -372,17 +376,12 @@ const AvailableJobsPage: React.FC = () => {
             <div className="ajp-toolbar-actions">
               <div className="ajp-sort-wrapper">
                 <RiStackLine className="ajp-sort-icon" />
-                <select
-                  className="ajp-sort-select-v2"
+                <CustomSelect
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                >
-                  {SORT_OPTS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setSortBy}
+                  options={SORT_OPTS}
+                  size="md"
+                />
               </div>
 
               <div className="ajp-toolbar-sep" />
@@ -420,22 +419,17 @@ const AvailableJobsPage: React.FC = () => {
                 Work Location
               </label>
               <div className="ajp-select-wrap">
-                <select
-                  id="filter-location"
-                  className="ajp-filter-select"
+                <CustomSelect
                   value={selectedLocation}
-                  onChange={(e) => {
-                    setSelectedLocation(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                >
-                  <option value="">All Regions</option>
-                  {locations.map((l) => (
-                    <option key={l._id} value={l._id}>
-                      {l.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(v) => { setSelectedLocation(v); setCurrentPage(1); }}
+                  options={[
+                    { value: "", label: "All Regions" },
+                    ...locations.map(l => ({ value: l._id, label: l.name }))
+                  ]}
+                  placeholder="All Regions"
+                  fullWidth
+                  size="sm"
+                />
               </div>
             </div>
 
@@ -444,22 +438,17 @@ const AvailableJobsPage: React.FC = () => {
                 Expertise / Category
               </label>
               <div className="ajp-select-wrap">
-                <select
-                  id="filter-category"
-                  className="ajp-filter-select"
+                <CustomSelect
                   value={selectedCategory}
-                  onChange={(e) => {
-                    setSelectedCategory(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                >
-                  <option value="">All Skillsets</option>
-                  {skills.map((s) => (
-                    <option key={s._id} value={s._id}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(v) => { setSelectedCategory(v); setCurrentPage(1); }}
+                  options={[
+                    { value: "", label: "All Skillsets" },
+                    ...skills.map(s => ({ value: s._id, label: s.name }))
+                  ]}
+                  placeholder="All Skillsets"
+                  fullWidth
+                  size="sm"
+                />
               </div>
             </div>
 
@@ -468,25 +457,19 @@ const AvailableJobsPage: React.FC = () => {
                 Budget Range
               </label>
               <div className="ajp-select-wrap">
-                <select
-                  id="filter-budget"
-                  className="ajp-filter-select"
+                <CustomSelect
                   value={budget}
-                  onChange={(e) => {
-                    setBudget(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                >
-                  {[
+                  onChange={(v) => { setBudget(v); setCurrentPage(1); }}
+                  options={[
                     "Any Budget",
-                    "₹0 – ₹1,000",
-                    "₹1,000 – ₹5,000",
-                    "₹5,000 – ₹15,000",
-                    "₹15,000+",
-                  ].map((b) => (
-                    <option key={b}>{b}</option>
-                  ))}
-                </select>
+                    "\u20B90 \u2013 \u20B91,000",
+                    "\u20B91,000 \u2013 \u20B95,000",
+                    "\u20B95,000 \u2013 \u20B915,000",
+                    "\u20B915,000+",
+                  ].map(b => ({ value: b, label: b }))}
+                  fullWidth
+                  size="sm"
+                />
               </div>
             </div>
           </div>
@@ -655,7 +638,7 @@ const AvailableJobsPage: React.FC = () => {
           setIsLocationModalOpen(false);
           setPendingJobId(null);
         }}
-        onConfirm={() => pendingJobId && confirmApply(pendingJobId)}
+        onConfirm={() => pendingJobId && confirmApply(pendingJobId, pendingAmount)}
         title="Location Mismatch"
         message="This opportunity is located outside your default work zone. Please confirm you can accommodate the travel requirements."
         iconType="location"
