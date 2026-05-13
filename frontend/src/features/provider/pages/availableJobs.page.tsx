@@ -555,7 +555,7 @@ const AvailableJobsPage: React.FC = () => {
                   job={{ ...job, animationDelay: i * 60 }}
                   onApply={handleApply}
                   onViewDetails={(id) => navigate(`/provider/jobs/${id}`)}
-                  onSave={(id, saved) => { console.log(id, saved); }}
+                  onSave={() => {}}
                 />
               </div>
             ))

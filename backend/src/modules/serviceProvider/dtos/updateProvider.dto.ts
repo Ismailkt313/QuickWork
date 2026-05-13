@@ -60,7 +60,7 @@ export class UpdateProviderDTO {
             if (!Array.isArray(data.portfolio) || data.portfolio.length === 0) {
                 errors.push("At least one portfolio item is required if updating portfolio");
             } else {
-                data.portfolio.forEach((item: any, index: number) => {
+                data.portfolio.forEach((item: IPortfolioItem, index: number) => {
                     if (!item.title || item.title.trim().length === 0) {
                         errors.push(`Portfolio item ${index + 1} requires a title`);
                     }

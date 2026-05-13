@@ -161,12 +161,6 @@ const MessagesPage: React.FC = () => {
     )
       return;
 
-    console.log(
-      "DEBUG CHECK: targetUserId:",
-      targetUserId,
-      "currentUserId:",
-      currentUserId,
-    );
 
     const stringTargetId = String(targetUserId).trim();
     const stringCurrentId = String(currentUserId).trim();

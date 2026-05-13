@@ -113,9 +113,9 @@ export class InvoiceService implements IInvoiceService {
             doc.on('error', reject);
 
             doc.fillColor('#444444').fontSize(20).text('QuickWork Marketplace', 50, 57);
-            doc.fontSize(10).text('QuickWork Inc.', 200, 65, { align: 'right' });
-            doc.text('123 Marketplace Ave', 200, 80, { align: 'right' });
-            doc.text('New York, NY, 10001', 200, 95, { align: 'right' });
+            doc.text('QuickWork Solutions Pvt. Ltd.', 200, 65, { align: 'right' });
+            doc.text('Hitech City, Hyderabad', 200, 80, { align: 'right' });
+            doc.text('Telangana, India, 500081', 200, 95, { align: 'right' });
             doc.moveDown();
 
             doc.fillColor('#000000').fontSize(20).text('Invoice', 50, 160);
@@ -144,8 +144,8 @@ export class InvoiceService implements IInvoiceService {
             invoice.items.forEach(item => {
                 doc.text(item.description, 50, y);
                 doc.text(item.quantity.toString(), 250, y, { align: 'right' });
-                doc.text(`$${item.rate.toFixed(2)}`, 350, y, { align: 'right' });
-                doc.text(`$${item.amount.toFixed(2)}`, 450, y, { align: 'right' });
+                doc.text(`₹${item.rate.toLocaleString()}`, 350, y, { align: 'right' });
+                doc.text(`₹${item.amount.toLocaleString()}`, 450, y, { align: 'right' });
                 y += 20;
             });
 
@@ -153,15 +153,15 @@ export class InvoiceService implements IInvoiceService {
 
             y += 20;
             doc.text('Subtotal:', 350, y, { align: 'right' });
-            doc.text(`$${invoice.subtotal.toFixed(2)}`, 450, y, { align: 'right' });
+            doc.text(`₹${invoice.subtotal.toLocaleString()}`, 450, y, { align: 'right' });
 
             y += 20;
             doc.text(`Platform Fee (${invoice.platformFeePercent}%):`, 350, y, { align: 'right' });
-            doc.text(`-$${invoice.platformFee.toFixed(2)}`, 450, y, { align: 'right' });
+            doc.text(`-₹${invoice.platformFee.toLocaleString()}`, 450, y, { align: 'right' });
 
             y += 20;
             doc.font('Helvetica-Bold').fontSize(12).text('Total Paid:', 350, y, { align: 'right' });
-            doc.text(`$${invoice.total.toFixed(2)}`, 450, y, { align: 'right' });
+            doc.text(`₹${invoice.total.toLocaleString()}`, 450, y, { align: 'right' });
             doc.font('Helvetica');
 
             y += 25;

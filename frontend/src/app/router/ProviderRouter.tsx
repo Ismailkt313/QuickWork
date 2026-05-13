@@ -18,7 +18,7 @@ const ProviderDashboardPage = lazy(
   () => import("../../features/provider/pages/ProviderDashboardPage"),
 );
 const AvailableJobsPage = lazy(
-  () => import("../../features/provider/pages/availableJobe.page"),
+  () => import("../../features/provider/pages/availableJobs.page"),
 );
 const MessagesPage = lazy(
   () => import("../../features/provider/pages/MessagesPage"),
