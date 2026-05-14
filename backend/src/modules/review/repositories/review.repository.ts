@@ -153,4 +153,25 @@ export class ReviewRepository implements IReviewRepository {
         const result = await ReviewModel.findByIdAndDelete(id);
         return !!result;
     }
+
+    async getDashboardStats(revieweeId: string): Promise<any> {
+        const stats = await ReviewModel.aggregate([
+            { $match: { revieweeId: new Types.ObjectId(revieweeId) } },
+            {
+                $group: {
+                    _id: null,
+                    averageRating: { $avg: '$rating' },
+                    totalReviews: { $sum: 1 }
+                }
+            }
+        ]);
+        return stats[0] || { averageRating: 0, totalReviews: 0 };
+    }
+
+    async findRecentReviews(revieweeId: string, limit: number): Promise<IReview[]> {
+        return await ReviewModel.find({ revieweeId })
+            .sort({ createdAt: -1 })
+            .limit(limit)
+            .populate('reviewerId', 'name profileImage');
+    }
 }

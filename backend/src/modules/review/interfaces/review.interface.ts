@@ -42,6 +42,8 @@ export interface IReviewRepository {
     exists(query: any): Promise<boolean>;
     update(id: string, data: Partial<IReview>): Promise<IReview | null>;
     delete(id: string): Promise<boolean>;
+    getDashboardStats(revieweeId: string): Promise<any>;
+    findRecentReviews(revieweeId: string, limit: number): Promise<IReview[]>;
 }
 
 export interface IReviewService {

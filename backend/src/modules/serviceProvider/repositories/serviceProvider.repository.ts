@@ -9,7 +9,7 @@ export class ServiceProviderRepository implements IServiceProviderRepository {
         const res = await ServiceProviderModel.findOne({ userId })
             .populate('userId skills', 'name email profileImage')
             .lean() as any;
-            return res
+        return res
     }
 
     async create(providerData: Partial<IServiceProvider>): Promise<IServiceProvider> {
@@ -93,8 +93,8 @@ export class ServiceProviderRepository implements IServiceProviderRepository {
             { $set: data },
             { new: true, runValidators: true }
         ).populate('userId', 'name email profileImage')
-         .populate('skills', 'name slug')
-         .lean();
+            .populate('skills', 'name slug')
+            .lean();
     }
     async deleteByUserId(userId: string): Promise<void> {
         await ServiceProviderModel.deleteOne({ userId: new Types.ObjectId(userId) });

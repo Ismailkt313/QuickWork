@@ -15,7 +15,7 @@ export class SkillService implements ISkillService {
             filter.name = { $regex: query, $options: 'i' };
         }
         const skills = await this._skillRepository.skills(filter) as ISkill[];
-        if(!skills) {
+        if (!skills) {
             return { success: true, data: [] };
         }
         const formattedSkills = skills.map(skill => ({
@@ -58,7 +58,7 @@ export class SkillService implements ISkillService {
 
         const slug = skillData.name.toLowerCase().trim().replace(/\s+/g, '-');
         const skill = await this._skillRepository.create({ ...skillData, slug });
-        
+
         return { success: true, message: "Skill created successfully", data: skill };
     }
 
@@ -75,7 +75,7 @@ export class SkillService implements ISkillService {
         if (!skill) {
             return { success: false, message: "Skill not found" };
         }
-        
+
         return { success: true, message: "Skill updated successfully", data: skill };
     }
 
@@ -92,12 +92,12 @@ export class SkillService implements ISkillService {
         if (!skill) {
             return { success: false, message: "Skill not found" };
         }
-        
+
         const updated = await this._skillRepository.update(id, { isActive: !skill.isActive });
-        return { 
-            success: true, 
-            message: `Skill ${!skill.isActive ? 'activated' : 'deactivated'} successfully`, 
-            data: updated! 
+        return {
+            success: true,
+            message: `Skill ${!skill.isActive ? 'activated' : 'deactivated'} successfully`,
+            data: updated!
         };
     }
 
@@ -105,8 +105,8 @@ export class SkillService implements ISkillService {
         const skills = await this._skillRepository.getSkills();
         return { success: true, data: skills };
     }
-    async getMySkills(userId: string): Promise<{ success: boolean; data: ISkill[] }>{
-        const skills:ISkill[] = await this._skillRepository.getMySkill(userId)
-        return {success:true, data: skills}
+    async getMySkills(userId: string): Promise<{ success: boolean; data: ISkill[] }> {
+        const skills: ISkill[] = await this._skillRepository.getMySkill(userId)
+        return { success: true, data: skills }
     }
 }

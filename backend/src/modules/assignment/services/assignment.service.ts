@@ -14,7 +14,7 @@ export class AssignmentService implements IAssignmentService {
     private _notificationService: INotificationService;
     private _workHistoryService: IWorkHistoryService;
     private _paymentService: IPaymentService;
-    
+
     constructor(
         assignmentRepository: IAssignmentRepository,
         jobRepository: IJobRepository,
@@ -49,8 +49,8 @@ export class AssignmentService implements IAssignmentService {
 
             if (job && job.budget) {
                 const chosenAmount = data.payment?.amount;
-                const finalAmount = (chosenAmount !== undefined && chosenAmount !== null) 
-                    ? chosenAmount 
+                const finalAmount = (chosenAmount !== undefined && chosenAmount !== null)
+                    ? chosenAmount
                     : (job.budget.min + job.budget.max) / 2;
 
                 data.payment = {

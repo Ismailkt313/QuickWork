@@ -70,4 +70,28 @@ export class WorkHistoryRepository implements IWorkHistoryRepository {
     async findByJob(jobId: string): Promise<IWorkHistory[]> {
         return WorkHistoryModel.find({ jobId });
     }
+
+    async getEarningsStats(providerId: string): Promise<any> {
+        const result = await WorkHistoryModel.aggregate([
+            { $match: { providerId: new Types.ObjectId(providerId), finalStatus: 'COMPLETED' } },
+            { $group: { _id: null, total: { $sum: '$payment.providerAmount' } } }
+        ]);
+        return result[0] || { total: 0 };
+    }
+
+    async getMonthlyEarnings(providerId: string, limit: number = 6): Promise<any[]> {
+        const date = new Date();
+        date.setMonth(date.getMonth() - limit);
+
+        return await WorkHistoryModel.aggregate([
+            { $match: { providerId: new Types.ObjectId(providerId), finalStatus: 'COMPLETED', createdAt: { $gte: date } } },
+            {
+                $group: {
+                    _id: { month: { $month: '$createdAt' }, year: { $year: '$createdAt' } },
+                    amount: { $sum: '$payment.providerAmount' }
+                }
+            },
+            { $sort: { '_id.year': 1, '_id.month': 1 } }
+        ]);
+    }
 }

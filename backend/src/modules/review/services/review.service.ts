@@ -22,17 +22,17 @@ export class ReviewService implements IReviewService {
     }
 
     async createReview(reviewerId: string, data: CreateReviewDTO): Promise<IReview> {
-         if (reviewerId === data.revieweeId) {
+        if (reviewerId === data.revieweeId) {
             throw new AppError("You cannot review yourself", HttpStatusCode.BAD_REQUEST);
         }
 
-         const assignment = await this._assignmentRepository.findById(data.assignmentId);
+        const assignment = await this._assignmentRepository.findById(data.assignmentId);
         if (!assignment) {
             throw new AppError("Assignment not found", HttpStatusCode.NOT_FOUND);
         }
 
-         const jobId = (assignment.jobId as any)._id?.toString() || assignment.jobId.toString();
-         const job = await this._jobRepository.findById(jobId);
+        const jobId = (assignment.jobId as any)._id?.toString() || assignment.jobId.toString();
+        const job = await this._jobRepository.findById(jobId);
         if (!job || assignment.workStatus !== 'completed') {
             throw new AppError("Reviews are only allowed for completed jobs", HttpStatusCode.BAD_REQUEST);
         }

@@ -232,8 +232,11 @@ export const ChatWindow = ({
         .animate-message { animation: messageIn 0.2s ease-out; }
         @keyframes messageIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
-        .delete-msg-btn { opacity: 0; }
-        .message-bubble-row:hover .delete-msg-btn { opacity: 0.4; }
+        .delete-msg-btn { 
+          opacity: 0.3; 
+          transition: opacity 0.2s;
+        }
+        .message-bubble-row:hover .delete-msg-btn { opacity: 0.7; }
         .delete-msg-btn:hover { opacity: 1 !important; }
         
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }

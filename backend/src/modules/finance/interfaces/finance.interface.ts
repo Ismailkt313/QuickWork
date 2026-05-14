@@ -185,6 +185,8 @@ export interface IWorkHistoryRepository {
     create(data: any): Promise<IWorkHistory>;
     getByProvider(providerId: string): Promise<IWorkHistory[]>;
     findByJob(jobId: string): Promise<IWorkHistory[]>;
+    getEarningsStats(providerId: string): Promise<any>;
+    getMonthlyEarnings(providerId: string, limit: number): Promise<any[]>;
 }
 
 export interface IInvoiceRepository {

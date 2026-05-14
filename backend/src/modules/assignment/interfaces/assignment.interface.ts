@@ -58,6 +58,11 @@ export interface IAssignmentRepository {
     exists(query: any): Promise<boolean>;
     count(query: any): Promise<number>;
     findWithFreelancer(jobId: string): Promise<IAssignment[]>;
+    getDashboardStats(providerId: string): Promise<any>;
+    findRecentAssignments(providerId: string, limit: number): Promise<IAssignment[]>;
+    getStatusDistribution(providerId: string): Promise<any[]>;
+    getWeeklyActivity(providerId: string): Promise<any[]>;
+    getPerformanceStats(providerId: string): Promise<any>;
 }
 
 export interface IAssignmentService {

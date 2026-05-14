@@ -18,11 +18,11 @@ export interface ISkillRepository {
     update(id: string, skillData: Partial<ISkill>): Promise<ISkill | null>;
     delete(id: string): Promise<boolean>;
     skills(filter: any): Promise<ISkill[] | null>;
-    getServices():Promise<ISkill[]>;
+    getServices(): Promise<ISkill[]>;
     getAllSkills(search?: string, locationId?: string): Promise<ISkill[]>;
     getAdminSkills(page: number, limit: number, search?: string): Promise<{ data: ISkill[], total: number }>;
     getSkills(): Promise<ISkill[]>;
-    getMySkill(userId: string):Promise<ISkill[]>
+    getMySkill(userId: string): Promise<ISkill[]>
 }
 
 export interface ISkillService {
@@ -34,7 +34,7 @@ export interface ISkillService {
     deleteSkill(id: string): Promise<{ success: boolean; message: string }>;
     toggleSkillStatus(id: string): Promise<{ success: boolean; message: string; data?: ISkill }>;
     getSkills(): Promise<{ success: boolean; data: ISkill[] }>;
-    getMySkills(userId: any):Promise<{success: boolean, data:ISkill[]}>
+    getMySkills(userId: any): Promise<{ success: boolean, data: ISkill[] }>
 }
 
 export interface ISkillController {
