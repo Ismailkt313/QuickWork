@@ -219,7 +219,7 @@ export class AuthService implements IAuthService {
         const genericError = new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
 
         const user = await this._authRepository.findByEmailWithPassword(input.email);
-         if (!user) {
+        if (!user) {
             throw genericError;
         }
 

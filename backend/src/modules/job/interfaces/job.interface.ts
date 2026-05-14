@@ -86,7 +86,7 @@ export interface IJobService {
         limit: number,
         filters?: { status?: string; search?: string; visibility?: string }
     ): Promise<IJobPaginationResponse>;
-    
+
     availableJobs(page: number, limit: number, filters?: any, userId?: string): Promise<IJobPaginationResponse>;
     getJobById(id: string, userId?: string): Promise<{ success: boolean; data?: JobResponseDTO; message?: string }>;
     getDirectOffers(userId: string, page?: number, limit?: number, search?: string, filter?: string): Promise<IJobPaginationResponse>;
@@ -130,13 +130,13 @@ export interface IJobRepository {
         completed: number;
         cancelled: number;
     }>;
-    findAllOpen(page: number, limit: number, filters: any , skill: string[], excludeJobIds?: string[], currentUserId?: string): Promise<{ jobs: IJob[], total: number }>;
+    findAllOpen(page: number, limit: number, filters: any, skill: string[], excludeJobIds?: string[], currentUserId?: string): Promise<{ jobs: IJob[], total: number }>;
     findAllPaginated(
         page: number,
         limit: number,
-        filters?: { 
-            status?: string; 
-            search?: string; 
+        filters?: {
+            status?: string;
+            search?: string;
             visibility?: string;
             isUrgent?: boolean;
             durationType?: string;

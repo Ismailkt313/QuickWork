@@ -4,7 +4,7 @@ import type { UserResponseDTO } from "../dtos/userResponse.dto";
 import { ROLES } from "../../../constants/roles";
 import { OTP_TYPE } from "../../../constants/otp";
 
-export interface    IUser extends Document {
+export interface IUser extends Document {
     name: string;
     email: string;
     number?: string;

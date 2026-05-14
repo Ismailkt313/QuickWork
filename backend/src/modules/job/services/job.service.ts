@@ -126,7 +126,7 @@ export class JobService implements IJobService {
             location: {
                 district: new Types.ObjectId(dto.location.district),
                 address: dto.location.address,
-                additionalDetails:dto.location.additionalDetails ? dto.location.additionalDetails : 'additional detail not provided',
+                additionalDetails: dto.location.additionalDetails ? dto.location.additionalDetails : 'additional detail not provided',
                 coordinates: {
                     type: "Point",
                     coordinates: dto.location.coordinates.coordinates
@@ -155,7 +155,7 @@ export class JobService implements IJobService {
 
         let assignmentData = null;
         if (job && job.hiredProviderId) {
-             assignmentData = await this._assignmentService.getAssignmentByJobAndFreelancer(
+            assignmentData = await this._assignmentService.getAssignmentByJobAndFreelancer(
                 job._id.toString(),
                 job.hiredProviderId._id.toString()
             );
@@ -225,16 +225,16 @@ export class JobService implements IJobService {
     async availableJobs(page: number = 1, limit: number = 10, filters: any = {}, userId?: string): Promise<import('../interfaces/job.interface').IJobPaginationResponse> {
 
         const assignedJobIds = new Set<string>();
-            const provider = await this._serviceProviderRepository.findByUserId(userId as string);
-            if (provider) {
-                const { assignments: providerAssignments } = await this._assignmentService.getAssignmentsByProvider(provider._id.toString(), { limit: 1000 });
-                providerAssignments.forEach(a => {
-                    const id = a.jobId && (a.jobId as any)._id ? (a.jobId as any)._id.toString() : a.jobId?.toString();
-                    if (id) assignedJobIds.add(id);
-                });
-            }
-            const skills: string[] = await provider.skills.map((a: any) => a._id.toString())
-            const { jobs, total } = await this._jobRepository.findAllOpen(page, limit=9, filters, skills, Array.from(assignedJobIds), userId);
+        const provider = await this._serviceProviderRepository.findByUserId(userId as string);
+        if (provider) {
+            const { assignments: providerAssignments } = await this._assignmentService.getAssignmentsByProvider(provider._id.toString(), { limit: 1000 });
+            providerAssignments.forEach(a => {
+                const id = a.jobId && (a.jobId as any)._id ? (a.jobId as any)._id.toString() : a.jobId?.toString();
+                if (id) assignedJobIds.add(id);
+            });
+        }
+        const skills: string[] = await provider.skills.map((a: any) => a._id.toString())
+        const { jobs, total } = await this._jobRepository.findAllOpen(page, limit = 9, filters, skills, Array.from(assignedJobIds), userId);
 
         const mappedJobs = await Promise.all(jobs.map(async j => {
             const clientMetrics = await this._getClientMetrics(j.userId);
@@ -268,7 +268,7 @@ export class JobService implements IJobService {
 
         let assignmentData = null;
         if (job.hiredProviderId) {
-             assignmentData = await this._assignmentService.getAssignmentByJobAndFreelancer(
+            assignmentData = await this._assignmentService.getAssignmentByJobAndFreelancer(
                 job._id.toString(),
                 job.hiredProviderId._id.toString()
             );
@@ -310,7 +310,7 @@ export class JobService implements IJobService {
         ]);
 
         const mappedJobs = await Promise.all(jobs.map(async j => {
-             const assignmentData = await this._assignmentService.getAssignmentByJobAndFreelancer(
+            const assignmentData = await this._assignmentService.getAssignmentByJobAndFreelancer(
                 j._id.toString(),
                 provider._id.toString()
             );
@@ -377,8 +377,8 @@ export class JobService implements IJobService {
             return { success: false, message: "Provider has blocked this date" };
         }
 
-        const activeAssignments = existingAssignments.filter(a => 
-            !['completed', 'cancelled', 'absent'].includes(a.workStatus) && 
+        const activeAssignments = existingAssignments.filter(a =>
+            !['completed', 'cancelled', 'absent'].includes(a.workStatus) &&
             a.invite?.status !== 'rejected'
         );
 
@@ -406,7 +406,7 @@ export class JobService implements IJobService {
         if (!updatedJob) {
             return { success: false, message: ErrorMessages.JOB_FULLY_ASSIGNED };
         }
-        
+
         if (amount !== undefined) {
             if (amount < updatedJob.budget.min || amount > updatedJob.budget.max) {
                 return { success: false, message: "Amount must remain within client budget range" };
@@ -488,8 +488,8 @@ export class JobService implements IJobService {
             return { success: false, message: "Provider has blocked this date" };
         }
 
-        const activeAssignments = existingAssignments.filter(a => 
-            !['completed', 'cancelled', 'absent'].includes(a.workStatus) && 
+        const activeAssignments = existingAssignments.filter(a =>
+            !['completed', 'cancelled', 'absent'].includes(a.workStatus) &&
             a.invite?.status !== 'rejected'
         );
 
@@ -613,9 +613,9 @@ export class JobService implements IJobService {
         limit: number,
         filters?: any
     ): Promise<import('../interfaces/job.interface').IJobPaginationResponse> {
-        
+
         const finalFilters = { ...filters };
-        
+
         if (filters?.type === 'stalled') {
             const threeDaysAgo = new Date();
             threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
@@ -647,7 +647,7 @@ export class JobService implements IJobService {
             }));
 
             dto.hasPendingPayment = workHistories.some(wh => wh.payment.status !== 'completed');
-            
+
             dto.applicants = await this._assignmentService.getAssignmentCountByJob(j._id.toString());
 
             return dto;
@@ -656,7 +656,7 @@ export class JobService implements IJobService {
         const stats = {
             total: await this._jobRepository.count({}),
             active: await this._jobRepository.count({ status: { $in: [JOB_STATUS.FULLY_ASSIGNED, JOB_STATUS.PARTIALLY_ASSIGNED, JOB_STATUS.IN_PROGRESS] } }),
-            disputed: 0, 
+            disputed: 0,
             flagged: await this._jobRepository.count({ isUrgent: true }),
             stalled: await this._jobRepository.count({ status: JOB_STATUS.OPEN, createdAt: { $lt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) } })
         };
@@ -684,7 +684,7 @@ export class JobService implements IJobService {
 
         let assignmentData = null;
         if (job.hiredProviderId) {
-             assignmentData = await this._assignmentService.getAssignmentByJobAndFreelancer(
+            assignmentData = await this._assignmentService.getAssignmentByJobAndFreelancer(
                 job._id.toString(),
                 (job.hiredProviderId as any)._id.toString()
             );
@@ -694,7 +694,7 @@ export class JobService implements IJobService {
         const dto = await mapJobToResponseDTO(job, assignmentData, clientMetrics);
 
         dto.applicants = await this._assignmentService.getAssignmentCountByJob(jobId);
-        
+
         const workHistories = await this._workHistoryRepository.findByJob(jobId);
         dto.providers = workHistories.map((wh: any) => ({
             providerId: wh.providerId.toString(),
@@ -717,7 +717,7 @@ export class JobService implements IJobService {
         if (job.status === JOB_STATUS.COMPLETED) {
             return { success: false, message: "Completed jobs cannot be cancelled by administration." };
         }
-        
+
         if (job.status === JOB_STATUS.CANCELLED) {
             return { success: false, message: "This operation is already in a cancelled state." };
         }
@@ -727,14 +727,14 @@ export class JobService implements IJobService {
 
         await this._jobRepository.findByConditionAndUpdate(
             { _id: jobId },
-            { 
-                $set: { 
+            {
+                $set: {
                     status: JOB_STATUS.CANCELLED,
                     cancelledByAdmin: true,
                     adminCancellationReason: reason,
                     cancelledBy: adminId,
                     cancelledAt: now
-                } 
+                }
             }
         );
 
