@@ -19,7 +19,6 @@
   font-family: 'Inter', sans-serif;
 }
 
-/* Layout */
 .hc-container {
   max-width: 1200px;
   margin: 0 auto;
@@ -144,8 +143,8 @@
   background: var(--hc-primary-light);
   color: var(--hc-primary);
   display: flex;
-  alignItems: center;
-  justifyContent: center;
+  align-items: center;
+  justify-content: center;
   font-size: 1.5rem;
 }
 
