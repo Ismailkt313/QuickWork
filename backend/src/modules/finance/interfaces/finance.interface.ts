@@ -167,6 +167,11 @@ export interface IPlatformTransactionRepository {
     findWithPagination(query: any, skip: number, limit: number): Promise<[any[], number]>;
     getAdminFinanceOverview(): Promise<any>;
     getTransactionsWithCount(filter: any, skip: number, limit: number): Promise<[any[], number]>;
+    countTotalTransactions(): Promise<number>;
+    getEarningsStats(): Promise<any>;
+    getRecentTransactions(limit: number): Promise<any[]>;
+    getMonthlyRevenue(): Promise<any[]>;
+    getFinanceSummary(): Promise<any>;
 }
 
 export interface IWorkHistoryRepository {

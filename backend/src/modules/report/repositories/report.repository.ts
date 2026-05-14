@@ -66,4 +66,15 @@ export class ReportRepository implements IReportRepository {
             pages: Math.ceil(total / limit)
         };
     }
+
+    async countPendingReports(): Promise<number> {
+        return ReportModel.countDocuments({ status: 'PENDING' });
+    }
+
+    async getRecentReports(limit: number): Promise<IReport[]> {
+        return ReportModel.find()
+            .populate('reporterId', 'name email profileImage')
+            .sort({ createdAt: -1 })
+            .limit(limit);
+    }
 }

@@ -38,6 +38,8 @@ export interface IReportRepository {
         page: number;
         pages: number;
     }>;
+    countPendingReports(): Promise<number>;
+    getRecentReports(limit: number): Promise<IReport[]>;
 }
 
 export interface IReportService {

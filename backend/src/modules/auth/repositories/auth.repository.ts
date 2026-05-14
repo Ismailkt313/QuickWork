@@ -40,5 +40,25 @@ export class AuthRepository implements IAuthRepository {
     public async blockUser(userId: string): Promise<void> {
         await UserModel.findByIdAndUpdate(userId, { isBlocked: true });
     }
+
+    public async countTotalUsers(): Promise<number> {
+        return UserModel.countDocuments();
+    }
+
+    public async getRecentUsers(limit: number): Promise<IUser[]> {
+        return UserModel.find().sort({ createdAt: -1 }).limit(limit);
+    }
+
+    public async getUserGrowth(): Promise<any[]> {
+        return UserModel.aggregate([
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { "_id": 1 } }
+        ]);
+    }
 }
 

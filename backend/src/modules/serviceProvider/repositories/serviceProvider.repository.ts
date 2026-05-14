@@ -123,4 +123,34 @@ export class ServiceProviderRepository implements IServiceProviderRepository {
             { new: true }
         ).lean();
     }
+
+    async countTotalProviders(): Promise<number> {
+        return ServiceProviderModel.countDocuments();
+    }
+
+    async countPendingApprovals(): Promise<number> {
+        return ServiceProviderModel.countDocuments({
+            'verification.status': VERIFICATION_STATUS.PENDING
+        });
+    }
+
+    async getRecentProviders(limit: number): Promise<any[]> {
+        return ServiceProviderModel.find()
+            .populate('userId', 'name profileImage')
+            .sort({ createdAt: -1 })
+            .limit(limit)
+            .lean();
+    }
+
+    async getProviderGrowth(): Promise<any[]> {
+        return ServiceProviderModel.aggregate([
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { "_id": 1 } }
+        ]);
+    }
 }

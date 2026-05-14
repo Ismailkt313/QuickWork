@@ -164,6 +164,9 @@ export interface IJobRepository {
     findByConditionAndUpdate(query: any, update: any): Promise<IJob | null>;
     find(query: any): Promise<IJob[]>;
     count(query: any): Promise<number>;
+    countActiveJobs(): Promise<number>;
+    countCompletedJobs(): Promise<number>;
+    getStatusDistribution(): Promise<any[]>;
 }
 
 export interface IJobController {

@@ -1,14 +1,20 @@
 import { IAdminDashboardService, IAdminDashboardOverview, IRecentActivity, IChartData, IFinanceSummary } from "../interfaces/adminDashboard.interface";
-import { UserModel } from "../../auth/models/user.model";
-import { ServiceProviderModel } from "../../serviceProvider/models/serviceProvider.model";
-import { JobModel } from "../../job/models/job.model";
-import { ReportModel } from "../../report/models/report.model";
-import { PlatformTransactionModel } from "../../finance/models/platformTransaction.model";
+import { IAuthRepository } from "../../auth/interfaces/auth.interface";
+import { IJobRepository } from "../../job/interfaces/job.interface";
+import { IServiceProviderRepository } from "../../serviceProvider/interfaces/serviceProvider.interface";
+import { IReportRepository } from "../../report/interfaces/report.interface";
+import { IPlatformTransactionRepository } from "../../finance/interfaces/finance.interface";
 import { IApiResponse } from "../../../types/api.types";
-import { JOB_STATUS } from "../../../constants/jobStatus";
-import { VERIFICATION_STATUS } from "../../../constants/verification";
 
 export class AdminDashboardService implements IAdminDashboardService {
+    constructor(
+        private readonly _authRepo: IAuthRepository,
+        private readonly _jobRepo: IJobRepository,
+        private readonly _providerRepo: IServiceProviderRepository,
+        private readonly _reportRepo: IReportRepository,
+        private readonly _transactionRepo: IPlatformTransactionRepository
+    ) { }
+
     public async getOverview(): Promise<IApiResponse<IAdminDashboardOverview>> {
         const [
             totalUsers,
@@ -20,16 +26,14 @@ export class AdminDashboardService implements IAdminDashboardService {
             totalTransactions,
             earningsData
         ] = await Promise.all([
-            UserModel.countDocuments(),
-            ServiceProviderModel.countDocuments(),
-            JobModel.countDocuments({ status: { $in: [JOB_STATUS.OPEN, JOB_STATUS.PARTIALLY_ASSIGNED, JOB_STATUS.FULLY_ASSIGNED, JOB_STATUS.IN_PROGRESS] } }),
-            JobModel.countDocuments({ status: JOB_STATUS.COMPLETED }),
-            ServiceProviderModel.countDocuments({ 'verification.status': VERIFICATION_STATUS.PENDING }),
-            ReportModel.countDocuments({ status: 'PENDING' }),
-            PlatformTransactionModel.countDocuments(),
-            PlatformTransactionModel.aggregate([
-                { $group: { _id: null, total: { $sum: "$platformFee" } } }
-            ])
+            this._authRepo.countTotalUsers(),
+            this._providerRepo.countTotalProviders(),
+            this._jobRepo.countActiveJobs(),
+            this._jobRepo.countCompletedJobs(),
+            this._providerRepo.countPendingApprovals(),
+            this._reportRepo.countPendingReports(),
+            this._transactionRepo.countTotalTransactions(),
+            this._transactionRepo.getEarningsStats()
         ]);
 
         return {
@@ -55,10 +59,10 @@ export class AdminDashboardService implements IAdminDashboardService {
             recentTransactions,
             recentReports
         ] = await Promise.all([
-            UserModel.find().sort({ createdAt: -1 }).limit(5),
-            ServiceProviderModel.find().populate('userId').sort({ createdAt: -1 }).limit(5),
-            PlatformTransactionModel.find().populate('providerId').sort({ createdAt: -1 }).limit(5),
-            ReportModel.find().populate('reporterId').sort({ createdAt: -1 }).limit(5)
+            this._authRepo.getRecentUsers(5),
+            this._providerRepo.getRecentProviders(5),
+            this._transactionRepo.getRecentTransactions(5),
+            this._reportRepo.getRecentReports(5)
         ]);
 
         const activities: IRecentActivity[] = [];
@@ -116,40 +120,16 @@ export class AdminDashboardService implements IAdminDashboardService {
     }
 
     public async getChartData(): Promise<IApiResponse<IChartData>> {
-        const jobStatusDistribution = await JobModel.aggregate([
-            { $group: { _id: "$status", count: { $sum: 1 } } },
-            { $project: { _id: 0, status: "$_id", count: 1 } }
-        ]);
-
-        const monthlyRevenue = await PlatformTransactionModel.aggregate([
-            {
-                $group: {
-                    _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
-                    revenue: { $sum: "$platformFee" }
-                }
-            },
-            { $sort: { "_id": 1 } },
-            { $project: { _id: 0, month: "$_id", revenue: 1 } }
-        ]);
-
-        const userGrowth = await UserModel.aggregate([
-            {
-                $group: {
-                    _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
-                    count: { $sum: 1 }
-                }
-            },
-            { $sort: { "_id": 1 } }
-        ]);
-
-        const providerGrowth = await ServiceProviderModel.aggregate([
-            {
-                $group: {
-                    _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
-                    count: { $sum: 1 }
-                }
-            },
-            { $sort: { "_id": 1 } }
+        const [
+            jobStatusDistribution,
+            monthlyRevenue,
+            userGrowth,
+            providerGrowth
+        ] = await Promise.all([
+            this._jobRepo.getStatusDistribution(),
+            this._transactionRepo.getMonthlyRevenue(),
+            this._authRepo.getUserGrowth(),
+            this._providerRepo.getProviderGrowth()
         ]);
 
         // Merge growth data
@@ -172,27 +152,16 @@ export class AdminDashboardService implements IAdminDashboardService {
     }
 
     public async getFinanceSummary(): Promise<IApiResponse<IFinanceSummary>> {
-        const [totals] = await Promise.all([
-            PlatformTransactionModel.aggregate([
-                {
-                    $group: {
-                        _id: null,
-                        totalEarnings: { $sum: "$platformFee" },
-                        totalPayouts: { $sum: "$providerAmount" },
-                        transactionVolume: { $sum: "$totalAmount" }
-                    }
-                }
-            ])
-        ]);
+        const totals = await this._transactionRepo.getFinanceSummary();
 
         return {
             success: true,
             message: "Finance summary fetched successfully",
             data: {
-                totalEarnings: totals[0]?.totalEarnings || 0,
-                totalPayouts: totals[0]?.totalPayouts || 0,
+                totalEarnings: totals?.totalEarnings || 0,
+                totalPayouts: totals?.totalPayouts || 0,
                 pendingWithdrawals: 0,
-                transactionVolume: totals[0]?.transactionVolume || 0
+                transactionVolume: totals?.transactionVolume || 0
             }
         };
     }

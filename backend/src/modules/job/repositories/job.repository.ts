@@ -446,6 +446,30 @@ export class JobRepository implements IJobRepository {
         return JobModel.countDocuments(query);
     }
 
+    async countActiveJobs(): Promise<number> {
+        return JobModel.countDocuments({
+            status: {
+                $in: [
+                    JOB_STATUS.OPEN,
+                    JOB_STATUS.PARTIALLY_ASSIGNED,
+                    JOB_STATUS.FULLY_ASSIGNED,
+                    JOB_STATUS.IN_PROGRESS
+                ]
+            }
+        });
+    }
+
+    async countCompletedJobs(): Promise<number> {
+        return JobModel.countDocuments({ status: JOB_STATUS.COMPLETED });
+    }
+
+    async getStatusDistribution(): Promise<any[]> {
+        return JobModel.aggregate([
+            { $group: { _id: "$status", count: { $sum: 1 } } },
+            { $project: { _id: 0, status: "$_id", count: 1 } }
+        ]);
+    }
+
     async getJobById(jobId: string): Promise<{ success: boolean; data?: JobResponseDTO; message?: string }> {
         const job = await this.findById(jobId);
 

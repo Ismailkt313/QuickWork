@@ -89,6 +89,10 @@ export interface IServiceProviderRepository {
     updateAvailability(userId: string, availability: IAvailability[]): Promise<any>;
     addBlockedDate(userId: string, blockedDate: IBlockedDate): Promise<any>;
     deleteBlockedDate(userId: string, blockedDateId: string): Promise<any>;
+    countTotalProviders(): Promise<number>;
+    countPendingApprovals(): Promise<number>;
+    getRecentProviders(limit: number): Promise<any[]>;
+    getProviderGrowth(): Promise<any[]>;
 }
 
 export interface IServiceProviderService {

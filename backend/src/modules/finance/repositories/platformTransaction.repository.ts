@@ -48,4 +48,49 @@ export class PlatformTransactionRepository implements IPlatformTransactionReposi
             PlatformTransactionModel.countDocuments(filter)
         ]);
     }
+
+    async countTotalTransactions(): Promise<number> {
+        return PlatformTransactionModel.countDocuments();
+    }
+
+    async getEarningsStats(): Promise<any> {
+        return PlatformTransactionModel.aggregate([
+            { $group: { _id: null, total: { $sum: "$platformFee" } } }
+        ]);
+    }
+
+    async getRecentTransactions(limit: number): Promise<any[]> {
+        return PlatformTransactionModel.find()
+            .populate('providerId', 'name email profileImage')
+            .sort({ createdAt: -1 })
+            .limit(limit)
+            .lean();
+    }
+
+    async getMonthlyRevenue(): Promise<any[]> {
+        return PlatformTransactionModel.aggregate([
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+                    revenue: { $sum: "$platformFee" }
+                }
+            },
+            { $sort: { "_id": 1 } },
+            { $project: { _id: 0, month: "$_id", revenue: 1 } }
+        ]);
+    }
+
+    async getFinanceSummary(): Promise<any> {
+        const result = await PlatformTransactionModel.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    totalEarnings: { $sum: "$platformFee" },
+                    totalPayouts: { $sum: "$providerAmount" },
+                    transactionVolume: { $sum: "$totalAmount" }
+                }
+            }
+        ]);
+        return result[0];
+    }
 }

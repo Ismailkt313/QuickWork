@@ -212,6 +212,9 @@ export interface IAuthRepository {
     updateUser(userId: string, data: Partial<IUser>): Promise<IUser | null>;
     incrementWarningCount(userId: string): Promise<void>;
     blockUser(userId: string): Promise<void>;
+    countTotalUsers(): Promise<number>;
+    getRecentUsers(limit: number): Promise<IUser[]>;
+    getUserGrowth(): Promise<any[]>;
 }
 
 export interface IAuthService {
