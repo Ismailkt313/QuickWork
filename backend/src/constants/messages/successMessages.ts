@@ -50,4 +50,8 @@ export const SuccessMessages = {
   USER_FETCHED: "User fetched successfully",
   REVIEW_CREATED: "Review created successfully",
   REVIEWS_FETCHED: "Reviews fetched successfully",
+
+  EMAIL_UPDATE_OTP_SENT: (email: string, minutes: number) => `Verification OTP sent to ${email}. Expires in ${minutes} minutes`,
+  EMAIL_UPDATE_OTP_RESENT: (email: string, minutes: number) => `Verification OTP resent to ${email}. Expires in ${minutes} minutes`,
+  EMAIL_UPDATED: "Email address updated successfully",
 };

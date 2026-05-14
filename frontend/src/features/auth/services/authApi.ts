@@ -70,3 +70,18 @@ export const getMe = async () => {
   const response = await api.get(ENDPOINTS.AUTH.ME);
   return response.data;
 };
+
+export const sendEmailUpdateOtp = async (data: { newEmail: string }) => {
+  const response = await api.post(ENDPOINTS.AUTH.EMAIL_UPDATE_SEND_OTP, data);
+  return response.data;
+};
+
+export const verifyEmailUpdate = async (data: { newEmail: string; otp: string }) => {
+  const response = await api.post(ENDPOINTS.AUTH.EMAIL_UPDATE_VERIFY, data);
+  return response.data;
+};
+
+export const resendEmailUpdateOtp = async (data: { newEmail: string }) => {
+  const response = await api.post(ENDPOINTS.AUTH.EMAIL_UPDATE_RESEND_OTP, data);
+  return response.data;
+};

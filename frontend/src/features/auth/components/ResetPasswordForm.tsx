@@ -1,5 +1,5 @@
 import { AxiosError } from "axios";
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { resetPassword } from "../services/authApi";
 
@@ -31,6 +31,8 @@ function strengthTextClass(score: number): string {
   return "text-success";
 }
 
+const OTP_EXPIRY_SECONDS = 120;
+
 const ResetPasswordForm = () => {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [newPassword, setNewPassword] = useState("");
@@ -39,6 +41,8 @@ const ResetPasswordForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [expiryTimer, setExpiryTimer] = useState(OTP_EXPIRY_SECONDS);
+  const [isExpired, setIsExpired] = useState(false);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
@@ -51,6 +55,23 @@ const ResetPasswordForm = () => {
     () => getPasswordStrength(newPassword),
     [newPassword],
   );
+
+  useEffect(() => {
+    if (expiryTimer <= 0) {
+      setIsExpired(true);
+      return;
+    }
+    const interval = setInterval(() => {
+      setExpiryTimer((t) => t - 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [expiryTimer]);
+
+  const formatExpiryTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
 
   const handleOtpChange = (index: number, value: string) => {
     if (value && !/^\d$/.test(value)) return;
@@ -195,6 +216,31 @@ const ResetPasswordForm = () => {
                 />
               ))}
             </div>
+          </div>
+
+          <div
+            className="mb-4"
+            style={{
+              padding: "10px 16px",
+              borderRadius: "10px",
+              background: isExpired ? "#fef2f2" : "#f0f9ff",
+              border: `1px solid ${isExpired ? "#fecaca" : "#bae6fd"}`,
+              textAlign: "center" as const,
+              transition: "all 0.3s ease",
+            }}
+          >
+            {isExpired ? (
+              <span style={{ fontSize: "0.8125rem", color: "#dc2626", fontWeight: 600 }}>
+                ⚠ Code expired — please request a new reset code
+              </span>
+            ) : (
+              <span style={{ fontSize: "0.8125rem", color: "#0369a1", fontWeight: 500 }}>
+                Code expires in{" "}
+                <span style={{ fontWeight: 700, color: expiryTimer <= 30 ? "#dc2626" : "#0369a1" }}>
+                  {formatExpiryTime(expiryTimer)}
+                </span>
+              </span>
+            )}
           </div>
 
           <div className="mb-3">

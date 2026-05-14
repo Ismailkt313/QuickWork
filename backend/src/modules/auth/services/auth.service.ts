@@ -22,6 +22,12 @@ import {
     IResetPasswordResponse,
     IUpdateProfileInput,
     IChangePasswordInput,
+    ISendEmailUpdateOtpInput,
+    ISendEmailUpdateOtpResponse,
+    IVerifyEmailUpdateInput,
+    IVerifyEmailUpdateResponse,
+    IResendEmailUpdateOtpInput,
+    IResendEmailUpdateOtpResponse,
 } from "../interfaces/auth.interface";
 import { ROLES } from "../../../constants/roles";
 import { OTP_TYPE } from "../../../constants/otp";
@@ -382,5 +388,101 @@ export class AuthService implements IAuthService {
 
         const hashedNewPassword = await bcrypt.hash(data.newPassword, config.BCRYPT_SALT_ROUNDS);
         await this._authRepository.updatePassword(userId, hashedNewPassword);
+    }
+
+    public async sendEmailUpdateOtp(userId: string, input: ISendEmailUpdateOtpInput): Promise<ISendEmailUpdateOtpResponse> {
+        const currentUser = await this._authRepository.findById(userId);
+        if (!currentUser) {
+            throw new AppError(ErrorMessages.USER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
+        }
+
+        const newEmail = input.newEmail.toLowerCase().trim();
+
+        if (newEmail === currentUser.email) {
+            throw new AppError(ErrorMessages.EMAIL_SAME_AS_CURRENT, HttpStatusCode.BAD_REQUEST);
+        }
+
+        const existingUser = await this._authRepository.findByEmail(newEmail);
+        if (existingUser) {
+            throw new AppError(ErrorMessages.EMAIL_ALREADY_EXISTS, HttpStatusCode.CONFLICT);
+        }
+
+        const otp = generateOtp();
+        const hashedOtpValue = await hashOtp(otp);
+        const otpExpiresAt = new Date(Date.now() + config.OTP_EXPIRY_SECONDS * 1000);
+        const expiresAt = new Date(Date.now() + config.OTP_TTL_SECONDS * 1000);
+
+        await this._otpRepository.upsert(
+            newEmail,
+            hashedOtpValue,
+            OTP_TYPE.EMAIL_UPDATE,
+            otpExpiresAt,
+            expiresAt,
+            { name: currentUser.name, email: newEmail, role: currentUser.role, isBlocked: false }
+        );
+
+        await sendOtpEmail(newEmail, otp);
+
+        return {
+            success: true,
+            message: SuccessMessages.EMAIL_UPDATE_OTP_SENT(newEmail, Math.floor(config.OTP_EXPIRY_SECONDS / 60)),
+        };
+    }
+
+    public async verifyEmailUpdate(userId: string, input: IVerifyEmailUpdateInput): Promise<IVerifyEmailUpdateResponse> {
+        const newEmail = input.newEmail.toLowerCase().trim();
+
+        const otpEntry = await this._otpRepository.findByEmailAndType(newEmail, OTP_TYPE.EMAIL_UPDATE);
+        if (!otpEntry) {
+            throw new AppError(ErrorMessages.EMAIL_UPDATE_SESSION_EXPIRED, HttpStatusCode.BAD_REQUEST);
+        }
+
+        if (otpEntry.otpExpiresAt < new Date()) {
+            throw new AppError(ErrorMessages.EMAIL_UPDATE_OTP_EXPIRED, HttpStatusCode.BAD_REQUEST);
+        }
+
+        const isValid = await compareOtp(input.otp, otpEntry.hashedOtp);
+        if (!isValid) {
+            throw new AppError(ErrorMessages.INVALID_EMAIL_UPDATE_OTP, HttpStatusCode.BAD_REQUEST);
+        }
+
+        const existingUser = await this._authRepository.findByEmail(newEmail);
+        if (existingUser) {
+            throw new AppError(ErrorMessages.EMAIL_ALREADY_EXISTS, HttpStatusCode.CONFLICT);
+        }
+
+        const updatedUser = await this._authRepository.updateUser(userId, { email: newEmail } as any);
+        if (!updatedUser) {
+            throw new AppError(ErrorMessages.USER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
+        }
+
+        await this._otpRepository.deleteByEmailAndType(newEmail, OTP_TYPE.EMAIL_UPDATE);
+
+        return {
+            success: true,
+            message: SuccessMessages.EMAIL_UPDATED,
+            data: mapUserToResponseDTO(updatedUser),
+        };
+    }
+
+    public async resendEmailUpdateOtp(userId: string, input: IResendEmailUpdateOtpInput): Promise<IResendEmailUpdateOtpResponse> {
+        const newEmail = input.newEmail.toLowerCase().trim();
+
+        const otpEntry = await this._otpRepository.findByEmailAndType(newEmail, OTP_TYPE.EMAIL_UPDATE);
+        if (!otpEntry) {
+            throw new AppError(ErrorMessages.EMAIL_UPDATE_SESSION_EXPIRED, HttpStatusCode.BAD_REQUEST);
+        }
+
+        const otp = generateOtp();
+        const hashedOtpValue = await hashOtp(otp);
+        const otpExpiresAt = new Date(Date.now() + config.OTP_EXPIRY_SECONDS * 1000);
+
+        await this._otpRepository.updateOtp(newEmail, hashedOtpValue, OTP_TYPE.EMAIL_UPDATE, otpExpiresAt);
+        await sendOtpEmail(newEmail, otp);
+
+        return {
+            success: true,
+            message: SuccessMessages.EMAIL_UPDATE_OTP_RESENT(newEmail, Math.floor(config.OTP_EXPIRY_SECONDS / 60)),
+        };
     }
 }

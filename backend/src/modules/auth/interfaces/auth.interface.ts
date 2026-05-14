@@ -90,6 +90,10 @@ export interface IAuthController {
     logout(req: Request, res: Response, next: NextFunction): Promise<void>;
     forgotPassword(req: Request, res: Response, next: NextFunction): Promise<void>;
     resetPassword(req: Request, res: Response, next: NextFunction): Promise<void>;
+    sendEmailUpdateOtp(req: Request, res: Response, next: NextFunction): Promise<void>;
+    verifyEmailUpdate(req: Request, res: Response, next: NextFunction): Promise<void>;
+    resendEmailUpdateOtp(req: Request, res: Response, next: NextFunction): Promise<void>;
+    googleCallback(req: Request, res: Response, next: NextFunction): Promise<void>;
 }
 
 export interface IResetPasswordInput {
@@ -156,6 +160,35 @@ export interface IUpdateProfileInput {
     };
 }
 
+export interface ISendEmailUpdateOtpInput {
+    newEmail: string;
+}
+
+export interface ISendEmailUpdateOtpResponse {
+    success: boolean;
+    message: string;
+}
+
+export interface IVerifyEmailUpdateInput {
+    newEmail: string;
+    otp: string;
+}
+
+export interface IVerifyEmailUpdateResponse {
+    success: boolean;
+    message: string;
+    data?: UserResponseDTO;
+}
+
+export interface IResendEmailUpdateOtpInput {
+    newEmail: string;
+}
+
+export interface IResendEmailUpdateOtpResponse {
+    success: boolean;
+    message: string;
+}
+
 export interface ILogoutResponse {
     success: boolean;
     message: string;
@@ -194,4 +227,7 @@ export interface IAuthService {
     getProfile(userId: string): Promise<UserResponseDTO>;
     updateProfile(userId: string, data: IUpdateProfileInput): Promise<UserResponseDTO>;
     changePassword(userId: string, data: IChangePasswordInput): Promise<void>;
+    sendEmailUpdateOtp(userId: string, input: ISendEmailUpdateOtpInput): Promise<ISendEmailUpdateOtpResponse>;
+    verifyEmailUpdate(userId: string, input: IVerifyEmailUpdateInput): Promise<IVerifyEmailUpdateResponse>;
+    resendEmailUpdateOtp(userId: string, input: IResendEmailUpdateOtpInput): Promise<IResendEmailUpdateOtpResponse>;
 }

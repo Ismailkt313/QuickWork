@@ -80,4 +80,9 @@ export const ErrorMessages = {
   MAX_MIN_BUDGET_ERROR: "Max must be >= min",
   PRIVATE_JOB_FREELANCER_LIMIT: "Private jobs must have only 1 freelancer",
   MULTI_DAY_REQUIRED_DAYS: "Days required for multi-day jobs",
+
+  EMAIL_SAME_AS_CURRENT: "New email is the same as current email",
+  EMAIL_UPDATE_SESSION_EXPIRED: "Email update session expired. Please try again",
+  EMAIL_UPDATE_OTP_EXPIRED: "Verification code has expired. Please resend",
+  INVALID_EMAIL_UPDATE_OTP: "Invalid verification code",
 };

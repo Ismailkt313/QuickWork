@@ -6,10 +6,13 @@ import {
   RiShieldLine,
   RiEditLine,
   RiTimeLine,
+  RiMailSendLine,
+  RiArrowRightSLine,
 } from "react-icons/ri";
 import { getMe } from "../../auth/services/authApi";
 import UpdateProfileModal from "../components/UpdateProfileModal";
 import UpdatePasswordModal from "../components/UpdatePasswordModal";
+import UpdateEmailModal from "../components/UpdateEmailModal";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
 
@@ -31,6 +34,7 @@ const UserProfilePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isUpdateProfileOpen, setIsUpdateProfileOpen] = useState(false);
   const [isUpdatePasswordOpen, setIsUpdatePasswordOpen] = useState(false);
+  const [isUpdateEmailOpen, setIsUpdateEmailOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 992);
 
   useEffect(() => {
@@ -87,7 +91,6 @@ const UserProfilePage: React.FC = () => {
 
   const MobileProfileLayout = () => (
     <div className="mobile-profile-container animate-fade-in">
-      {/* --- Premium Mobile Header --- */}
       <div className="m-profile-header">
         <div className="m-p-header-main">
           <div className="m-p-avatar-wrap">
@@ -96,7 +99,7 @@ const UserProfilePage: React.FC = () => {
             ) : (
               <div className="m-p-initials">{userInitials}</div>
             )}
-            <button 
+            <button
               className="m-p-edit-badge"
               onClick={() => setIsUpdateProfileOpen(true)}
             >
@@ -113,7 +116,6 @@ const UserProfilePage: React.FC = () => {
         </div>
       </div>
 
-      {/* --- Compact Info Grid --- */}
       <div className="m-info-grid">
         <div className="m-info-card">
           <div className="m-info-icon"><RiMailLine /></div>
@@ -138,7 +140,6 @@ const UserProfilePage: React.FC = () => {
         </div>
       </div>
 
-      {/* --- Operational Action List --- */}
       <div className="m-action-section">
         <h3 className="m-section-title">Account Settings</h3>
         <div className="m-action-list">
@@ -148,7 +149,17 @@ const UserProfilePage: React.FC = () => {
               <span className="m-ai-title">Personal Details</span>
               <span className="m-ai-sub">Name, phone, and profile info</span>
             </div>
-            <RiEditLine className="m-ai-arrow" />
+            <RiArrowRightSLine className="m-ai-arrow" />
+          </button>
+          <button className="m-action-item" onClick={() => setIsUpdateEmailOpen(true)}>
+            <div className="m-ai-icon" style={{ background: "#faf5ff", color: "#8b5cf6" }}>
+              <RiMailSendLine />
+            </div>
+            <div className="m-ai-text">
+              <span className="m-ai-title">Change Email</span>
+              <span className="m-ai-sub">Update with OTP verification</span>
+            </div>
+            <RiArrowRightSLine className="m-ai-arrow" />
           </button>
           <button className="m-action-item" onClick={() => setIsUpdatePasswordOpen(true)}>
             <div className="m-ai-icon"><RiShieldLine /></div>
@@ -156,7 +167,7 @@ const UserProfilePage: React.FC = () => {
               <span className="m-ai-title">Login & Security</span>
               <span className="m-ai-sub">Manage password and safety</span>
             </div>
-            <RiEditLine className="m-ai-arrow" />
+            <RiArrowRightSLine className="m-ai-arrow" />
           </button>
         </div>
       </div>
@@ -340,7 +351,7 @@ const UserProfilePage: React.FC = () => {
         }
         .m-ai-arrow {
           color: #cbd5e1;
-          font-size: 16px;
+          font-size: 20px;
         }
       `}</style>
     </div>
@@ -353,133 +364,265 @@ const UserProfilePage: React.FC = () => {
       ) : (
         <div
           className="container-fluid py-4 animate-fade-in"
-          style={{ maxWidth: "1000px" }}
+          style={{ maxWidth: "960px" }}
         >
           <div className="mb-4">
-            <h1 className="h3 fw-bold text-dark mb-1">My Profile</h1>
-            <p className="text-secondary small">
+            <h1 style={{
+              fontSize: 26, fontWeight: 800, color: "#0f172a",
+              margin: 0, letterSpacing: "-0.02em",
+            }}>
+              My Profile
+            </h1>
+            <p style={{
+              color: "#64748b", fontSize: 14, margin: "4px 0 0",
+              fontWeight: 500,
+            }}>
               Manage your personal information and security settings
             </p>
           </div>
 
           <div className="row g-4">
             <div className="col-12 col-lg-4">
-              <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
-                <div className="bg-primary text-white p-4 text-center">
-                  <div
-                    className="mx-auto mb-3 overflow-hidden"
-                    style={{
-                      width: "100px",
-                      height: "100px",
-                      borderRadius: "50%",
-                      background: "rgba(255,255,255,0.2)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "32px",
-                      fontWeight: "bold",
-                      border: "4px solid rgba(255,255,255,0.3)",
-                    }}
-                  >
+              <div style={{
+                background: "#fff", borderRadius: 20,
+                border: "1px solid #f1f5f9",
+                boxShadow: "0 4px 16px rgba(15,23,42,0.04)",
+                overflow: "hidden",
+              }}>
+                <div style={{
+                  background: "linear-gradient(135deg, #3b82f6, #6366f1)",
+                  padding: "32px 24px", textAlign: "center" as const,
+                }}>
+                  <div style={{
+                    width: 96, height: 96, borderRadius: 24,
+                    background: "rgba(255,255,255,0.15)",
+                    display: "flex", alignItems: "center",
+                    justifyContent: "center", margin: "0 auto 16px",
+                    border: "3px solid rgba(255,255,255,0.2)",
+                    overflow: "hidden", backdropFilter: "blur(4px)",
+                    fontSize: 32, fontWeight: 800, color: "#fff",
+                  }}>
                     {user.profileImage ? (
                       <img
                         src={user.profileImage.url}
                         alt="Profile"
-                        className="w-100 h-100 object-fit-cover"
+                        style={{
+                          width: "100%", height: "100%",
+                          objectFit: "cover" as const,
+                        }}
                       />
                     ) : (
                       userInitials
                     )}
                   </div>
-                  <h4 className="fw-bold mb-1">{user.name}</h4>
-                  <span className="badge bg-light text-primary rounded-pill px-3 py-2 small fw-bold">
-                    {user.role.toUpperCase()}
+                  <h4 style={{
+                    color: "#fff", fontWeight: 800, fontSize: 20,
+                    margin: "0 0 8px", letterSpacing: "-0.01em",
+                  }}>
+                    {user.name}
+                  </h4>
+                  <span style={{
+                    display: "inline-block", background: "rgba(255,255,255,0.2)",
+                    color: "#fff", padding: "4px 14px", borderRadius: 20,
+                    fontSize: 11, fontWeight: 800, textTransform: "uppercase" as const,
+                    letterSpacing: "0.06em", backdropFilter: "blur(4px)",
+                  }}>
+                    {user.role}
                   </span>
                 </div>
-                <div className="card-body p-4 text-center">
-                  <div className="d-flex align-items-center justify-content-center gap-2 mb-4 text-secondary small">
+                <div style={{ padding: 24 }}>
+                  <div style={{
+                    display: "flex", alignItems: "center",
+                    justifyContent: "center", gap: 8,
+                    marginBottom: 20, color: "#64748b", fontSize: 13,
+                    fontWeight: 500,
+                  }}>
                     <RiTimeLine />
-                    <span>
-                      Joined {format(new Date(user.createdAt), "MMMM yyyy")}
-                    </span>
+                    <span>Joined {format(new Date(user.createdAt), "MMMM yyyy")}</span>
                   </div>
                   <button
                     onClick={() => setIsUpdateProfileOpen(true)}
-                    className="btn btn-primary w-100 rounded-3 py-2 fw-medium d-flex align-items-center justify-content-center gap-2"
+                    style={{
+                      width: "100%", height: 46, borderRadius: 14,
+                      border: "none",
+                      background: "linear-gradient(135deg, #3b82f6, #6366f1)",
+                      color: "#fff", fontWeight: 700, fontSize: 14,
+                      cursor: "pointer", display: "flex",
+                      alignItems: "center", justifyContent: "center",
+                      gap: 8, transition: "all 0.2s",
+                      boxShadow: "0 4px 12px rgba(59,130,246,0.25)",
+                    }}
+                    onMouseEnter={(e) => { (e.target as HTMLElement).style.transform = "translateY(-1px)"; (e.target as HTMLElement).style.boxShadow = "0 6px 16px rgba(59,130,246,0.35)"; }}
+                    onMouseLeave={(e) => { (e.target as HTMLElement).style.transform = "translateY(0)"; (e.target as HTMLElement).style.boxShadow = "0 4px 12px rgba(59,130,246,0.25)"; }}
                   >
-                    <RiEditLine size={18} />
+                    <RiEditLine size={16} />
                     Edit Profile
                   </button>
                 </div>
               </div>
             </div>
+
             <div className="col-12 col-lg-8">
-              <div className="card border-0 shadow-sm rounded-4 mb-4">
-                <div className="card-header bg-transparent border-bottom p-4 py-3 d-flex align-items-center justify-content-between">
-                  <h5 className="mb-0 fw-bold d-flex align-items-center gap-2">
-                    <RiUser3Line className="text-primary" />
+              <div style={{
+                background: "#fff", borderRadius: 20,
+                border: "1px solid #f1f5f9",
+                boxShadow: "0 4px 16px rgba(15,23,42,0.04)",
+                marginBottom: 20, overflow: "hidden",
+              }}>
+                <div style={{
+                  padding: "18px 24px",
+                  borderBottom: "1px solid #f1f5f9",
+                  display: "flex", alignItems: "center", gap: 10,
+                }}>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: 10,
+                    background: "#eff6ff", display: "flex",
+                    alignItems: "center", justifyContent: "center",
+                    color: "#3b82f6",
+                  }}>
+                    <RiUser3Line size={16} />
+                  </div>
+                  <h5 style={{
+                    margin: 0, fontWeight: 800, fontSize: 16,
+                    color: "#0f172a", letterSpacing: "-0.01em",
+                  }}>
                     Personal Information
                   </h5>
                 </div>
-                <div className="card-body p-4">
+                <div style={{ padding: 24 }}>
                   <div className="row g-4">
-                    <div className="col-12 col-md-6 text-start">
-                      <label className="text-secondary small fw-bold text-uppercase mb-1 d-block">
-                        Full Name
-                      </label>
-                      <div className="fw-semibold text-dark p-2 rounded bg-light border-start border-primary border-4">
-                        {user.name}
+                    {[
+                      { label: "Full Name", value: user.name, icon: null },
+                      {
+                        label: "Email Address",
+                        value: user.email,
+                        icon: <RiMailLine size={14} style={{ color: "#64748b" }} />,
+                        action: (
+                          <button
+                            onClick={() => setIsUpdateEmailOpen(true)}
+                            style={{
+                              background: "#faf5ff", border: "1px solid #ede9fe",
+                              borderRadius: 8, padding: "4px 10px",
+                              fontSize: 11, fontWeight: 700, color: "#8b5cf6",
+                              cursor: "pointer", transition: "all 0.2s",
+                              display: "flex", alignItems: "center", gap: 4,
+                              whiteSpace: "nowrap" as const,
+                            }}
+                            onMouseEnter={(e) => { (e.target as HTMLElement).style.background = "#8b5cf6"; (e.target as HTMLElement).style.color = "#fff"; }}
+                            onMouseLeave={(e) => { (e.target as HTMLElement).style.background = "#faf5ff"; (e.target as HTMLElement).style.color = "#8b5cf6"; }}
+                          >
+                            <RiMailSendLine size={12} />
+                            Change
+                          </button>
+                        ),
+                      },
+                      {
+                        label: "Phone Number",
+                        value: user.number || "Not provided",
+                        icon: <RiPhoneLine size={14} style={{ color: "#64748b" }} />,
+                      },
+                      {
+                        label: "Account Type",
+                        value: `${user.role} Account`,
+                        icon: null,
+                        capitalize: true,
+                      },
+                    ].map((field, i) => (
+                      <div className="col-12 col-md-6" key={i}>
+                        <div style={{
+                          display: "flex", alignItems: "center",
+                          justifyContent: "space-between", marginBottom: 8,
+                        }}>
+                          <label style={{
+                            fontSize: 11, fontWeight: 700, color: "#94a3b8",
+                            textTransform: "uppercase" as const,
+                            letterSpacing: "0.04em",
+                          }}>
+                            {field.label}
+                          </label>
+                          {field.action}
+                        </div>
+                        <div style={{
+                          display: "flex", alignItems: "center", gap: 8,
+                          padding: "12px 14px", borderRadius: 12,
+                          background: "#f8fafc",
+                          borderLeft: "3px solid #3b82f6",
+                          fontSize: 14, fontWeight: 600, color: "#0f172a",
+                          textTransform: field.capitalize ? "capitalize" as const : "none" as const,
+                          overflow: "hidden",
+                        }}>
+                          {field.icon}
+                          <span style={{
+                            overflow: "hidden", textOverflow: "ellipsis",
+                            whiteSpace: "nowrap" as const,
+                          }}>
+                            {field.value}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="col-12 col-md-6 text-start">
-                      <label className="text-secondary small fw-bold text-uppercase mb-1 d-block">
-                        Email Address
-                      </label>
-                      <div className="d-flex align-items-center gap-2 p-2 rounded bg-light border-start border-4 text-dark overflow-hidden">
-                        <RiMailLine className="text-secondary flex-shrink-0" />
-                        <span className="text-truncate">{user.email}</span>
-                      </div>
-                    </div>
-                    <div className="col-12 col-md-6 text-start">
-                      <label className="text-secondary small fw-bold text-uppercase mb-1 d-block">
-                        Phone Number
-                      </label>
-                      <div className="d-flex align-items-center gap-2 p-2 rounded bg-light border-start border-4 text-dark">
-                        <RiPhoneLine className="text-secondary" />
-                        <span>{user.number || "Not provided"}</span>
-                      </div>
-                    </div>
-                    <div className="col-12 col-md-6 text-start">
-                      <label className="text-secondary small fw-bold text-uppercase mb-1 d-block">
-                        Account Type
-                      </label>
-                      <div className="p-2 rounded bg-light border-start border-4 text-dark text-capitalize">
-                        {user.role} Account
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
               </div>
 
-              <div className="card border-0 shadow-sm rounded-4">
-                <div className="card-header bg-transparent border-bottom p-4 py-3 d-flex align-items-center justify-content-between">
-                  <h5 className="mb-0 fw-bold d-flex align-items-center gap-2">
-                    <RiShieldLine className="text-primary" />
+              <div style={{
+                background: "#fff", borderRadius: 20,
+                border: "1px solid #f1f5f9",
+                boxShadow: "0 4px 16px rgba(15,23,42,0.04)",
+                overflow: "hidden",
+              }}>
+                <div style={{
+                  padding: "18px 24px",
+                  borderBottom: "1px solid #f1f5f9",
+                  display: "flex", alignItems: "center", gap: 10,
+                }}>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: 10,
+                    background: "#fef2f2", display: "flex",
+                    alignItems: "center", justifyContent: "center",
+                    color: "#ef4444",
+                  }}>
+                    <RiShieldLine size={16} />
+                  </div>
+                  <h5 style={{
+                    margin: 0, fontWeight: 800, fontSize: 16,
+                    color: "#0f172a", letterSpacing: "-0.01em",
+                  }}>
                     Security Settings
                   </h5>
                 </div>
-                <div className="card-body p-4">
-                  <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 text-start">
+                <div style={{ padding: 24 }}>
+                  <div style={{
+                    display: "flex", alignItems: "center",
+                    justifyContent: "space-between", gap: 16,
+                    flexWrap: "wrap" as const,
+                  }}>
                     <div>
-                      <h6 className="fw-bold mb-1">Account Password</h6>
-                      <p className="text-secondary small mb-0">
-                        It's a good idea to use a strong password that you're not
-                        using elsewhere
+                      <h6 style={{
+                        fontWeight: 700, fontSize: 15, color: "#0f172a",
+                        margin: "0 0 4px",
+                      }}>
+                        Account Password
+                      </h6>
+                      <p style={{
+                        color: "#64748b", fontSize: 13, margin: 0,
+                        fontWeight: 500,
+                      }}>
+                        It's a good idea to use a strong password that you're not using elsewhere
                       </p>
                     </div>
                     <button
                       onClick={() => setIsUpdatePasswordOpen(true)}
-                      className="btn btn-outline-primary rounded-3 px-4 py-2 small fw-bold flex-shrink-0"
+                      style={{
+                        height: 40, borderRadius: 12, padding: "0 20px",
+                        border: "1.5px solid #e2e8f0", background: "#fff",
+                        color: "#0f172a", fontWeight: 700, fontSize: 13,
+                        cursor: "pointer", transition: "all 0.2s",
+                        whiteSpace: "nowrap" as const,
+                        flexShrink: 0,
+                      }}
+                      onMouseEnter={(e) => { (e.target as HTMLElement).style.borderColor = "#3b82f6"; (e.target as HTMLElement).style.color = "#3b82f6"; (e.target as HTMLElement).style.background = "#eff6ff"; }}
+                      onMouseLeave={(e) => { (e.target as HTMLElement).style.borderColor = "#e2e8f0"; (e.target as HTMLElement).style.color = "#0f172a"; (e.target as HTMLElement).style.background = "#fff"; }}
                     >
                       Change Password
                     </button>
@@ -500,6 +643,12 @@ const UserProfilePage: React.FC = () => {
       <UpdatePasswordModal
         isOpen={isUpdatePasswordOpen}
         onClose={() => setIsUpdatePasswordOpen(false)}
+      />
+      <UpdateEmailModal
+        isOpen={isUpdateEmailOpen}
+        onClose={() => setIsUpdateEmailOpen(false)}
+        currentEmail={user.email}
+        onSuccess={fetchProfile}
       />
     </>
   );

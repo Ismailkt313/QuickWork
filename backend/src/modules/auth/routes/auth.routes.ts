@@ -1,8 +1,6 @@
 import { Router } from "express";
 import { AuthController } from "../controllers/auth.controller";
 import passport from "../../../config/passport";
-import { generateAccessToken, generateRefreshToken } from "../../../utils/jwt.util";
-import { IUser, ITokenPayload } from "../interfaces/auth.interface";
 import { config } from "../../../config";
 import { authMiddleware } from "../../../middleware/auth.middleware";
 
@@ -21,6 +19,9 @@ export const createAuthRouter = (authController: AuthController): Router => {
     router.get("/me", authMiddleware, authController.getProfile);
     router.patch("/profile", authMiddleware, authController.updateProfile);
     router.post("/change-password", authMiddleware, authController.changePassword);
+    router.post("/email-update/send-otp", authMiddleware, authController.sendEmailUpdateOtp);
+    router.post("/email-update/verify", authMiddleware, authController.verifyEmailUpdate);
+    router.post("/email-update/resend-otp", authMiddleware, authController.resendEmailUpdateOtp);
 
     router.get("/google", passport.authenticate("google", {
         scope: ["profile", "email"],
@@ -32,32 +33,7 @@ export const createAuthRouter = (authController: AuthController): Router => {
             session: false,
             failureRedirect: `${config.FRONTEND_URL}/login?error=google_auth_failed`,
         }),
-        (req, res) => {
-            if (!req.user) {
-                return res.redirect(`${config.FRONTEND_URL}/login?error=google_auth_failed`);
-            }
-
-            const user = req.user as any as IUser;
-
-            const tokenPayload: ITokenPayload = {
-                userId: user._id.toString(),
-                role: user.role,
-            };
-
-            const accessToken = generateAccessToken(tokenPayload);
-            const refreshToken = generateRefreshToken(tokenPayload);
-
-            res.cookie('refreshToken', refreshToken, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
-                maxAge: 7 * 24 * 60 * 60 * 1000
-            });
-
-            res.redirect(
-                `${config.FRONTEND_URL}/auth/google/callback?accessToken=${accessToken}`
-            );
-        }
+        authController.googleCallback
     );
 
     return router;

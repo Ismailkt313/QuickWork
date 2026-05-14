@@ -20,11 +20,14 @@ const MailOpenIcon = () => (
 );
 
 const OTP_RESEND_COOLDOWN = 60;
+const OTP_EXPIRY_SECONDS = 120;
 
 const OtpForm = () => {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [timer, setTimer] = useState(OTP_RESEND_COOLDOWN);
   const [canResend, setCanResend] = useState(false);
+  const [expiryTimer, setExpiryTimer] = useState(OTP_EXPIRY_SECONDS);
+  const [isExpired, setIsExpired] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +47,17 @@ const OtpForm = () => {
     }, 1000);
     return () => clearInterval(interval);
   }, [timer]);
+
+  useEffect(() => {
+    if (expiryTimer <= 0) {
+      setIsExpired(true);
+      return;
+    }
+    const interval = setInterval(() => {
+      setExpiryTimer((t) => t - 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [expiryTimer]);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -111,6 +125,8 @@ const OtpForm = () => {
       setOtp(Array(6).fill(""));
       setTimer(OTP_RESEND_COOLDOWN);
       setCanResend(false);
+      setExpiryTimer(OTP_EXPIRY_SECONDS);
+      setIsExpired(false);
       inputRefs.current[0]?.focus();
     } catch (err) {
       const axiosError = err as AxiosError<{ message: string }>;
@@ -203,6 +219,30 @@ const OtpForm = () => {
             Resend code in{" "}
             <span className="fw-semibold text-dark">{formatTime(timer)}</span>
           </div>
+        )}
+      </div>
+
+      <div
+        className="text-center mt-3"
+        style={{
+          padding: "10px 16px",
+          borderRadius: "10px",
+          background: isExpired ? "#fef2f2" : "#f0f9ff",
+          border: `1px solid ${isExpired ? "#fecaca" : "#bae6fd"}`,
+          transition: "all 0.3s ease",
+        }}
+      >
+        {isExpired ? (
+          <span style={{ fontSize: "0.8125rem", color: "#dc2626", fontWeight: 600 }}>
+            ⚠ Code expired — please resend to get a new code
+          </span>
+        ) : (
+          <span style={{ fontSize: "0.8125rem", color: "#0369a1", fontWeight: 500 }}>
+            Code expires in{" "}
+            <span style={{ fontWeight: 700, color: expiryTimer <= 30 ? "#dc2626" : "#0369a1" }}>
+              {formatTime(expiryTimer)}
+            </span>
+          </span>
         )}
       </div>
 

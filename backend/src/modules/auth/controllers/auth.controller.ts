@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { IAuthService } from "../interfaces/auth.interface";
+import { IAuthService, IUser, ITokenPayload } from "../interfaces/auth.interface";
 import { SendOtpDto } from "../dtos/send-otp.dto";
 import { VerifyOtpDto } from "../dtos/verify-otp.dto";
 import { ResendOtpDto } from "../dtos/resend-otp.dto";
@@ -9,6 +9,8 @@ import { ResetPasswordDto } from "../dtos/reset-password.dto";
 import { HttpStatusCode } from "../../../constants/httpStatusCode"
 import { ErrorMessages } from "../../../constants/messages/errorMessages";
 import { SuccessMessages } from "../../../constants/messages/successMessages";
+import { config } from "../../../config";
+import { generateAccessToken, generateRefreshToken } from "../../../utils/jwt.util";
 
 import { IAuthController } from '../interfaces/auth.interface';
 
@@ -242,6 +244,81 @@ export class AuthController implements IAuthController {
                 success: true,
                 message: SuccessMessages.PASSWORD_CHANGED
             });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    public sendEmailUpdateOtp = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try {
+            const userId = (req.user as any).userId;
+            const { newEmail } = req.body;
+            const result = await this._authService.sendEmailUpdateOtp(userId, { newEmail });
+            res.status(HttpStatusCode.OK).json(result);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    public verifyEmailUpdate = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try {
+            const userId = (req.user as any).userId;
+            const { newEmail, otp } = req.body;
+            const result = await this._authService.verifyEmailUpdate(userId, { newEmail, otp });
+            res.status(HttpStatusCode.OK).json(result);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    public resendEmailUpdateOtp = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try {
+            const userId = (req.user as any).userId;
+            const { newEmail } = req.body;
+            const result = await this._authService.resendEmailUpdateOtp(userId, { newEmail });
+            res.status(HttpStatusCode.OK).json(result);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    public googleCallback = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
+        try {
+            if (!req.user) {
+                return res.redirect(`${config.FRONTEND_URL}/login?error=google_auth_failed`);
+            }
+
+            const user = req.user as any as IUser;
+
+            const tokenPayload: ITokenPayload = {
+                userId: user._id.toString(),
+                role: user.role,
+            };
+
+            const accessToken = generateAccessToken(tokenPayload);
+            const refreshToken = generateRefreshToken(tokenPayload);
+
+            this.setTokenCookie(res, refreshToken);
+
+            res.redirect(
+                `${config.FRONTEND_URL}/auth/google/callback?accessToken=${accessToken}`
+            );
         } catch (error) {
             next(error);
         }

@@ -11,6 +11,9 @@ export const ENDPOINTS = {
     CHANGE_PASSWORD: "/auth/change-password",
     ME: "/auth/me",
     ADMIN_LOGIN: "/auth/admin/login",
+    EMAIL_UPDATE_SEND_OTP: "/auth/email-update/send-otp",
+    EMAIL_UPDATE_VERIFY: "/auth/email-update/verify",
+    EMAIL_UPDATE_RESEND_OTP: "/auth/email-update/resend-otp",
   },
   USER: {
     PROFILE: "/user/profile",
