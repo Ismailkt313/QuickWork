@@ -32,8 +32,9 @@ export class SkillRepository implements ISkillRepository {
         return SkillModel.find().limit(6) as Promise<ISkill[]>;
     }
 
-    async getAllSkills(search?: string, locationId?: string): Promise<ISkill[]> {
+    async getAllSkills(page: number, limit: number, search?: string, locationId?: string): Promise<{ data: ISkill[], total: number }> {
         const baseFilter: any = { isActive: true };
+        const skip = (page - 1) * limit;
         
         if (locationId) {
             const result = await ServiceProviderModel.aggregate<{ uniqueSkillIds: Types.ObjectId[] }>([
@@ -41,18 +42,28 @@ export class SkillRepository implements ISkillRepository {
                 { $unwind: '$skills' },
                 { $group: { _id: null, uniqueSkillIds: { $addToSet: '$skills' } } }
             ]);
-            if (!result.length || !result[0].uniqueSkillIds.length) return [];
+            if (!result.length || !result[0].uniqueSkillIds.length) return { data: [], total: 0 };
             
             const filter = search
                 ? { ...baseFilter, _id: { $in: result[0].uniqueSkillIds }, name: { $regex: search, $options: 'i' } }
                 : { ...baseFilter, _id: { $in: result[0].uniqueSkillIds } };
-            return SkillModel.find(filter).sort({ name: 1 });
+
+            const [data, total] = await Promise.all([
+                SkillModel.find(filter).sort({ name: 1 }).skip(skip).limit(limit),
+                SkillModel.countDocuments(filter)
+            ]);
+            return { data, total };
         }
         
         const filter = search 
             ? { ...baseFilter, name: { $regex: search, $options: 'i' } } 
             : baseFilter;
-        return SkillModel.find(filter).sort({ name: 1 });
+
+        const [data, total] = await Promise.all([
+            SkillModel.find(filter).sort({ name: 1 }).skip(skip).limit(limit),
+            SkillModel.countDocuments(filter)
+        ]);
+        return { data, total };
     }
 
     async update(id: string, skillData: Partial<ISkill>): Promise<ISkill | null> {

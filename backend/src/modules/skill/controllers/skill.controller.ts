@@ -22,9 +22,11 @@ export class SkillController implements ISkillController {
 
     getAllSkills = async (req: Request, res: Response, next: any): Promise<void> => {
         try {
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 24;
             const search = req.query.search as string | undefined;
             const locationId = req.query.locationId as string | undefined;
-            const result = await this._skillService.getAllSkills(search, locationId);
+            const result = await this._skillService.getAllSkills(page, limit, search, locationId);
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);

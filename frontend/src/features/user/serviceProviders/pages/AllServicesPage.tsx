@@ -6,6 +6,8 @@ import MainLayout from "../../layout/MainLayout";
 import { useLandingData } from "../../hooks/useLandingData";
 import useDebounce from "../../../../hooks/useDebounce";
 import LocationModal from "../../landingPage/components/LocationModal";
+import Pagination from "../../../../components/ui/Pagination";
+import type { PaginationInfo } from "../../serviceProviders/services/providersService";
 import type { Location } from "../../landingPage/services/landingService";
 
 const SKILL_ICONS: Record<string, string> = {
@@ -45,6 +47,8 @@ interface Skill {
   icon?: string;
 }
 
+const LIMIT = 24;
+
 const AllServicesPage: React.FC = () => {
   const navigate = useNavigate();
   const { locations, selectedLocation, selectLocation, clearLocation } =
@@ -55,29 +59,59 @@ const AllServicesPage: React.FC = () => {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 350);
   const [modalOpen, setModalOpen] = useState(false);
-  const fetchSkills = useCallback(async (q: string, locId?: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params: Record<string, string> = {};
-      if (q) params.search = q;
-      if (locId) params.locationId = locId;
-      const res = await api.get(ENDPOINTS.SKILLS.ALL, { params });
-      setSkills(res.data.data ?? []);
-    } catch {
-      setError("Failed to load services. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
+
+  const fetchSkills = useCallback(
+    async (q: string, locId?: string, p: number = 1) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const params: Record<string, string | number> = {
+          page: p,
+          limit: LIMIT,
+        };
+        if (q) params.search = q;
+        if (locId) params.locationId = locId;
+        const res = await api.get(ENDPOINTS.SKILLS.ALL, { params });
+        setSkills(res.data.data ?? []);
+        const pg = res.data.pagination;
+        if (pg) {
+          setPagination({
+            page: pg.page,
+            limit: pg.limit,
+            total: pg.total,
+            totalPages: pg.totalPages,
+            hasNext: pg.page < pg.totalPages,
+            hasPrev: pg.page > 1,
+          });
+        }
+      } catch {
+        setError("Failed to load services. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, selectedLocation]);
 
   useEffect(() => {
-    fetchSkills(debouncedSearch, selectedLocation?._id);
-  }, [debouncedSearch, selectedLocation, fetchSkills]);
+    fetchSkills(debouncedSearch, selectedLocation?._id, page);
+  }, [debouncedSearch, selectedLocation, page, fetchSkills]);
 
   const handleSelectLocation = (loc: Location) => {
     selectLocation(loc);
     setModalOpen(false);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -113,8 +147,8 @@ const AllServicesPage: React.FC = () => {
             All Services
           </h1>
           <p style={{ color: "#94a3b8", marginTop: 8, fontSize: 15 }}>
-            {skills.length > 0
-              ? `${skills.length} services available`
+            {pagination
+              ? `${pagination.total} services available`
               : "Browse all available services"}
             {selectedLocation ? ` in ${selectedLocation.name}` : ""}
           </p>
@@ -220,7 +254,8 @@ const AllServicesPage: React.FC = () => {
           )}
           <span style={{ marginLeft: "auto", fontSize: 13, color: "#94a3b8" }}>
             {!loading &&
-              `${skills.length} result${skills.length !== 1 ? "s" : ""}`}
+              pagination &&
+              `${pagination.total} result${pagination.total !== 1 ? "s" : ""}`}
           </span>
         </div>
       </div>
@@ -328,75 +363,84 @@ const AllServicesPage: React.FC = () => {
               )}
             </div>
           ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-                gap: 16,
-              }}
-            >
-              {skills.map((skill) => (
-                <div
-                  key={skill._id}
-                  onClick={() =>
-                    navigate(
-                      `/user/services/${skill._id}?name=${encodeURIComponent(skill.name)}`,
-                    )
-                  }
-                  style={{
-                    background: "#fff",
-                    borderRadius: 14,
-                    padding: "24px 12px",
-                    textAlign: "center",
-                    cursor: "pointer",
-                    border: "1.5px solid #f1f5f9",
-                    transition: "all 0.22s ease",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 10,
-                  }}
-                  onMouseEnter={(e) => {
-                    const el = e.currentTarget as HTMLElement;
-                    el.style.transform = "translateY(-5px)";
-                    el.style.boxShadow = "0 10px 28px rgba(59,130,246,0.14)";
-                    el.style.borderColor = "#bfdbfe";
-                  }}
-                  onMouseLeave={(e) => {
-                    const el = e.currentTarget as HTMLElement;
-                    el.style.transform = "translateY(0)";
-                    el.style.boxShadow = "none";
-                    el.style.borderColor = "#f1f5f9";
-                  }}
-                >
+            <>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+                  gap: 16,
+                }}
+              >
+                {skills.map((skill) => (
                   <div
+                    key={skill._id}
+                    onClick={() =>
+                      navigate(
+                        `/user/services/${skill._id}?name=${encodeURIComponent(skill.name)}`,
+                      )
+                    }
                     style={{
-                      width: 60,
-                      height: 60,
+                      background: "#fff",
                       borderRadius: 14,
-                      background: "linear-gradient(135deg,#eff6ff,#dbeafe)",
+                      padding: "24px 12px",
+                      textAlign: "center",
+                      cursor: "pointer",
+                      border: "1.5px solid #f1f5f9",
+                      transition: "all 0.22s ease",
                       display: "flex",
+                      flexDirection: "column",
                       alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 28,
+                      gap: 10,
+                    }}
+                    onMouseEnter={(e) => {
+                      const el = e.currentTarget as HTMLElement;
+                      el.style.transform = "translateY(-5px)";
+                      el.style.boxShadow = "0 10px 28px rgba(59,130,246,0.14)";
+                      el.style.borderColor = "#bfdbfe";
+                    }}
+                    onMouseLeave={(e) => {
+                      const el = e.currentTarget as HTMLElement;
+                      el.style.transform = "translateY(0)";
+                      el.style.boxShadow = "none";
+                      el.style.borderColor = "#f1f5f9";
                     }}
                   >
-                    {skill.icon ?? getIcon(skill.name, skill.slug)}
+                    <div
+                      style={{
+                        width: 60,
+                        height: 60,
+                        borderRadius: 14,
+                        background: "linear-gradient(135deg,#eff6ff,#dbeafe)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 28,
+                      }}
+                    >
+                      {skill.icon ?? getIcon(skill.name, skill.slug)}
+                    </div>
+                    <span
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: "#1e293b",
+                        textTransform: "capitalize",
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      {skill.name}
+                    </span>
                   </div>
-                  <span
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 600,
-                      color: "#1e293b",
-                      textTransform: "capitalize",
-                      lineHeight: 1.3,
-                    }}
-                  >
-                    {skill.name}
-                  </span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+
+              {pagination && pagination.totalPages > 1 && (
+                <Pagination
+                  pagination={pagination}
+                  onPageChange={handlePageChange}
+                />
+              )}
+            </>
           )}
         </div>
       </div>
