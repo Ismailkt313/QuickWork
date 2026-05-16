@@ -1,12 +1,14 @@
-import { IReportRepository } from '../interfaces/report.interface';
-import { IModerationLogRepository } from '../repositories/moderationLog.repository';
-import { IModerationLog } from '../models/moderationLog.model';
+import {
+    IReportRepository,
+    IModerationLogRepository,
+    IModerationLog,
+    REPORT_STATUS,
+    IModerationService
+} from '../interfaces/report.interface';
 import { IAuthRepository } from '../../auth/interfaces/auth.interface';
 import { INotificationService } from '../../notification/interfaces/notification.interface';
-import { REPORT_STATUS } from '../interfaces/report.interface';
 import { AppError } from '../../../utils/AppError';
 import { HttpStatusCode } from '../../../constants/httpStatusCode';
-import { IModerationService } from '../interfaces/report.interface';
 
 export class ModerationService implements IModerationService {
     private _reportRepository: IReportRepository;
@@ -113,3 +115,4 @@ export class ModerationService implements IModerationService {
         return await this.getReportDetail(reportId);
     }
 }
+

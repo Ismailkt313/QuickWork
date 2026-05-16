@@ -31,7 +31,7 @@ export class ReviewController implements IReviewController {
              res.status(HttpStatusCode.CREATED).json({
                 success: true,
                 message: SuccessMessages.REVIEW_CREATED,
-                data: review
+                data: mapReviewToResponseDTO(review)
             });
         } catch (error) {
             next(error);
@@ -102,7 +102,7 @@ export class ReviewController implements IReviewController {
             res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: "Provider reviews for client fetched successfully",
-                data: result.data,
+                data: result.data.map(mapReviewToResponseDTO),
                 pagination: result.pagination,
                 meta: result.meta
             });

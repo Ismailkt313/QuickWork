@@ -33,15 +33,14 @@ export interface IReviewPaginatedResponse {
     };
 }
 
-export interface IReviewRepository {
-    create(data: Partial<IReview>): Promise<IReview>;
-    findById(id: string): Promise<IReview | null>;
+import { IBaseRepository } from '../../../shared/interfaces/base.repository.interface';
+
+export interface IReviewRepository extends IBaseRepository<IReview> {
     findByUser(userId: string, page: number, limit: number): Promise<IReviewPaginatedResponse>;
     findByRevieweeAndRole(revieweeId: string, role: string, page: number, limit: number): Promise<IReviewPaginatedResponse>;
     findByAssignment(assignmentId: string): Promise<IReview[]>;
     exists(query: Record<string, unknown>): Promise<boolean>;
-    update(id: string, data: Partial<IReview>): Promise<IReview | null>;
-    delete(id: string): Promise<boolean>;
+
     getDashboardStats(revieweeId: string): Promise<{ averageRating: number; totalReviews: number }>;
     findRecentReviews(revieweeId: string, limit: number): Promise<IReview[]>;
 }

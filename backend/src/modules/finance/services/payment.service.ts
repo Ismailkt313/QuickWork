@@ -7,7 +7,7 @@ import {
     IPlatformTransactionRepository,
     IInvoiceService
 } from '../interfaces/finance.interface';
-import { AssignmentModel } from '../../assignment/models/assignment.model';
+import { IAssignment, IAssignmentRepository } from '../../assignment/interfaces/assignment.interface';
 import { config } from '../../../config';
 
 export class PaymentService implements IPaymentService {
@@ -16,19 +16,22 @@ export class PaymentService implements IPaymentService {
     private _workHistoryRepo: IWorkHistoryRepository;
     private _platformTransactionRepo: IPlatformTransactionRepository;
     private _invoiceService: IInvoiceService;
+    private _assignmentRepo: IAssignmentRepository;
 
     constructor(
         walletService: IWalletService,
         razorpayService: IRazorpayService,
         workHistoryRepo: IWorkHistoryRepository,
         platformTransactionRepo: IPlatformTransactionRepository,
-        invoiceService: IInvoiceService
+        invoiceService: IInvoiceService,
+        assignmentRepo: IAssignmentRepository
     ) {
         this._walletService = walletService;
         this._razorpayService = razorpayService;
         this._workHistoryRepo = workHistoryRepo;
         this._platformTransactionRepo = platformTransactionRepo;
         this._invoiceService = invoiceService;
+        this._assignmentRepo = assignmentRepo;
     }
 
     private async _createPlatformTransaction(history: IWorkHistory, razorpayPaymentId?: string) {
@@ -97,12 +100,12 @@ export class PaymentService implements IPaymentService {
         );
 
         if (history.assignmentId) {
-            await AssignmentModel.findByIdAndUpdate(history.assignmentId, {
+            await this._assignmentRepo.updateById(history.assignmentId.toString(), {
                 'payment.status': 'completed',
                 'payment.method': 'ONLINE',
                 'payment.paidAt': new Date(),
                 'payment.transactionId': razorpayPaymentId
-            });
+            } as unknown as Partial<IAssignment>);
         }
 
         await this._createPlatformTransaction(history, razorpayPaymentId);
@@ -150,11 +153,11 @@ export class PaymentService implements IPaymentService {
         await this._walletService.processCashPayment(providerId, history.payment.platformFee);
 
         if (history.assignmentId) {
-            await AssignmentModel.findByIdAndUpdate(history.assignmentId, {
+            await this._assignmentRepo.updateById(history.assignmentId.toString(), {
                 'payment.status': 'completed',
                 'payment.method': 'CASH',
                 'payment.paidAt': new Date()
-            });
+            } as unknown as Partial<IAssignment>);
         }
 
         await this._createPlatformTransaction(history);
@@ -251,12 +254,12 @@ export class PaymentService implements IPaymentService {
                 );
 
                 if (history.assignmentId) {
-                    await AssignmentModel.findByIdAndUpdate(history.assignmentId, {
+                    await this._assignmentRepo.updateById(history.assignmentId.toString(), {
                         'payment.status': 'completed',
                         'payment.method': 'ONLINE',
                         'payment.paidAt': new Date(),
                         'payment.transactionId': razorpayPaymentId
-                    });
+                    } as unknown as Partial<IAssignment>);
                 }
 
                 await this._createPlatformTransaction(history, razorpayPaymentId);
@@ -287,3 +290,4 @@ export class PaymentService implements IPaymentService {
         return this._workHistoryRepo.getPlatformEarnings();
     }
 }
+

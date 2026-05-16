@@ -6,7 +6,7 @@ import {
 } from '../interfaces/finance.interface';
 import { IJobRepository } from '../../job/interfaces/job.interface';
 import { IServiceProviderRepository } from '../../serviceProvider/interfaces/serviceProvider.interface';
-import { UserModel } from '../../auth/models/user.model';
+import { IAuthRepository } from '../../auth/interfaces/auth.interface';
 import PDFDocument from 'pdfkit';
 
 export class InvoiceService implements IInvoiceService {
@@ -14,17 +14,20 @@ export class InvoiceService implements IInvoiceService {
     private _workHistoryRepo: IWorkHistoryRepository;
     private _jobRepo: IJobRepository;
     private _providerRepo: IServiceProviderRepository;
+    private _authRepo: IAuthRepository;
 
     constructor(
         invoiceRepo: IInvoiceRepository,
         workHistoryRepo: IWorkHistoryRepository,
         jobRepo: IJobRepository,
-        providerRepo: IServiceProviderRepository
+        providerRepo: IServiceProviderRepository,
+        authRepo: IAuthRepository
     ) {
         this._invoiceRepo = invoiceRepo;
         this._workHistoryRepo = workHistoryRepo;
         this._jobRepo = jobRepo;
         this._providerRepo = providerRepo;
+        this._authRepo = authRepo;
     }
 
     async generateInvoice(workHistoryId: string): Promise<IInvoice> {
@@ -36,13 +39,13 @@ export class InvoiceService implements IInvoiceService {
         const job = await this._jobRepo.findById(history.jobId.toString());
         if (!job) throw new Error('Job not found');
 
-        const client = await UserModel.findById(history.clientId);
+        const client = await this._authRepo.findById(history.clientId.toString());
         if (!client) throw new Error('Client not found');
 
         const provider = await this._providerRepo.findById(history.providerId.toString());
         if (!provider) throw new Error('Provider not found');
 
-        const providerUser = await UserModel.findById(provider.userId);
+        const providerUser = await this._authRepo.findById(provider.userId.toString());
         if (!providerUser) throw new Error('Provider user not found');
 
         const invoiceNumber = await this._invoiceRepo.getNextInvoiceNumber();

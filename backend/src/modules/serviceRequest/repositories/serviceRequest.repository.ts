@@ -2,8 +2,12 @@ import { IServiceRequest } from '../interfaces/serviceRequest.interface';
 import { ServiceRequestModel } from '../models/serviceRequest.model';
 import { IServiceRequestRepository } from '../interfaces/serviceRequest.interface';
 import { ClientSession } from 'mongoose';
+import { BaseRepository } from '../../../shared/repositories/base.repository';
 
-export class ServiceRequestRepository implements IServiceRequestRepository {
+export class ServiceRequestRepository extends BaseRepository<IServiceRequest> implements IServiceRequestRepository {
+    constructor() {
+        super(ServiceRequestModel);
+    }
     async findPendingByName(name: string): Promise<IServiceRequest | null> {
         return await ServiceRequestModel.findOne({
             name: name.toLowerCase().trim(),
@@ -11,10 +15,6 @@ export class ServiceRequestRepository implements IServiceRequestRepository {
         });
     }
 
-    async create(requestData: Partial<IServiceRequest>): Promise<IServiceRequest> {
-        const request = new ServiceRequestModel(requestData);
-        return await request.save();
-    }
 
     async findByUser(userId: string): Promise<IServiceRequest[]> {
         return await ServiceRequestModel.find({ requestedBy: userId }).sort({ createdAt: -1 });
@@ -33,9 +33,6 @@ export class ServiceRequestRepository implements IServiceRequestRepository {
         return await ServiceRequestModel.countDocuments({ status: 'pending' });
     }
 
-    async findById(id: string): Promise<IServiceRequest | null> {
-        return await ServiceRequestModel.findById(id);
-    }
 
     async updateStatus(id: string, updateData: Partial<IServiceRequest>, session?: ClientSession): Promise<IServiceRequest | null> {
         return await ServiceRequestModel.findByIdAndUpdate(

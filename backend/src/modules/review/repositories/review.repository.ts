@@ -1,11 +1,11 @@
 import { Types } from 'mongoose';
 import { IReview, IReviewRepository, IReviewPaginatedResponse } from '../interfaces/review.interface';
 import { ReviewModel } from '../models/review.model';
+import { BaseRepository } from '../../../shared/repositories/base.repository';
 
-export class ReviewRepository implements IReviewRepository {
-    async create(data: Partial<IReview>): Promise<IReview> {
-        const review = new ReviewModel(data);
-        return await review.save();
+export class ReviewRepository extends BaseRepository<IReview> implements IReviewRepository {
+    constructor() {
+        super(ReviewModel);
     }
 
     async findById(id: string): Promise<IReview | null> {
@@ -151,16 +151,12 @@ export class ReviewRepository implements IReviewRepository {
         return count > 0;
     }
 
-    async update(id: string, data: Partial<IReview>): Promise<IReview | null> {
+    async updateById(id: string, data: Partial<IReview>): Promise<IReview | null> {
         return await ReviewModel.findByIdAndUpdate(id, data, { new: true })
             .populate('reviewerId', 'name')
             .populate('revieweeId', 'name');
     }
 
-    async delete(id: string): Promise<boolean> {
-        const result = await ReviewModel.findByIdAndDelete(id);
-        return !!result;
-    }
 
     async getDashboardStats(revieweeId: string): Promise<{ averageRating: number; totalReviews: number }> {
         const stats = await ReviewModel.aggregate([

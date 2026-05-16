@@ -1,45 +1,48 @@
 import { Request, Response, NextFunction } from 'express';
 import { IWalletController, IWalletService } from '../interfaces/finance.interface';
-import { IServiceProviderRepository } from '../../serviceProvider/interfaces/serviceProvider.interface';
+import { IServiceProviderService } from '../../serviceProvider/interfaces/serviceProvider.interface';
 import { HttpStatusCode } from '../../../constants/httpStatusCode';
 import { AppError } from '../../../utils/AppError';
+import { ErrorMessages } from '../../../constants/messages/errorMessages';
+import { SuccessMessages } from '../../../constants/messages/successMessages';
+import { mapWalletToResponseDTO, mapWalletTransactionToResponseDTO } from '../dtos/financeResponse.dto';
 
 export class WalletController implements IWalletController {
     private _walletService: IWalletService;
-    private _serviceProviderRepo: IServiceProviderRepository;
+    private _serviceProviderService: IServiceProviderService;
 
     constructor(
         walletService: IWalletService,
-        serviceProviderRepo: IServiceProviderRepository
+        serviceProviderService: IServiceProviderService
     ) {
         this._walletService = walletService;
-        this._serviceProviderRepo = serviceProviderRepo;
+        this._serviceProviderService = serviceProviderService;
     }
 
-    getMe = async (req: Request, res: Response, next: NextFunction) => {
+    public getMe = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
-            if (!userId) throw new Error('Unauthorized');
+            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
 
-            const provider = await this._serviceProviderRepo.findByUserId(userId);
-            if (!provider) throw new Error('Provider not found');
+            const provider = await this._serviceProviderService.getProviderByUserId(userId);
+            if (!provider) throw new AppError(ErrorMessages.PROVIDER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
 
             const wallet = await this._walletService.getOrCreateWallet(provider._id.toString());
-            res.status(HttpStatusCode.OK).json({ success: true, data: wallet });
+            res.status(HttpStatusCode.OK).json({ success: true, data: wallet ? mapWalletToResponseDTO(wallet) : null });
         } catch (error) {
             next(error);
         }
     };
 
-    getTransactions = async (req: Request, res: Response, next: NextFunction) => {
+    public getTransactions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
-            if (!userId) throw new Error('Unauthorized');
+            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
 
             const { page = 1, limit = 10, search, type, source } = req.query;
 
-            const provider = await this._serviceProviderRepo.findByUserId(userId);
-            if (!provider) throw new Error('Provider not found');
+            const provider = await this._serviceProviderService.getProviderByUserId(userId);
+            if (!provider) throw new AppError(ErrorMessages.PROVIDER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
 
             const { transactions, total } = await this._walletService.getTransactions(
                 provider._id.toString(),
@@ -52,7 +55,7 @@ export class WalletController implements IWalletController {
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
-                data: transactions,
+                data: transactions.map(mapWalletTransactionToResponseDTO),
                 pagination: {
                     total,
                     page: Number(page),
@@ -65,7 +68,7 @@ export class WalletController implements IWalletController {
         }
     };
 
-    getAdminFinanceOverview = async (req: Request, res: Response, next: NextFunction) => {
+    public getAdminFinanceOverview = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const overview = await this._walletService.getAdminOverview();
             res.status(HttpStatusCode.OK).json({ success: true, data: overview });
@@ -74,26 +77,26 @@ export class WalletController implements IWalletController {
         }
     };
 
-    withdraw = async (req: Request, res: Response, next: NextFunction) => {
+    public withdraw = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
-            if (!userId) throw new AppError('Unauthorized', HttpStatusCode.UNAUTH0RIZED);
+            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
 
             const { amount } = req.body;
             if (!amount || isNaN(Number(amount))) {
-                throw new AppError('Valid amount is required', HttpStatusCode.BAD_REQUEST);
+                throw new AppError(ErrorMessages.VALID_AMOUNT_REQUIRED, HttpStatusCode.BAD_REQUEST);
             }
 
-            const provider = await this._serviceProviderRepo.findByUserId(userId);
-            if (!provider) throw new AppError('Provider not found', HttpStatusCode.NOT_FOUND);
+            const provider = await this._serviceProviderService.getProviderByUserId(userId);
+            if (!provider) throw new AppError(ErrorMessages.PROVIDER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
 
             try {
                 const wallet = await this._walletService.requestWithdrawal(provider._id.toString(), Number(amount));
 
                 res.status(HttpStatusCode.OK).json({
                     success: true,
-                    message: 'Withdrawal successful',
-                    data: wallet
+                    message: SuccessMessages.WITHDRAWAL_SUCCESSFUL,
+                    data: wallet ? mapWalletToResponseDTO(wallet) : null
                 });
             } catch (error: unknown) {
                 throw new AppError((error as Error).message, HttpStatusCode.BAD_REQUEST);
@@ -103,3 +106,5 @@ export class WalletController implements IWalletController {
         }
     };
 }
+
+

@@ -85,4 +85,13 @@ export const ErrorMessages = {
   EMAIL_UPDATE_SESSION_EXPIRED: "Email update session expired. Please try again",
   EMAIL_UPDATE_OTP_EXPIRED: "Verification code has expired. Please resend",
   INVALID_EMAIL_UPDATE_OTP: "Invalid verification code",
+
+  INVOICE_NOT_FOUND: "Invoice not found",
+  WORK_HISTORY_ID_REQUIRED: "WorkHistory ID is required",
+  RAZORPAY_DETAILS_REQUIRED: "All Razorpay details and required IDs must be provided",
+  JOB_ID_REQUIRED: "Job ID is required",
+  VALID_AMOUNT_REQUIRED: "Valid amount is required",
+  NO_IMAGE_PROVIDED: "No image file provided",
+  NO_IMAGES_PROVIDED: "No image files provided",
+  CANCELLATION_REASON_REQUIRED: "Cancellation reason is required",
 };

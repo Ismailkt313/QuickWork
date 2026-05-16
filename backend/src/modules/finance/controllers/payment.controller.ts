@@ -1,28 +1,31 @@
 import { Request, Response, NextFunction } from 'express';
-import { IPaymentController, IPaymentService, IWorkHistoryRepository } from '../interfaces/finance.interface';
-import { IServiceProviderRepository } from '../../serviceProvider/interfaces/serviceProvider.interface';
+import { IPaymentController, IPaymentService, IWorkHistoryService } from '../interfaces/finance.interface';
+import { IServiceProviderService } from '../../serviceProvider/interfaces/serviceProvider.interface';
 import { HttpStatusCode } from '../../../constants/httpStatusCode';
+import { AppError } from '../../../utils/AppError';
+import { ErrorMessages } from '../../../constants/messages/errorMessages';
+import { mapWorkHistoryToResponseDTO } from '../dtos/financeResponse.dto';
 
 export class PaymentController implements IPaymentController {
     private _paymentService: IPaymentService;
-    private _serviceProviderRepo: IServiceProviderRepository;
-    private _workHistoryRepo: IWorkHistoryRepository;
+    private _serviceProviderService: IServiceProviderService;
+    private _workHistoryService: IWorkHistoryService;
 
     constructor(
         paymentService: IPaymentService,
-        serviceProviderRepo: IServiceProviderRepository,
-        workHistoryRepo: IWorkHistoryRepository
+        serviceProviderService: IServiceProviderService,
+        workHistoryService: IWorkHistoryService
     ) {
         this._paymentService = paymentService;
-        this._serviceProviderRepo = serviceProviderRepo;
-        this._workHistoryRepo = workHistoryRepo;
+        this._serviceProviderService = serviceProviderService;
+        this._workHistoryService = workHistoryService;
     }
 
-    markAsPaidCash = async (req: Request, res: Response, next: NextFunction) => {
+    public markAsPaidCash = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { workHistoryId } = req.params as { workHistoryId: string };
             const clientId = req.user?.userId;
-            if (!clientId) throw new Error('Unauthorized');
+            if (!clientId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
 
             const result = await this._paymentService.markAsPaidCash(workHistoryId, clientId);
             res.status(result.success ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST).json(result);
@@ -31,14 +34,14 @@ export class PaymentController implements IPaymentController {
         }
     };
 
-    confirmCashPayment = async (req: Request, res: Response, next: NextFunction) => {
+    public confirmCashPayment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { workHistoryId } = req.params as { workHistoryId: string };
             const userId = req.user?.userId;
-            if (!userId) throw new Error('Unauthorized');
+            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
 
-            const provider = await this._serviceProviderRepo.findByUserId(userId);
-            if (!provider) throw new Error('Provider not found');
+            const provider = await this._serviceProviderService.getProviderByUserId(userId);
+            if (!provider) throw new AppError(ErrorMessages.PROVIDER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
 
             const result = await this._paymentService.confirmCashPayment(workHistoryId, provider._id.toString());
             res.status(result.success ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST).json(result);
@@ -47,14 +50,14 @@ export class PaymentController implements IPaymentController {
         }
     };
 
-    rejectCashPayment = async (req: Request, res: Response, next: NextFunction) => {
+    public rejectCashPayment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { workHistoryId } = req.params as { workHistoryId: string };
             const userId = req.user?.userId;
-            if (!userId) throw new Error('Unauthorized');
+            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
 
-            const provider = await this._serviceProviderRepo.findByUserId(userId);
-            if (!provider) throw new Error('Provider not found');
+            const provider = await this._serviceProviderService.getProviderByUserId(userId);
+            if (!provider) throw new AppError(ErrorMessages.PROVIDER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
 
             const result = await this._paymentService.rejectCashPayment(workHistoryId, provider._id.toString());
             res.status(result.success ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST).json(result);
@@ -63,7 +66,7 @@ export class PaymentController implements IPaymentController {
         }
     };
 
-    getPlatformOverview = async (req: Request, res: Response, next: NextFunction) => {
+    public getPlatformOverview = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const earnings = await this._paymentService.getPlatformEarnings();
             res.status(HttpStatusCode.OK).json({ success: true, totalEarnings: earnings });
@@ -72,37 +75,36 @@ export class PaymentController implements IPaymentController {
         }
     };
 
-    getWorkHistoryByAssignment = async (req: Request, res: Response, next: NextFunction) => {
+    public getWorkHistoryByAssignment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { assignmentId } = req.params as { assignmentId: string };
-            const history = await this._workHistoryRepo.findByAssignmentId(assignmentId);
-            res.status(HttpStatusCode.OK).json({ success: true, data: history });
+            const history = await this._workHistoryService.getByAssignmentId(assignmentId);
+            res.status(HttpStatusCode.OK).json({ success: true, data: history ? mapWorkHistoryToResponseDTO(history) : null });
         } catch (error) {
             next(error);
         }
     };
 
-    getProviderWorkHistory = async (req: Request, res: Response, next: NextFunction) => {
+    public getProviderWorkHistory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
-            if (!userId) throw new Error('Unauthorized');
+            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
 
             const { page = 1, limit = 10, status } = req.query;
-            const skip = (Number(page) - 1) * Number(limit);
 
-            const provider = await this._serviceProviderRepo.findByUserId(userId);
-            if (!provider) throw new Error('Provider not found');
+            const provider = await this._serviceProviderService.getProviderByUserId(userId);
+            if (!provider) throw new AppError(ErrorMessages.PROVIDER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
 
-            const [history, total] = await this._workHistoryRepo.findProviderHistory(
+            const { history, total } = await this._workHistoryService.getProviderHistory(
                 provider._id.toString(),
                 (Array.isArray(status) ? status[0] : status) as string | undefined,
-                skip,
+                Number(page),
                 Number(limit)
             );
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
-                data: history,
+                data: history.map(mapWorkHistoryToResponseDTO),
                 pagination: {
                     total,
                     page: Number(page),
@@ -115,19 +117,19 @@ export class PaymentController implements IPaymentController {
         }
     };
 
-    createRazorpayOrder = async (req: Request, res: Response, _next: NextFunction) => {
+    public createRazorpayOrder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { workHistoryId } = req.body;
-            if (!workHistoryId) throw new Error('WorkHistory ID is required');
+            if (!workHistoryId) throw new AppError(ErrorMessages.WORK_HISTORY_ID_REQUIRED, HttpStatusCode.BAD_REQUEST);
 
             const orderDetails = await this._paymentService.createRazorpayOrder(workHistoryId);
             res.status(HttpStatusCode.OK).json({ success: true, data: orderDetails });
-        } catch (error: unknown) {
-            res.status(HttpStatusCode.BAD_REQUEST).json({ success: false, message: (error as Error).message });
+        } catch (error) {
+            next(error);
         }
     };
 
-    verifyRazorpayPayment = async (req: Request, res: Response, _next: NextFunction) => {
+    public verifyRazorpayPayment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const {
                 workHistoryId,
@@ -137,7 +139,7 @@ export class PaymentController implements IPaymentController {
             } = req.body;
 
             if (!workHistoryId || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-                throw new Error('All Razorpay details and workHistoryId are required');
+                throw new AppError(ErrorMessages.RAZORPAY_DETAILS_REQUIRED, HttpStatusCode.BAD_REQUEST);
             }
 
             const result = await this._paymentService.verifyRazorpayPayment(
@@ -148,24 +150,24 @@ export class PaymentController implements IPaymentController {
             );
 
             res.status(HttpStatusCode.OK).json(result);
-        } catch (error: unknown) {
-            res.status(HttpStatusCode.BAD_REQUEST).json({ success: false, message: (error as Error).message });
+        } catch (error) {
+            next(error);
         }
     };
 
-    createJobRazorpayOrder = async (req: Request, res: Response, _next: NextFunction) => {
+    public createJobRazorpayOrder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { jobId } = req.body;
-            if (!jobId) throw new Error('Job ID is required');
+            if (!jobId) throw new AppError(ErrorMessages.JOB_ID_REQUIRED, HttpStatusCode.BAD_REQUEST);
 
             const orderDetails = await this._paymentService.createJobRazorpayOrder(jobId);
             res.status(HttpStatusCode.OK).json({ success: true, data: orderDetails });
-        } catch (error: unknown) {
-            res.status(HttpStatusCode.BAD_REQUEST).json({ success: false, message: (error as Error).message });
+        } catch (error) {
+            next(error);
         }
     };
 
-    verifyJobRazorpayPayment = async (req: Request, res: Response, _next: NextFunction) => {
+    public verifyJobRazorpayPayment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const {
                 jobId,
@@ -175,7 +177,7 @@ export class PaymentController implements IPaymentController {
             } = req.body;
 
             if (!jobId || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-                throw new Error('All Razorpay details and jobId are required');
+                throw new AppError(ErrorMessages.RAZORPAY_DETAILS_REQUIRED, HttpStatusCode.BAD_REQUEST);
             }
 
             const result = await this._paymentService.verifyJobRazorpayPayment(
@@ -186,8 +188,10 @@ export class PaymentController implements IPaymentController {
             );
 
             res.status(HttpStatusCode.OK).json(result);
-        } catch (error: unknown) {
-            res.status(HttpStatusCode.BAD_REQUEST).json({ success: false, message: (error as Error).message });
+        } catch (error) {
+            next(error);
         }
     };
 }
+
+

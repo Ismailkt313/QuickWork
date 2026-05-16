@@ -1,5 +1,6 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { IAdminFinanceController, IAdminFinanceService } from '../interfaces/finance.interface';
+import { HttpStatusCode } from '../../../constants/httpStatusCode';
 
 export class AdminFinanceController implements IAdminFinanceController {
     private _adminFinanceService: IAdminFinanceService;
@@ -8,22 +9,19 @@ export class AdminFinanceController implements IAdminFinanceController {
         this._adminFinanceService = adminFinanceService;
     }
 
-    getOverview = async (req: Request, res: Response) => {
+    public getOverview = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const overview = await this._adminFinanceService.getFinanceOverview();
-            return res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: true,
                 data: overview
             });
-        } catch (error: unknown) {
-            return res.status(500).json({
-                success: false,
-                message: (error as Error).message || 'Internal Server Error'
-            });
+        } catch (error) {
+            next(error);
         }
     };
 
-    getTransactions = async (req: Request, res: Response) => {
+    public getTransactions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { page, limit, paymentMethod, startDate, endDate, search } = req.query;
             const data = await this._adminFinanceService.getTransactions({
@@ -35,16 +33,15 @@ export class AdminFinanceController implements IAdminFinanceController {
                 search: search as string
             });
 
-            return res.status(200).json({
+            res.status(HttpStatusCode.OK).json({
                 success: true,
                 data: data.transactions,
                 pagination: data.pagination
             });
-        } catch (error: unknown) {
-            return res.status(500).json({
-                success: false,
-                message: (error as Error).message || 'Internal Server Error'
-            });
+        } catch (error) {
+            next(error);
         }
     };
 }
+
+

@@ -108,6 +108,7 @@ export interface IServiceProviderService {
     }): Promise<{ success: boolean; message?: string; data?: ProviderListResult & { page: number; limit: number } }>;
     getProviderById(id: string): Promise<{ success: boolean; data?: IServiceProvider; message?: string }>;
     getMyProfile(userId: string): Promise<{ success: boolean; data?: IServiceProvider; message?: string }>;
+    getProviderByUserId(userId: string): Promise<IServiceProvider | null>;
     updateProfile(userId: string, data: Partial<IServiceProvider>): Promise<{ success: boolean; data?: IServiceProvider; message?: string }>;
     resetApplication(userId: string): Promise<{ success: boolean; message: string }>;
     updateAvailability(userId: string, availability: IAvailability[]): Promise<{ success: boolean; message: string; data?: IAvailability[] }>;

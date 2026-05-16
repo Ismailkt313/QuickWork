@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { IUploadController, IUploadService } from '../interfaces/upload.interface';
 import { AppError } from '../../../utils/AppError';
 import { HttpStatusCode } from "../../../constants/httpStatusCode";
+import { ErrorMessages } from '../../../constants/messages/errorMessages';
 
 export class UploadController implements IUploadController {
     private _uploadService: IUploadService;
@@ -10,10 +11,10 @@ export class UploadController implements IUploadController {
         this._uploadService = uploadService;
     }
 
-    uploadProfileImage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public uploadProfileImage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             if (!req.file) {
-                throw new AppError('No image file provided', HttpStatusCode.BAD_REQUEST);
+                throw new AppError(ErrorMessages.NO_IMAGE_PROVIDED, HttpStatusCode.BAD_REQUEST);
             }
 
             const result = await this._uploadService.uploadProfileImage(req.file.buffer, req.file.mimetype);
@@ -27,10 +28,10 @@ export class UploadController implements IUploadController {
         }
     };
 
-    uploadPortfolioImage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public uploadPortfolioImage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             if (!req.file) {
-                throw new AppError('No image file provided', HttpStatusCode.BAD_REQUEST);
+                throw new AppError(ErrorMessages.NO_IMAGE_PROVIDED, HttpStatusCode.BAD_REQUEST);
             }
 
             const result = await this._uploadService.uploadPortfolioImage(req.file.buffer, req.file.mimetype);
@@ -44,11 +45,11 @@ export class UploadController implements IUploadController {
         }
     };
 
-    uploadAssignmentProofs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public uploadAssignmentProofs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const files = req.files as Express.Multer.File[];
             if (!files || files.length === 0) {
-                throw new AppError('No image files provided', HttpStatusCode.BAD_REQUEST);
+                throw new AppError(ErrorMessages.NO_IMAGES_PROVIDED, HttpStatusCode.BAD_REQUEST);
             }
 
             const uploadPromises = files.map(file =>
@@ -66,10 +67,10 @@ export class UploadController implements IUploadController {
         }
     };
 
-    uploadChatMessage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public uploadChatMessage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             if (!req.file) {
-                throw new AppError('No image file provided', HttpStatusCode.BAD_REQUEST);
+                throw new AppError(ErrorMessages.NO_IMAGE_PROVIDED, HttpStatusCode.BAD_REQUEST);
             }
 
             const result = await this._uploadService.uploadChatMessage(req.file.buffer, req.file.mimetype);
@@ -83,7 +84,7 @@ export class UploadController implements IUploadController {
         }
     };
 
-    getUploadSignature = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public getUploadSignature = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const folder = req.query.folder as string || 'quickwork/general';
             const signatureData = await this._uploadService.getUploadSignature(folder);
@@ -97,3 +98,5 @@ export class UploadController implements IUploadController {
         }
     };
 }
+
+

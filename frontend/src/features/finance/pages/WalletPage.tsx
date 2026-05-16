@@ -21,6 +21,12 @@ const WalletPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
+  const [lastSearch, setLastSearch] = useState("");
+
+  if (debouncedSearch !== lastSearch) {
+    setLastSearch(debouncedSearch);
+    setPage(1);
+  }
 
   useEffect(() => {
     dispatch(fetchWallet());
@@ -122,7 +128,6 @@ const WalletPage: React.FC = () => {
                   value={searchTerm}
                   onChange={(e) => {
                     setSearchTerm(e.target.value);
-                    setPage(1);
                   }}
                 />
               </div>

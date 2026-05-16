@@ -14,7 +14,7 @@ export class ServiceProviderController implements IServiceProviderController {
         this._serviceProviderService = serviceProviderService;
     }
 
-    submitApplication = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public submitApplication = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
 
@@ -36,7 +36,7 @@ export class ServiceProviderController implements IServiceProviderController {
         }
     };
 
-    getProviders = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public getProviders = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { skillId, locationId, page, limit, search, sort } = req.query as Record<string, string | undefined>;
             const currentUserId = req.user?.userId;
@@ -75,7 +75,7 @@ export class ServiceProviderController implements IServiceProviderController {
         }
     };
 
-    getProviderById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public getProviderById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const id = req.params.id as string;
             const result = await this._serviceProviderService.getProviderById(id);
@@ -94,7 +94,7 @@ export class ServiceProviderController implements IServiceProviderController {
         }
     };
 
-    getMyProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public getMyProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
             if (!userId) {
@@ -117,7 +117,7 @@ export class ServiceProviderController implements IServiceProviderController {
         }
     };
 
-    updateProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public updateProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
             if (!userId) {
@@ -143,7 +143,7 @@ export class ServiceProviderController implements IServiceProviderController {
         }
     };
 
-    resetApplication = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public resetApplication = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
             if (!userId) {
@@ -163,7 +163,7 @@ export class ServiceProviderController implements IServiceProviderController {
         }
     };
 
-    updateAvailability = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public updateAvailability = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
             if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
@@ -178,7 +178,7 @@ export class ServiceProviderController implements IServiceProviderController {
         }
     };
 
-    addBlockedDate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public addBlockedDate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
             if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
@@ -193,7 +193,7 @@ export class ServiceProviderController implements IServiceProviderController {
         }
     };
 
-    deleteBlockedDate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public deleteBlockedDate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
             if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
@@ -208,4 +208,5 @@ export class ServiceProviderController implements IServiceProviderController {
         }
     };
 }
+
 

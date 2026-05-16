@@ -54,4 +54,17 @@ export const SuccessMessages = {
   EMAIL_UPDATE_OTP_SENT: (email: string, minutes: number) => `Verification OTP sent to ${email}. Expires in ${minutes} minutes`,
   EMAIL_UPDATE_OTP_RESENT: (email: string, minutes: number) => `Verification OTP resent to ${email}. Expires in ${minutes} minutes`,
   EMAIL_UPDATED: "Email address updated successfully",
+
+  WITHDRAWAL_SUCCESSFUL: "Withdrawal successful",
+  INVOICE_GENERATED: "Invoice generated successfully",
+  PAYMENT_MARKED_CASH: "Payment marked as paid by cash",
+  PAYMENT_CONFIRMED: "Payment confirmed",
+  PAYMENT_MARKED_RECEIVED_HAND: "Payment marked as received by hand",
+  PAYMENT_CONFIRMATION_REJECTED: "Payment confirmation rejected",
+  ASSIGNMENT_CANCELLED_PROVIDER: "Assignment cancelled successfully by provider",
+  ASSIGNMENT_CANCELLED_CLIENT: "Assignment cancelled successfully by client",
+  ABSENCE_REPORTED: "Absence reported successfully",
+  NOTIFICATION_MARKED_READ: "Notification marked as read",
+  ALL_NOTIFICATIONS_MARKED_READ: "All notifications marked as read",
+  NOTIFICATION_DELETED: "Notification deleted",
 };

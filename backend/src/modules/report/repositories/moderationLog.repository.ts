@@ -1,9 +1,5 @@
-import { ModerationLogModel, IModerationLog } from '../models/moderationLog.model';
-
-export interface IModerationLogRepository {
-    create(data: Partial<IModerationLog>): Promise<IModerationLog>;
-    findByReportId(reportId: string): Promise<IModerationLog[]>;
-}
+import { ModerationLogModel } from '../models/moderationLog.model';
+import { IModerationLog, IModerationLogRepository } from '../interfaces/report.interface';
 
 export class ModerationLogRepository implements IModerationLogRepository {
     async create(data: Partial<IModerationLog>): Promise<IModerationLog> {
@@ -16,3 +12,4 @@ export class ModerationLogRepository implements IModerationLogRepository {
             .sort({ createdAt: -1 });
     }
 }
+

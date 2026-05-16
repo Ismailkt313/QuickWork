@@ -25,7 +25,7 @@ export class MessageController implements IMessageController {
     ) {
         this._messageService = messageService
     }
-    async createMessage(req: Request, res: Response): Promise<void> {
+    public createMessage = async (req: Request, res: Response): Promise<void> => {
         const customReq = req as RequestWithCustomProps;
         try {
             const senderId = customReq.user?.userId || customReq.user?._id;
@@ -67,8 +67,8 @@ export class MessageController implements IMessageController {
 
             res.status(err.statusCode || 500).json({ success: false, message: err.message });
         }
-    }
-    async getMessages(req: Request, res: Response): Promise<void> {
+    };
+    public getMessages = async (req: Request, res: Response): Promise<void> => {
         try {
             const dto = ConversationIdDto.create(req.query);
             const result = await this._messageService.getMessages(dto.conversationId);
@@ -77,9 +77,9 @@ export class MessageController implements IMessageController {
             const err = error as { statusCode?: number; message?: string };
             res.status(err.statusCode || 500).json({ success: false, message: err.message });
         }
-    }
+    };
 
-    async getConversations(req: Request, res: Response): Promise<void> {
+    public getConversations = async (req: Request, res: Response): Promise<void> => {
         const customReq = req as RequestWithCustomProps;
         try {
             const userId = customReq.user?.userId || customReq.user?._id;
@@ -98,8 +98,8 @@ export class MessageController implements IMessageController {
 
             res.status(err.statusCode || 500).json({ success: false, message: err.message });
         }
-    }
-    async getConversation(req: Request, res: Response): Promise<void> {
+    };
+    public getConversation = async (req: Request, res: Response): Promise<void> => {
         try {
             const dto = ConversationIdDto.create(req.query);
             const result = await this._messageService.getConversation(dto.conversationId);
@@ -108,9 +108,9 @@ export class MessageController implements IMessageController {
             const err = error as { statusCode?: number; message?: string };
             res.status(err.statusCode || 500).json({ success: false, message: err.message });
         }
-    }
+    };
 
-    async deleteMessage(req: Request, res: Response): Promise<void> {
+    public deleteMessage = async (req: Request, res: Response): Promise<void> => {
         const customReq = req as RequestWithCustomProps;
         try {
             const dto = MessageIdDto.create(req.query);
@@ -132,9 +132,9 @@ export class MessageController implements IMessageController {
             const err = error as { statusCode?: number; message?: string };
             res.status(err.statusCode || 500).json({ success: false, message: err.message });
         }
-    }
+    };
 
-    async deleteConversation(req: Request, res: Response): Promise<void> {
+    public deleteConversation = async (req: Request, res: Response): Promise<void> => {
         const customReq = req as RequestWithCustomProps;
         try {
             const dto = ConversationIdDto.create(req.query);
@@ -163,6 +163,6 @@ export class MessageController implements IMessageController {
             const err = error as { statusCode?: number; message?: string };
             res.status(err.statusCode || 500).json({ success: false, message: err.message });
         }
-    }
+    };
 
 }

@@ -130,6 +130,10 @@ export class AssignmentService implements IAssignmentService {
         return await this._assignmentRepository.find({ jobId, 'invite.status': ASSIGNMENT_STATUS.ACCEPTED });
     }
 
+    async getJobAssignments(jobId: string): Promise<IAssignment[]> {
+        return await this._assignmentRepository.findWithFreelancer(jobId);
+    }
+
     async updateStatus(id: string, status: WORK_STATUS): Promise<IAssignment | null> {
         const updateData: Record<string, unknown> = { workStatus: status };
         if (status === WORK_STATUS.IN_PROGRESS) {
@@ -138,7 +142,7 @@ export class AssignmentService implements IAssignmentService {
             updateData.completedAt = new Date();
         }
 
-        const updated = await this._assignmentRepository.update(id, updateData);
+        const updated = await this._assignmentRepository.updateById(id, updateData);
 
         if (updated && status === WORK_STATUS.COMPLETED) {
             const jobId = getObjectId(updated.jobId);
@@ -162,7 +166,7 @@ export class AssignmentService implements IAssignmentService {
     }
 
     async submitProof(id: string, proofData: { images: string[], description: string }): Promise<IAssignment | null> {
-        const updated = await this._assignmentRepository.update(id, {
+        const updated = await this._assignmentRepository.updateById(id, {
             proof: proofData.images,
             proofDescription: proofData.description,
             workStatus: WORK_STATUS.COMPLETED,
@@ -233,7 +237,7 @@ export class AssignmentService implements IAssignmentService {
 
         const userId = (assignment.freelancerId as { userId?: { _id?: Types.ObjectId; toString: () => string } }).userId?._id || (assignment.freelancerId as { userId?: { _id?: Types.ObjectId; toString: () => string } }).userId;
 
-        const updated = await this._assignmentRepository.update(id, {
+        const updated = await this._assignmentRepository.updateById(id, {
             workStatus: WORK_STATUS.CANCELLED,
             cancellation: {
                 cancelledBy: new Types.ObjectId(userId as Types.ObjectId),
@@ -285,7 +289,7 @@ export class AssignmentService implements IAssignmentService {
 
         const isLateCancel = new Date() > assignment.schedule.startDate;
 
-        const updated = await this._assignmentRepository.update(id, {
+        const updated = await this._assignmentRepository.updateById(id, {
             workStatus: WORK_STATUS.CANCELLED,
             cancellation: {
                 cancelledBy: new Types.ObjectId(clientId),
@@ -328,7 +332,7 @@ export class AssignmentService implements IAssignmentService {
             throw new Error(`Cannot report absence for an assignment that is already ${assignment.workStatus}`);
         }
 
-        const updated = await this._assignmentRepository.update(id, {
+        const updated = await this._assignmentRepository.updateById(id, {
             workStatus: WORK_STATUS.ABSENT,
             absence: {
                 reportedBy: new Types.ObjectId(clientId),
@@ -394,7 +398,7 @@ export class AssignmentService implements IAssignmentService {
             throw new Error('Payment can only be marked after work is completed');
         }
 
-        const updated = await this._assignmentRepository.update(id, {
+        const updated = await this._assignmentRepository.updateById(id, {
             payment: {
                 ...assignment.payment!,
                 status: PAYMENT_STATUS.AWAITING_CONFIRMATION,
@@ -430,7 +434,7 @@ export class AssignmentService implements IAssignmentService {
             throw new Error('Unauthorized: Only the assigned provider can confirm payment');
         }
 
-        const updated = await this._assignmentRepository.update(id, {
+        const updated = await this._assignmentRepository.updateById(id, {
             payment: {
                 ...assignment.payment!,
                 status: PAYMENT_STATUS.COMPLETED,
@@ -458,7 +462,7 @@ export class AssignmentService implements IAssignmentService {
             throw new Error('Unauthorized: Only the assigned provider can mark as paid');
         }
 
-        const updated = await this._assignmentRepository.update(id, {
+        const updated = await this._assignmentRepository.updateById(id, {
             payment: {
                 ...assignment.payment!,
                 status: PAYMENT_STATUS.COMPLETED,
@@ -491,7 +495,7 @@ export class AssignmentService implements IAssignmentService {
             throw new Error('Unauthorized: Only the assigned provider can reject payment');
         }
 
-        const updated = await this._assignmentRepository.update(id, {
+        const updated = await this._assignmentRepository.updateById(id, {
             payment: {
                 ...assignment.payment!,
                 status: PAYMENT_STATUS.PENDING,

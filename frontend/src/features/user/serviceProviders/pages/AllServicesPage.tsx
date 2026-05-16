@@ -58,6 +58,7 @@ const AllServicesPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 350);
+  const [lastFilters, setLastFilters] = useState({ search: "", locationId: "" });
   const [modalOpen, setModalOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
@@ -95,10 +96,11 @@ const AllServicesPage: React.FC = () => {
     [],
   );
 
-  // Reset to page 1 when filters change
-  useEffect(() => {
+  const currentLocationId = selectedLocation?._id || "";
+  if (debouncedSearch !== lastFilters.search || currentLocationId !== lastFilters.locationId) {
+    setLastFilters({ search: debouncedSearch, locationId: currentLocationId });
     setPage(1);
-  }, [debouncedSearch, selectedLocation]);
+  }
 
   useEffect(() => {
     fetchSkills(debouncedSearch, selectedLocation?._id, page);

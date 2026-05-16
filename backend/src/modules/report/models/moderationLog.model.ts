@@ -1,13 +1,5 @@
-import mongoose, { Schema, Document } from 'mongoose';
-
-export interface IModerationLog extends Document {
-    userId: mongoose.Types.ObjectId;
-    reportId: mongoose.Types.ObjectId;
-    action: 'warn' | 'block' | 'reject';
-    reason: string;
-    adminId: mongoose.Types.ObjectId;
-    createdAt: Date;
-}
+import mongoose, { Schema } from 'mongoose';
+import { IModerationLog } from '../interfaces/report.interface';
 
 const ModerationLogSchema: Schema = new Schema({
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
@@ -27,3 +19,4 @@ ModerationLogSchema.index({ reportId: 1 });
 ModerationLogSchema.index({ adminId: 1 });
 
 export const ModerationLogModel = mongoose.model<IModerationLog>('ModerationLog', ModerationLogSchema);
+

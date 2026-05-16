@@ -128,6 +128,10 @@ export class ServiceProviderService implements IServiceProviderService {
         return { success: true, data: provider };
     }
 
+    async getProviderByUserId(userId: string): Promise<IServiceProvider | null> {
+        return await this._providerRepository.findByUserId(userId);
+    }
+
     async updateProfile(userId: string, data: Partial<IServiceProvider>): Promise<{ success: boolean; data?: IServiceProvider; message?: string }> {
         const updateData = { ...data };
 

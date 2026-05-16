@@ -13,7 +13,7 @@ export class ServiceRequestController implements IServiceRequestController {
         this._serviceRequestService = serviceRequestService;
     }
 
-    createRequest = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public createRequest = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
             if (!userId) {
@@ -34,7 +34,7 @@ export class ServiceRequestController implements IServiceRequestController {
         }
     };
 
-    getUserRequests = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public getUserRequests = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
             if (!userId) {
@@ -48,7 +48,7 @@ export class ServiceRequestController implements IServiceRequestController {
         }
     };
 
-    getPendingRequests = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public getPendingRequests = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const page = Math.max(1, parseInt(req.query.page as string) || 1);
             const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 10));
@@ -59,7 +59,7 @@ export class ServiceRequestController implements IServiceRequestController {
         }
     };
 
-    approveRequest = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public approveRequest = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const adminId = req.user?.userId;
             if (!adminId) {
@@ -83,7 +83,7 @@ export class ServiceRequestController implements IServiceRequestController {
         }
     };
 
-    rejectRequest = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public rejectRequest = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const adminId = req.user?.userId;
             if (!adminId) {
@@ -108,3 +108,4 @@ export class ServiceRequestController implements IServiceRequestController {
         }
     };
 }
+

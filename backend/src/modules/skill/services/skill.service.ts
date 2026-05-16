@@ -80,7 +80,7 @@ export class SkillService implements ISkillService {
             skillData.slug = skillData.name.toLowerCase().trim().replace(/\s+/g, '-');
         }
 
-        const skill = await this._skillRepository.update(id, skillData);
+        const skill = await this._skillRepository.updateById(id, skillData);
         if (!skill) {
             return { success: false, message: "Skill not found" };
         }
@@ -89,7 +89,7 @@ export class SkillService implements ISkillService {
     }
 
     async deleteSkill(id: string): Promise<{ success: boolean; message: string }> {
-        const deleted = await this._skillRepository.delete(id);
+        const deleted = await this._skillRepository.deleteById(id);
         if (!deleted) {
             return { success: false, message: "Skill not found" };
         }
@@ -102,7 +102,7 @@ export class SkillService implements ISkillService {
             return { success: false, message: "Skill not found" };
         }
 
-        const updated = await this._skillRepository.update(id, { isActive: !skill.isActive });
+        const updated = await this._skillRepository.updateById(id, { isActive: !skill.isActive });
         return {
             success: true,
             message: `Skill ${!skill.isActive ? 'activated' : 'deactivated'} successfully`,

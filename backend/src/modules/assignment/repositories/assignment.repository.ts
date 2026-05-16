@@ -1,11 +1,11 @@
 import { IAssignment, IAssignmentRepository } from '../interfaces/assignment.interface';
 import { AssignmentModel } from '../models/assignment.model';
 import { Types, FilterQuery, UpdateWriteOpResult, SortOrder } from 'mongoose';
+import { BaseRepository } from '../../../shared/repositories/base.repository';
 
-export class AssignmentRepository implements IAssignmentRepository {
-    async create(data: Partial<IAssignment>): Promise<IAssignment> {
-        const assignment = new AssignmentModel(data);
-        return await assignment.save();
+export class AssignmentRepository extends BaseRepository<IAssignment> implements IAssignmentRepository {
+    constructor() {
+        super(AssignmentModel);
     }
 
     async findById(id: string): Promise<IAssignment | null> {
@@ -50,9 +50,6 @@ export class AssignmentRepository implements IAssignmentRepository {
             });
     }
 
-    async update(id: string, data: Partial<IAssignment>): Promise<IAssignment | null> {
-        return await AssignmentModel.findByIdAndUpdate(id, { $set: data }, { new: true });
-    }
 
     async updateByJobId(jobId: string, data: Partial<IAssignment>): Promise<UpdateWriteOpResult> {
         return await AssignmentModel.updateMany({ jobId }, { $set: data });

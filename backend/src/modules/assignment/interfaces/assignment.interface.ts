@@ -49,12 +49,13 @@ export interface IAssignment extends Document {
     assignmentCode: string;
 }
 
-export interface IAssignmentRepository {
-    create(data: Partial<IAssignment>): Promise<IAssignment>;
+import { IBaseRepository } from '../../../shared/interfaces/base.repository.interface';
+
+export interface IAssignmentRepository extends IBaseRepository<IAssignment> {
     findById(id: string): Promise<IAssignment | null>;
     findOne(query: FilterQuery<IAssignment>): Promise<IAssignment | null>;
     find(query: FilterQuery<IAssignment>, options?: { page?: number, limit?: number, sort?: string | { [key: string]: SortOrder } }): Promise<IAssignment[]>;
-    update(id: string, data: Partial<IAssignment>): Promise<IAssignment | null>;
+
     updateByJobId(jobId: string, data: Partial<IAssignment>): Promise<UpdateWriteOpResult>;
     exists(query: FilterQuery<IAssignment>): Promise<boolean>;
     count(query: FilterQuery<IAssignment>): Promise<number>;
@@ -86,6 +87,7 @@ export interface IAssignmentService {
     cancelAssignmentsByJob(jobId: string): Promise<void>;
     getAssignmentById(id: string): Promise<IAssignment | null>;
     getAssignmentsByJobId(jobId: string): Promise<IAssignment[]>;
+    getJobAssignments(jobId: string): Promise<IAssignment[]>;
     updateStatus(id: string, status: WORK_STATUS): Promise<IAssignment | null>;
     submitProof(id: string, proofData: { images: string[], description: string }): Promise<IAssignment | null>;
     getAssignmentCountByJob(jobId: string): Promise<number>;

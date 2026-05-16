@@ -42,6 +42,20 @@ export interface IReportRepository {
     getRecentReports(limit: number): Promise<IReport[]>;
 }
 
+export interface IModerationLog extends Document {
+    userId: Types.ObjectId;
+    reportId: Types.ObjectId;
+    action: 'warn' | 'block' | 'reject';
+    reason: string;
+    adminId: Types.ObjectId;
+    createdAt: Date;
+}
+
+export interface IModerationLogRepository {
+    create(data: Partial<IModerationLog>): Promise<IModerationLog>;
+    findByReportId(reportId: string): Promise<IModerationLog[]>;
+}
+
 import { CreateReportDTO } from '../dtos/report.dto';
 
 export interface IReportService {
@@ -70,11 +84,10 @@ export interface IModerationController {
     takeAction(req: Request, res: Response, next: NextFunction): Promise<void>;
 }
 
-import { IModerationLog } from '../models/moderationLog.model';
-
 export interface IModerationService {
     getReports(query: { status?: string; page?: number; limit?: number }): Promise<{ reports: IReport[]; total: number; page: number; pages: number }>;
     getReportDetail(id: string): Promise<{ report: IReport; moderationLogs: IModerationLog[] }>;
     takeAction(reportId: string, adminId: string, action: 'warn' | 'block' | 'reject', reason: string): Promise<{ report: IReport; moderationLogs: IModerationLog[] }>;
 }
+
 

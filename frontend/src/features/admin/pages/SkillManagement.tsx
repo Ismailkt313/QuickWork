@@ -21,7 +21,13 @@ const SkillManagement: React.FC = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [searchInput, setSearchInput] = useState("");
     const debouncedSearch = useDebounce(searchInput, 500);
+    const [lastSearch, setLastSearch] = useState("");
     const limit = 10;
+
+    if (debouncedSearch !== lastSearch) {
+        setLastSearch(debouncedSearch);
+        setPage(1);
+    }
 
     // Modal states
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -49,9 +55,7 @@ const SkillManagement: React.FC = () => {
         fetchSkills();
     }, [fetchSkills]);
 
-    useEffect(() => {
-        setPage(1);
-    }, [debouncedSearch]);
+
 
     const handleToggleStatus = async (id: string) => {
         try {

@@ -1,26 +1,28 @@
 import { Request, Response, NextFunction } from 'express';
 import { IInvoiceController, IInvoiceService } from '../interfaces/finance.interface';
 import { HttpStatusCode } from '../../../constants/httpStatusCode';
-import { IServiceProviderRepository } from '../../serviceProvider/interfaces/serviceProvider.interface';
-
+import { IServiceProviderService } from '../../serviceProvider/interfaces/serviceProvider.interface';
+import { AppError } from '../../../utils/AppError';
+import { ErrorMessages } from '../../../constants/messages/errorMessages';
+import { mapInvoiceToResponseDTO } from '../dtos/financeResponse.dto';
 export class InvoiceController implements IInvoiceController {
     private _invoiceService: IInvoiceService;
-    private _providerRepo: IServiceProviderRepository;
+    private _providerService: IServiceProviderService;
 
-    constructor(invoiceService: IInvoiceService, providerRepo: IServiceProviderRepository) {
+    constructor(invoiceService: IInvoiceService, providerService: IServiceProviderService) {
         this._invoiceService = invoiceService;
-        this._providerRepo = providerRepo;
+        this._providerService = providerService;
     }
 
-    getMyInvoices = async (req: Request, res: Response, next: NextFunction) => {
+    public getMyInvoices = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
-            if (!userId) throw new Error('Unauthorized');
+            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
 
             const { page = 1, limit = 10, role } = req.query;
 
             let result;
-            const provider = await this._providerRepo.findByUserId(userId);
+            const provider = await this._providerService.getProviderByUserId(userId);
 
             if (role === 'provider' && provider) {
 
@@ -35,7 +37,7 @@ export class InvoiceController implements IInvoiceController {
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
-                data: result.invoices,
+                data: result.invoices.map(mapInvoiceToResponseDTO),
                 pagination: {
                     total: result.total,
                     page: Number(page),
@@ -48,33 +50,33 @@ export class InvoiceController implements IInvoiceController {
         }
     };
 
-    getInvoiceById = async (req: Request, res: Response, next: NextFunction) => {
+    public getInvoiceById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params;
             const invoice = await this._invoiceService.getInvoiceById(id as string);
             if (!invoice) {
-                res.status(HttpStatusCode.NOT_FOUND).json({ success: false, message: 'Invoice not found' });
+                res.status(HttpStatusCode.NOT_FOUND).json({ success: false, message: ErrorMessages.INVOICE_NOT_FOUND });
                 return;
             }
 
             const userId = req.user?.userId;
-            const provider = await this._providerRepo.findByUserId(userId!);
+            const provider = await this._providerService.getProviderByUserId(userId!);
 
             const isClient = invoice.client.userId.toString() === userId;
             const isProvider = provider && invoice.provider.providerId.toString() === provider._id.toString();
 
             if (!isClient && !isProvider) {
-                res.status(HttpStatusCode.FORBIDDEN).json({ success: false, message: 'Access denied' });
+                res.status(HttpStatusCode.FORBIDDEN).json({ success: false, message: ErrorMessages.ACCESS_DENIED });
                 return;
             }
 
-            res.status(HttpStatusCode.OK).json({ success: true, data: invoice });
+            res.status(HttpStatusCode.OK).json({ success: true, data: mapInvoiceToResponseDTO(invoice) });
         } catch (error) {
             next(error);
         }
     };
 
-    downloadInvoicePdf = async (req: Request, res: Response, next: NextFunction) => {
+    public downloadInvoicePdf = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params;
             const pdfBuffer = await this._invoiceService.generateInvoicePdf(id as string);
@@ -90,3 +92,5 @@ export class InvoiceController implements IInvoiceController {
         }
     };
 }
+
+

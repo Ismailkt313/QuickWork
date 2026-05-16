@@ -3,8 +3,9 @@ import { CreateJobDTO } from '../dtos/createJob.dto';
 import { AppError } from '../../../utils/AppError';
 import { IJobController, IJobService } from '../interfaces/job.interface';
 import { mapProviderToResponseDTO } from '../../serviceProvider/dtos/providerResponse.dto';
-import {HttpStatusCode} from "../../../constants/httpStatusCode"
-import { IAssignmentRepository } from '../../assignment/interfaces/assignment.interface';
+import { HttpStatusCode } from "../../../constants/httpStatusCode";
+import { IAssignmentService } from '../../assignment/interfaces/assignment.interface';
+import { ErrorMessages } from '../../../constants/messages/errorMessages';
 
 import { ITokenPayload } from '../../auth/interfaces/auth.interface';
 
@@ -14,17 +15,17 @@ interface RequestWithUser extends Request {
 
 export class JobController implements IJobController {
     private _jobService: IJobService;
-    private _assignmentRepo: IAssignmentRepository;
+    private _assignmentService: IAssignmentService;
 
-    constructor(jobService: IJobService, assignmentRepo: IAssignmentRepository) {
+    constructor(jobService: IJobService, assignmentService: IAssignmentService) {
         this._jobService = jobService;
-        this._assignmentRepo = assignmentRepo;
+        this._assignmentService = assignmentService;
     }
-    createJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public createJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = (req as RequestWithUser).user?.userId;
             if (!userId) {
-                throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
             }
              const dto = CreateJobDTO.create(req.body);
 
@@ -40,11 +41,11 @@ export class JobController implements IJobController {
         }
     };
 
-    getUserJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public getUserJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
              const userId = (req as RequestWithUser).user?.userId;
             if (!userId) {
-                throw new AppError('Unauthorized access', HttpStatusCode.BAD_REQUEST);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.BAD_REQUEST);
             }
 
             const page = parseInt(req.query.page as string) || 1;
@@ -60,7 +61,7 @@ export class JobController implements IJobController {
         }
     };
 
-    availableJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public availableJobs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
@@ -83,17 +84,17 @@ export class JobController implements IJobController {
         }
     };
 
-    getJobById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public getJobById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const jobId = req.params.jobId as string;
             if (!jobId) {
-                throw new AppError('Job ID is required', HttpStatusCode.BAD_REQUEST);
+                throw new AppError(ErrorMessages.JOB_ID_REQUIRED, HttpStatusCode.BAD_REQUEST);
             }
 
             const userId = (req as RequestWithUser).user?.userId;
             const result = await this._jobService.getJobById(jobId, userId);
             if (!result.success) {
-                throw new AppError(result.message || 'Job not found', HttpStatusCode.NOT_FOUND);
+                throw new AppError(result.message || ErrorMessages.JOB_NOT_FOUND, HttpStatusCode.NOT_FOUND);
             }
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
@@ -101,11 +102,11 @@ export class JobController implements IJobController {
         }
     };
 
-    getDirectOffers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public getDirectOffers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = (req as RequestWithUser).user?.userId;
             if (!userId) {
-                throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
             }
 
             const page = parseInt(req.query.page as string) || 1;
@@ -120,11 +121,11 @@ export class JobController implements IJobController {
         }
     };
 
-    acceptOffer = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public acceptOffer = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = (req as RequestWithUser).user?.userId;
             if (!userId) {
-                throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
             }
 
             const jobId = req.params.jobId as string;
@@ -136,12 +137,12 @@ export class JobController implements IJobController {
         }
     };
 
-    rejectOffer = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public rejectOffer = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = (req as RequestWithUser).user?.userId;
 
             if (!userId) {
-                throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
             }
 
             const jobId = req.params.jobId as string;
@@ -153,11 +154,11 @@ export class JobController implements IJobController {
         }
     };
 
-    acceptJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public acceptJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = (req as RequestWithUser).user?.userId;
             if (!userId) {
-                throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
             }
 
             const jobId = req.params.jobId as string;
@@ -169,11 +170,11 @@ export class JobController implements IJobController {
         }
     };
 
-    cancelJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public cancelJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = (req as RequestWithUser).user?.userId;
             if (!userId) {
-                throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
             }
 
             const jobId = req.params.jobId as string;
@@ -184,13 +185,13 @@ export class JobController implements IJobController {
         }
     };
 
-    getJobAssignments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public getJobAssignments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = (req as RequestWithUser).user?.userId;
-            if (!userId) throw new AppError('Unauthorized access', HttpStatusCode.UNAUTH0RIZED);
+            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
 
             const jobId = req.params.jobId as string;
-            const assignments = await this._assignmentRepo.findWithFreelancer(jobId);
+            const assignments = await this._assignmentService.getJobAssignments(jobId);
 
             const providers = assignments.map((a) => ({
                 assignmentId: a._id.toString(),
@@ -205,7 +206,7 @@ export class JobController implements IJobController {
         }
     };
 
-    getAllJobsAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public getAllJobsAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
@@ -226,12 +227,12 @@ export class JobController implements IJobController {
         }
     };
 
-    getJobDetailsAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public getJobDetailsAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const jobId = req.params.jobId as string;
             const result = await this._jobService.adminGetJobDetails(jobId);
             if (!result.success) {
-                throw new AppError(result.message || 'Job not found', HttpStatusCode.NOT_FOUND);
+                throw new AppError(result.message || ErrorMessages.JOB_NOT_FOUND, HttpStatusCode.NOT_FOUND);
             }
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
@@ -239,14 +240,14 @@ export class JobController implements IJobController {
         }
     };
 
-    adminCancelJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public adminCancelJob = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const jobId = req.params.jobId as string;
             const { reason } = req.body;
             const adminId = (req as RequestWithUser).user?.userId;
 
             if (!reason) {
-                throw new AppError('Cancellation reason is required', HttpStatusCode.BAD_REQUEST);
+                throw new AppError(ErrorMessages.CANCELLATION_REASON_REQUIRED, HttpStatusCode.BAD_REQUEST);
             }
 
             const result = await this._jobService.adminCancelJob(jobId, reason, adminId || '');
@@ -256,3 +257,4 @@ export class JobController implements IJobController {
         }
     };
 }
+

@@ -96,8 +96,8 @@ export interface IPaymentController {
 }
 
 export interface IAdminFinanceController {
-    getOverview(req: Request, res: Response, next?: NextFunction): Promise<unknown>;
-    getTransactions(req: Request, res: Response, next?: NextFunction): Promise<unknown>;
+    getOverview(req: Request, res: Response, next?: NextFunction): Promise<void>;
+    getTransactions(req: Request, res: Response, next?: NextFunction): Promise<void>;
 }
 
 export interface IInvoiceController {
@@ -126,6 +126,7 @@ export interface IWorkHistoryService {
     getByProvider(providerId: string): Promise<IWorkHistory[]>;
     getById(id: string): Promise<IWorkHistory | null>;
     getByAssignmentId(assignmentId: string): Promise<IWorkHistory | null>;
+    getProviderHistory(providerId: string, status?: string, page?: number, limit?: number): Promise<{ history: IWorkHistory[], total: number }>;
 }
 
 export interface IPaymentService {

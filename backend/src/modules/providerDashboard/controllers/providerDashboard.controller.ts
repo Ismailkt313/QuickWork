@@ -9,59 +9,60 @@ interface RequestWithUser extends Request {
 }
 
 export class ProviderDashboardController implements IProviderDashboardController {
-    private _service: IProviderDashboardService;
+    private _providerDashboardService: IProviderDashboardService;
 
-    constructor(service: IProviderDashboardService) {
-        this._service = service;
+    constructor(providerDashboardService: IProviderDashboardService) {
+        this._providerDashboardService = providerDashboardService;
     }
 
-    getOverview = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public getOverview = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = ((req as RequestWithUser).user as { userId: string }).userId;
-            const data = await this._service.getOverview(userId);
+            const data = await this._providerDashboardService.getOverview(userId);
             res.status(HttpStatusCode.OK).json({ success: true, data });
         } catch (error) {
             next(error);
         }
     }
 
-    getActivity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public getActivity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = ((req as RequestWithUser).user as { userId: string }).userId;
-            const data = await this._service.getActivity(userId);
+            const data = await this._providerDashboardService.getActivity(userId);
             res.status(HttpStatusCode.OK).json({ success: true, data });
         } catch (error) {
             next(error);
         }
     }
 
-    getCharts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public getCharts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = ((req as RequestWithUser).user as { userId: string }).userId;
-            const data = await this._service.getCharts(userId);
+            const data = await this._providerDashboardService.getCharts(userId);
             res.status(HttpStatusCode.OK).json({ success: true, data });
         } catch (error) {
             next(error);
         }
     }
 
-    getPerformance = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public getPerformance = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = ((req as RequestWithUser).user as { userId: string }).userId;
-            const data = await this._service.getPerformance(userId);
+            const data = await this._providerDashboardService.getPerformance(userId);
             res.status(HttpStatusCode.OK).json({ success: true, data });
         } catch (error) {
             next(error);
         }
     }
 
-    getAvailabilitySummary = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public getAvailabilitySummary = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = ((req as RequestWithUser).user as { userId: string }).userId;
-            const data = await this._service.getAvailabilitySummary(userId);
+            const data = await this._providerDashboardService.getAvailabilitySummary(userId);
             res.status(HttpStatusCode.OK).json({ success: true, data });
         } catch (error) {
             next(error);
         }
     }
 }
+

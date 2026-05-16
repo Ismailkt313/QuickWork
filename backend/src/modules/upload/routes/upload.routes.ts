@@ -3,6 +3,7 @@ import multer from 'multer';
 import { UploadController } from '../controllers/upload.controller';
 import { authMiddleware } from '../../../middleware/auth.middleware';
 import { AppError } from '../../../utils/AppError';
+import { HttpStatusCode } from '../../../constants/httpStatusCode';
 
 const storage = multer.memoryStorage();
 
@@ -10,7 +11,7 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilt
     if (file.mimetype.startsWith('image/')) {
         cb(null, true);
     } else {
-        cb(new AppError('Invalid file type. Only images are allowed', 400));
+        cb(new AppError('Invalid file type. Only images are allowed', HttpStatusCode.BAD_REQUEST));
     }
 };
 

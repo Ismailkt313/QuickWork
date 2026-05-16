@@ -83,4 +83,11 @@ export class WorkHistoryService implements IWorkHistoryService {
     async getByAssignmentId(assignmentId: string): Promise<IWorkHistory | null> {
         return await this._workHistoryRepo.findByAssignmentId(assignmentId);
     }
+
+    async getProviderHistory(providerId: string, status?: string, page?: number, limit?: number): Promise<{ history: IWorkHistory[], total: number }> {
+        const skip = ((page || 1) - 1) * (limit || 10);
+        const [history, total] = await this._workHistoryRepo.findProviderHistory(providerId, status, skip, limit || 10);
+        return { history, total };
+    }
 }
+

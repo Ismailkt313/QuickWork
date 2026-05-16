@@ -34,13 +34,13 @@ export interface IServiceRequestService {
     rejectRequest(adminId: string, requestId: string, dto: RejectServiceRequestDTO): Promise<{ success: boolean; message: string }>;
 }
 
-export interface IServiceRequestRepository {
+import { IBaseRepository } from '../../../shared/interfaces/base.repository.interface';
+
+export interface IServiceRequestRepository extends IBaseRepository<IServiceRequest> {
     findPendingByName(name: string): Promise<IServiceRequest | null>;
-    create(requestData: Partial<IServiceRequest>): Promise<IServiceRequest>;
     findByUser(userId: string): Promise<IServiceRequest[]>;
     findAllPending(page: number, limit: number): Promise<IServiceRequest[]>;
     getPendingCount(): Promise<number>;
-    findById(id: string): Promise<IServiceRequest | null>;
     updateStatus(id: string, updateData: Partial<IServiceRequest>, session?: ClientSession): Promise<IServiceRequest | null>;
 }
 

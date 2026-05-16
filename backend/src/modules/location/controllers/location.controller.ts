@@ -9,7 +9,7 @@ export class LocationController implements ILocationController {
         this._locationService = locationService;
     }
 
-    getAllLocations = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public getAllLocations = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const result = await this._locationService.getAllLocations();
             res.status(HttpStatusCode.OK).json(result);

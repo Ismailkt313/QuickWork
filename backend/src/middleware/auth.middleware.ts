@@ -41,7 +41,8 @@ export const authMiddleware = async (
             next(error);
             return;
         }
-        next(new AppError("Invalid or expired token", 401));
+        next(new AppError("Invalid or expired token", HttpStatusCode.UNAUTH0RIZED));
     }
 };
+
 

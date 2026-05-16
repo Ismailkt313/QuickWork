@@ -10,13 +10,11 @@ export interface ISkill extends Document {
     updatedAt?: Date;
 }
 
-export interface ISkillRepository {
-    findById(id: string): Promise<ISkill | null>;
+import { IBaseRepository } from '../../../shared/interfaces/base.repository.interface';
+
+export interface ISkillRepository extends IBaseRepository<ISkill> {
     findByName(name: string): Promise<ISkill | null>
     findBySlug(slug: string): Promise<ISkill | null>;
-    create(skillData: Partial<ISkill>, session?: unknown): Promise<ISkill>;
-    update(id: string, skillData: Partial<ISkill>): Promise<ISkill | null>;
-    delete(id: string): Promise<boolean>;
     skills(filter: Record<string, unknown>): Promise<ISkill[] | null>;
     getServices(): Promise<ISkill[]>;
     getAllSkills(page: number, limit: number, search?: string, locationId?: string): Promise<{ data: ISkill[], total: number }>;

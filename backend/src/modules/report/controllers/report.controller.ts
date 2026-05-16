@@ -32,7 +32,7 @@ export class ReportController implements IReportController {
             res.status(HttpStatusCode.CREATED).json({
                 success: true,
                 message: "Report submitted successfully",
-                data: report
+                data: mapReportToResponseDTO(report)
             });
         } catch (error) {
             next(error);

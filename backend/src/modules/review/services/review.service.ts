@@ -75,7 +75,7 @@ export class ReviewService implements IReviewService {
             throw new AppError("You can only edit your own reviews", HttpStatusCode.FORBIDDEN);
         }
 
-        const updated = await this._reviewRepository.update(reviewId, data);
+        const updated = await this._reviewRepository.updateById(reviewId, data);
         if (!updated) {
             throw new AppError("Failed to update review", HttpStatusCode.INTERNAL_SERVER_ERROR);
         }
@@ -92,6 +92,6 @@ export class ReviewService implements IReviewService {
             throw new AppError("You can only delete your own reviews", HttpStatusCode.FORBIDDEN);
         }
 
-        await this._reviewRepository.delete(reviewId);
+        await this._reviewRepository.deleteById(reviewId);
     }
 }

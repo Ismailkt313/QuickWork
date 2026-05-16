@@ -74,6 +74,13 @@ const UserManagement = () => {
 
   const [filterRole, setFilterRole] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [lastFilters, setLastFilters] = useState({ search: "", role: "", status: "" });
+
+  // Update page to 1 during render if filters change to avoid double fetch
+  if (debouncedSearch !== lastFilters.search || filterRole !== lastFilters.role || filterStatus !== lastFilters.status) {
+    setLastFilters({ search: debouncedSearch, role: filterRole, status: filterStatus });
+    setPage(1);
+  }
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -101,9 +108,7 @@ const UserManagement = () => {
     fetchUsers();
   }, [fetchUsers]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [debouncedSearch, filterRole, filterStatus]);
+
 
   const openBlockConfirm = (
     userId: string,

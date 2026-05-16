@@ -22,7 +22,7 @@ export class ModerationController implements IModerationController {
         this._moderationService = moderationService;
     }
 
-    getReports = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public getReports = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { status, page, limit } = req.query;
             const result = await this._moderationService.getReports({
@@ -45,7 +45,7 @@ export class ModerationController implements IModerationController {
         }
     };
 
-    getReportDetail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public getReportDetail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params;
             const result = await this._moderationService.getReportDetail(id as string);
@@ -59,7 +59,7 @@ export class ModerationController implements IModerationController {
         }
     };
 
-    takeAction = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public takeAction = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params;
             const validation = TakeActionSchema.safeParse(req.body);
@@ -84,3 +84,4 @@ export class ModerationController implements IModerationController {
         }
     };
 }
+

@@ -2,12 +2,13 @@ import { Types, FilterQuery, ClientSession } from 'mongoose';
 import { ISkill, ISkillRepository } from '../interfaces/skill.interface';
 import { SkillModel } from '../models/skill.model';
 import { ServiceProviderModel } from '../../serviceProvider/models/serviceProvider.model';
+import { BaseRepository } from '../../../shared/repositories/base.repository';
 
-export class SkillRepository implements ISkillRepository {
-
-    async findById(id: string): Promise<ISkill | null> {
-        return await SkillModel.findById(id);
+export class SkillRepository extends BaseRepository<ISkill> implements ISkillRepository {
+    constructor() {
+        super(SkillModel);
     }
+
 
     async findByName(name: string): Promise<ISkill | null> {
         return await SkillModel.findOne({ name: name.toLowerCase().trim() });
@@ -66,14 +67,6 @@ export class SkillRepository implements ISkillRepository {
         return { data, total };
     }
 
-    async update(id: string, skillData: Partial<ISkill>): Promise<ISkill | null> {
-        return await SkillModel.findByIdAndUpdate(id, skillData, { new: true });
-    }
-
-    async delete(id: string): Promise<boolean> {
-        const result = await SkillModel.findByIdAndDelete(id);
-        return !!result;
-    }
 
     async getAdminSkills(page: number, limit: number, search?: string): Promise<{ data: ISkill[], total: number }> {
         const query: FilterQuery<ISkill> = {};
