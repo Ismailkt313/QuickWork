@@ -1,6 +1,6 @@
 import { getIo } from '../../../chat/socket';
 import { NotificationRepository } from '../repositories/notification.repository';
-import { INotificationService } from '../interfaces/notification.interface';
+import { INotificationService, INotification } from '../interfaces/notification.interface';
 
 export class NotificationService implements INotificationService {
     private _notificationRepository: NotificationRepository;
@@ -31,7 +31,7 @@ export class NotificationService implements INotificationService {
         type: 'JOB_ASSIGNMENT' | 'JOB_STATUS' | 'PAYMENT' | 'SYSTEM' | 'REVIEW';
         link?: string;
     }) {
-        const notification =  await this._notificationRepository.create(data);
+        const notification =  await this._notificationRepository.create(data as unknown as Partial<INotification>);
         const io = getIo()
         if(io ){
             io.to(data.recipient).emit('newNotification', notification);

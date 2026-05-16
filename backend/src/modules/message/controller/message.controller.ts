@@ -6,6 +6,18 @@ import { HttpStatusCode } from "../../../constants/httpStatusCode"
 import { ErrorMessages } from "../../../constants/messages/errorMessages";
 import { SuccessMessages } from "../../../constants/messages/successMessages";
 
+import { ITokenPayload } from '../../auth/interfaces/auth.interface';
+
+interface RequestWithCustomProps extends Request {
+    user?: ITokenPayload & { _id?: string };
+    log: {
+        debug: (obj: unknown, msg: string) => void;
+        info: (obj: unknown, msg: string) => void;
+        warn: (msg: string) => void;
+        error: (obj: unknown, msg: string) => void;
+    };
+}
+
 export class MessageController implements IMessageController {
     private _messageService: IMessageService;
     constructor(
@@ -14,13 +26,14 @@ export class MessageController implements IMessageController {
         this._messageService = messageService
     }
     async createMessage(req: Request, res: Response): Promise<void> {
+        const customReq = req as RequestWithCustomProps;
         try {
-            const senderId = (req as any).user?.userId || (req as any).user?._id;
+            const senderId = customReq.user?.userId || customReq.user?._id;
             if (!senderId) {
                 res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
                 return;
             }
-            (req as any).log.debug({ body: req.body }, "Creating new message");
+            customReq.log.debug({ body: req.body }, "Creating new message");
 
             const dto = CreateMessageDto.create(req.body);
 
@@ -48,10 +61,11 @@ export class MessageController implements IMessageController {
                 message: SuccessMessages.MESSAGE_CREATED,
                 data: result
             });
-        } catch (error: any) {
-            (req as any).log.error({ error: error.message }, "Error in createMessage");
+        } catch (error: unknown) {
+            const err = error as { statusCode?: number; message?: string };
+            customReq.log.error({ error: err.message }, "Error in createMessage");
 
-            res.status(error.statusCode || 500).json({ success: false, message: error.message });
+            res.status(err.statusCode || 500).json({ success: false, message: err.message });
         }
     }
     async getMessages(req: Request, res: Response): Promise<void> {
@@ -59,27 +73,30 @@ export class MessageController implements IMessageController {
             const dto = ConversationIdDto.create(req.query);
             const result = await this._messageService.getMessages(dto.conversationId);
             res.status(HttpStatusCode.OK).json({ success: true, data: result });
-        } catch (error: any) {
-            res.status(error.statusCode || 500).json({ success: false, message: error.message });
+        } catch (error: unknown) {
+            const err = error as { statusCode?: number; message?: string };
+            res.status(err.statusCode || 500).json({ success: false, message: err.message });
         }
     }
 
     async getConversations(req: Request, res: Response): Promise<void> {
+        const customReq = req as RequestWithCustomProps;
         try {
-            const userId = (req as any).user?.userId || (req as any).user?._id;
+            const userId = customReq.user?.userId || customReq.user?._id;
 
             if (!userId) {
-                (req as any).log.warn("No userId found in req.user");
+                customReq.log.warn("No userId found in req.user");
 
                 res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
                 return;
             }
             const result = await this._messageService.getConversations(userId);
             res.status(HttpStatusCode.OK).json({ success: true, data: result });
-        } catch (error: any) {
-            (req as any).log.error({ error: error.message }, "Error in getConversations");
+        } catch (error: unknown) {
+            const err = error as { statusCode?: number; message?: string };
+            customReq.log.error({ error: err.message }, "Error in getConversations");
 
-            res.status(error.statusCode || 500).json({ success: false, message: error.message });
+            res.status(err.statusCode || 500).json({ success: false, message: err.message });
         }
     }
     async getConversation(req: Request, res: Response): Promise<void> {
@@ -87,12 +104,14 @@ export class MessageController implements IMessageController {
             const dto = ConversationIdDto.create(req.query);
             const result = await this._messageService.getConversation(dto.conversationId);
             res.status(HttpStatusCode.OK).json({ success: true, data: result });
-        } catch (error: any) {
-            res.status(error.statusCode || 500).json({ success: false, message: error.message });
+        } catch (error: unknown) {
+            const err = error as { statusCode?: number; message?: string };
+            res.status(err.statusCode || 500).json({ success: false, message: err.message });
         }
     }
 
     async deleteMessage(req: Request, res: Response): Promise<void> {
+        const customReq = req as RequestWithCustomProps;
         try {
             const dto = MessageIdDto.create(req.query);
             const result = await this._messageService.deleteMessage(dto.messageId);
@@ -101,7 +120,7 @@ export class MessageController implements IMessageController {
                 const senderRoom = String(result.sender);
                 const receiverRoom = String(result.receiver);
 
-                (req as any).log.info({ senderRoom, receiverRoom, messageId: dto.messageId }, "DEBUG: Emitting messageDeleted");
+                customReq.log.info({ senderRoom, receiverRoom, messageId: dto.messageId }, "DEBUG: Emitting messageDeleted");
 
                 io.emit("messageDeleted", { messageId: dto.messageId });
 
@@ -109,12 +128,14 @@ export class MessageController implements IMessageController {
                 io.to(receiverRoom).emit("messageDeleted", { messageId: dto.messageId });
             }
             res.status(HttpStatusCode.OK).json({ success: true, message: SuccessMessages.MESSAGE_DELETED, data: result });
-        } catch (error: any) {
-            res.status(error.statusCode || 500).json({ success: false, message: error.message });
+        } catch (error: unknown) {
+            const err = error as { statusCode?: number; message?: string };
+            res.status(err.statusCode || 500).json({ success: false, message: err.message });
         }
     }
 
     async deleteConversation(req: Request, res: Response): Promise<void> {
+        const customReq = req as RequestWithCustomProps;
         try {
             const dto = ConversationIdDto.create(req.query);
             const conversation = await this._messageService.getConversation(dto.conversationId);
@@ -124,9 +145,9 @@ export class MessageController implements IMessageController {
 
                 io.emit("conversationDeleted", { conversationId: dto.conversationId });
 
-                conversation.participants.forEach((p: any) => {
-                    const participantId = String(p._id || p.id || p);
-                    (req as any).log.info({ participantId, conversationId: dto.conversationId }, "DEBUG: Emitting conversationDeleted");
+                conversation.participants.forEach((p: { _id?: string; id?: string } | string) => {
+                    const participantId = typeof p === 'string' ? p : String(p._id || p.id);
+                    customReq.log.info({ participantId, conversationId: dto.conversationId }, "DEBUG: Emitting conversationDeleted");
                     io.to(participantId).emit("conversationDeleted", {
                         conversationId: dto.conversationId
                     });
@@ -138,8 +159,9 @@ export class MessageController implements IMessageController {
                 message: SuccessMessages.CONVERSATION_DELETED,
                 data: result
             });
-        } catch (error: any) {
-            res.status(error.statusCode || 500).json({ success: false, message: error.message });
+        } catch (error: unknown) {
+            const err = error as { statusCode?: number; message?: string };
+            res.status(err.statusCode || 500).json({ success: false, message: err.message });
         }
     }
 

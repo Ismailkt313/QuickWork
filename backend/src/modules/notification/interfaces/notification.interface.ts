@@ -1,4 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
+import { INotification } from '../models/notification.model';
+export { INotification };
 
 export interface INotificationController {
     getNotifications(req: Request, res: Response, next?: NextFunction): Promise<void>;
@@ -8,25 +10,25 @@ export interface INotificationController {
 }
 
 export interface INotificationService {
-    getNotifications(userId: string, limit?: number): Promise<any>;
+    getNotifications(userId: string, limit?: number): Promise<INotification[]>;
     getUnreadCount(userId: string): Promise<number>;
-    markAsRead(notificationId: string, userId: string): Promise<any>;
-    markAllAsRead(userId: string): Promise<any>;
+    markAsRead(notificationId: string, userId: string): Promise<INotification | null>;
+    markAllAsRead(userId: string): Promise<unknown>;
     createNotification(data: {
         recipient: string;
         title: string;
         message: string;
         type: 'JOB_ASSIGNMENT' | 'JOB_STATUS' | 'PAYMENT' | 'SYSTEM' | 'REVIEW';
         link?: string;
-    }): Promise<any>;
-    deleteNotification(notificationId: string, userId: string): Promise<any>;
+    }): Promise<INotification>;
+    deleteNotification(notificationId: string, userId: string): Promise<INotification | null>;
 }
 
 export interface INotificationRepository {
-    findByUserId(userId: string, limit: number): Promise<any>;
+    findByUserId(userId: string, limit: number): Promise<INotification[]>;
     countUnreadByUserId(userId: string): Promise<number>;
-    findOneAndMarkRead(notificationId: string, userId: string): Promise<any>;
-    updateAllRead(userId: string): Promise<any>;
-    create(data: any): Promise<any>;
-    deleteOne(notificationId: string, userId: string): Promise<any>;
+    findOneAndMarkRead(notificationId: string, userId: string): Promise<INotification | null>;
+    updateAllRead(userId: string): Promise<unknown>;
+    create(data: Partial<INotification>): Promise<INotification>;
+    deleteOne(notificationId: string, userId: string): Promise<INotification | null>;
 }

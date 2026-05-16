@@ -26,9 +26,9 @@ export class ReportService implements IReportService {
 
         return await this._reportRepository.create({
             ...data,
-            assignmentId: new Types.ObjectId(data.assignmentId) as any,
-            reportedUserId: new Types.ObjectId(data.reportedUserId) as any,
-            reporterId: new Types.ObjectId(reporterId) as any,
+            assignmentId: new Types.ObjectId(data.assignmentId) as unknown as Types.ObjectId,
+            reportedUserId: new Types.ObjectId(data.reportedUserId) as unknown as Types.ObjectId,
+            reporterId: new Types.ObjectId(reporterId) as unknown as Types.ObjectId,
             status: REPORT_STATUS.PENDING
         });
     }

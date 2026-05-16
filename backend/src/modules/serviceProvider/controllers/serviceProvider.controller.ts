@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { IServiceProviderController, IServiceProviderService } from '../interfaces/serviceProvider.interface';
+import { IServiceProviderController, IServiceProviderService, IServiceProvider } from '../interfaces/serviceProvider.interface';
 import { SubmitApplicationDTO } from '../dtos/submitApplication.dto';
 import { AppError } from '../../../utils/AppError';
 import { mapProviderToResponseDTO } from '../dtos/providerResponse.dto';
@@ -14,7 +14,7 @@ export class ServiceProviderController implements IServiceProviderController {
         this._serviceProviderService = serviceProviderService;
     }
 
-    submitApplication = async (req: Request, res: Response, next: any): Promise<void> => {
+    submitApplication = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
 
@@ -31,7 +31,7 @@ export class ServiceProviderController implements IServiceProviderController {
             }
 
             res.status(HttpStatusCode.CREATED).json(result);
-        } catch (error: any) {
+        } catch (error) {
             next(error);
         }
     };
@@ -96,7 +96,7 @@ export class ServiceProviderController implements IServiceProviderController {
 
     getMyProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const userId = (req as any).user?.userId;
+            const userId = req.user?.userId;
             if (!userId) {
                 res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
                 return;
@@ -119,14 +119,14 @@ export class ServiceProviderController implements IServiceProviderController {
 
     updateProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const userId = (req as any).user?.userId;
+            const userId = req.user?.userId;
             if (!userId) {
                 res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
                 return;
             }
 
             const updateData = UpdateProviderDTO.create(req.body);
-            const result = await this._serviceProviderService.updateProfile(userId, updateData);
+            const result = await this._serviceProviderService.updateProfile(userId, updateData as unknown as Partial<IServiceProvider>);
 
             if (!result.success) {
                 res.status(HttpStatusCode.BAD_REQUEST).json(result);
@@ -145,7 +145,7 @@ export class ServiceProviderController implements IServiceProviderController {
 
     resetApplication = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const userId = (req as any).user?.userId;
+            const userId = req.user?.userId;
             if (!userId) {
                 res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
                 return;

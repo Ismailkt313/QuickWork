@@ -42,8 +42,10 @@ export interface IReportRepository {
     getRecentReports(limit: number): Promise<IReport[]>;
 }
 
+import { CreateReportDTO } from '../dtos/report.dto';
+
 export interface IReportService {
-    createReport(reporterId: string, data: any): Promise<IReport>;
+    createReport(reporterId: string, data: CreateReportDTO): Promise<IReport>;
     getAllReports(page: number, limit: number): Promise<{
         reports: IReport[];
         total: number;
@@ -69,7 +71,7 @@ export interface IModerationController {
 }
 
 export interface IModerationService {
-    getReports(query: any): Promise<any>;
-    getReportDetail(id: string): Promise<any>;
-    takeAction(reportId: string, adminId: string, action: string, reason: string): Promise<any>;
+    getReports(query: { status?: string; page?: number; limit?: number }): Promise<{ reports: IReport[]; total: number; page: number; pages: number }>;
+    getReportDetail(id: string): Promise<{ report: IReport; moderationLogs: Record<string, unknown>[] }>;
+    takeAction(reportId: string, adminId: string, action: 'warn' | 'block' | 'reject', reason: string): Promise<{ report: IReport; moderationLogs: Record<string, unknown>[] }>;
 }

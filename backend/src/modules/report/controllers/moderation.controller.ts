@@ -4,6 +4,12 @@ import { HttpStatusCode } from '../../../constants/httpStatusCode';
 import { AppError } from '../../../utils/AppError';
 import { z } from 'zod';
 
+import { ITokenPayload } from '../../auth/interfaces/auth.interface';
+
+interface RequestWithUser extends Request {
+    user?: ITokenPayload;
+}
+
 const TakeActionSchema = z.object({
     action: z.enum(['warn', 'block', 'reject']),
     reason: z.string().min(1, 'Reason is required')
@@ -63,7 +69,7 @@ export class ModerationController implements IModerationController {
                 throw new AppError(errorMessage, HttpStatusCode.BAD_REQUEST);
             }
 
-            const adminId = (req.user as any).userId;
+            const adminId = ((req as RequestWithUser).user as { userId: string }).userId;
             const { action, reason } = validation.data;
 
             const result = await this._moderationService.takeAction(id as string, adminId, action, reason);

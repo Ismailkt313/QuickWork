@@ -18,7 +18,7 @@ export interface AssignmentResponseDTO {
     isOutOfDistrict: boolean;
     proof: string[];
     proofDescription?: string;
-    coWorkers?: any[];
+    coWorkers?: Record<string, unknown>[];
     cancellation?: {
         cancelledBy: string;
         cancelledAt: string;
@@ -42,7 +42,26 @@ export interface AssignmentResponseDTO {
     assignmentCode: string;
 }
 
-export const mapAssignmentToResponseDTO = async (assignment: any): Promise<AssignmentResponseDTO> => {
+export const mapAssignmentToResponseDTO = async (assignment: {
+    _id?: unknown;
+    id?: string;
+    jobId?: { _id?: unknown; toString: () => string } | unknown;
+    workStatus?: string;
+    type?: string;
+    schedule?: { startDate?: Date; endDate?: Date };
+    assignedAt?: Date;
+    invite?: { invitedAt?: Date; respondedAt?: Date };
+    startedAt?: Date;
+    completedAt?: Date;
+    isOutOfDistrict?: boolean;
+    proof?: string[];
+    proofDescription?: string;
+    coWorkers?: Record<string, unknown>[];
+    cancellation?: { cancelledBy?: unknown; cancelledAt?: Date; reason?: string; isLateCancel?: boolean; notes?: string };
+    absence?: { reportedBy?: unknown; reportedAt?: Date; notes?: string; evidence?: string[] };
+    payment?: { status?: string; method?: string; amount?: number; paidAt?: Date; transactionId?: string };
+    assignmentCode?: string;
+}): Promise<AssignmentResponseDTO> => {
     return {
         id: assignment._id ? assignment._id.toString() : assignment.id,
         jobId: assignment.jobId?._id ? assignment.jobId._id.toString() : (assignment.jobId?.toString() || ''),

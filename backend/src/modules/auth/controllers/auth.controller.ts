@@ -11,6 +11,7 @@ import { ErrorMessages } from "../../../constants/messages/errorMessages";
 import { SuccessMessages } from "../../../constants/messages/successMessages";
 import { config } from "../../../config";
 import { generateAccessToken, generateRefreshToken } from "../../../utils/jwt.util";
+import { AppError } from "../../../utils/AppError";
 
 import { IAuthController } from '../interfaces/auth.interface';
 
@@ -26,7 +27,7 @@ export class AuthController implements IAuthController {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 7 * 24 * 60 * 60 * 1000
+            maxAge: config.COOKIE_MAX_AGE
         });
     }
 
@@ -91,8 +92,10 @@ export class AuthController implements IAuthController {
             const result = await this._authService.login(dto);
             if (result.success && result.data?.refreshToken) {
                 this.setTokenCookie(res, result.data.refreshToken);
-
-                delete (result.data as any).refreshToken;
+                
+                const responseData = { ...result.data } as Partial<typeof result.data>;
+                delete responseData.refreshToken;
+                result.data = responseData as typeof result.data;
             }
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
@@ -119,7 +122,9 @@ export class AuthController implements IAuthController {
             const result = await this._authService.refreshToken(refreshToken);
             if (result.success && result.data?.refreshToken) {
                 this.setTokenCookie(res, result.data.refreshToken);
-                delete (result.data as any).refreshToken;
+                const responseData = { ...result.data } as Partial<typeof result.data>;
+                delete responseData.refreshToken;
+                result.data = responseData as typeof result.data;
             }
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
@@ -136,7 +141,9 @@ export class AuthController implements IAuthController {
             const result = await this._authService.adminLogin(dto);
             if (result.success && result.data?.refreshToken) {
                 this.setTokenCookie(res, result.data.refreshToken);
-                delete (result.data as any).refreshToken;
+                const responseData = { ...result.data } as Partial<typeof result.data>;
+                delete responseData.refreshToken;
+                result.data = responseData as typeof result.data;
             }
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
@@ -200,7 +207,10 @@ export class AuthController implements IAuthController {
         next: NextFunction
     ): Promise<void> => {
         try {
-            const userId = (req.user as any).userId;
+            const userId = req.user?.userId;
+            if (!userId) {
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+            }
             const result = await this._authService.getProfile(userId);
             res.status(HttpStatusCode.OK).json({
                 success: true,
@@ -218,7 +228,10 @@ export class AuthController implements IAuthController {
         next: NextFunction
     ): Promise<void> => {
         try {
-            const userId = (req.user as any).userId;
+            const userId = req.user?.userId;
+            if (!userId) {
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+            }
             const { name, number, profileImage } = req.body;
             const result = await this._authService.updateProfile(userId, { name, number, profileImage });
             res.status(HttpStatusCode.OK).json({
@@ -237,7 +250,10 @@ export class AuthController implements IAuthController {
         next: NextFunction
     ): Promise<void> => {
         try {
-            const userId = (req.user as any).userId;
+            const userId = req.user?.userId;
+            if (!userId) {
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+            }
             const { currentPassword, newPassword } = req.body;
             await this._authService.changePassword(userId, { currentPassword, newPassword });
             res.status(HttpStatusCode.OK).json({
@@ -255,7 +271,10 @@ export class AuthController implements IAuthController {
         next: NextFunction
     ): Promise<void> => {
         try {
-            const userId = (req.user as any).userId;
+            const userId = req.user?.userId;
+            if (!userId) {
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+            }
             const { newEmail } = req.body;
             const result = await this._authService.sendEmailUpdateOtp(userId, { newEmail });
             res.status(HttpStatusCode.OK).json(result);
@@ -270,7 +289,10 @@ export class AuthController implements IAuthController {
         next: NextFunction
     ): Promise<void> => {
         try {
-            const userId = (req.user as any).userId;
+            const userId = req.user?.userId;
+            if (!userId) {
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+            }
             const { newEmail, otp } = req.body;
             const result = await this._authService.verifyEmailUpdate(userId, { newEmail, otp });
             res.status(HttpStatusCode.OK).json(result);
@@ -285,7 +307,10 @@ export class AuthController implements IAuthController {
         next: NextFunction
     ): Promise<void> => {
         try {
-            const userId = (req.user as any).userId;
+            const userId = req.user?.userId;
+            if (!userId) {
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+            }
             const { newEmail } = req.body;
             const result = await this._authService.resendEmailUpdateOtp(userId, { newEmail });
             res.status(HttpStatusCode.OK).json(result);
@@ -304,7 +329,7 @@ export class AuthController implements IAuthController {
                 return res.redirect(`${config.FRONTEND_URL}/login?error=google_auth_failed`);
             }
 
-            const user = req.user as any as IUser;
+            const user = req.user as unknown as IUser;
 
             const tokenPayload: ITokenPayload = {
                 userId: user._id.toString(),

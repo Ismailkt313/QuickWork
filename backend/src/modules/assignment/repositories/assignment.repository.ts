@@ -1,6 +1,6 @@
 import { IAssignment, IAssignmentRepository } from '../interfaces/assignment.interface';
 import { AssignmentModel } from '../models/assignment.model';
-import mongoose, { Types } from 'mongoose';
+import { Types, FilterQuery, UpdateWriteOpResult, SortOrder } from 'mongoose';
 
 export class AssignmentRepository implements IAssignmentRepository {
     async create(data: Partial<IAssignment>): Promise<IAssignment> {
@@ -24,11 +24,11 @@ export class AssignmentRepository implements IAssignmentRepository {
             });
     }
 
-    async findOne(query: any): Promise<IAssignment | null> {
+    async findOne(query: FilterQuery<IAssignment>): Promise<IAssignment | null> {
         return await AssignmentModel.findOne(query);
     }
 
-    async find(query: any, options?: { page?: number, limit?: number, sort?: any }): Promise<IAssignment[]> {
+    async find(query: FilterQuery<IAssignment>, options?: { page?: number, limit?: number, sort?: string | { [key: string]: SortOrder } }): Promise<IAssignment[]> {
         const { page = 1, limit = 10, sort = { createdAt: -1 } } = options || {};
         const skip = (page - 1) * limit;
 
@@ -54,16 +54,16 @@ export class AssignmentRepository implements IAssignmentRepository {
         return await AssignmentModel.findByIdAndUpdate(id, { $set: data }, { new: true });
     }
 
-    async updateByJobId(jobId: string, data: Partial<IAssignment>): Promise<any> {
+    async updateByJobId(jobId: string, data: Partial<IAssignment>): Promise<UpdateWriteOpResult> {
         return await AssignmentModel.updateMany({ jobId }, { $set: data });
     }
 
-    async exists(query: any): Promise<boolean> {
+    async exists(query: FilterQuery<IAssignment>): Promise<boolean> {
         const result = await AssignmentModel.exists(query);
         return !!result;
     }
 
-    async count(query: any): Promise<number> {
+    async count(query: FilterQuery<IAssignment>): Promise<number> {
         return await AssignmentModel.countDocuments(query);
     }
 
@@ -75,7 +75,14 @@ export class AssignmentRepository implements IAssignmentRepository {
             });
     }
 
-    async getDashboardStats(providerId: string): Promise<any> {
+    async getDashboardStats(providerId: string): Promise<{
+        activeJobs: number;
+        completedJobs: number;
+        pendingAssignments: number;
+        upcomingJobs: number;
+        totalAssignments: number;
+        assignmentEarnings: number;
+    }> {
         const stats = await AssignmentModel.aggregate([
             { $match: { freelancerId: new Types.ObjectId(providerId) } },
             {
@@ -121,14 +128,14 @@ export class AssignmentRepository implements IAssignmentRepository {
             .populate('jobId', 'title description');
     }
 
-    async getStatusDistribution(providerId: string): Promise<any[]> {
+    async getStatusDistribution(providerId: string): Promise<{ _id: string; count: number }[]> {
         return await AssignmentModel.aggregate([
             { $match: { freelancerId: new Types.ObjectId(providerId) } },
             { $group: { _id: '$workStatus', count: { $sum: 1 } } }
         ]);
     }
 
-    async getWeeklyActivity(providerId: string): Promise<any[]> {
+    async getWeeklyActivity(providerId: string): Promise<{ _id: number; count: number }[]> {
         return await AssignmentModel.aggregate([
             {
                 $match: {
@@ -146,7 +153,13 @@ export class AssignmentRepository implements IAssignmentRepository {
         ]);
     }
 
-    async getPerformanceStats(providerId: string): Promise<any> {
+    async getPerformanceStats(providerId: string): Promise<{
+        total: number;
+        completed: number;
+        accepted: number;
+        rejected: number;
+        pending: number;
+    }> {
         const stats = await AssignmentModel.aggregate([
             { $match: { freelancerId: new Types.ObjectId(providerId) } },
             {

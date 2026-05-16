@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { REVIEW_ROLE } from '../interfaces/review.interface';
+import { REVIEW_ROLE, IReview } from '../interfaces/review.interface';
 
 export const CreateReviewSchema = z.object({
     assignmentId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid assignmentId"),
@@ -30,17 +30,19 @@ export interface ReviewResponseDTO {
     createdAt: Date;
 }
 
-export const mapReviewToResponseDTO = (review: any): ReviewResponseDTO => {
+export const mapReviewToResponseDTO = (review: IReview): ReviewResponseDTO => {
+    const reviewer = review.reviewerId as unknown as { _id: { toString(): string }; name: string };
+    const reviewee = review.revieweeId as unknown as { _id: { toString(): string }; name: string };
     return {
-        id: review._id.toString(),
+        id: (review._id as { toString(): string }).toString(),
         assignmentId: review.assignmentId.toString(),
         reviewerId: {
-            id: review.reviewerId._id.toString(),
-            name: review.reviewerId.name
+            id: reviewer._id ? reviewer._id.toString() : review.reviewerId.toString(),
+            name: reviewer.name || ''
         },
         revieweeId: {
-            id: review.revieweeId._id.toString(),
-            name: review.revieweeId.name
+            id: reviewee._id ? reviewee._id.toString() : review.revieweeId.toString(),
+            name: reviewee.name || ''
         },
         role: review.role,
         rating: review.rating,

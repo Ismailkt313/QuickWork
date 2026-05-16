@@ -1,4 +1,4 @@
-import { Document, Types } from 'mongoose';
+import { Document, Types, UpdateWriteOpResult } from 'mongoose';
 import { Request, Response, NextFunction } from 'express';
 import { SubmitApplicationDTO } from '../dtos/submitApplication.dto';
 import { VERIFICATION_STATUS } from '../../../constants/verification';
@@ -79,20 +79,20 @@ export interface ProviderListResult {
 }
 
 export interface IServiceProviderRepository {
-    findByUserId(userId: string): Promise<any>;
+    findByUserId(userId: string): Promise<IServiceProvider | null>;
     create(providerData: Partial<IServiceProvider>): Promise<IServiceProvider>;
-    addSkillToProvider(userId: string, skillId: string): Promise<any>;
+    addSkillToProvider(userId: string, skillId: string): Promise<UpdateWriteOpResult>;
     findProviders(filter: ProviderFilter): Promise<ProviderListResult>;
-    findById(id: string): Promise<any>;
-    updateByUserId(userId: string, data: any): Promise<any>;
+    findById(id: string): Promise<IServiceProvider | null>;
+    updateByUserId(userId: string, data: Partial<IServiceProvider>): Promise<IServiceProvider | null>;
     deleteByUserId(userId: string): Promise<void>;
-    updateAvailability(userId: string, availability: IAvailability[]): Promise<any>;
-    addBlockedDate(userId: string, blockedDate: IBlockedDate): Promise<any>;
-    deleteBlockedDate(userId: string, blockedDateId: string): Promise<any>;
+    updateAvailability(userId: string, availability: IAvailability[]): Promise<IServiceProvider | null>;
+    addBlockedDate(userId: string, blockedDate: IBlockedDate): Promise<IServiceProvider | null>;
+    deleteBlockedDate(userId: string, blockedDateId: string): Promise<IServiceProvider | null>;
     countTotalProviders(): Promise<number>;
     countPendingApprovals(): Promise<number>;
-    getRecentProviders(limit: number): Promise<any[]>;
-    getProviderGrowth(): Promise<any[]>;
+    getRecentProviders(limit: number): Promise<IServiceProvider[]>;
+    getProviderGrowth(): Promise<{ _id: string; count: number }[]>;
 }
 
 export interface IServiceProviderService {
@@ -106,17 +106,17 @@ export interface IServiceProviderService {
         sort?: string;
         currentUserId?: string;
     }): Promise<{ success: boolean; message?: string; data?: ProviderListResult & { page: number; limit: number } }>;
-    getProviderById(id: string): Promise<{ success: boolean; data?: any; message?: string }>;
-    getMyProfile(userId: string): Promise<{ success: boolean; data?: any; message?: string }>;
-    updateProfile(userId: string, data: any): Promise<{ success: boolean; data?: any; message?: string }>;
+    getProviderById(id: string): Promise<{ success: boolean; data?: IServiceProvider; message?: string }>;
+    getMyProfile(userId: string): Promise<{ success: boolean; data?: IServiceProvider; message?: string }>;
+    updateProfile(userId: string, data: Partial<IServiceProvider>): Promise<{ success: boolean; data?: IServiceProvider; message?: string }>;
     resetApplication(userId: string): Promise<{ success: boolean; message: string }>;
-    updateAvailability(userId: string, availability: IAvailability[]): Promise<{ success: boolean; message: string; data?: any }>;
-    addBlockedDate(userId: string, blockedDate: Omit<IBlockedDate, '_id'>): Promise<{ success: boolean; message: string; data?: any }>;
+    updateAvailability(userId: string, availability: IAvailability[]): Promise<{ success: boolean; message: string; data?: IAvailability[] }>;
+    addBlockedDate(userId: string, blockedDate: IBlockedDate): Promise<{ success: boolean; message: string; data?: IBlockedDate[] }>;
     deleteBlockedDate(userId: string, blockedDateId: string): Promise<{ success: boolean; message: string }>;
 }
 
 export interface IServiceProviderController {
-    submitApplication(req: any, res: any, next: any): Promise<void>;
+    submitApplication(req: Request, res: Response, next: NextFunction): Promise<void>;
     getProviders(req: Request, res: Response, next: NextFunction): Promise<void>;
     getProviderById(req: Request, res: Response, next: NextFunction): Promise<void>;
     getMyProfile(req: Request, res: Response, next: NextFunction): Promise<void>;

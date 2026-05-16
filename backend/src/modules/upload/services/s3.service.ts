@@ -43,13 +43,14 @@ export class S3Service implements IS3Service {
                 imageUrl,
                 publicId: fileName,
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const err = error as { message?: string; code?: string };
             logger.error({
-                message: error.message,
-                code: error.code,
+                message: err.message,
+                code: err.code,
                 bucket: config.AWS_BUCKET_NAME
             }, "S3 Upload Failed");
-            throw new Error(`S3 Upload Error: ${error.message}`);
+            throw new Error(`S3 Upload Error: ${err.message || 'Unknown error'}`);
         }
 
     }

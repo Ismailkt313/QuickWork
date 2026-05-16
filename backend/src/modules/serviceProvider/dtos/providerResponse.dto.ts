@@ -1,4 +1,4 @@
-import { ILocation, IPortfolioItem } from "../interfaces/serviceProvider.interface";
+import { ILocation, IPortfolioItem, IAvailability, IBlockedDate, IServiceProvider } from "../interfaces/serviceProvider.interface";
 
 export interface ProviderResponseDTO {
     id: string;
@@ -16,33 +16,37 @@ export interface ProviderResponseDTO {
     isActive: boolean;
     verificationStatus: string;
     rejectionReason?: string;
-    availability: any[];
-    blockedDates: any[];
+    availability: IAvailability[];
+    blockedDates: IBlockedDate[];
 }
 
-export const mapProviderToResponseDTO = (provider: any): ProviderResponseDTO => {
-    const user = provider.userId || {};
+export const mapProviderToResponseDTO = (provider: IServiceProvider | Record<string, unknown>): ProviderResponseDTO => {
+    const prov = provider as unknown as Record<string, unknown>;
+    const user = (prov.userId as Record<string, unknown>) || {};
 
     return {
-        id: provider._id ? provider._id.toString() : provider.id,
-        userId: user._id ? user._id.toString() : user.id,
-        name: user.name || 'Anonymous',
-        email: user.email || '',
-        headline: provider.headline,
-        about: provider.about,
-        profileImage: provider.profileImage,
-        skills: Array.isArray(provider.skills) ? provider.skills.map((s: any) => ({
-            id: s._id ? s._id.toString() : s.toString(),
-            name: s.name || 'Unknown Skill'
-        })) : [],
-        yearsOfExperience: provider.yearsOfExperience,
-        hourlyRate: provider.hourlyRate,
-        location: provider.location,
-        portfolio: provider.portfolio,
-        isActive: provider.isActive,
-        verificationStatus: provider.verification?.status || 'pending',
-        rejectionReason: provider.verification?.rejectionReason || '',
-        availability: provider.availability || [],
-        blockedDates: provider.blockedDates || []
+        id: prov._id ? (prov._id as { toString(): string }).toString() : (prov.id as string),
+        userId: user._id ? (user._id as { toString(): string }).toString() : (user.id as string),
+        name: (user.name as string) || 'Anonymous',
+        email: (user.email as string) || '',
+        headline: prov.headline as string,
+        about: prov.about as string,
+        profileImage: prov.profileImage as string,
+        skills: Array.isArray(prov.skills) ? prov.skills.map((s: unknown) => {
+            const skillObj = s as Record<string, unknown>;
+            return {
+                id: skillObj._id ? (skillObj._id as { toString(): string }).toString() : (s as { toString(): string }).toString(),
+                name: (skillObj.name as string) || 'Unknown Skill'
+            };
+        }) : [],
+        yearsOfExperience: prov.yearsOfExperience as number,
+        hourlyRate: prov.hourlyRate as number,
+        location: prov.location as ILocation,
+        portfolio: prov.portfolio as IPortfolioItem[],
+        isActive: prov.isActive as boolean,
+        verificationStatus: ((prov.verification as Record<string, unknown>)?.status as string) || 'pending',
+        rejectionReason: ((prov.verification as Record<string, unknown>)?.rejectionReason as string) || '',
+        availability: (prov.availability as IAvailability[]) || [],
+        blockedDates: (prov.blockedDates as IBlockedDate[]) || []
     };
 };

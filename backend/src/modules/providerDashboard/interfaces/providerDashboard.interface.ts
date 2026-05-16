@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { IAvailability } from '../../serviceProvider/interfaces/serviceProvider.interface';
 
 export interface IDashboardOverview {
     totalEarnings: number;
@@ -28,12 +29,12 @@ export interface IChartData {
 export interface IAvailabilitySummary {
     availableToday: boolean;
     nextBlockedDate: Date | null;
-    weeklyAvailability: any[];
+    weeklyAvailability: IAvailability[];
 }
 
 export interface IProviderDashboardService {
     getOverview(userId: string): Promise<IDashboardOverview>;
-    getActivity(userId: string): Promise<any>;
+    getActivity(userId: string): Promise<{ recentAssignments: unknown[]; recentReviews: unknown[]; recentNotifications: unknown[] }>;
     getCharts(userId: string): Promise<IChartData>;
     getPerformance(userId: string): Promise<IPerformanceStats>;
     getAvailabilitySummary(userId: string): Promise<IAvailabilitySummary>;

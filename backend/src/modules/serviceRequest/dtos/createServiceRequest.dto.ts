@@ -1,16 +1,22 @@
 import { AppError } from "../../../utils/AppError";
 import { HttpStatusCode } from "../../../constants/httpStatusCode"
 
+export interface CreateServiceRequestInput {
+    name?: string;
+    description?: string;
+    [key: string]: unknown;
+}
+
 export class CreateServiceRequestDTO {
     public readonly name: string;
     public readonly description: string;
 
-    private constructor(data: any) {
-        this.name = data.name;
-        this.description = data.description;
+    private constructor(data: CreateServiceRequestInput) {
+        this.name = data.name!;
+        this.description = data.description!;
     }
 
-    public static create(data: any): CreateServiceRequestDTO {
+    public static create(data: CreateServiceRequestInput): CreateServiceRequestDTO {
         const errors: string[] = [];
 
         if (!data.name || data.name.trim().length === 0) {

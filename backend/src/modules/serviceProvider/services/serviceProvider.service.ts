@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { IServiceProvider, IServiceProviderRepository, IServiceProviderService, ProviderListResult } from '../interfaces/serviceProvider.interface';
+import { IServiceProvider, IServiceProviderRepository, IServiceProviderService, ProviderListResult, IAvailability, IBlockedDate } from '../interfaces/serviceProvider.interface';
 import { SubmitApplicationDTO } from '../dtos/submitApplication.dto';
 import { ISkillRepository } from '../../skill/interfaces/skill.interface';
 import { IAuthRepository } from '../../auth/interfaces/auth.interface';
@@ -23,7 +23,7 @@ export class ServiceProviderService implements IServiceProviderService {
         this._skillRepository = skillRepository;
     }
 
-    async submitApplication(userId: string, providerData: SubmitApplicationDTO): Promise<{ success: boolean; data?: any; message?: string }> {
+    async submitApplication(userId: string, providerData: SubmitApplicationDTO): Promise<{ success: boolean; data?: { providerId: string; accessToken: string; refreshToken: string }; message?: string }> {
         try {
             const existingProvider = await this._providerRepository.findByUserId(userId);
             if (existingProvider) {
@@ -77,8 +77,9 @@ export class ServiceProviderService implements IServiceProviderService {
                     refreshToken
                 }
             };
-        } catch (error: any) {
-            throw new Error(`Failed to submit application: ${error.message}`);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Unknown error';
+            throw new Error(`Failed to submit application: ${message}`);
         }
     }
 
@@ -108,7 +109,7 @@ export class ServiceProviderService implements IServiceProviderService {
         return { success: true, data: { ...result, page, limit } };
     }
 
-    async getProviderById(id: string): Promise<{ success: boolean; data?: any; message?: string }> {
+    async getProviderById(id: string): Promise<{ success: boolean; data?: IServiceProvider; message?: string }> {
         const provider = await this._providerRepository.findById(id);
         if (!provider) {
             return { success: false, message: ErrorMessages.PROVIDER_NOT_FOUND };
@@ -119,7 +120,7 @@ export class ServiceProviderService implements IServiceProviderService {
         return { success: true, data: provider };
     }
 
-    async getMyProfile(userId: string): Promise<{ success: boolean; data?: any; message?: string }> {
+    async getMyProfile(userId: string): Promise<{ success: boolean; data?: IServiceProvider; message?: string }> {
         const provider = await this._providerRepository.findByUserId(userId);
         if (!provider) {
             return { success: false, message: ErrorMessages.PROVIDER_NOT_FOUND };
@@ -127,11 +128,11 @@ export class ServiceProviderService implements IServiceProviderService {
         return { success: true, data: provider };
     }
 
-    async updateProfile(userId: string, data: any): Promise<{ success: boolean; data?: any; message?: string }> {
+    async updateProfile(userId: string, data: Partial<IServiceProvider>): Promise<{ success: boolean; data?: IServiceProvider; message?: string }> {
         const updateData = { ...data };
 
         if (updateData.skills && Array.isArray(updateData.skills)) {
-            updateData.skills = updateData.skills.map((id: string) => new Types.ObjectId(id));
+            updateData.skills = updateData.skills.map((id: Types.ObjectId | string) => new Types.ObjectId(id));
         }
 
         const updatedProvider = await this._providerRepository.updateByUserId(userId, updateData);
@@ -157,7 +158,7 @@ export class ServiceProviderService implements IServiceProviderService {
         return { success: true, message: SuccessMessages.APPLICATION_RESET };
     }
 
-    async updateAvailability(userId: string, availability: any[]): Promise<{ success: boolean; message: string; data?: any }> {
+    async updateAvailability(userId: string, availability: IAvailability[]): Promise<{ success: boolean; message: string; data?: IAvailability[] }> {
         const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
         for (const slot of availability) {
             if (slot.isAvailable && (!timeRegex.test(slot.startTime) || !timeRegex.test(slot.endTime))) {
@@ -171,7 +172,7 @@ export class ServiceProviderService implements IServiceProviderService {
         return { success: true, message: 'Availability updated successfully', data: updated.availability };
     }
 
-    async addBlockedDate(userId: string, blockedDate: any): Promise<{ success: boolean; message: string; data?: any }> {
+    async addBlockedDate(userId: string, blockedDate: IBlockedDate): Promise<{ success: boolean; message: string; data?: IBlockedDate[] }> {
         const updated = await this._providerRepository.addBlockedDate(userId, blockedDate);
         if (!updated) return { success: false, message: ErrorMessages.PROVIDER_NOT_FOUND };
 

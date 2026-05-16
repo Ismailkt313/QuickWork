@@ -2,6 +2,18 @@ import { ILocation, IPortfolioItem } from '../interfaces/serviceProvider.interfa
 import { AppError } from '../../../utils/AppError';
 import {HttpStatusCode} from "../../../constants/httpStatusCode"
 
+export interface SubmitApplicationInput {
+    headline?: string;
+    about?: string;
+    profileImage?: string;
+    skills?: string[];
+    yearsOfExperience?: number | string;
+    hourlyRate?: number | string;
+    location?: ILocation;
+    portfolio?: IPortfolioItem[];
+    [key: string]: unknown;
+}
+
 export class SubmitApplicationDTO {
     public readonly headline: string;
     public readonly about: string;
@@ -12,18 +24,18 @@ export class SubmitApplicationDTO {
     public readonly location: ILocation;
     public readonly portfolio: IPortfolioItem[];
 
-    private constructor(data: any) {
-        this.headline = data.headline;
-        this.about = data.about;
-        this.profileImage = data.profileImage;
-        this.skills = data.skills;
+    private constructor(data: SubmitApplicationInput) {
+        this.headline = data.headline!;
+        this.about = data.about!;
+        this.profileImage = data.profileImage!;
+        this.skills = data.skills!;
         this.yearsOfExperience = Number(data.yearsOfExperience);
         this.hourlyRate = Number(data.hourlyRate);
-        this.location = data.location;
-        this.portfolio = data.portfolio;
+        this.location = data.location!;
+        this.portfolio = data.portfolio!;
     }
 
-    public static create(data: any): SubmitApplicationDTO {
+    public static create(data: SubmitApplicationInput): SubmitApplicationDTO {
         const errors: string[] = [];
 
         if (!data.headline || data.headline.trim().length === 0) {

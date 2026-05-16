@@ -1,4 +1,4 @@
-import { NotificationModel} from '../models/notification.model';
+import { NotificationModel, INotification } from '../models/notification.model';
 import { INotificationRepository } from '../interfaces/notification.interface';
 
 export class NotificationRepository implements INotificationRepository {
@@ -27,7 +27,7 @@ export class NotificationRepository implements INotificationRepository {
         );
     }
 
-    async create(data: any) {
+    async create(data: Partial<INotification>) {
         return await NotificationModel.create(data);
     }
 

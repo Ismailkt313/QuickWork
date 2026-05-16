@@ -1,4 +1,4 @@
-import { Types } from 'mongoose';
+import { Types, PipelineStage } from 'mongoose';
 import { WalletModel } from '../models/wallet.model';
 import { WalletTransactionModel } from '../models/walletTransaction.model';
 import { IWallet, IWalletTransaction } from '../interfaces/finance.interface';
@@ -37,17 +37,18 @@ export class WalletRepository implements IWalletRepository {
         });
     }
 
-    async findAllWithProvider(): Promise<any[]> {
-        return WalletModel.find().populate('providerId');
+    async findAllWithProvider(): Promise<Record<string, unknown>[]> {
+        const items = await WalletModel.find().populate('providerId').lean();
+        return items as Record<string, unknown>[];
     }
 
     async getTransactionsWithCount(providerId: string, skip: number, limit: number, search?: string, type?: string, source?: string): Promise<[IWalletTransaction[], number]> {
-        const baseMatch: any = { providerId: new Types.ObjectId(providerId) };
+        const baseMatch: Record<string, unknown> = { providerId: new Types.ObjectId(providerId) };
 
         if (type) baseMatch.type = type;
         if (source) baseMatch.source = source;
 
-        const pipeline: any[] = [{ $match: baseMatch }];
+        const pipeline: Record<string, unknown>[] = [{ $match: baseMatch }];
 
         if (search) {
             const trimmed = search.trim();
@@ -81,8 +82,8 @@ export class WalletRepository implements IWalletRepository {
         ];
 
         const [data, countResult] = await Promise.all([
-            WalletTransactionModel.aggregate(dataPipeline),
-            WalletTransactionModel.aggregate(countPipeline)
+            WalletTransactionModel.aggregate(dataPipeline as unknown as PipelineStage[]),
+            WalletTransactionModel.aggregate(countPipeline as unknown as PipelineStage[])
         ]);
 
         return [data as IWalletTransaction[], countResult[0]?.total || 0];

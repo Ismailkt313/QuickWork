@@ -42,15 +42,16 @@ export class AdminFinanceService implements IAdminFinanceService {
         const { page = 1, limit = 10, paymentMethod, startDate, endDate, search } = query;
         const skip = (page - 1) * limit;
 
-        const filter: any = {};
+        const filter: Record<string, unknown> = {};
         if (paymentMethod && paymentMethod !== 'all') {
             filter.paymentMethod = paymentMethod.toUpperCase();
         }
 
         if (startDate || endDate) {
-            filter.createdAt = {};
-            if (startDate) filter.createdAt.$gte = new Date(startDate);
-            if (endDate) filter.createdAt.$lte = new Date(endDate);
+            const dateFilter: Record<string, Date> = {};
+            if (startDate) dateFilter.$gte = new Date(startDate);
+            if (endDate) dateFilter.$lte = new Date(endDate);
+            filter.createdAt = dateFilter;
         }
 
         if (search) {

@@ -32,7 +32,7 @@ passport.use(
                         return done(new Error("Your account has been blocked"), false);
                     }
 
-                    return done(null, user as any);
+                    return done(null, user as Express.User);
                 }
 
                 const newUser = new UserModel({
@@ -44,7 +44,7 @@ passport.use(
                     isBlocked: false,
                 });
                 await newUser.save();
-                return done(null, newUser as any);
+                return done(null, newUser as Express.User);
             } catch (error) {
                 return done(error, false);
             }

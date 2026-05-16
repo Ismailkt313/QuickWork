@@ -4,7 +4,7 @@ import { IRazorpayService } from '../interfaces/finance.interface';
 
 export class RazorpayService implements IRazorpayService {
 
-  async createOrder(amount: number, receiptId: string): Promise<any> {
+  async createOrder(amount: number, receiptId: string): Promise<Record<string, unknown>> {
     if (!razorpayInstance) {
       console.error("Razorpay Error: key_id is missing in environment variables");
       throw new Error("Payment service is currently unavailable");
@@ -18,7 +18,7 @@ export class RazorpayService implements IRazorpayService {
 
     try {
       const order = await razorpayInstance.orders.create(options);
-      return order;
+      return order as unknown as Record<string, unknown>;
     } catch (error) {
       console.error("Razorpay Order Creation Error:", error);
       throw new Error("Failed to create Razorpay order");

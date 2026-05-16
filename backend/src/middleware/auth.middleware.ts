@@ -35,7 +35,7 @@ export const authMiddleware = async (
 
         req.user = decoded;
         next();
-    } catch (error: any) {
+    } catch (error) {
 
         if (error instanceof AppError) {
             next(error);

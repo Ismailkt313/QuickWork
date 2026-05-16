@@ -1,6 +1,7 @@
 import { IServiceRequest } from '../interfaces/serviceRequest.interface';
 import { ServiceRequestModel } from '../models/serviceRequest.model';
 import { IServiceRequestRepository } from '../interfaces/serviceRequest.interface';
+import { ClientSession } from 'mongoose';
 
 export class ServiceRequestRepository implements IServiceRequestRepository {
     async findPendingByName(name: string): Promise<IServiceRequest | null> {
@@ -36,7 +37,7 @@ export class ServiceRequestRepository implements IServiceRequestRepository {
         return await ServiceRequestModel.findById(id);
     }
 
-    async updateStatus(id: string, updateData: Partial<IServiceRequest>, session?: any): Promise<IServiceRequest | null> {
+    async updateStatus(id: string, updateData: Partial<IServiceRequest>, session?: ClientSession): Promise<IServiceRequest | null> {
         return await ServiceRequestModel.findByIdAndUpdate(
             id,
             { $set: updateData },

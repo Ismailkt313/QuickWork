@@ -2,23 +2,25 @@ import { PlatformTransactionModel } from '../models/platformTransaction.model';
 import { IPlatformTransactionRepository } from '../interfaces/finance.interface';
 
 export class PlatformTransactionRepository implements IPlatformTransactionRepository {
-    async create(data: any): Promise<any> {
-        return PlatformTransactionModel.create(data);
+    async create(data: Record<string, unknown>): Promise<Record<string, unknown>> {
+        return PlatformTransactionModel.create(data) as unknown as Promise<Record<string, unknown>>;
     }
 
-    async findWithPagination(query: any, skip: number, limit: number): Promise<[any[], number]> {
-        return Promise.all([
+    async findWithPagination(query: Record<string, unknown>, skip: number, limit: number): Promise<[Record<string, unknown>[], number]> {
+        const [items, count] = await Promise.all([
             PlatformTransactionModel.find(query)
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit)
                 .populate('jobId', 'title jobCode')
-                .populate('providerId', 'name email'),
+                .populate('providerId', 'name email')
+                .lean(),
             PlatformTransactionModel.countDocuments(query)
         ]);
+        return [items as Record<string, unknown>[], count];
     }
 
-    async getAdminFinanceOverview(): Promise<any> {
+    async getAdminFinanceOverview(): Promise<Record<string, unknown>> {
         const result = await PlatformTransactionModel.aggregate([
             {
                 $group: {
@@ -34,11 +36,11 @@ export class PlatformTransactionRepository implements IPlatformTransactionReposi
                 }
             }
         ]);
-        return result[0];
+        return result[0] || {};
     }
 
-    async getTransactionsWithCount(filter: any, skip: number, limit: number): Promise<[any[], number]> {
-        return Promise.all([
+    async getTransactionsWithCount(filter: Record<string, unknown>, skip: number, limit: number): Promise<[Record<string, unknown>[], number]> {
+        const [items, count] = await Promise.all([
             PlatformTransactionModel.find(filter)
                 .sort({ createdAt: -1 })
                 .skip(skip)
@@ -47,28 +49,31 @@ export class PlatformTransactionRepository implements IPlatformTransactionReposi
                 .lean(),
             PlatformTransactionModel.countDocuments(filter)
         ]);
+        return [items as Record<string, unknown>[], count];
     }
 
     async countTotalTransactions(): Promise<number> {
         return PlatformTransactionModel.countDocuments();
     }
 
-    async getEarningsStats(): Promise<any> {
-        return PlatformTransactionModel.aggregate([
+    async getEarningsStats(): Promise<Record<string, unknown>> {
+        const res = await PlatformTransactionModel.aggregate([
             { $group: { _id: null, total: { $sum: "$platformFee" } } }
         ]);
+        return res[0] || { total: 0 };
     }
 
-    async getRecentTransactions(limit: number): Promise<any[]> {
-        return PlatformTransactionModel.find()
+    async getRecentTransactions(limit: number): Promise<Record<string, unknown>[]> {
+        const items = await PlatformTransactionModel.find()
             .populate('providerId', 'name email profileImage')
             .sort({ createdAt: -1 })
             .limit(limit)
             .lean();
+        return items as Record<string, unknown>[];
     }
 
-    async getMonthlyRevenue(): Promise<any[]> {
-        return PlatformTransactionModel.aggregate([
+    async getMonthlyRevenue(): Promise<Record<string, unknown>[]> {
+        const items = await PlatformTransactionModel.aggregate([
             {
                 $group: {
                     _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
@@ -78,9 +83,10 @@ export class PlatformTransactionRepository implements IPlatformTransactionReposi
             { $sort: { "_id": 1 } },
             { $project: { _id: 0, month: "$_id", revenue: 1 } }
         ]);
+        return items as Record<string, unknown>[];
     }
 
-    async getFinanceSummary(): Promise<any> {
+    async getFinanceSummary(): Promise<Record<string, unknown>> {
         const result = await PlatformTransactionModel.aggregate([
             {
                 $group: {
@@ -91,6 +97,6 @@ export class PlatformTransactionRepository implements IPlatformTransactionReposi
                 }
             }
         ]);
-        return result[0];
+        return result[0] || {};
     }
 }

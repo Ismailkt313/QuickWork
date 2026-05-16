@@ -122,8 +122,8 @@ export class PaymentController implements IPaymentController {
 
             const orderDetails = await this._paymentService.createRazorpayOrder(workHistoryId);
             res.status(HttpStatusCode.OK).json({ success: true, data: orderDetails });
-        } catch (error: any) {
-            res.status(HttpStatusCode.BAD_REQUEST).json({ success: false, message: error.message });
+        } catch (error: unknown) {
+            res.status(HttpStatusCode.BAD_REQUEST).json({ success: false, message: (error as Error).message });
         }
     };
 
@@ -148,8 +148,8 @@ export class PaymentController implements IPaymentController {
             );
 
             res.status(HttpStatusCode.OK).json(result);
-        } catch (error: any) {
-            res.status(HttpStatusCode.BAD_REQUEST).json({ success: false, message: error.message });
+        } catch (error: unknown) {
+            res.status(HttpStatusCode.BAD_REQUEST).json({ success: false, message: (error as Error).message });
         }
     };
 
@@ -160,8 +160,8 @@ export class PaymentController implements IPaymentController {
 
             const orderDetails = await this._paymentService.createJobRazorpayOrder(jobId);
             res.status(HttpStatusCode.OK).json({ success: true, data: orderDetails });
-        } catch (error: any) {
-            res.status(HttpStatusCode.BAD_REQUEST).json({ success: false, message: error.message });
+        } catch (error: unknown) {
+            res.status(HttpStatusCode.BAD_REQUEST).json({ success: false, message: (error as Error).message });
         }
     };
 
@@ -186,8 +186,8 @@ export class PaymentController implements IPaymentController {
             );
 
             res.status(HttpStatusCode.OK).json(result);
-        } catch (error: any) {
-            res.status(HttpStatusCode.BAD_REQUEST).json({ success: false, message: error.message });
+        } catch (error: unknown) {
+            res.status(HttpStatusCode.BAD_REQUEST).json({ success: false, message: (error as Error).message });
         }
     };
 }

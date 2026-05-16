@@ -13,7 +13,19 @@ export class WorkHistoryService implements IWorkHistoryService {
         this._jobRepo = jobRepo;
     }
 
-    async createFromAssignment(assignment: any): Promise<IWorkHistory> {
+    async createFromAssignment(assignment: {
+        _id?: unknown;
+        clientId?: unknown;
+        jobId?: { userId?: { _id?: unknown; toString?: () => string }; _id?: unknown; toString?: () => string };
+        payment?: { amount?: number; method?: string };
+        workStatus?: string;
+        freelancerId?: { _id?: unknown; toString?: () => string };
+        assignedAt?: Date;
+        startedAt?: Date;
+        completedAt?: Date;
+        cancellation?: { cancelledAt?: Date };
+        absence?: { reportedAt?: Date };
+    }): Promise<IWorkHistory> {
 
         let clientId = assignment.clientId;
         if (!clientId && assignment.jobId) {
@@ -22,7 +34,7 @@ export class WorkHistoryService implements IWorkHistoryService {
                 clientId = assignment.jobId.userId._id || assignment.jobId.userId;
             } else {
 
-                const job = await this._jobRepo.findById(assignment.jobId);
+                const job = await this._jobRepo.findById(assignment.jobId as string);
                 if (job) clientId = job.userId;
             }
         }

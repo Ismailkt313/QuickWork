@@ -46,7 +46,7 @@ export class PaymentService implements IPaymentService {
         });
     }
 
-    async createRazorpayOrder(workHistoryId: string): Promise<any> {
+    async createRazorpayOrder(workHistoryId: string): Promise<Record<string, unknown>> {
         const history = await this._workHistoryRepo.findById(workHistoryId);
 
         if (!history) throw new Error('Work history not found');
@@ -182,7 +182,7 @@ export class PaymentService implements IPaymentService {
         return { success: true, message: 'Payment rejected and status reverted to pending' };
     }
 
-    async createJobRazorpayOrder(jobId: string): Promise<any> {
+    async createJobRazorpayOrder(jobId: string): Promise<Record<string, unknown>> {
         const eligibleHistories = await this._workHistoryRepo.findEligibleForJobPayment(jobId);
 
         if (eligibleHistories.length === 0) {

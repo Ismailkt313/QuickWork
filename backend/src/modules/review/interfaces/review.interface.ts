@@ -39,15 +39,17 @@ export interface IReviewRepository {
     findByUser(userId: string, page: number, limit: number): Promise<IReviewPaginatedResponse>;
     findByRevieweeAndRole(revieweeId: string, role: string, page: number, limit: number): Promise<IReviewPaginatedResponse>;
     findByAssignment(assignmentId: string): Promise<IReview[]>;
-    exists(query: any): Promise<boolean>;
+    exists(query: Record<string, unknown>): Promise<boolean>;
     update(id: string, data: Partial<IReview>): Promise<IReview | null>;
     delete(id: string): Promise<boolean>;
-    getDashboardStats(revieweeId: string): Promise<any>;
+    getDashboardStats(revieweeId: string): Promise<{ averageRating: number; totalReviews: number }>;
     findRecentReviews(revieweeId: string, limit: number): Promise<IReview[]>;
 }
 
+import { CreateReviewDTO } from '../dtos/review.dto';
+
 export interface IReviewService {
-    createReview(reviewerId: string, data: any): Promise<IReview>;
+    createReview(reviewerId: string, data: CreateReviewDTO): Promise<IReview>;
     getReviewsForUser(userId: string, page: number, limit: number): Promise<IReviewPaginatedResponse>;
     getReviewsForAssignment(assignmentId: string): Promise<IReview[]>;
     getProviderReviewsForClient(clientId: string, page: number, limit: number): Promise<IReviewPaginatedResponse>;

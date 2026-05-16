@@ -95,8 +95,8 @@ export class WalletController implements IWalletController {
                     message: 'Withdrawal successful',
                     data: wallet
                 });
-            } catch (error: any) {
-                throw new AppError(error.message, HttpStatusCode.BAD_REQUEST);
+            } catch (error: unknown) {
+                throw new AppError((error as Error).message, HttpStatusCode.BAD_REQUEST);
             }
         } catch (error) {
             next(error);

@@ -1,4 +1,4 @@
-import { Types } from 'mongoose';
+import { Types, FilterQuery, ClientSession } from 'mongoose';
 import { ISkill, ISkillRepository } from '../interfaces/skill.interface';
 import { SkillModel } from '../models/skill.model';
 import { ServiceProviderModel } from '../../serviceProvider/models/serviceProvider.model';
@@ -17,13 +17,13 @@ export class SkillRepository implements ISkillRepository {
         return await SkillModel.findOne({ slug });
     }
 
-    async create(skillData: Partial<ISkill>, session?: any): Promise<ISkill> {
+    async create(skillData: Partial<ISkill>, session?: ClientSession): Promise<ISkill> {
         const skill = new SkillModel(skillData);
 
         return await skill.save({ session });
     }
 
-    async skills(filter: any): Promise<ISkill[] | null> {
+    async skills(filter: FilterQuery<ISkill>): Promise<ISkill[] | null> {
         const skills = await SkillModel.find(filter).limit(20);
         return skills as ISkill[];
     }
@@ -33,7 +33,7 @@ export class SkillRepository implements ISkillRepository {
     }
 
     async getAllSkills(page: number, limit: number, search?: string, locationId?: string): Promise<{ data: ISkill[], total: number }> {
-        const baseFilter: any = { isActive: true };
+        const baseFilter: FilterQuery<ISkill> = { isActive: true };
         const skip = (page - 1) * limit;
         
         if (locationId) {
@@ -76,7 +76,7 @@ export class SkillRepository implements ISkillRepository {
     }
 
     async getAdminSkills(page: number, limit: number, search?: string): Promise<{ data: ISkill[], total: number }> {
-        const query: any = {};
+        const query: FilterQuery<ISkill> = {};
         if (search) {
             query.$or = [
                 { name: { $regex: search, $options: 'i' } },
@@ -98,11 +98,11 @@ export class SkillRepository implements ISkillRepository {
     async getSkills(): Promise<ISkill[]> {
         return SkillModel.find({ isActive: true }).sort({ name: 1 }) as Promise<ISkill[]>;
     }
-    async getMySkill(userId: any): Promise<ISkill[]>{
-        const result = await ServiceProviderModel.findOne({ userId }).populate("skills") as any
+    async getMySkill(userId: string): Promise<ISkill[]>{
+        const result = await ServiceProviderModel.findOne({ userId }).populate<{ skills: ISkill[] }>("skills");
         if (!result) {
-            return []
+            return [];
         }
-        return result.skills as ISkill[]
+        return result.skills;
     }
 }

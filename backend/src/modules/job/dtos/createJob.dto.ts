@@ -129,7 +129,7 @@ export class CreateJobDTO {
         this.hiredProviderId = data.hiredProviderId;
     }
 
-    public static create(data: any): CreateJobDTO {
+    public static create(data: unknown): CreateJobDTO {
         const result = createJobSchema.safeParse(data);
 
         if (!result.success) {

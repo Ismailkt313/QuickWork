@@ -50,7 +50,7 @@ export class WalletService implements IWalletService {
         await this._updateBalance(providerId, platformFee, 'debit', 'cash_fee');
     }
 
-    async getAdminOverview(): Promise<any> {
+    async getAdminOverview(): Promise<Record<string, unknown>> {
         const wallets = await this._walletRepository.findAllWithProvider();
 
         const totalUnpaidFees = await this._walletRepository.getPendingDues();

@@ -29,7 +29,7 @@ export const mapMessageToResponseDTO = (message: IMessageResponse): MessageRespo
 
 export interface ConversationResponseDTO {
     id: string;
-    participants: any[];
+    participants: { _id: string; name: string; email: string }[];
     lastMessage: string;
     lastMessageAt: Date;
     createdAt: Date;
@@ -43,14 +43,15 @@ export const mapConversationToResponseDTO = (conversation: IConversationResponse
             return { id: "", participants: [], lastMessage: "", lastMessageAt: new Date(), createdAt: new Date(), updatedAt: new Date() };
         }
 
-        const participants = Array.isArray(conversation.participants) ? conversation.participants.map((p: any) => {
+        const participants = Array.isArray(conversation.participants) ? conversation.participants.map((p: unknown) => {
             if (typeof p === 'string') {
                 return { _id: p, name: "User", email: "" };
             }
+            const pObj = p as { _id?: unknown; name?: string; email?: string } | null;
             return {
-                _id: p?._id ? p._id.toString() : (p?.toString() || ""),
-                name: p?.name || "User",
-                email: p?.email || ""
+                _id: pObj?._id ? pObj._id.toString() : (pObj?.toString() || ""),
+                name: pObj?.name || "User",
+                email: pObj?.email || ""
             };
         }) : [];
 
@@ -62,7 +63,7 @@ export const mapConversationToResponseDTO = (conversation: IConversationResponse
             createdAt: conversation.createdAt || new Date(),
             updatedAt: conversation.updatedAt || new Date(),
         };
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error({ error }, "Error in mapConversationToResponseDTO");
         throw error;
     }

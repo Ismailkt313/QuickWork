@@ -1,4 +1,5 @@
-import { Document, Types } from 'mongoose';
+import { Document, Types, FilterQuery, UpdateWriteOpResult } from 'mongoose';
+import { Request, Response, NextFunction } from 'express';
 import { ASSIGNMENT_STATUS, WORK_STATUS, ASSIGNMENT_TYPE } from '../../../constants/assignment';
 import { PAYMENT_STATUS, PAYMENT_METHOD } from '../../../constants/payment';
 
@@ -51,18 +52,31 @@ export interface IAssignment extends Document {
 export interface IAssignmentRepository {
     create(data: Partial<IAssignment>): Promise<IAssignment>;
     findById(id: string): Promise<IAssignment | null>;
-    findOne(query: any): Promise<IAssignment | null>;
-    find(query: any, options?: { page?: number, limit?: number, sort?: any }): Promise<IAssignment[]>;
+    findOne(query: FilterQuery<IAssignment>): Promise<IAssignment | null>;
+    find(query: FilterQuery<IAssignment>, options?: { page?: number, limit?: number, sort?: Record<string, unknown> }): Promise<IAssignment[]>;
     update(id: string, data: Partial<IAssignment>): Promise<IAssignment | null>;
-    updateByJobId(jobId: string, data: Partial<IAssignment>): Promise<any>;
-    exists(query: any): Promise<boolean>;
-    count(query: any): Promise<number>;
+    updateByJobId(jobId: string, data: Partial<IAssignment>): Promise<UpdateWriteOpResult>;
+    exists(query: FilterQuery<IAssignment>): Promise<boolean>;
+    count(query: FilterQuery<IAssignment>): Promise<number>;
     findWithFreelancer(jobId: string): Promise<IAssignment[]>;
-    getDashboardStats(providerId: string): Promise<any>;
+    getDashboardStats(providerId: string): Promise<{
+        activeJobs: number;
+        completedJobs: number;
+        pendingAssignments: number;
+        upcomingJobs: number;
+        totalAssignments: number;
+        assignmentEarnings: number;
+    }>;
     findRecentAssignments(providerId: string, limit: number): Promise<IAssignment[]>;
-    getStatusDistribution(providerId: string): Promise<any[]>;
-    getWeeklyActivity(providerId: string): Promise<any[]>;
-    getPerformanceStats(providerId: string): Promise<any>;
+    getStatusDistribution(providerId: string): Promise<{ _id: string; count: number }[]>;
+    getWeeklyActivity(providerId: string): Promise<{ _id: number; count: number }[]>;
+    getPerformanceStats(providerId: string): Promise<{
+        total: number;
+        completed: number;
+        accepted: number;
+        rejected: number;
+        pending: number;
+    }>;
 }
 
 export interface IAssignmentService {
@@ -86,16 +100,16 @@ export interface IAssignmentService {
 }
 
 export interface IAssignmentController {
-    getProviderAssignments(req: any, res: any, next: any): Promise<void>;
-    getAssignmentById(req: any, res: any, next: any): Promise<void>;
-    updateStatus(req: any, res: any, next: any): Promise<void>;
-    submitProof(req: any, res: any, next: any): Promise<void>;
-    cancelByProvider(req: any, res: any, next: any): Promise<void>;
-    cancelByClient(req: any, res: any, next: any): Promise<void>;
-    reportAbsence(req: any, res: any, next: any): Promise<void>;
-    markAsPaidByCash(req: any, res: any, next: any): Promise<void>;
-    confirmPayment(req: any, res: any, next: any): Promise<void>;
-    providerMarkAsPaid(req: any, res: any, next: any): Promise<void>;
-    rejectPayment(req: any, res: any, next: any): Promise<void>;
+    getProviderAssignments(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getAssignmentById(req: Request, res: Response, next: NextFunction): Promise<void>;
+    updateStatus(req: Request, res: Response, next: NextFunction): Promise<void>;
+    submitProof(req: Request, res: Response, next: NextFunction): Promise<void>;
+    cancelByProvider(req: Request, res: Response, next: NextFunction): Promise<void>;
+    cancelByClient(req: Request, res: Response, next: NextFunction): Promise<void>;
+    reportAbsence(req: Request, res: Response, next: NextFunction): Promise<void>;
+    markAsPaidByCash(req: Request, res: Response, next: NextFunction): Promise<void>;
+    confirmPayment(req: Request, res: Response, next: NextFunction): Promise<void>;
+    providerMarkAsPaid(req: Request, res: Response, next: NextFunction): Promise<void>;
+    rejectPayment(req: Request, res: Response, next: NextFunction): Promise<void>;
 }
 

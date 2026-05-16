@@ -49,7 +49,7 @@ export class AuthRepository implements IAuthRepository {
         return UserModel.find().sort({ createdAt: -1 }).limit(limit);
     }
 
-    public async getUserGrowth(): Promise<any[]> {
+    public async getUserGrowth(): Promise<{ _id: string; count: number }[]> {
         return UserModel.aggregate([
             {
                 $group: {

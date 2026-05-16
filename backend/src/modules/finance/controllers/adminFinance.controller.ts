@@ -15,10 +15,10 @@ export class AdminFinanceController implements IAdminFinanceController {
                 success: true,
                 data: overview
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             return res.status(500).json({
                 success: false,
-                message: error.message || 'Internal Server Error'
+                message: (error as Error).message || 'Internal Server Error'
             });
         }
     };
@@ -40,10 +40,10 @@ export class AdminFinanceController implements IAdminFinanceController {
                 data: data.transactions,
                 pagination: data.pagination
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             return res.status(500).json({
                 success: false,
-                message: error.message || 'Internal Server Error'
+                message: (error as Error).message || 'Internal Server Error'
             });
         }
     };

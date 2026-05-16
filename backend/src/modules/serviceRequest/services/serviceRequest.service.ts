@@ -25,7 +25,7 @@ export class ServiceRequestService implements IServiceRequestService {
         this._serviceProviderRepository = serviceProviderRepository;
     }
 
-    async createRequest(userId: string, dto: CreateServiceRequestDTO): Promise<{ success: boolean; message: string; data?: any }> {
+    async createRequest(userId: string, dto: CreateServiceRequestDTO): Promise<{ success: boolean; message: string; data?: IServiceRequest }> {
         const normalizedName = dto.name.toLowerCase().trim();
         const generatedSlug = generateSlug(normalizedName);
 
@@ -107,8 +107,8 @@ export class ServiceRequestService implements IServiceRequestService {
             name: request.name,
             slug: request.slug
           });
-        } catch (error: any) {
-          if (error.code === 11000) {
+        } catch (error) {
+          if (error && typeof error === 'object' && 'code' in error && (error as { code?: number }).code === 11000) {
             skill = await this._skillRepository.findBySlug(request.slug);
           } else {
             logger.error({ error, requestId, slug: request.slug }, "Failed to create skill during approval");
@@ -128,7 +128,7 @@ export class ServiceRequestService implements IServiceRequestService {
         skill._id.toString()
       );
 
-      if (updateResult.matchedCount === 0) {
+      if (!updateResult || updateResult.matchedCount === 0) {
          await this._serviceRequestRepository.updateStatus(requestId, {
           status: SKILL_STATUS.APPROVED,
           reviewedBy: new Types.ObjectId(adminId),

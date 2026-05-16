@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 
-export function getObjectId(value: any): string {
+export function getObjectId(value: unknown): string {
     if (!value) {
         throw new Error('getObjectId: value is null or undefined');
     }
@@ -9,8 +9,8 @@ export function getObjectId(value: any): string {
         return value.toString();
     }
 
-    if (typeof value === 'object' && value._id) {
-        return value._id.toString();
+    if (value && typeof value === 'object' && '_id' in value) {
+        return String((value as Record<string, unknown>)._id);
     }
 
     if (typeof value === 'string') {

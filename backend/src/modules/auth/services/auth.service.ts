@@ -28,6 +28,7 @@ import {
     IVerifyEmailUpdateResponse,
     IResendEmailUpdateOtpInput,
     IResendEmailUpdateOtpResponse,
+    IUser,
 } from "../interfaces/auth.interface";
 import { ROLES } from "../../../constants/roles";
 import { OTP_TYPE } from "../../../constants/otp";
@@ -352,7 +353,7 @@ export class AuthService implements IAuthService {
 
         }
 
-        const user = await this._authRepository.updateUser(userId, data as any);
+        const user = await this._authRepository.updateUser(userId, data as Partial<IUser>);
         if (!user) {
             throw new AppError(ErrorMessages.USER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
         }
@@ -451,7 +452,7 @@ export class AuthService implements IAuthService {
             throw new AppError(ErrorMessages.EMAIL_ALREADY_EXISTS, HttpStatusCode.CONFLICT);
         }
 
-        const updatedUser = await this._authRepository.updateUser(userId, { email: newEmail } as any);
+        const updatedUser = await this._authRepository.updateUser(userId, { email: newEmail } as Partial<IUser>);
         if (!updatedUser) {
             throw new AppError(ErrorMessages.USER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
         }

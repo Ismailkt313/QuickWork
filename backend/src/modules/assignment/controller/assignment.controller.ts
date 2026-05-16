@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import { IAssignmentController, IAssignmentService } from '../interfaces/assignment.interface';
+import { Request, Response, NextFunction } from 'express';
+import { IAssignmentController, IAssignmentService, IAssignment } from '../interfaces/assignment.interface';
 import { AppError } from '../../../utils/AppError';
 import { IServiceProviderRepository } from '../../serviceProvider/interfaces/serviceProvider.interface';
 import { mapAssignmentToResponseDTO } from '../dtos/assignmentResponse.dto';
@@ -19,7 +19,7 @@ export class AssignmentController implements IAssignmentController {
         this._serviceProviderRepository = serviceProviderRepository;
     }
 
-    getProviderAssignments = async (req: Request, res: Response, next: any): Promise<void> => {
+    getProviderAssignments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
             const page = parseInt(req.query.page as string) || 1;
@@ -51,7 +51,7 @@ export class AssignmentController implements IAssignmentController {
         }
     };
 
-    getAssignmentById = async (req: Request, res: Response, next: any): Promise<void> => {
+    getAssignmentById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
             const assignmentId = req.params.id as string;
@@ -69,14 +69,17 @@ export class AssignmentController implements IAssignmentController {
 
             const mappedCoWorkers = coWorkers
                 .filter(a => a._id.toString() !== assignmentId)
-                .map((a: any) => ({
-                    id: a._id.toString(),
-                    userId: a.freelancerId?.userId?._id?.toString() || a.freelancerId?.userId?.toString() || '',
-                    name: a.freelancerId?.userId?.name || 'Provider',
-                    headline: a.freelancerId?.headline || '',
-                    profileImage: a.freelancerId?.profileImage || '',
-                    workStatus: a.workStatus
-                }));
+                .map((a: IAssignment) => {
+                    const freelancer = a.freelancerId as unknown as { userId?: { _id?: { toString: () => string }; toString: () => string; name?: string }; headline?: string; profileImage?: string };
+                    return {
+                        id: a._id.toString(),
+                        userId: freelancer?.userId?._id?.toString() || freelancer?.userId?.toString() || '',
+                        name: freelancer?.userId?.name || 'Provider',
+                        headline: freelancer?.headline || '',
+                        profileImage: freelancer?.profileImage || '',
+                        workStatus: a.workStatus
+                    };
+                });
 
             const responseData = await mapAssignmentToResponseDTO(assignment);
             responseData.coWorkers = mappedCoWorkers;
@@ -90,7 +93,7 @@ export class AssignmentController implements IAssignmentController {
         }
     };
 
-    updateStatus = async (req: Request, res: Response, next: any): Promise<void> => {
+    updateStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
             const assignmentId = req.params.id as string;
@@ -116,7 +119,7 @@ export class AssignmentController implements IAssignmentController {
         }
     };
 
-    submitProof = async (req: Request, res: Response, next: any): Promise<void> => {
+    submitProof = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
             const assignmentId = req.params.id as string;
@@ -142,7 +145,7 @@ export class AssignmentController implements IAssignmentController {
         }
     };
 
-    cancelByProvider = async (req: Request, res: Response, next: any): Promise<void> => {
+    cancelByProvider = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
             const id = req.params.id as string;
@@ -160,12 +163,12 @@ export class AssignmentController implements IAssignmentController {
                 message: 'Assignment cancelled successfully by provider',
                 data: await mapAssignmentToResponseDTO(updated)
             });
-        } catch (error: any) {
+        } catch (error) {
             next(error);
         }
     };
 
-    cancelByClient = async (req: Request, res: Response, next: any): Promise<void> => {
+    cancelByClient = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
             const id = req.params.id as string;
@@ -178,12 +181,12 @@ export class AssignmentController implements IAssignmentController {
                 message: 'Assignment cancelled successfully by client',
                 data: await mapAssignmentToResponseDTO(updated)
             });
-        } catch (error: any) {
+        } catch (error) {
             next(error);
         }
     };
 
-    reportAbsence = async (req: Request, res: Response, next: any): Promise<void> => {
+    reportAbsence = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
             const id = req.params.id as string;
@@ -195,13 +198,13 @@ export class AssignmentController implements IAssignmentController {
                 message: 'Absence reported successfully',
                 data: await mapAssignmentToResponseDTO(updated)
             });
-        } catch (error: any) {
+        } catch (error) {
 
             next(error);
         }
     };
 
-    markAsPaidByCash = async (req: Request, res: Response, next: any): Promise<void> => {
+    markAsPaidByCash = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
             const id = req.params.id as string;
@@ -216,7 +219,7 @@ export class AssignmentController implements IAssignmentController {
         }
     };
 
-    confirmPayment = async (req: Request, res: Response, next: any): Promise<void> => {
+    confirmPayment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
             const id = req.params.id as string;
@@ -234,7 +237,7 @@ export class AssignmentController implements IAssignmentController {
         }
     };
 
-    providerMarkAsPaid = async (req: Request, res: Response, next: any): Promise<void> => {
+    providerMarkAsPaid = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
             const id = req.params.id as string;
@@ -253,7 +256,7 @@ export class AssignmentController implements IAssignmentController {
         }
     };
 
-    rejectPayment = async (req: Request, res: Response, next: any): Promise<void> => {
+    rejectPayment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
             const id = req.params.id as string;

@@ -1,14 +1,19 @@
 import { AppError } from "../../../utils/AppError";
 import { HttpStatusCode } from "../../../constants/httpStatusCode";
 
+export interface RejectServiceRequestInput {
+    rejectionReason?: string;
+    [key: string]: unknown;
+}
+
 export class RejectServiceRequestDTO {
     public readonly rejectionReason: string;
 
-    private constructor(data: any) {
-        this.rejectionReason = data.rejectionReason;
+    private constructor(data: RejectServiceRequestInput) {
+        this.rejectionReason = data.rejectionReason!;
     }
 
-    public static create(data: any): RejectServiceRequestDTO {
+    public static create(data: RejectServiceRequestInput): RejectServiceRequestDTO {
         const errors: string[] = [];
 
         if (!data.rejectionReason || data.rejectionReason.trim().length === 0) {

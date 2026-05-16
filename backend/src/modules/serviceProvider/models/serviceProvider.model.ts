@@ -36,7 +36,7 @@ const ServiceProviderSchema = new Schema<IServiceProvider>({
     portfolio: {
         type: [PortfolioItemSchema],
         validate: [
-            (val: any[]) => val.length > 0,
+            (val: unknown[]) => val.length > 0,
             'At least one portfolio item is required'
         ]
     },

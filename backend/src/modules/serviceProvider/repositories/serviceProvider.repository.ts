@@ -1,14 +1,14 @@
 import { Types } from 'mongoose';
-import { IServiceProvider, IServiceProviderRepository, ProviderFilter, ProviderListResult } from '../interfaces/serviceProvider.interface';
+import { IServiceProvider, IServiceProviderRepository, ProviderFilter, ProviderListResult, IAvailability, IBlockedDate } from '../interfaces/serviceProvider.interface';
 import { ServiceProviderModel } from '../models/serviceProvider.model';
 import { UserModel } from '../../auth/models/user.model';
 import { VERIFICATION_STATUS } from '../../../constants/verification';
 
 export class ServiceProviderRepository implements IServiceProviderRepository {
-    async findByUserId(userId: string): Promise<any> {
+    async findByUserId(userId: string): Promise<IServiceProvider | null> {
         const res = await ServiceProviderModel.findOne({ userId })
             .populate('userId skills', 'name email profileImage')
-            .lean() as any;
+            .lean() as unknown as IServiceProvider | null;
         return res
     }
 
@@ -29,7 +29,7 @@ export class ServiceProviderRepository implements IServiceProviderRepository {
         const { skillId, locationId, page, limit, search, sort, currentUserId } = filter;
         const skip = (page - 1) * limit;
 
-        const query: Record<string, any> = {
+        const query: Record<string, unknown> = {
             isActive: true,
             'verification.status': VERIFICATION_STATUS.VERIFIED,
         };
@@ -53,7 +53,7 @@ export class ServiceProviderRepository implements IServiceProviderRepository {
             ];
         }
 
-        let sortOption: any = { createdAt: -1 };
+        let sortOption: Record<string, 1 | -1> = { createdAt: -1 };
         if (sort === 'price_low') sortOption = { hourlyRate: 1 };
         if (sort === 'price_high') sortOption = { hourlyRate: -1 };
         if (sort === 'experience') sortOption = { yearsOfExperience: -1 };
@@ -80,48 +80,48 @@ export class ServiceProviderRepository implements IServiceProviderRepository {
         };
     }
 
-    async findById(id: string): Promise<any> {
+    async findById(id: string): Promise<IServiceProvider | null> {
         return await ServiceProviderModel.findById(id)
             .populate('userId', 'name email profileImage')
             .populate('skills', 'name slug')
-            .lean() as any;
+            .lean() as unknown as IServiceProvider | null;
     }
 
-    async updateByUserId(userId: string, data: any): Promise<any> {
+    async updateByUserId(userId: string, data: Partial<IServiceProvider>): Promise<IServiceProvider | null> {
         return await ServiceProviderModel.findOneAndUpdate(
             { userId: new Types.ObjectId(userId) },
             { $set: data },
             { new: true, runValidators: true }
         ).populate('userId', 'name email profileImage')
             .populate('skills', 'name slug')
-            .lean();
+            .lean() as unknown as IServiceProvider | null;
     }
     async deleteByUserId(userId: string): Promise<void> {
         await ServiceProviderModel.deleteOne({ userId: new Types.ObjectId(userId) });
     }
 
-    async updateAvailability(userId: string, availability: any[]): Promise<any> {
+    async updateAvailability(userId: string, availability: IAvailability[]): Promise<IServiceProvider | null> {
         return await ServiceProviderModel.findOneAndUpdate(
             { userId: new Types.ObjectId(userId) },
             { $set: { availability } },
             { new: true, runValidators: true }
-        ).lean();
+        ).lean() as unknown as IServiceProvider | null;
     }
 
-    async addBlockedDate(userId: string, blockedDate: any): Promise<any> {
+    async addBlockedDate(userId: string, blockedDate: IBlockedDate): Promise<IServiceProvider | null> {
         return await ServiceProviderModel.findOneAndUpdate(
             { userId: new Types.ObjectId(userId) },
             { $push: { blockedDates: blockedDate } },
             { new: true, runValidators: true }
-        ).lean();
+        ).lean() as unknown as IServiceProvider | null;
     }
 
-    async deleteBlockedDate(userId: string, blockedDateId: string): Promise<any> {
+    async deleteBlockedDate(userId: string, blockedDateId: string): Promise<IServiceProvider | null> {
         return await ServiceProviderModel.findOneAndUpdate(
             { userId: new Types.ObjectId(userId) },
             { $pull: { blockedDates: { _id: new Types.ObjectId(blockedDateId) } } },
             { new: true }
-        ).lean();
+        ).lean() as unknown as IServiceProvider | null;
     }
 
     async countTotalProviders(): Promise<number> {
@@ -134,15 +134,15 @@ export class ServiceProviderRepository implements IServiceProviderRepository {
         });
     }
 
-    async getRecentProviders(limit: number): Promise<any[]> {
+    async getRecentProviders(limit: number): Promise<IServiceProvider[]> {
         return ServiceProviderModel.find()
             .populate('userId', 'name profileImage')
             .sort({ createdAt: -1 })
             .limit(limit)
-            .lean();
+            .lean() as unknown as IServiceProvider[];
     }
 
-    async getProviderGrowth(): Promise<any[]> {
+    async getProviderGrowth(): Promise<{ _id: string; count: number }[]> {
         return ServiceProviderModel.aggregate([
             {
                 $group: {
@@ -151,6 +151,6 @@ export class ServiceProviderRepository implements IServiceProviderRepository {
                 }
             },
             { $sort: { "_id": 1 } }
-        ]);
+        ]) as unknown as Promise<{ _id: string; count: number }[]>;
     }
 }

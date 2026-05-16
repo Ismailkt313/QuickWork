@@ -45,7 +45,7 @@ export class AdminDashboardService implements IAdminDashboardService {
                 activeJobs,
                 completedJobs,
                 pendingProviderApprovals,
-                totalPlatformEarnings: earningsData[0]?.total || 0,
+                totalPlatformEarnings: (earningsData as unknown as { total?: number }).total || 0,
                 pendingReports,
                 totalTransactions
             }
@@ -77,7 +77,7 @@ export class AdminDashboardService implements IAdminDashboardService {
         }));
 
         newProviders.forEach(p => {
-            const user = p.userId as any;
+            const user = p.userId as { name?: string; profileImage?: { url?: string } } | undefined;
             activities.push({
                 id: p._id.toString(),
                 type: 'approval',
@@ -89,19 +89,19 @@ export class AdminDashboardService implements IAdminDashboardService {
         });
 
         recentTransactions.forEach(t => {
-            const provider = t.providerId as any;
+            const provider = t.providerId as { name?: string; profileImage?: { url?: string } } | undefined;
             activities.push({
-                id: t._id.toString(),
+                id: (t._id as { toString: () => string }).toString(),
                 type: 'payment',
                 title: 'Payment Completed',
-                description: `Platform fee of ₹${t.platformFee} received`,
-                timestamp: t.createdAt,
+                description: `Platform fee of ₹${t.platformFee as number} received`,
+                timestamp: t.createdAt as Date,
                 user: { name: provider?.name || 'System', avatar: provider?.profileImage?.url }
             });
         });
 
         recentReports.forEach(r => {
-            const reporter = r.reporterId as any;
+            const reporter = r.reporterId as { name?: string; profileImage?: { url?: string } } | undefined;
             activities.push({
                 id: r._id.toString(),
                 type: 'report',
@@ -145,14 +145,14 @@ export class AdminDashboardService implements IAdminDashboardService {
             message: "Chart data fetched successfully",
             data: {
                 jobStatusDistribution,
-                monthlyRevenue,
+                monthlyRevenue: monthlyRevenue as unknown as { month: string; revenue: number; }[],
                 userProviderGrowth
             }
         };
     }
 
     public async getFinanceSummary(): Promise<IApiResponse<IFinanceSummary>> {
-        const totals = await this._transactionRepo.getFinanceSummary();
+        const totals = await this._transactionRepo.getFinanceSummary() as unknown as { totalEarnings?: number; totalPayouts?: number; transactionVolume?: number };
 
         return {
             success: true,

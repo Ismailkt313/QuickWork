@@ -17,7 +17,7 @@ export interface UserResponseDTO {
 
 export const mapUserToResponseDTO = (user: IUser): UserResponseDTO => {
     return {
-        id: user._id ? user._id.toString() : (user as any).id,
+        id: user._id ? user._id.toString() : (user as unknown as { id?: string }).id || '',
         name: user.name,
         email: user.email,
         number: user.number,

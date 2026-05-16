@@ -14,10 +14,10 @@ export interface ISkillRepository {
     findById(id: string): Promise<ISkill | null>;
     findByName(name: string): Promise<ISkill | null>
     findBySlug(slug: string): Promise<ISkill | null>;
-    create(skillData: Partial<ISkill>, session?: any): Promise<ISkill>;
+    create(skillData: Partial<ISkill>, session?: unknown): Promise<ISkill>;
     update(id: string, skillData: Partial<ISkill>): Promise<ISkill | null>;
     delete(id: string): Promise<boolean>;
-    skills(filter: any): Promise<ISkill[] | null>;
+    skills(filter: Record<string, unknown>): Promise<ISkill[] | null>;
     getServices(): Promise<ISkill[]>;
     getAllSkills(page: number, limit: number, search?: string, locationId?: string): Promise<{ data: ISkill[], total: number }>;
     getAdminSkills(page: number, limit: number, search?: string): Promise<{ data: ISkill[], total: number }>;
@@ -27,25 +27,25 @@ export interface ISkillRepository {
 
 export interface ISkillService {
     searchSkills(query: string): Promise<{ success: boolean; data?: ISkill[] }>;
-    getAllSkills(page: number, limit: number, search?: string, locationId?: string): Promise<{ success: boolean; data: ISkill[]; pagination: any }>;
-    getAdminSkills(page: number, limit: number, search?: string): Promise<{ success: boolean; data: ISkill[], pagination: any }>;
+    getAllSkills(page: number, limit: number, search?: string, locationId?: string): Promise<{ success: boolean; data: ISkill[]; pagination: { total: number; page: number; limit: number; totalPages: number } }>;
+    getAdminSkills(page: number, limit: number, search?: string): Promise<{ success: boolean; data: ISkill[], pagination: { total: number; page: number; limit: number; totalPages: number } }>;
     createSkill(skillData: Partial<ISkill>): Promise<{ success: boolean; message: string; data?: ISkill }>;
     updateSkill(id: string, skillData: Partial<ISkill>): Promise<{ success: boolean; message: string; data?: ISkill }>;
     deleteSkill(id: string): Promise<{ success: boolean; message: string }>;
     toggleSkillStatus(id: string): Promise<{ success: boolean; message: string; data?: ISkill }>;
     getSkills(): Promise<{ success: boolean; data: ISkill[] }>;
-    getMySkills(userId: any): Promise<{ success: boolean, data: ISkill[] }>
+    getMySkills(userId: string): Promise<{ success: boolean, data: ISkill[] }>
 }
 
 export interface ISkillController {
-    searchSkills(req: any, res: any, next: any): Promise<void>;
-    getAllSkills(req: any, res: any, next: any): Promise<void>;
-    getAdminSkills(req: any, res: any, next: any): Promise<void>;
-    createSkill(req: any, res: any, next: any): Promise<void>;
-    updateSkill(req: any, res: any, next: any): Promise<void>;
-    deleteSkill(req: any, res: any, next: any): Promise<void>;
-    toggleSkillStatus(req: any, res: any, next: any): Promise<void>;
-    getSkills(req: any, res: any, next: any): Promise<void>;
+    searchSkills(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getAllSkills(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getAdminSkills(req: Request, res: Response, next: NextFunction): Promise<void>;
+    createSkill(req: Request, res: Response, next: NextFunction): Promise<void>;
+    updateSkill(req: Request, res: Response, next: NextFunction): Promise<void>;
+    deleteSkill(req: Request, res: Response, next: NextFunction): Promise<void>;
+    toggleSkillStatus(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getSkills(req: Request, res: Response, next: NextFunction): Promise<void>;
     myskills(req: Request, res: Response, next: NextFunction): Promise<void>;
 }
 

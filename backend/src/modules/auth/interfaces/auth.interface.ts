@@ -94,6 +94,9 @@ export interface IAuthController {
     verifyEmailUpdate(req: Request, res: Response, next: NextFunction): Promise<void>;
     resendEmailUpdateOtp(req: Request, res: Response, next: NextFunction): Promise<void>;
     googleCallback(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getProfile(req: Request, res: Response, next: NextFunction): Promise<void>;
+    updateProfile(req: Request, res: Response, next: NextFunction): Promise<void>;
+    changePassword(req: Request, res: Response, next: NextFunction): Promise<void>;
 }
 
 export interface IResetPasswordInput {
@@ -214,7 +217,7 @@ export interface IAuthRepository {
     blockUser(userId: string): Promise<void>;
     countTotalUsers(): Promise<number>;
     getRecentUsers(limit: number): Promise<IUser[]>;
-    getUserGrowth(): Promise<any[]>;
+    getUserGrowth(): Promise<{ _id: string; count: number }[]>;
 }
 
 export interface IAuthService {

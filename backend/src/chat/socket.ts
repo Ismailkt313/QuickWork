@@ -1,4 +1,4 @@
-import { Server, Socket } from "socket.io";
+ import { Server, Socket } from "socket.io";
 import { verifyAccessToken } from "../utils/jwt.util";
 import { logger } from "../utils/logger";
 import { UserModel } from "../modules/auth/models/user.model";
@@ -31,9 +31,9 @@ export const setupSocket = (socketIo: Server) => {
 
             socket.data.user = decoded;
             next();
-        } catch (error: any) {
-            logger.warn({ error: error.message }, "Socket auth failed");
-            return next(new Error("Authentication error: " + error.message));
+        } catch (error: unknown) {
+            logger.warn({ error: (error as Error).message }, "Socket auth failed");
+            return next(new Error("Authentication error: " + (error as Error).message));
         }
     })
 
@@ -51,8 +51,8 @@ export const setupSocket = (socketIo: Server) => {
             logger.error({ userId, error: error.message }, "Socket error occurred");
         });
     })
-  } catch (error: any) {
-    logger.error({ error: error.message }, "Error in socket setup");
+  } catch (error: unknown) {
+    logger.error({ error: (error as Error).message }, "Error in socket setup");
   }
 }
 

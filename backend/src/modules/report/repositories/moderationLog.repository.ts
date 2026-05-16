@@ -1,16 +1,16 @@
-import { ModerationLogModel } from '../models/moderationLog.model';
+import { ModerationLogModel, IModerationLog } from '../models/moderationLog.model';
 
 export interface IModerationLogRepository {
-    create(data: any): Promise<any>;
-    findByReportId(reportId: string): Promise<any[]>;
+    create(data: Partial<IModerationLog>): Promise<IModerationLog>;
+    findByReportId(reportId: string): Promise<IModerationLog[]>;
 }
 
 export class ModerationLogRepository implements IModerationLogRepository {
-    async create(data: any): Promise<any> {
+    async create(data: Partial<IModerationLog>): Promise<IModerationLog> {
         return await ModerationLogModel.create(data);
     }
 
-    async findByReportId(reportId: string): Promise<any[]> {
+    async findByReportId(reportId: string): Promise<IModerationLog[]> {
         return await ModerationLogModel.find({ reportId })
             .populate('adminId', 'name email')
             .sort({ createdAt: -1 });

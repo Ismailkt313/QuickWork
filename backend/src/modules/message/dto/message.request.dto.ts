@@ -9,7 +9,7 @@ export class CreateMessageDto {
     public readonly messageType: MESSAGE_TYPE;
     public readonly conversationId?: string;
 
-    private constructor(data: any) {
+    private constructor(data: { receiverId: string; text?: string; image?: string; messageType?: MESSAGE_TYPE; conversationId?: string }) {
         this.receiverId = data.receiverId;
         this.text = data.text;
         this.image = data.image;
@@ -17,7 +17,7 @@ export class CreateMessageDto {
         this.conversationId = data.conversationId || "";
     }
 
-    public static create(data: any): CreateMessageDto {
+    public static create(data: { receiverId?: string; text?: string; image?: string; messageType?: MESSAGE_TYPE; conversationId?: string }): CreateMessageDto {
         const errors: string[] = [];
 
         if (!data.receiverId) {
@@ -32,7 +32,7 @@ export class CreateMessageDto {
             throw new AppError(errors.join(". "), HttpStatusCode.BAD_REQUEST);
         }
 
-        return new CreateMessageDto(data);
+        return new CreateMessageDto(data as { receiverId: string; text?: string; image?: string; messageType?: MESSAGE_TYPE; conversationId?: string });
     }
 }
 
@@ -43,7 +43,7 @@ export class ConversationIdDto {
         this.conversationId = conversationId;
     }
 
-    public static create(data: any): ConversationIdDto {
+    public static create(data: { conversationId?: string }): ConversationIdDto {
         if (!data.conversationId) {
             throw new AppError("Conversation ID is required", HttpStatusCode.BAD_REQUEST);
         }
@@ -58,7 +58,7 @@ export class MessageIdDto {
         this.messageId = messageId;
     }
 
-    public static create(data: any): MessageIdDto {
+    public static create(data: { messageId?: string }): MessageIdDto {
         if (!data.messageId) {
             throw new AppError("Message ID is required", HttpStatusCode.BAD_REQUEST);
         }

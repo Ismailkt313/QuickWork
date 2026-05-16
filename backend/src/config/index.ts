@@ -38,4 +38,6 @@ export const config = {
 
     RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID || "",
     RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || "",
+
+    COOKIE_MAX_AGE: process.env.COOKIE_MAX_AGE ? parseInt(process.env.COOKIE_MAX_AGE, 10) : 7 * 24 * 60 * 60 * 1000
 };

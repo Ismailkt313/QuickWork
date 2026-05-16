@@ -43,9 +43,11 @@ export interface IAdminDashboardService {
     getFinanceSummary(): Promise<IApiResponse<IFinanceSummary>>;
 }
 
+import { Request, Response, NextFunction } from 'express';
+
 export interface IAdminDashboardController {
-    getOverview(req: any, res: any, next: any): Promise<void>;
-    getRecentActivity(req: any, res: any, next: any): Promise<void>;
-    getChartData(req: any, res: any, next: any): Promise<void>;
-    getFinanceSummary(req: any, res: any, next: any): Promise<void>;
+    getOverview(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getRecentActivity(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getChartData(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getFinanceSummary(req: Request, res: Response, next: NextFunction): Promise<void>;
 }

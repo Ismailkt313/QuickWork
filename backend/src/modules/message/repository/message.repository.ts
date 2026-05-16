@@ -10,7 +10,7 @@ export class MessageRepository implements IMessageRepository {
 
     async getMessages(conversationId: string): Promise<IMessageResponse[]> {
         const messages = await Message.find({ conversationId }).sort({ createdAt: 1 });
-        return messages.map((m: any) => m.toObject() as unknown as IMessageResponse);
+        return messages.map((m: { toObject: () => unknown }) => m.toObject() as unknown as IMessageResponse);
     }
 
     async deleteMessage(messageId: string): Promise<IMessageResponse | null> {

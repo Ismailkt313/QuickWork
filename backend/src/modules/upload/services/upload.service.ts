@@ -82,7 +82,7 @@ export class UploadService implements IUploadService {
         };
     }
 
-    async deleteImage(publicId: string): Promise<any> {
+    async deleteImage(publicId: string): Promise<unknown> {
 
         if (publicId.includes('/') && !publicId.startsWith('quickwork')) {
             return this._s3Service.deleteFile(publicId);

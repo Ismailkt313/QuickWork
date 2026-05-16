@@ -5,6 +5,12 @@ import { HttpStatusCode } from '../../../constants/httpStatusCode';
 import { AppError } from '../../../utils/AppError';
 import { IReportController } from '../interfaces/report.interface';
 
+import { ITokenPayload } from '../../auth/interfaces/auth.interface';
+
+interface RequestWithUser extends Request {
+    user?: ITokenPayload;
+}
+
 export class ReportController implements IReportController {
     private _reportService: IReportService;
 
@@ -20,7 +26,7 @@ export class ReportController implements IReportController {
                 throw new AppError(errorMessage, HttpStatusCode.BAD_REQUEST);
             }
 
-            const reporterId = (req.user as any).userId;
+            const reporterId = ((req as RequestWithUser).user as { userId: string }).userId;
             const report = await this._reportService.createReport(reporterId, validationResult.data);
 
             res.status(HttpStatusCode.CREATED).json({

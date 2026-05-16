@@ -101,7 +101,15 @@ export class ReviewRepository implements IReviewRepository {
 
         const totalPages = Math.ceil(total / limit);
 
-        const mappedReviews = (reviews as any[]).map(r => ({
+        const mappedReviews = (reviews as unknown as Array<{
+            _id?: Types.ObjectId;
+            rating?: number;
+            comment?: string;
+            images?: string[];
+            createdAt?: Date;
+            reviewerId?: { _id?: Types.ObjectId; name?: string; profileImage?: { url?: string } };
+            assignmentId?: { _id?: Types.ObjectId; jobId?: { title?: string } };
+        }>).map(r => ({
             _id: r._id,
             rating: r.rating,
             comment: r.comment,
@@ -119,7 +127,7 @@ export class ReviewRepository implements IReviewRepository {
         }));
 
         return {
-            data: mappedReviews as any,
+            data: mappedReviews as unknown as IReview[],
             pagination: {
                 total,
                 page,
@@ -138,7 +146,7 @@ export class ReviewRepository implements IReviewRepository {
             .populate('revieweeId', 'name');
     }
 
-    async exists(query: any): Promise<boolean> {
+    async exists(query: Record<string, unknown>): Promise<boolean> {
         const count = await ReviewModel.countDocuments(query);
         return count > 0;
     }
@@ -154,7 +162,7 @@ export class ReviewRepository implements IReviewRepository {
         return !!result;
     }
 
-    async getDashboardStats(revieweeId: string): Promise<any> {
+    async getDashboardStats(revieweeId: string): Promise<{ averageRating: number; totalReviews: number }> {
         const stats = await ReviewModel.aggregate([
             { $match: { revieweeId: new Types.ObjectId(revieweeId) } },
             {

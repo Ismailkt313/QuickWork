@@ -66,7 +66,7 @@ export class AssignmentService implements IAssignmentService {
     async getAssignmentsByProvider(providerId: string, options?: { page?: number, limit?: number, search?: string, status?: string }): Promise<{ assignments: IAssignment[], total: number, counts: { active: number, completed: number, cancelled: number, all: number } }> {
         const { page = 1, limit = 10, search = '', status = 'all' } = options || {};
 
-        const query: any = {
+        const query: Record<string, unknown> = {
             freelancerId: providerId,
             'invite.status': ASSIGNMENT_STATUS.ACCEPTED
         };
@@ -90,7 +90,7 @@ export class AssignmentService implements IAssignmentService {
                     { description: searchRegex }
                 ]
             });
-            const jobIds = matchingJobs.map((j: any) => j._id.toString());
+            const jobIds = matchingJobs.map((j: { _id: { toString: () => string } }) => j._id.toString());
             query.$or = [
                 { assignmentCode: searchRegex },
                 { jobId: { $in: jobIds } }
@@ -131,7 +131,7 @@ export class AssignmentService implements IAssignmentService {
     }
 
     async updateStatus(id: string, status: WORK_STATUS): Promise<IAssignment | null> {
-        const updateData: any = { workStatus: status };
+        const updateData: Record<string, unknown> = { workStatus: status };
         if (status === WORK_STATUS.IN_PROGRESS) {
             updateData.startedAt = new Date();
         } else if (status === WORK_STATUS.COMPLETED) {
@@ -144,12 +144,12 @@ export class AssignmentService implements IAssignmentService {
             const jobId = getObjectId(updated.jobId);
             await this._checkAndCompleteJob(jobId);
 
-            await this._workHistoryService.createFromAssignment(updated);
+            await this._workHistoryService.createFromAssignment(updated as unknown as Record<string, unknown>);
 
             const job = await this._jobRepository.findById(jobId);
             if (job) {
                 await this._notificationService.createNotification({
-                    recipient: (job.userId as any)._id ? (job.userId as any)._id.toString() : job.userId.toString(),
+                    recipient: ((job.userId as { _id?: { toString: () => string } })._id?.toString()) || job.userId.toString(),
                     title: 'Work Completed',
                     message: `A provider has marked their work as completed for: ${job.title}`,
                     type: 'JOB_STATUS',
@@ -173,12 +173,12 @@ export class AssignmentService implements IAssignmentService {
             const jobId = getObjectId(updated.jobId);
             await this._checkAndCompleteJob(jobId);
 
-            await this._workHistoryService.createFromAssignment(updated);
+            await this._workHistoryService.createFromAssignment(updated as unknown as Record<string, unknown>);
 
             const job = await this._jobRepository.findById(jobId);
             if (job) {
                 await this._notificationService.createNotification({
-                    recipient: (job.userId as any)._id ? (job.userId as any)._id.toString() : job.userId.toString(),
+                    recipient: ((job.userId as { _id?: { toString: () => string } })._id?.toString()) || job.userId.toString(),
                     title: 'Proof of Work Submitted',
                     message: `A provider has submitted proof of work for: ${job.title}`,
                     type: 'PAYMENT',
@@ -231,12 +231,12 @@ export class AssignmentService implements IAssignmentService {
 
         const isLateCancel = new Date() > assignment.schedule.startDate;
 
-        const userId = (assignment.freelancerId as any).userId?._id || (assignment.freelancerId as any).userId;
+        const userId = (assignment.freelancerId as { userId?: { _id?: Types.ObjectId; toString: () => string } }).userId?._id || (assignment.freelancerId as { userId?: { _id?: Types.ObjectId; toString: () => string } }).userId;
 
         const updated = await this._assignmentRepository.update(id, {
             workStatus: WORK_STATUS.CANCELLED,
             cancellation: {
-                cancelledBy: new Types.ObjectId(userId),
+                cancelledBy: new Types.ObjectId(userId as Types.ObjectId),
                 cancelledAt: new Date(),
                 reason: 'provider_requested',
                 isLateCancel,
@@ -246,7 +246,7 @@ export class AssignmentService implements IAssignmentService {
 
         if (!updated) throw new Error('Failed to update assignment');
 
-        await this._workHistoryService.createFromAssignment(updated);
+        await this._workHistoryService.createFromAssignment(updated as unknown as Record<string, unknown>);
 
         await this._handleJobReopening(getObjectId(updated.jobId), providerId);
 
@@ -254,7 +254,7 @@ export class AssignmentService implements IAssignmentService {
         const job = await this._jobRepository.findById(jobId);
         if (job) {
             await this._notificationService.createNotification({
-                recipient: (job.userId as any)._id ? (job.userId as any)._id.toString() : job.userId.toString(),
+                recipient: ((job.userId as { _id?: { toString: () => string } })._id?.toString()) || job.userId.toString(),
                 title: 'Assignment Cancelled',
                 message: `A provider has cancelled their assignment for: ${job.title}`,
                 type: 'JOB_STATUS',
@@ -298,7 +298,7 @@ export class AssignmentService implements IAssignmentService {
 
         if (!updated) throw new Error('Failed to update assignment');
 
-        await this._workHistoryService.createFromAssignment(updated);
+        await this._workHistoryService.createFromAssignment(updated as unknown as Record<string, unknown>);
 
         const freelancerId = getObjectId(assignment.freelancerId);
         await this._handleJobReopening(getObjectId(updated.jobId), freelancerId);
@@ -340,7 +340,7 @@ export class AssignmentService implements IAssignmentService {
 
         if (!updated) throw new Error('Failed to update assignment');
 
-        await this._workHistoryService.createFromAssignment(updated);
+        await this._workHistoryService.createFromAssignment(updated as unknown as Record<string, unknown>);
 
         const freelancerId = getObjectId(assignment.freelancerId);
         await this._handleJobReopening(getObjectId(updated.jobId), freelancerId);
@@ -368,7 +368,7 @@ export class AssignmentService implements IAssignmentService {
 
         const newAcceptedCount = Math.max(0, (job.acceptedFreelancers || 1) - 1);
 
-        const updateData: any = {
+        const updateData: Record<string, unknown> = {
             acceptedFreelancers: newAcceptedCount,
             status: newAcceptedCount === 0 ? JOB_STATUS.OPEN : JOB_STATUS.PARTIALLY_ASSIGNED
         };
@@ -405,7 +405,7 @@ export class AssignmentService implements IAssignmentService {
         if (!updated) throw new Error('Failed to update assignment');
 
         await this._notificationService.createNotification({
-            recipient: (assignment.freelancerId as any).userId?._id?.toString() || (assignment.freelancerId as any).userId?.toString() || '',
+            recipient: (assignment.freelancerId as { userId?: { _id?: { toString: () => string }; toString: () => string } }).userId?._id?.toString() || (assignment.freelancerId as { userId?: { _id?: { toString: () => string }; toString: () => string } }).userId?.toString() || '',
             title: 'Payment Marked as Paid',
             message: `The client has marked your work as paid by cash. Please confirm receipt.`,
             type: 'PAYMENT',

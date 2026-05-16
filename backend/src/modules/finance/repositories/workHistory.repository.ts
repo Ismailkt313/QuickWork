@@ -25,7 +25,7 @@ export class WorkHistoryRepository implements IWorkHistoryRepository {
     }
 
     async findProviderHistory(providerId: string, status: string | undefined, skip: number, limit: number): Promise<[IWorkHistory[], number]> {
-        const query: any = { providerId: new Types.ObjectId(providerId) };
+        const query: Record<string, unknown> = { providerId: new Types.ObjectId(providerId) };
         if (status === 'pending') {
             query['payment.status'] = { $in: ['pending', 'awaiting_confirmation'] };
         } else if (status === 'completed') {
@@ -52,14 +52,14 @@ export class WorkHistoryRepository implements IWorkHistoryRepository {
 
     async save(workHistory: IWorkHistory): Promise<IWorkHistory> {
 
-        if (typeof (workHistory as any).save === 'function') {
-            return (workHistory as any).save();
+        if (typeof (workHistory as unknown as { save: () => Promise<IWorkHistory> }).save === 'function') {
+            return (workHistory as unknown as { save: () => Promise<IWorkHistory> }).save();
         }
 
         return WorkHistoryModel.findByIdAndUpdate(workHistory._id, workHistory, { new: true }) as unknown as Promise<IWorkHistory>;
     }
 
-    async create(data: any): Promise<IWorkHistory> {
+    async create(data: Record<string, unknown>): Promise<IWorkHistory> {
         return WorkHistoryModel.create(data);
     }
 
@@ -71,7 +71,7 @@ export class WorkHistoryRepository implements IWorkHistoryRepository {
         return WorkHistoryModel.find({ jobId });
     }
 
-    async getEarningsStats(providerId: string): Promise<any> {
+    async getEarningsStats(providerId: string): Promise<Record<string, unknown>> {
         const result = await WorkHistoryModel.aggregate([
             { $match: { providerId: new Types.ObjectId(providerId), finalStatus: 'COMPLETED' } },
             { $group: { _id: null, total: { $sum: '$payment.providerAmount' } } }
@@ -79,7 +79,7 @@ export class WorkHistoryRepository implements IWorkHistoryRepository {
         return result[0] || { total: 0 };
     }
 
-    async getMonthlyEarnings(providerId: string, limit: number = 6): Promise<any[]> {
+    async getMonthlyEarnings(providerId: string, limit: number = 6): Promise<Record<string, unknown>[]> {
         const date = new Date();
         date.setMonth(date.getMonth() - limit);
 

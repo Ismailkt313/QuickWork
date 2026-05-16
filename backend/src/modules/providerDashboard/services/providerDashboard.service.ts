@@ -4,7 +4,7 @@ import { IAssignmentRepository } from '../../assignment/interfaces/assignment.in
 import { IWorkHistoryRepository, IWalletRepository } from '../../finance/interfaces/finance.interface';
 import { IReviewRepository } from '../../review/interfaces/review.interface';
 import { INotificationRepository } from '../../notification/interfaces/notification.interface';
-import { ASSIGNMENT_STATUS, WORK_STATUS } from '../../../constants/assignment';
+import { WORK_STATUS } from '../../../constants/assignment';
 import { AppError } from '../../../utils/AppError';
 import { HttpStatusCode } from '../../../constants/httpStatusCode';
 
@@ -36,8 +36,9 @@ export class ProviderDashboardService implements IProviderDashboardService {
             this._workHistoryRepo.getEarningsStats(String(providerId))
         ]);
 
-        const totalEarnings = (workHistoryEarnings?.total || 0) > 0
-            ? workHistoryEarnings.total
+        const historyTotal = (workHistoryEarnings as { total?: number })?.total || 0;
+        const totalEarnings = historyTotal > 0
+            ? historyTotal
             : assignmentStats.assignmentEarnings;
 
         return {
@@ -53,7 +54,7 @@ export class ProviderDashboardService implements IProviderDashboardService {
         };
     }
 
-    async getActivity(userId: string): Promise<any> {
+    async getActivity(userId: string): Promise<{ recentAssignments: unknown[]; recentReviews: unknown[]; recentNotifications: unknown[] }> {
         const providerId = await this._getProviderId(userId);
 
         const [assignments, reviews, notifications] = await Promise.all([
@@ -90,15 +91,15 @@ export class ProviderDashboardService implements IProviderDashboardService {
         };
 
         return {
-            monthlyEarnings: earningsData.map((d: any) => ({
+            monthlyEarnings: (earningsData as unknown as { _id: { month: number }; amount?: number }[]).map(d => ({
                 month: months[d._id.month - 1],
                 amount: d.amount || 0
             })),
-            jobStatusDistribution: statusData.map((d: any) => ({
+            jobStatusDistribution: statusData.map((d: { _id: string; count?: number }) => ({
                 status: statusLabels[d._id] || d._id || 'Unknown',
                 count: d.count || 0
             })),
-            weeklyWorkActivity: activityData.map((d: any) => ({
+            weeklyWorkActivity: activityData.map((d: { _id: number; count?: number }) => ({
                 day: days[d._id - 1] || 'Unknown',
                 count: d.count || 0
             }))
@@ -135,11 +136,11 @@ export class ProviderDashboardService implements IProviderDashboardService {
         const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
         const currentDay = days[today.getDay()];
 
-        const dayAvailability = provider.availability?.find((a: any) => a.day === currentDay);
+        const dayAvailability = provider.availability?.find((a: { day: string; isAvailable: boolean }) => a.day === currentDay);
 
         const futureBlockedDates = (provider.blockedDates || [])
-            .filter((d: any) => new Date(d.startDate) >= today)
-            .sort((a: any, b: any) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+            .filter((d: { startDate: Date | string }) => new Date(d.startDate) >= today)
+            .sort((a: { startDate: Date | string }, b: { startDate: Date | string }) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
 
         return {
             availableToday: dayAvailability ? dayAvailability.isAvailable : false,

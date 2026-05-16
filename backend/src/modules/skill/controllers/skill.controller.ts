@@ -1,7 +1,9 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { ISkillService } from '../interfaces/skill.interface';
 import { ISkillController } from '../interfaces/skill.interface';
 import {HttpStatusCode} from "../../../constants/httpStatusCode"
+import { AppError } from '../../../utils/AppError';
+import { ErrorMessages } from '../../../constants/messages/errorMessages';
 
 export class SkillController implements ISkillController {
     private _skillService: ISkillService;
@@ -10,7 +12,7 @@ export class SkillController implements ISkillController {
         this._skillService = skillService;
     }
 
-    searchSkills = async (req: Request, res: Response, next: any): Promise<void> => {
+    searchSkills = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const query = (req.query.search as string) || '';
             const result = await this._skillService.searchSkills(query);
@@ -20,7 +22,7 @@ export class SkillController implements ISkillController {
         }
     }
 
-    getAllSkills = async (req: Request, res: Response, next: any): Promise<void> => {
+    getAllSkills = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 24;
@@ -33,7 +35,7 @@ export class SkillController implements ISkillController {
         }
     }
 
-    getAdminSkills = async (req: Request, res: Response, next: any): Promise<void> => {
+    getAdminSkills = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
@@ -45,7 +47,7 @@ export class SkillController implements ISkillController {
         }
     }
 
-    createSkill = async (req: Request, res: Response, next: any): Promise<void> => {
+    createSkill = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const result = await this._skillService.createSkill(req.body);
             const status = result.success ? HttpStatusCode.CREATED : HttpStatusCode.BAD_REQUEST;
@@ -55,7 +57,7 @@ export class SkillController implements ISkillController {
         }
     }
 
-    updateSkill = async (req: Request, res: Response, next: any): Promise<void> => {
+    updateSkill = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const id = req.params.id as string;
             const result = await this._skillService.updateSkill(id, req.body);
@@ -66,7 +68,7 @@ export class SkillController implements ISkillController {
         }
     }
 
-    deleteSkill = async (req: Request, res: Response, next: any): Promise<void> => {
+    deleteSkill = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const id = req.params.id as string;
             const result = await this._skillService.deleteSkill(id);
@@ -77,7 +79,7 @@ export class SkillController implements ISkillController {
         }
     }
 
-    toggleSkillStatus = async (req: Request, res: Response, next: any): Promise<void> => {
+    toggleSkillStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const id = req.params.id as string;
             const result = await this._skillService.toggleSkillStatus(id);
@@ -88,7 +90,7 @@ export class SkillController implements ISkillController {
         }
     }
 
-    getSkills = async (req: Request, res: Response, next: any): Promise<void> => {
+    getSkills = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const result = await this._skillService.getSkills();
             res.status(HttpStatusCode.OK).json(result);
@@ -96,9 +98,12 @@ export class SkillController implements ISkillController {
             next(error);
         }
     }
-    myskills = async (req: Request, res: Response, next: any): Promise<void> => {
+    myskills = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const userId = req.user?.userId
+            const userId = req.user?.userId;
+            if (!userId) {
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+            }
             const result = await this._skillService.getMySkills(userId)
             res.status(HttpStatusCode.OK).json(result)
         } catch (error) {

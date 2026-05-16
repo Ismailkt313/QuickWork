@@ -44,7 +44,7 @@ export class ReportRepository implements IReportRepository {
         const { status, page = 1, limit = 10 } = query;
         const skip = (page - 1) * limit;
 
-        const filter: any = {};
+        const filter: Record<string, unknown> = {};
         if (status && status !== 'all') {
             filter.status = status;
         }

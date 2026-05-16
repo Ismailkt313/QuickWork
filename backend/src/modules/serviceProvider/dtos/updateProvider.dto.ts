@@ -2,6 +2,19 @@ import { ILocation, IPortfolioItem } from '../interfaces/serviceProvider.interfa
 import { AppError } from '../../../utils/AppError';
 import { HttpStatusCode } from "../../../constants/httpStatusCode"
 
+export interface UpdateProviderInput {
+    headline?: string;
+    about?: string;
+    profileImage?: string;
+    skills?: string[];
+    yearsOfExperience?: number | string;
+    hourlyRate?: number | string;
+    location?: ILocation;
+    portfolio?: IPortfolioItem[];
+    isActive?: boolean | string;
+    [key: string]: unknown;
+}
+
 export class UpdateProviderDTO {
     public readonly headline?: string;
     public readonly about?: string;
@@ -13,7 +26,7 @@ export class UpdateProviderDTO {
     public readonly portfolio?: IPortfolioItem[];
     public readonly isActive?: boolean;
 
-    private constructor(data: any) {
+    private constructor(data: UpdateProviderInput) {
         if (data.headline) this.headline = data.headline;
         if (data.about) this.about = data.about;
         if (data.profileImage) this.profileImage = data.profileImage;
@@ -25,7 +38,7 @@ export class UpdateProviderDTO {
         if (data.isActive !== undefined) this.isActive = data.isActive === true || data.isActive === 'true';
     }
 
-    public static create(data: any): UpdateProviderDTO {
+    public static create(data: UpdateProviderInput): UpdateProviderDTO {
         const errors: string[] = [];
 
         if (data.headline !== undefined && data.headline.trim().length === 0) {

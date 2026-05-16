@@ -37,7 +37,7 @@ export interface JobResponseDTO {
   durationType: string;
   visibility: string;
   hiredProviderId?: string;
-  hiredProvider?: any;
+  hiredProvider?: Record<string, unknown>;
   rejectionReason?: string;
   isApplied?: boolean;
   freelancersNeeded: number;
@@ -60,21 +60,55 @@ export interface JobResponseDTO {
   jobCode: string;
 }
 
-export const mapJobToResponseDTO = async (job: any, assignmentData?: any, clientMetrics?: { averageRating: number, totalReviews: number }): Promise<JobResponseDTO> => {
-  const user = job.userId || {};
+export const mapJobToResponseDTO = async (
+  job: {
+    userId?: { _id?: unknown; id?: unknown; name?: string; email?: string; number?: string } | string;
+    skillId?: { name?: string };
+    hiredProviderId?: { _id?: unknown; id?: unknown; userId?: { _id?: unknown; id?: unknown; name?: string; email?: string } | string; headline?: string; profileImage?: string; verification?: { status?: string }; toString: () => string } | string;
+    location?: { coordinates?: { coordinates?: [number, number] }; address?: string; district?: { name?: string; toString: () => string }; additionalDetails?: string };
+    _id?: unknown;
+    id?: string;
+    title?: string;
+    description?: string;
+    contactNumber?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+    budget?: { min?: number; max?: number };
+    applicantsCount?: number;
+    status?: string;
+    schedule?: { startDate?: Date; endDate?: Date };
+    durationType?: string;
+    visibility?: string;
+    rejectionReason?: string;
+    freelancersNeeded?: number;
+    acceptedFreelancers?: number;
+    jobCode?: string;
+  },
+  assignmentData?: {
+    _id?: unknown;
+    workStatus?: string;
+    cancellation?: { reason?: string; cancelledAt?: Date; isLateCancel?: boolean; notes?: string };
+    absence?: { reportedAt?: Date; notes?: string; evidence?: string[] };
+    payment?: { status?: string; method?: string; amount?: number; paidAt?: Date; transactionId?: string };
+  },
+  clientMetrics?: { averageRating: number; totalReviews: number }
+): Promise<JobResponseDTO> => {
+  const user = (typeof job.userId === 'object' && job.userId !== null ? job.userId : {}) as { _id?: unknown; id?: unknown; name?: string; email?: string; number?: string };
   const skill = job.skillId || {};
 
   let hiredProvider = undefined;
+  const hiredProv = typeof job.hiredProviderId === 'object' && job.hiredProviderId !== null ? job.hiredProviderId : null;
+  const hiredProvUser = hiredProv && typeof hiredProv.userId === 'object' && hiredProv.userId !== null ? hiredProv.userId : null;
 
-  if (job.hiredProviderId?.userId) {
+  if (hiredProv && hiredProvUser) {
     hiredProvider = {
-      id: job.hiredProviderId._id?.toString() || job.hiredProviderId.id,
-      userId: job.hiredProviderId.userId?._id?.toString() || job.hiredProviderId.userId?.id || job.hiredProviderId.userId?.toString(),
-      name: job.hiredProviderId.userId.name,
-      email: job.hiredProviderId.userId.email,
-      headline: job.hiredProviderId.headline,
-      profileImage: job.hiredProviderId.profileImage,
-      isVerified: job.hiredProviderId.verification?.status === VERIFICATION_STATUS.VERIFIED,
+      id: hiredProv._id?.toString() || hiredProv.id,
+      userId: hiredProvUser._id?.toString() || hiredProvUser.id,
+      name: hiredProvUser.name,
+      email: hiredProvUser.email,
+      headline: hiredProv.headline,
+      profileImage: hiredProv.profileImage,
+      isVerified: hiredProv.verification?.status === VERIFICATION_STATUS.VERIFIED,
       assignmentId: assignmentData?._id?.toString() || null,
       workStatus: assignmentData?.workStatus || null,
       cancellation: assignmentData?.cancellation ? {

@@ -4,13 +4,19 @@ import { HttpStatusCode } from "../constants/httpStatusCode";
 import { ErrorMessages } from "../constants/messages/errorMessages";
 import { logger } from "../utils/logger";
 
+interface CustomError extends Error {
+    code?: string | number;
+    statusCode?: number;
+    [key: string]: unknown;
+}
+
 export const errorHandler = (
-    err: any,
+    err: CustomError,
     req: Request,
     res: Response,
     _next: NextFunction
 ): void => {
-    const log = (req as any).log || logger;
+    const log = (req as Request & { log?: typeof logger }).log || logger;
 
     const errorDetails = {
         message: err.message,

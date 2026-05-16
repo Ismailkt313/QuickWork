@@ -13,8 +13,8 @@ export interface IUploadService {
     uploadPortfolioImage(fileBuffer: Buffer, mimetype: string): Promise<{ imageUrl: string, publicId: string }>;
     uploadAssignmentProof(fileBuffer: Buffer, mimetype: string): Promise<{ imageUrl: string, publicId: string }>;
     uploadChatMessage(fileBuffer: Buffer, mimetype: string): Promise<{ imageUrl: string, publicId: string }>;
-    getUploadSignature(folder?: string): Promise<any>;
-    deleteImage(publicId: string): Promise<any>;
+    getUploadSignature(folder?: string): Promise<unknown>;
+    deleteImage(publicId: string): Promise<unknown>;
 }
 
 export interface IS3Service {

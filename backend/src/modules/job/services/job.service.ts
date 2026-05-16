@@ -8,6 +8,7 @@ import { IAssignmentService } from '../../assignment/interfaces/assignment.inter
 import { INotificationService } from '../../notification/interfaces/notification.interface';
 import { JOB_STATUS } from '../../../constants/jobStatus';
 import { ASSIGNMENT_STATUS, WORK_STATUS, ASSIGNMENT_TYPE } from '../../../constants/assignment';
+import { PAYMENT_STATUS } from '../../../constants/payment';
 import { JOB_VISIBILITY } from '../../../constants/jobVisibility';
 import { SuccessMessages } from '../../../constants/messages/successMessages';
 import { ErrorMessages } from '../../../constants/messages/errorMessages';
@@ -42,7 +43,7 @@ export class JobService implements IJobService {
         this._reviewRepository = reviewRepository;
     }
 
-    private async _getClientMetrics(userId: any): Promise<{ averageRating: number; totalReviews: number }> {
+    private async _getClientMetrics(userId: { _id?: { toString: () => string }; toString: () => string } | undefined): Promise<{ averageRating: number; totalReviews: number }> {
         const userIdStr = userId?._id?.toString() || userId?.toString();
         if (!userIdStr || !Types.ObjectId.isValid(userIdStr)) {
             return { averageRating: 0, totalReviews: 0 };
@@ -122,7 +123,7 @@ export class JobService implements IJobService {
             title: dto.title,
             description: dto.description,
             contactNumber: dto.contactNumber,
-            skillId: new Types.ObjectId(dto.skillId) as any,
+            skillId: new Types.ObjectId(dto.skillId) as unknown as Types.ObjectId,
             location: {
                 district: new Types.ObjectId(dto.location.district),
                 address: dto.location.address,
@@ -132,7 +133,7 @@ export class JobService implements IJobService {
                     coordinates: dto.location.coordinates.coordinates
                 }
             },
-            userId: new Types.ObjectId(userId) as any,
+            userId: new Types.ObjectId(userId) as unknown as Types.ObjectId,
             budget: dto.budget,
             isUrgent: dto.isUrgent,
             durationType: dto.durationType,
@@ -146,7 +147,7 @@ export class JobService implements IJobService {
             freelancersNeeded: isPrivate ? 1 : freelancersNeeded,
             acceptedFreelancers: 0,
             visibility: isPrivate ? JOB_VISIBILITY.PRIVATE : dto.visibility,
-            hiredProviderId: isPrivate ? new Types.ObjectId(dto.hiredProviderId) as any : undefined,
+            hiredProviderId: isPrivate ? new Types.ObjectId(dto.hiredProviderId) as unknown as Types.ObjectId : undefined,
             status: JOB_STATUS.OPEN,
             applicantsCount: 0
         });
@@ -222,18 +223,18 @@ export class JobService implements IJobService {
         };
     }
 
-    async availableJobs(page: number = 1, limit: number = 10, filters: any = {}, userId?: string): Promise<import('../interfaces/job.interface').IJobPaginationResponse> {
+    async availableJobs(page: number = 1, limit: number = 10, filters: Record<string, unknown> = {}, userId?: string): Promise<import('../interfaces/job.interface').IJobPaginationResponse> {
 
         const assignedJobIds = new Set<string>();
         const provider = await this._serviceProviderRepository.findByUserId(userId as string);
         if (provider) {
             const { assignments: providerAssignments } = await this._assignmentService.getAssignmentsByProvider(provider._id.toString(), { limit: 1000 });
             providerAssignments.forEach(a => {
-                const id = a.jobId && (a.jobId as any)._id ? (a.jobId as any)._id.toString() : a.jobId?.toString();
+                const id = a.jobId && (a.jobId as { _id?: { toString: () => string } })._id ? (a.jobId as { _id?: { toString: () => string } })._id?.toString() : a.jobId?.toString();
                 if (id) assignedJobIds.add(id);
             });
         }
-        const skills: string[] = await provider.skills.map((a: any) => a._id.toString())
+        const skills: string[] = provider ? provider.skills.map((a: { _id: { toString: () => string } }) => a._id.toString()) : [];
         const { jobs, total } = await this._jobRepository.findAllOpen(page, limit = 9, filters, skills, Array.from(assignedJobIds), userId);
 
         const mappedJobs = await Promise.all(jobs.map(async j => {
@@ -284,7 +285,7 @@ export class JobService implements IJobService {
             if (provider) {
                 const { assignments } = await this._assignmentService.getAssignmentsByProvider(provider._id.toString(), { limit: 1000 });
                 dto.isApplied = assignments.some(a => {
-                    const id = a.jobId && (a.jobId as any)._id ? (a.jobId as any)._id.toString() : a.jobId?.toString();
+                    const id = a.jobId && (a.jobId as { _id?: { toString: () => string } })._id ? (a.jobId as { _id?: { toString: () => string } })._id?.toString() : a.jobId?.toString();
                     return id === jobId;
                 });
             }
@@ -300,7 +301,7 @@ export class JobService implements IJobService {
                 success: true,
                 data: [],
                 pagination: { total: 0, page, limit, totalPages: 0, hasNext: false, hasPrev: false },
-                counts: { all: 0, pending: 0, accepted: 0, rejected: 0 } as any
+                counts: { all: 0, pending: 0, accepted: 0, rejected: 0 } as unknown as import('../interfaces/job.interface').IJobPaginationResponse['counts']
             };
         }
 
@@ -329,7 +330,7 @@ export class JobService implements IJobService {
                 hasNext: page < Math.ceil(total / limit),
                 hasPrev: page > 1
             },
-            counts: counts as any
+            counts: counts as unknown as import('../interfaces/job.interface').IJobPaginationResponse['counts']
         };
     }
 
@@ -383,7 +384,7 @@ export class JobService implements IJobService {
         );
 
         const hasConflict = AvailabilityValidator.doesOverlapWithAssignments(
-            activeAssignments,
+            activeAssignments as unknown as { jobId?: { schedule?: { startDate: Date | string; startTime: string; endTime: string; } } }[],
             job.schedule.startDate,
             job.schedule.startTime,
             job.schedule.endTime
@@ -416,16 +417,16 @@ export class JobService implements IJobService {
         const isOutOfDistrict = provider.location?.id?.toString() !== updatedJob.location?.district?._id?.toString();
 
         await this._assignmentService.createAssignment({
-            jobId: updatedJob._id as any,
-            freelancerId: provider._id as any,
+            jobId: updatedJob._id as unknown as Types.ObjectId,
+            freelancerId: provider._id as unknown as Types.ObjectId,
             type: ASSIGNMENT_TYPE.OPEN,
             invite: {
                 status: ASSIGNMENT_STATUS.ACCEPTED,
-                invitedBy: updatedJob.userId as any,
+                invitedBy: updatedJob.userId as unknown as Types.ObjectId,
                 invitedAt: updatedJob.createdAt,
                 respondedAt: new Date()
             },
-            payment: amount !== undefined ? { amount, status: 'pending' } as any : undefined,
+            payment: amount !== undefined ? { amount, status: PAYMENT_STATUS.PENDING } : undefined,
             workStatus: WORK_STATUS.ASSIGNED,
             schedule: updatedJob.schedule,
             isOutOfDistrict,
@@ -441,7 +442,7 @@ export class JobService implements IJobService {
         await this._notificationService.createNotification({
             recipient: updatedJob.userId.toString(),
             title: 'Job Accepted',
-            message: `${provider.userId?.name || 'A provider'} has accepted your job: ${updatedJob.title}`,
+            message: `${(provider.userId as { name?: string })?.name || 'A provider'} has accepted your job: ${updatedJob.title}`,
             type: 'JOB_ASSIGNMENT',
             link: `/user/jobs/${updatedJob._id}`
         });
@@ -494,7 +495,7 @@ export class JobService implements IJobService {
         );
 
         const hasConflict = AvailabilityValidator.doesOverlapWithAssignments(
-            activeAssignments,
+            activeAssignments as unknown as { jobId?: { schedule?: { startDate: Date | string; startTime: string; endTime: string; } } }[],
             job.schedule.startDate,
             job.schedule.startTime,
             job.schedule.endTime
@@ -530,16 +531,16 @@ export class JobService implements IJobService {
         }
 
         await this._assignmentService.createAssignment({
-            jobId: updatedJob._id as any,
-            freelancerId: provider._id as any,
+            jobId: updatedJob._id as unknown as Types.ObjectId,
+            freelancerId: provider._id as unknown as Types.ObjectId,
             type: ASSIGNMENT_TYPE.DIRECT,
             invite: {
                 status: ASSIGNMENT_STATUS.ACCEPTED,
-                invitedBy: updatedJob.userId as any,
+                invitedBy: updatedJob.userId as unknown as Types.ObjectId,
                 invitedAt: updatedJob.createdAt,
                 respondedAt: new Date()
             },
-            payment: amount !== undefined ? { amount, status: 'pending' } as any : undefined,
+            payment: amount !== undefined ? { amount, status: PAYMENT_STATUS.PENDING } : undefined,
             workStatus: WORK_STATUS.ASSIGNED,
             schedule: updatedJob.schedule,
             isOutOfDistrict,
@@ -549,7 +550,7 @@ export class JobService implements IJobService {
         await this._notificationService.createNotification({
             recipient: updatedJob.userId.toString(),
             title: 'Offer Accepted',
-            message: `${provider.userId?.name || 'The provider'} has accepted your direct offer for: ${updatedJob.title}`,
+            message: `${(provider.userId as { name?: string })?.name || 'The provider'} has accepted your direct offer for: ${updatedJob.title}`,
             type: 'JOB_ASSIGNMENT',
             link: `/user/jobs/${updatedJob._id}`
         });
@@ -574,9 +575,9 @@ export class JobService implements IJobService {
         );
 
         await this._notificationService.createNotification({
-            recipient: (job.userId as any)._id ? (job.userId as any)._id.toString() : job.userId.toString(),
+            recipient: ((job.userId as { _id?: { toString: () => string } })._id?.toString()) || job.userId.toString(),
             title: 'Offer Declined',
-            message: `${provider.userId?.name || 'The provider'} has declined your direct offer for: ${job.title}`,
+            message: `${(provider.userId as { name?: string })?.name || 'The provider'} has declined your direct offer for: ${job.title}`,
             type: 'JOB_ASSIGNMENT',
             link: `/user/jobs/${job._id}`
         });
@@ -590,7 +591,7 @@ export class JobService implements IJobService {
             return { success: false, message: ErrorMessages.JOB_NOT_FOUND };
         }
 
-        const jobOwnerId = (job.userId as any)._id ? (job.userId as any)._id.toString() : job.userId.toString();
+        const jobOwnerId = (job.userId as { _id?: { toString: () => string } })._id ? (job.userId as { _id?: { toString: () => string } })._id?.toString() : job.userId.toString();
         if (jobOwnerId !== userId.toString()) {
             return { success: false, message: ErrorMessages.UNAUTHORIZED_CANCEL };
         }
@@ -611,10 +612,10 @@ export class JobService implements IJobService {
     async getAllJobsAdmin(
         page: number,
         limit: number,
-        filters?: any
+        filters?: Record<string, unknown>
     ): Promise<import('../interfaces/job.interface').IJobPaginationResponse> {
 
-        const finalFilters = { ...filters };
+        const finalFilters: Record<string, unknown> = { ...filters };
 
         if (filters?.type === 'stalled') {
             const threeDaysAgo = new Date();
@@ -630,14 +631,14 @@ export class JobService implements IJobService {
             if (j.hiredProviderId) {
                 assignmentData = await this._assignmentService.getAssignmentByJobAndFreelancer(
                     j._id.toString(),
-                    (j.hiredProviderId as any)._id.toString()
+                    (j.hiredProviderId as { _id: { toString: () => string } })._id.toString()
                 );
             }
             const clientMetrics = await this._getClientMetrics(j.userId);
             const dto = await mapJobToResponseDTO(j, assignmentData, clientMetrics);
 
             const workHistories = await this._workHistoryRepository.findByJobAndStatus(j._id.toString(), 'COMPLETED');
-            dto.providers = workHistories.map((wh: any) => ({
+            dto.providers = workHistories.map((wh: { providerId: { toString: () => string }; finalStatus: string; payment: { status: string; totalAmount: number } }) => ({
                 providerId: wh.providerId.toString(),
                 finalStatus: wh.finalStatus,
                 payment: {
@@ -686,7 +687,7 @@ export class JobService implements IJobService {
         if (job.hiredProviderId) {
             assignmentData = await this._assignmentService.getAssignmentByJobAndFreelancer(
                 job._id.toString(),
-                (job.hiredProviderId as any)._id.toString()
+                (job.hiredProviderId as { _id: { toString: () => string } })._id.toString()
             );
         }
 
@@ -696,7 +697,7 @@ export class JobService implements IJobService {
         dto.applicants = await this._assignmentService.getAssignmentCountByJob(jobId);
 
         const workHistories = await this._workHistoryRepository.findByJob(jobId);
-        dto.providers = workHistories.map((wh: any) => ({
+        dto.providers = workHistories.map((wh: { providerId: { toString: () => string }; finalStatus: string; payment: { status: string; totalAmount: number } }) => ({
             providerId: wh.providerId.toString(),
             finalStatus: wh.finalStatus,
             payment: {
@@ -740,7 +741,7 @@ export class JobService implements IJobService {
 
         // Notify Client
         await this._notificationService.createNotification({
-            recipient: (job.userId as any)._id ? (job.userId as any)._id.toString() : job.userId.toString(),
+            recipient: ((job.userId as { _id?: { toString: () => string } })._id?.toString()) || job.userId.toString(),
             title: `Job Cancelled by Administration`,
             message: `Your job "${job.title}" has been cancelled by QuickWork Administration. Reason: ${reason}. Action taken at ${timestamp}.`,
             type: 'SYSTEM' as const,
@@ -750,7 +751,7 @@ export class JobService implements IJobService {
         // Notify All Assigned Providers
         const assignments = await this._assignmentService.getAssignmentsByJobId(jobId);
         for (const assignment of assignments) {
-            const providerUserId = (assignment.freelancerId as any).userId?._id?.toString() || (assignment.freelancerId as any).userId?.toString();
+            const providerUserId = (assignment.freelancerId as { userId?: { _id?: { toString: () => string }; toString: () => string } }).userId?._id?.toString() || (assignment.freelancerId as { userId?: { _id?: { toString: () => string }; toString: () => string } }).userId?.toString();
             if (providerUserId) {
                 await this._notificationService.createNotification({
                     recipient: providerUserId,

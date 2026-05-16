@@ -1,5 +1,6 @@
 import { IReportRepository } from '../interfaces/report.interface';
 import { IModerationLogRepository } from '../repositories/moderationLog.repository';
+import { IModerationLog } from '../models/moderationLog.model';
 import { IAuthRepository } from '../../auth/interfaces/auth.interface';
 import { INotificationService } from '../../notification/interfaces/notification.interface';
 import { REPORT_STATUS } from '../interfaces/report.interface';
@@ -68,7 +69,7 @@ export class ModerationService implements IModerationService {
                 action: 'warn',
                 reason,
                 adminId
-            });
+            } as unknown as Partial<IModerationLog>);
 
             await this._notificationService.createNotification({
                 recipient: reportedUserId,
@@ -88,7 +89,7 @@ export class ModerationService implements IModerationService {
                 action: 'block',
                 reason,
                 adminId
-            });
+            } as unknown as Partial<IModerationLog>);
 
             await this._notificationService.createNotification({
                 recipient: reportedUserId,
@@ -106,7 +107,7 @@ export class ModerationService implements IModerationService {
                 action: 'reject',
                 reason,
                 adminId
-            });
+            } as unknown as Partial<IModerationLog>);
         }
 
         return await this.getReportDetail(reportId);

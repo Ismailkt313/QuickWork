@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { ILocationService, ILocationController } from '../interfaces/location.interface';
 import {HttpStatusCode} from "../../../constants/httpStatusCode"
 
@@ -9,7 +9,7 @@ export class LocationController implements ILocationController {
         this._locationService = locationService;
     }
 
-    getAllLocations = async (req: Request, res: Response, next: any): Promise<void> => {
+    getAllLocations = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const result = await this._locationService.getAllLocations();
             res.status(HttpStatusCode.OK).json(result);

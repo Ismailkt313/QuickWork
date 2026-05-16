@@ -6,6 +6,12 @@ import { SuccessMessages } from '../../../constants/messages/successMessages';
 import { AppError } from '../../../utils/AppError';
 import { IReviewController } from '../interfaces/review.interface';
 
+import { ITokenPayload } from '../../auth/interfaces/auth.interface';
+
+interface RequestWithUser extends Request {
+    user?: ITokenPayload;
+}
+
 export class ReviewController implements IReviewController {
     private _reviewService: IReviewService;
 
@@ -20,7 +26,7 @@ export class ReviewController implements IReviewController {
                 const errorMessage = validationResult.error.issues.map(issue => issue.message).join(', ');
                 throw new AppError(errorMessage, HttpStatusCode.BAD_REQUEST);
             }
-             const reviewerId = (req.user as any).userId;
+             const reviewerId = ((req as RequestWithUser).user as { userId: string }).userId;
              const review = await this._reviewService.createReview(reviewerId, validationResult.data);
              res.status(HttpStatusCode.CREATED).json({
                 success: true,
@@ -68,7 +74,7 @@ export class ReviewController implements IReviewController {
 
     public getMyReviews = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const userId = (req.user as any).userId;
+            const userId = ((req as RequestWithUser).user as { userId: string }).userId;
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
             const reviewsRes = await this._reviewService.getReviewsForUser(userId as string, page, limit);
@@ -108,7 +114,7 @@ export class ReviewController implements IReviewController {
     public updateReview = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { reviewId } = req.params;
-            const reviewerId = (req.user as any).userId;
+            const reviewerId = ((req as RequestWithUser).user as { userId: string }).userId;
             const { rating, comment, images } = req.body;
 
             const updated = await this._reviewService.updateReview(reviewId as string, reviewerId, { rating, comment, images });
@@ -126,7 +132,7 @@ export class ReviewController implements IReviewController {
     public deleteReview = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { reviewId } = req.params;
-            const reviewerId = (req.user as any).userId;
+            const reviewerId = ((req as RequestWithUser).user as { userId: string }).userId;
 
             await this._reviewService.deleteReview(reviewId as string, reviewerId);
 

@@ -37,7 +37,18 @@ export interface ReportResponseDTO {
     createdAt: Date;
 }
 
-export const mapReportToResponseDTO = (report: any): ReportResponseDTO => {
+export const mapReportToResponseDTO = (report: {
+    _id: { toString: () => string };
+    assignmentId: { toString: () => string };
+    reporterId: { _id: { toString: () => string }; name: string };
+    reportedUserId: { _id: { toString: () => string }; name: string };
+    role: REPORT_ROLE;
+    reason: string;
+    description?: string;
+    images?: string[];
+    status: REPORT_STATUS;
+    createdAt: Date;
+}): ReportResponseDTO => {
     return {
         id: report._id.toString(),
         assignmentId: report.assignmentId.toString(),

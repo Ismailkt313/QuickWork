@@ -27,6 +27,8 @@ export interface ILocationRepository {
     findById(id: string): Promise<ILocation | null>;
 }
 
+import { Request, Response, NextFunction } from 'express';
+
 export interface ILocationController {
-    getAllLocations(req: any, res: any, next: any): Promise<void>;
+    getAllLocations(req: Request, res: Response, next: NextFunction): Promise<void>;
 }

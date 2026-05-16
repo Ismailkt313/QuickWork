@@ -31,7 +31,7 @@ export class ReviewService implements IReviewService {
             throw new AppError("Assignment not found", HttpStatusCode.NOT_FOUND);
         }
 
-        const jobId = (assignment.jobId as any)._id?.toString() || assignment.jobId.toString();
+        const jobId = (assignment.jobId as unknown as { _id?: Types.ObjectId })._id?.toString() || assignment.jobId.toString();
         const job = await this._jobRepository.findById(jobId);
         if (!job || assignment.workStatus !== 'completed') {
             throw new AppError("Reviews are only allowed for completed jobs", HttpStatusCode.BAD_REQUEST);
@@ -47,9 +47,9 @@ export class ReviewService implements IReviewService {
 
         return await this._reviewRepository.create({
             ...data,
-            assignmentId: new Types.ObjectId(data.assignmentId) as any,
-            revieweeId: new Types.ObjectId(data.revieweeId) as any,
-            reviewerId: new Types.ObjectId(reviewerId) as any
+            assignmentId: new Types.ObjectId(data.assignmentId) as unknown as Types.ObjectId,
+            revieweeId: new Types.ObjectId(data.revieweeId) as unknown as Types.ObjectId,
+            reviewerId: new Types.ObjectId(reviewerId) as unknown as Types.ObjectId
         });
     }
 

@@ -16,8 +16,8 @@ export class ConversationRepository implements IConversationRepository {
                 .populate("participants", "name email _id")
                 .sort({ updatedAt: -1 });
 
-            return conversations.map((c: any) => c.toObject() as unknown as IConversationResponse);
-        } catch (error: any) {
+            return conversations.map((c: { toObject: () => unknown }) => c.toObject() as unknown as IConversationResponse);
+        } catch (error: unknown) {
             logger.error({ error, userId }, "Error fetching conversations in repository");
             throw error;
         }

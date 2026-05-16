@@ -1,4 +1,5 @@
-import { Document, Types } from "mongoose";
+import { Request, Response, NextFunction } from "express";
+import { Document, Types, ClientSession } from "mongoose";
 import { CreateServiceRequestDTO } from '../dtos/createServiceRequest.dto';
 import { RejectServiceRequestDTO } from "../dtos/rejectServiceRequest.dto";
 import { SKILL_STATUS } from "../../../constants/skill";
@@ -17,7 +18,7 @@ export interface IServiceRequest extends Document {
 }
 
 export interface IServiceRequestService {
-    createRequest(userId: string, dto: CreateServiceRequestDTO): Promise<{ success: boolean; message: string; data?: any }>;
+    createRequest(userId: string, dto: CreateServiceRequestDTO): Promise<{ success: boolean; message: string; data?: IServiceRequest }>;
     getUserRequests(userId: string): Promise<{ success: boolean; data: IServiceRequest[] }>;
     getPendingRequests(page: number, limit: number): Promise<{
         success: boolean;
@@ -40,13 +41,13 @@ export interface IServiceRequestRepository {
     findAllPending(page: number, limit: number): Promise<IServiceRequest[]>;
     getPendingCount(): Promise<number>;
     findById(id: string): Promise<IServiceRequest | null>;
-    updateStatus(id: string, updateData: Partial<IServiceRequest>, session?: any): Promise<IServiceRequest | null>;
+    updateStatus(id: string, updateData: Partial<IServiceRequest>, session?: ClientSession): Promise<IServiceRequest | null>;
 }
 
 export interface IServiceRequestController {
-    createRequest(req: any, res: any, next: any): Promise<void>;
-    getUserRequests(req: any, res: any, next: any): Promise<void>;
-    getPendingRequests(req: any, res: any, next: any): Promise<void>;
-    approveRequest(req: any, res: any, next: any): Promise<void>;
-    rejectRequest(req: any, res: any, next: any): Promise<void>;
+    createRequest(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getUserRequests(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getPendingRequests(req: Request, res: Response, next: NextFunction): Promise<void>;
+    approveRequest(req: Request, res: Response, next: NextFunction): Promise<void>;
+    rejectRequest(req: Request, res: Response, next: NextFunction): Promise<void>;
 }

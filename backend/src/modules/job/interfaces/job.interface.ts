@@ -1,4 +1,5 @@
 import { Document, Types } from 'mongoose';
+import { Request, Response, NextFunction } from 'express';
 import { CreateJobDTO } from '../dtos/createJob.dto';
 import { JobResponseDTO } from '../dtos/jobResponse.dto';
 import { JOB_STATUS } from '../../../constants/jobStatus';
@@ -87,7 +88,7 @@ export interface IJobService {
         filters?: { status?: string; search?: string; visibility?: string }
     ): Promise<IJobPaginationResponse>;
 
-    availableJobs(page: number, limit: number, filters?: any, userId?: string): Promise<IJobPaginationResponse>;
+    availableJobs(page: number, limit: number, filters?: Record<string, unknown>, userId?: string): Promise<IJobPaginationResponse>;
     getJobById(id: string, userId?: string): Promise<{ success: boolean; data?: JobResponseDTO; message?: string }>;
     getDirectOffers(userId: string, page?: number, limit?: number, search?: string, filter?: string): Promise<IJobPaginationResponse>;
     acceptOffer(jobId: string, userId: string, amount?: number): Promise<{ success: boolean; message: string }>;
@@ -130,7 +131,7 @@ export interface IJobRepository {
         completed: number;
         cancelled: number;
     }>;
-    findAllOpen(page: number, limit: number, filters: any, skill: string[], excludeJobIds?: string[], currentUserId?: string): Promise<{ jobs: IJob[], total: number }>;
+    findAllOpen(page: number, limit: number, filters: Record<string, unknown>, skill: string[], excludeJobIds?: string[], currentUserId?: string): Promise<{ jobs: IJob[], total: number }>;
     findAllPaginated(
         page: number,
         limit: number,
@@ -161,26 +162,26 @@ export interface IJobRepository {
         rejected: number;
     }>;
     updateStatus(id: string, status: JOB_STATUS): Promise<IJob | null>;
-    findByConditionAndUpdate(query: any, update: any): Promise<IJob | null>;
-    find(query: any): Promise<IJob[]>;
-    count(query: any): Promise<number>;
+    findByConditionAndUpdate(query: Record<string, unknown>, update: Record<string, unknown>): Promise<IJob | null>;
+    find(query: Record<string, unknown>): Promise<IJob[]>;
+    count(query: Record<string, unknown>): Promise<number>;
     countActiveJobs(): Promise<number>;
     countCompletedJobs(): Promise<number>;
-    getStatusDistribution(): Promise<any[]>;
+    getStatusDistribution(): Promise<{ status: string; count: number }[]>;
 }
 
 export interface IJobController {
-    createJob(req: any, res: any, next: any): Promise<void>;
-    getUserJobs(req: any, res: any, next: any): Promise<void>;
-    availableJobs(req: any, res: any, next: any): Promise<void>;
-    getJobById(req: any, res: any, next: any): Promise<void>;
-    getDirectOffers(req: any, res: any, next: any): Promise<void>;
-    acceptOffer(req: any, res: any, next: any): Promise<void>;
-    rejectOffer(req: any, res: any, next: any): Promise<void>;
-    acceptJob(req: any, res: any, next: any): Promise<void>;
-    cancelJob(req: any, res: any, next: any): Promise<void>;
-    getJobAssignments(req: any, res: any, next: any): Promise<void>;
-    getAllJobsAdmin(req: any, res: any, next: any): Promise<void>;
-    getJobDetailsAdmin(req: any, res: any, next: any): Promise<void>;
-    adminCancelJob(req: any, res: any, next: any): Promise<void>;
+    createJob(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getUserJobs(req: Request, res: Response, next: NextFunction): Promise<void>;
+    availableJobs(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getJobById(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getDirectOffers(req: Request, res: Response, next: NextFunction): Promise<void>;
+    acceptOffer(req: Request, res: Response, next: NextFunction): Promise<void>;
+    rejectOffer(req: Request, res: Response, next: NextFunction): Promise<void>;
+    acceptJob(req: Request, res: Response, next: NextFunction): Promise<void>;
+    cancelJob(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getJobAssignments(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getAllJobsAdmin(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getJobDetailsAdmin(req: Request, res: Response, next: NextFunction): Promise<void>;
+    adminCancelJob(req: Request, res: Response, next: NextFunction): Promise<void>;
 }

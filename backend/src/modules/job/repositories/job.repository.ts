@@ -29,7 +29,7 @@ export class JobRepository implements IJobRepository {
         limit: number,
         filters?: { status?: string; search?: string; visibility?: string }
     ): Promise<{ jobs: IJob[]; total: number }> {
-        const query: any = { userId };
+        const query: Record<string, unknown> = { userId };
 
         if (filters?.status) {
             switch (filters.status) {
@@ -58,7 +58,7 @@ export class JobRepository implements IJobRepository {
         if (filters?.search) {
             const searchRegex = new RegExp(filters.search, 'i');
 
-            const searchConditions: any[] = [
+            const searchConditions: Record<string, unknown>[] = [
                 { jobCode: searchRegex },
                 { title: searchRegex },
                 { description: searchRegex }
@@ -155,7 +155,7 @@ export class JobRepository implements IJobRepository {
             maxBudget?: number;
         }
     ): Promise<{ jobs: IJob[]; total: number }> {
-        const query: any = {};
+        const query: Record<string, unknown> = {};
 
         if (filters?.status) {
             query.status = filters.status;
@@ -178,9 +178,10 @@ export class JobRepository implements IJobRepository {
         }
 
         if (filters?.minBudget !== undefined || filters?.maxBudget !== undefined) {
-            query['budget.min'] = {};
-            if (filters.minBudget !== undefined) query['budget.min'].$gte = filters.minBudget;
-            if (filters.maxBudget !== undefined) query['budget.max'].$lte = filters.maxBudget;
+            const budgetQuery: Record<string, unknown> = {};
+            if (filters.minBudget !== undefined) budgetQuery.$gte = filters.minBudget;
+            if (filters.maxBudget !== undefined) budgetQuery.$lte = filters.maxBudget;
+            query['budget.min'] = budgetQuery;
         }
 
         if (filters?.search) {
@@ -219,13 +220,13 @@ export class JobRepository implements IJobRepository {
     async findAllOpen(
         page: number,
         limit: number,
-        filters: any,
+        filters: Record<string, unknown>,
         skill: string[],
         excludeJobIds?: string[],
         currentUserId?: string
     ): Promise<{ jobs: IJob[], total: number }> {
 
-        const query: any = {
+        const query: Record<string, unknown> = {
             status: { $in: [JOB_STATUS.OPEN, JOB_STATUS.PARTIALLY_ASSIGNED] },
             visibility: 'public',
             skillId: { $in: skill }
@@ -240,8 +241,8 @@ export class JobRepository implements IJobRepository {
         }
 
         if (filters.skillId) {
-            if (mongoose.Types.ObjectId.isValid(filters.skillId)) {
-                query.skillId = new mongoose.Types.ObjectId(filters.skillId);
+            if (mongoose.Types.ObjectId.isValid(filters.skillId as string)) {
+                query.skillId = new mongoose.Types.ObjectId(filters.skillId as string);
             } else {
                 const skillDoc = await SkillModel.findOne({
                     name: new RegExp(`^${filters.skillId}$`, 'i')
@@ -255,8 +256,8 @@ export class JobRepository implements IJobRepository {
         }
 
         if (filters.locationId) {
-            if (mongoose.Types.ObjectId.isValid(filters.locationId)) {
-                query['location.district'] = new mongoose.Types.ObjectId(filters.locationId);
+            if (mongoose.Types.ObjectId.isValid(filters.locationId as string)) {
+                query['location.district'] = new mongoose.Types.ObjectId(filters.locationId as string);
             } else {
                 const location = await LocationModel.findOne({
                     name: new RegExp(`^${filters.locationId}$`, 'i')
@@ -278,7 +279,7 @@ export class JobRepository implements IJobRepository {
         }
 
         if (filters.search) {
-            const searchRegex = new RegExp(filters.search, 'i');
+            const searchRegex = new RegExp(filters.search as string, 'i');
             query.$or = [
                 { jobCode: searchRegex },
                 { title: searchRegex },
@@ -341,7 +342,7 @@ export class JobRepository implements IJobRepository {
         search?: string,
         filter?: string
     ): Promise<{ jobs: IJob[]; total: number }> {
-        const query: any = {
+        const query: Record<string, unknown> = {
             hiredProviderId: new mongoose.Types.ObjectId(providerId),
         };
 
@@ -434,15 +435,15 @@ export class JobRepository implements IJobRepository {
         );
     }
 
-    async findByConditionAndUpdate(query: any, update: any): Promise<IJob | null> {
+    async findByConditionAndUpdate(query: Record<string, unknown>, update: Record<string, unknown>): Promise<IJob | null> {
         return await JobModel.findOneAndUpdate(query, update, { new: true });
     }
 
-    async find(query: any): Promise<IJob[]> {
+    async find(query: Record<string, unknown>): Promise<IJob[]> {
         return JobModel.find(query);
     }
 
-    async count(query: any): Promise<number> {
+    async count(query: Record<string, unknown>): Promise<number> {
         return JobModel.countDocuments(query);
     }
 
@@ -463,7 +464,7 @@ export class JobRepository implements IJobRepository {
         return JobModel.countDocuments({ status: JOB_STATUS.COMPLETED });
     }
 
-    async getStatusDistribution(): Promise<any[]> {
+    async getStatusDistribution(): Promise<{ status: string; count: number }[]> {
         return JobModel.aggregate([
             { $group: { _id: "$status", count: { $sum: 1 } } },
             { $project: { _id: 0, status: "$_id", count: 1 } }

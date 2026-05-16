@@ -1,5 +1,15 @@
 import { IAvailability, IBlockedDate } from "../interfaces/serviceProvider.interface";
 
+interface IAssignmentSchedule {
+    jobId?: {
+        schedule?: {
+            startDate: Date | string;
+            startTime: string;
+            endTime: string;
+        };
+    };
+}
+
 export class AvailabilityValidator {
     static isWithinWeeklyAvailability(
         availability: IAvailability[],
@@ -49,7 +59,7 @@ export class AvailabilityValidator {
     }
 
     static doesOverlapWithAssignments(
-        existingAssignments: any[],
+        existingAssignments: IAssignmentSchedule[],
         newJobDate: Date,
         newStartTimeStr: string,
         newEndTimeStr: string,

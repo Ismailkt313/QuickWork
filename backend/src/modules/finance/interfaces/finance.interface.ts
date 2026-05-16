@@ -96,8 +96,8 @@ export interface IPaymentController {
 }
 
 export interface IAdminFinanceController {
-    getOverview(req: Request, res: Response, next?: NextFunction): Promise<any>;
-    getTransactions(req: Request, res: Response, next?: NextFunction): Promise<any>;
+    getOverview(req: Request, res: Response, next?: NextFunction): Promise<unknown>;
+    getTransactions(req: Request, res: Response, next?: NextFunction): Promise<unknown>;
 }
 
 export interface IInvoiceController {
@@ -110,38 +110,38 @@ export interface IWalletService {
     getOrCreateWallet(providerId: string): Promise<IWallet>;
     processCashPayment(providerId: string, platformFee: number): Promise<void>;
     processOnlinePayment(providerId: string, totalAmount: number, platformFee: number): Promise<void>;
-    getAdminOverview(): Promise<any>;
+    getAdminOverview(): Promise<Record<string, unknown>>;
     isBlocked(providerId: string): Promise<boolean>;
     getTransactions(providerId: string, page?: number, limit?: number, search?: string, type?: string, source?: string): Promise<{ transactions: IWalletTransaction[], total: number }>;
     requestWithdrawal(providerId: string, amount: number): Promise<IWallet>;
 }
 
 export interface IRazorpayService {
-    createOrder(amount: number, receiptId: string): Promise<any>;
+    createOrder(amount: number, receiptId: string): Promise<Record<string, unknown>>;
     verifySignature(orderId: string, paymentId: string, signature: string, secret: string): boolean;
 }
 
 export interface IWorkHistoryService {
-    createFromAssignment(assignment: any): Promise<IWorkHistory>;
+    createFromAssignment(assignment: Record<string, unknown>): Promise<IWorkHistory>;
     getByProvider(providerId: string): Promise<IWorkHistory[]>;
     getById(id: string): Promise<IWorkHistory | null>;
     getByAssignmentId(assignmentId: string): Promise<IWorkHistory | null>;
 }
 
 export interface IPaymentService {
-    createRazorpayOrder(workHistoryId: string): Promise<any>;
+    createRazorpayOrder(workHistoryId: string): Promise<Record<string, unknown>>;
     verifyRazorpayPayment(workHistoryId: string, razorpayOrderId: string, razorpayPaymentId: string, razorpaySignature: string): Promise<{ success: boolean; message: string }>;
     markAsPaidCash(workHistoryId: string, clientId: string): Promise<{ success: boolean; message: string }>;
     confirmCashPayment(workHistoryId: string, providerId: string): Promise<{ success: boolean; message: string }>;
     rejectCashPayment(workHistoryId: string, providerId: string): Promise<{ success: boolean; message: string }>;
-    createJobRazorpayOrder(jobId: string): Promise<any>;
-    verifyJobRazorpayPayment(jobId: string, razorpayOrderId: string, razorpayPaymentId: string, razorpaySignature: string): Promise<any>;
+    createJobRazorpayOrder(jobId: string): Promise<Record<string, unknown>>;
+    verifyJobRazorpayPayment(jobId: string, razorpayOrderId: string, razorpayPaymentId: string, razorpaySignature: string): Promise<Record<string, unknown>>;
     getPlatformEarnings(): Promise<number>;
 }
 
 export interface IAdminFinanceService {
-    getFinanceOverview(): Promise<any>;
-    getTransactions(query: any): Promise<any>;
+    getFinanceOverview(): Promise<Record<string, unknown>>;
+    getTransactions(query: Record<string, unknown>): Promise<Record<string, unknown>>;
 }
 
 export interface IInvoiceService {
@@ -157,21 +157,21 @@ export interface IWalletRepository {
     create(providerId: string, balance: number): Promise<IWallet>;
     updateBalance(walletId: string, change: number): Promise<IWallet | null>;
     createTransaction(providerId: string, type: 'credit' | 'debit', source: 'cash_fee' | 'online_payment' | 'withdrawal', amount: number, balanceAfter: number): Promise<IWalletTransaction>;
-    findAllWithProvider(): Promise<any[]>;
+    findAllWithProvider(): Promise<Record<string, unknown>[]>;
     getTransactionsWithCount(providerId: string, skip: number, limit: number, search?: string, type?: string, source?: string): Promise<[IWalletTransaction[], number]>;
     getPendingDues(): Promise<number>;
 }
 
 export interface IPlatformTransactionRepository {
-    create(data: any): Promise<any>;
-    findWithPagination(query: any, skip: number, limit: number): Promise<[any[], number]>;
-    getAdminFinanceOverview(): Promise<any>;
-    getTransactionsWithCount(filter: any, skip: number, limit: number): Promise<[any[], number]>;
+    create(data: Record<string, unknown>): Promise<Record<string, unknown>>;
+    findWithPagination(query: Record<string, unknown>, skip: number, limit: number): Promise<[Record<string, unknown>[], number]>;
+    getAdminFinanceOverview(): Promise<Record<string, unknown>>;
+    getTransactionsWithCount(filter: Record<string, unknown>, skip: number, limit: number): Promise<[Record<string, unknown>[], number]>;
     countTotalTransactions(): Promise<number>;
-    getEarningsStats(): Promise<any>;
-    getRecentTransactions(limit: number): Promise<any[]>;
-    getMonthlyRevenue(): Promise<any[]>;
-    getFinanceSummary(): Promise<any>;
+    getEarningsStats(): Promise<Record<string, unknown>>;
+    getRecentTransactions(limit: number): Promise<Record<string, unknown>[]>;
+    getMonthlyRevenue(): Promise<Record<string, unknown>[]>;
+    getFinanceSummary(): Promise<Record<string, unknown>>;
 }
 
 export interface IWorkHistoryRepository {
@@ -182,11 +182,11 @@ export interface IWorkHistoryRepository {
     findProviderHistory(providerId: string, status: string | undefined, skip: number, limit: number): Promise<[IWorkHistory[], number]>;
     getPlatformEarnings(): Promise<number>;
     save(workHistory: IWorkHistory): Promise<IWorkHistory>;
-    create(data: any): Promise<IWorkHistory>;
+    create(data: Record<string, unknown>): Promise<IWorkHistory>;
     getByProvider(providerId: string): Promise<IWorkHistory[]>;
     findByJob(jobId: string): Promise<IWorkHistory[]>;
-    getEarningsStats(providerId: string): Promise<any>;
-    getMonthlyEarnings(providerId: string, limit: number): Promise<any[]>;
+    getEarningsStats(providerId: string): Promise<Record<string, unknown>>;
+    getMonthlyEarnings(providerId: string, limit: number): Promise<Record<string, unknown>[]>;
 }
 
 export interface IInvoiceRepository {

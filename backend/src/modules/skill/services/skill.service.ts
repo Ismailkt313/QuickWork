@@ -10,7 +10,7 @@ export class SkillService implements ISkillService {
     }
 
     async searchSkills(query: string): Promise<{ success: boolean; data: ISkill[] }> {
-        const filter: any = { isActive: true };
+        const filter: Record<string, unknown> = { isActive: true };
         if (query) {
             filter.name = { $regex: query, $options: 'i' };
         }
@@ -24,10 +24,10 @@ export class SkillService implements ISkillService {
             slug: skill.slug
         }));
 
-        return { success: true, data: formattedSkills as any };
+        return { success: true, data: formattedSkills as unknown as ISkill[] };
     }
 
-    async getAllSkills(page: number, limit: number, search?: string, locationId?: string): Promise<{ success: boolean; data: ISkill[]; pagination: any }> {
+    async getAllSkills(page: number, limit: number, search?: string, locationId?: string): Promise<{ success: boolean; data: ISkill[]; pagination: { total: number; page: number; limit: number; totalPages: number } }> {
         const { data, total } = await this._skillRepository.getAllSkills(page, limit, search, locationId);
         return {
             success: true,
@@ -41,7 +41,7 @@ export class SkillService implements ISkillService {
         };
     }
 
-    async getAdminSkills(page: number, limit: number, search?: string): Promise<{ success: boolean; data: ISkill[], pagination: any }> {
+    async getAdminSkills(page: number, limit: number, search?: string): Promise<{ success: boolean; data: ISkill[], pagination: { total: number; page: number; limit: number; totalPages: number } }> {
         const { data, total } = await this._skillRepository.getAdminSkills(page, limit, search);
         return {
             success: true,
