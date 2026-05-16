@@ -18,7 +18,7 @@ A trust-based local service marketplace platform connecting clients with skilled
 
 QuickWork is a robust, trust-based local service marketplace platform designed to seamlessly connect clients with skilled service providers. It facilitates efficient job discovery, management, and execution within a localized context, leveraging advanced geo-spatial technologies and real-time communication. The platform supports role-based authentication for Users, Providers, and Administrators, features a real-world job location system with Geo-based data, and includes a real-time chat system for direct communication. Structured job creation, management, and a developing trust & reputation system are core components.
 
-A live demonstration of the platform is available at: 👉 [https://quickwork-mu.vercel.app](https://quickwork-mu.vercel.app)
+A live demonstration of the platform is available at: 👉 https://quickwork.site/
 
 ## System Architecture
 
