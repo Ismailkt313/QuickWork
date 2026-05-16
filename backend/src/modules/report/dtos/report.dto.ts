@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { REPORT_STATUS, REPORT_ROLE } from '../interfaces/report.interface';
+import { REPORT_STATUS, REPORT_ROLE, IReport } from '../interfaces/report.interface';
 
 export const CreateReportSchema = z.object({
     assignmentId: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid assignmentId"),
@@ -37,34 +37,28 @@ export interface ReportResponseDTO {
     createdAt: Date;
 }
 
-export const mapReportToResponseDTO = (report: {
-    _id: { toString: () => string };
-    assignmentId: { toString: () => string };
-    reporterId: { _id: { toString: () => string }; name: string };
-    reportedUserId: { _id: { toString: () => string }; name: string };
-    role: REPORT_ROLE;
-    reason: string;
-    description?: string;
-    images?: string[];
-    status: REPORT_STATUS;
-    createdAt: Date;
-}): ReportResponseDTO => {
+export const mapReportToResponseDTO = (report: IReport | Record<string, unknown>): ReportResponseDTO => {
+    const r = report as unknown as Record<string, unknown>;
+    const repId = r.reporterId as Record<string, unknown> | undefined;
+    const reportedUser = r.reportedUserId as Record<string, unknown> | undefined;
+
     return {
-        id: report._id.toString(),
-        assignmentId: report.assignmentId.toString(),
+        id: r._id ? (r._id as { toString(): string }).toString() : ((r.id as string) || ''),
+        assignmentId: r.assignmentId ? (r.assignmentId as { toString(): string }).toString() : '',
         reporterId: {
-            id: report.reporterId._id.toString(),
-            name: report.reporterId.name
+            id: repId?._id ? (repId._id as { toString(): string }).toString() : (repId ? (repId as { toString(): string }).toString() : ''),
+            name: (repId?.name as string) || 'User'
         },
         reportedUserId: {
-            id: report.reportedUserId._id.toString(),
-            name: report.reportedUserId.name
+            id: reportedUser?._id ? (reportedUser._id as { toString(): string }).toString() : (reportedUser ? (reportedUser as { toString(): string }).toString() : ''),
+            name: (reportedUser?.name as string) || 'User'
         },
-        role: report.role,
-        reason: report.reason,
-        description: report.description,
-        images: report.images || [],
-        status: report.status,
-        createdAt: report.createdAt
+        role: r.role as REPORT_ROLE,
+        reason: (r.reason as string) || '',
+        description: r.description as string | undefined,
+        images: (r.images as string[]) || [],
+        status: r.status as REPORT_STATUS,
+        createdAt: (r.createdAt as Date) || new Date()
     };
 };
+

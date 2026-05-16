@@ -70,8 +70,11 @@ export interface IModerationController {
     takeAction(req: Request, res: Response, next: NextFunction): Promise<void>;
 }
 
+import { IModerationLog } from '../models/moderationLog.model';
+
 export interface IModerationService {
     getReports(query: { status?: string; page?: number; limit?: number }): Promise<{ reports: IReport[]; total: number; page: number; pages: number }>;
-    getReportDetail(id: string): Promise<{ report: IReport; moderationLogs: Record<string, unknown>[] }>;
-    takeAction(reportId: string, adminId: string, action: 'warn' | 'block' | 'reject', reason: string): Promise<{ report: IReport; moderationLogs: Record<string, unknown>[] }>;
+    getReportDetail(id: string): Promise<{ report: IReport; moderationLogs: IModerationLog[] }>;
+    takeAction(reportId: string, adminId: string, action: 'warn' | 'block' | 'reject', reason: string): Promise<{ report: IReport; moderationLogs: IModerationLog[] }>;
 }
+

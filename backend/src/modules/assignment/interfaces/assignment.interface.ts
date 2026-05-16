@@ -1,4 +1,4 @@
-import { Document, Types, FilterQuery, UpdateWriteOpResult } from 'mongoose';
+import { Document, Types, FilterQuery, UpdateWriteOpResult, SortOrder } from 'mongoose';
 import { Request, Response, NextFunction } from 'express';
 import { ASSIGNMENT_STATUS, WORK_STATUS, ASSIGNMENT_TYPE } from '../../../constants/assignment';
 import { PAYMENT_STATUS, PAYMENT_METHOD } from '../../../constants/payment';
@@ -53,7 +53,7 @@ export interface IAssignmentRepository {
     create(data: Partial<IAssignment>): Promise<IAssignment>;
     findById(id: string): Promise<IAssignment | null>;
     findOne(query: FilterQuery<IAssignment>): Promise<IAssignment | null>;
-    find(query: FilterQuery<IAssignment>, options?: { page?: number, limit?: number, sort?: Record<string, unknown> }): Promise<IAssignment[]>;
+    find(query: FilterQuery<IAssignment>, options?: { page?: number, limit?: number, sort?: string | { [key: string]: SortOrder } }): Promise<IAssignment[]>;
     update(id: string, data: Partial<IAssignment>): Promise<IAssignment | null>;
     updateByJobId(jobId: string, data: Partial<IAssignment>): Promise<UpdateWriteOpResult>;
     exists(query: FilterQuery<IAssignment>): Promise<boolean>;

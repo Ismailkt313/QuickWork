@@ -1,4 +1,5 @@
 import { JobResponseDTO, mapJobToResponseDTO } from "../../job/dtos/jobResponse.dto";
+import { IAssignment } from "../interfaces/assignment.interface";
 
 export interface AssignmentResponseDTO {
     id: string;
@@ -42,65 +43,54 @@ export interface AssignmentResponseDTO {
     assignmentCode: string;
 }
 
-export const mapAssignmentToResponseDTO = async (assignment: {
-    _id?: unknown;
-    id?: string;
-    jobId?: { _id?: unknown; toString: () => string } | unknown;
-    workStatus?: string;
-    type?: string;
-    schedule?: { startDate?: Date; endDate?: Date };
-    assignedAt?: Date;
-    invite?: { invitedAt?: Date; respondedAt?: Date };
-    startedAt?: Date;
-    completedAt?: Date;
-    isOutOfDistrict?: boolean;
-    proof?: string[];
-    proofDescription?: string;
-    coWorkers?: Record<string, unknown>[];
-    cancellation?: { cancelledBy?: unknown; cancelledAt?: Date; reason?: string; isLateCancel?: boolean; notes?: string };
-    absence?: { reportedBy?: unknown; reportedAt?: Date; notes?: string; evidence?: string[] };
-    payment?: { status?: string; method?: string; amount?: number; paidAt?: Date; transactionId?: string };
-    assignmentCode?: string;
-}): Promise<AssignmentResponseDTO> => {
+export const mapAssignmentToResponseDTO = async (assignment: IAssignment | Record<string, unknown>): Promise<AssignmentResponseDTO> => {
+    const a = assignment as unknown as Record<string, unknown>;
+    const jobIdObj = a.jobId as Record<string, unknown> | undefined;
+    const scheduleObj = a.schedule as { startDate?: Date; endDate?: Date } | undefined;
+    const inviteObj = a.invite as { invitedAt?: Date; respondedAt?: Date } | undefined;
+    const cancellationObj = a.cancellation as { cancelledBy?: unknown; cancelledAt?: Date; reason?: string; isLateCancel?: boolean; notes?: string } | undefined;
+    const absenceObj = a.absence as { reportedBy?: unknown; reportedAt?: Date; notes?: string; evidence?: string[] } | undefined;
+    const paymentObj = a.payment as { status?: string; method?: string; amount?: number; paidAt?: Date; transactionId?: string } | undefined;
+
     return {
-        id: assignment._id ? assignment._id.toString() : assignment.id,
-        jobId: assignment.jobId?._id ? assignment.jobId._id.toString() : (assignment.jobId?.toString() || ''),
-        job: assignment.jobId && typeof assignment.jobId === 'object' ? await mapJobToResponseDTO(assignment.jobId) : null,
-        workStatus: assignment.workStatus,
-        type: assignment.type,
+        id: a._id ? (a._id as { toString(): string }).toString() : ((a.id as string) || ''),
+        jobId: jobIdObj?._id ? (jobIdObj._id as { toString(): string }).toString() : (jobIdObj ? (jobIdObj as { toString(): string }).toString() : ''),
+        job: jobIdObj && typeof jobIdObj === 'object' ? await mapJobToResponseDTO(jobIdObj) : null,
+        workStatus: (a.workStatus as string) || '',
+        type: (a.type as string) || '',
         schedule: {
-            startDate: assignment.schedule?.startDate ? assignment.schedule.startDate.toISOString() : '',
-            endDate: assignment.schedule?.endDate ? assignment.schedule.endDate.toISOString() : '',
+            startDate: scheduleObj?.startDate ? scheduleObj.startDate.toISOString() : '',
+            endDate: scheduleObj?.endDate ? scheduleObj.endDate.toISOString() : '',
         },
-        assignedAt: assignment.assignedAt ? assignment.assignedAt.toISOString() : '',
-        invitedAt: assignment.invite?.invitedAt ? assignment.invite.invitedAt.toISOString() : '',
-        respondedAt: assignment.invite?.respondedAt ? assignment.invite.respondedAt.toISOString() : '',
-        startedAt: assignment.startedAt ? assignment.startedAt.toISOString() : '',
-        completedAt: assignment.completedAt ? assignment.completedAt.toISOString() : '',
-        isOutOfDistrict: !!assignment.isOutOfDistrict,
-        proof: assignment.proof || [],
-        proofDescription: assignment.proofDescription || '',
-        coWorkers: assignment.coWorkers || [],
-        cancellation: assignment.cancellation ? {
-            cancelledBy: assignment.cancellation.cancelledBy?.toString() || '',
-            cancelledAt: assignment.cancellation.cancelledAt ? assignment.cancellation.cancelledAt.toISOString() : '',
-            reason: assignment.cancellation.reason,
-            isLateCancel: !!assignment.cancellation.isLateCancel,
-            notes: assignment.cancellation.notes
+        assignedAt: (a.assignedAt as Date) ? (a.assignedAt as Date).toISOString() : '',
+        invitedAt: inviteObj?.invitedAt ? inviteObj.invitedAt.toISOString() : '',
+        respondedAt: inviteObj?.respondedAt ? inviteObj.respondedAt.toISOString() : '',
+        startedAt: (a.startedAt as Date) ? (a.startedAt as Date).toISOString() : '',
+        completedAt: (a.completedAt as Date) ? (a.completedAt as Date).toISOString() : '',
+        isOutOfDistrict: !!a.isOutOfDistrict,
+        proof: (a.proof as string[]) || [],
+        proofDescription: (a.proofDescription as string) || '',
+        coWorkers: (a.coWorkers as Record<string, unknown>[]) || [],
+        cancellation: cancellationObj ? {
+            cancelledBy: cancellationObj.cancelledBy ? (cancellationObj.cancelledBy as { toString(): string }).toString() : '',
+            cancelledAt: cancellationObj.cancelledAt ? cancellationObj.cancelledAt.toISOString() : '',
+            reason: cancellationObj.reason || '',
+            isLateCancel: !!cancellationObj.isLateCancel,
+            notes: cancellationObj.notes
         } : undefined,
-        absence: assignment.absence ? {
-            reportedBy: assignment.absence.reportedBy?.toString() || '',
-            reportedAt: assignment.absence.reportedAt ? assignment.absence.reportedAt.toISOString() : '',
-            notes: assignment.absence.notes,
-            evidence: assignment.absence.evidence
+        absence: absenceObj ? {
+            reportedBy: absenceObj.reportedBy ? (absenceObj.reportedBy as { toString(): string }).toString() : '',
+            reportedAt: absenceObj.reportedAt ? absenceObj.reportedAt.toISOString() : '',
+            notes: absenceObj.notes,
+            evidence: absenceObj.evidence
         } : undefined,
-        payment: assignment.payment ? {
-            status: assignment.payment.status,
-            method: assignment.payment.method,
-            amount: assignment.payment.amount,
-            paidAt: assignment.payment.paidAt ? assignment.payment.paidAt.toISOString() : '',
-            transactionId: assignment.payment.transactionId
+        payment: paymentObj ? {
+            status: paymentObj.status || '',
+            method: paymentObj.method,
+            amount: paymentObj.amount || 0,
+            paidAt: paymentObj.paidAt ? paymentObj.paidAt.toISOString() : '',
+            transactionId: paymentObj.transactionId
         } : undefined,
-        assignmentCode: assignment.assignmentCode
+        assignmentCode: (a.assignmentCode as string) || ''
     };
 };

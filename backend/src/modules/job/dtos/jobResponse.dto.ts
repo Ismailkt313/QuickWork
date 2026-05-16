@@ -1,5 +1,7 @@
 import { formatBudget, formatDate, getInitials, getRelativeTime } from "../../../utils/mapper.utils";
 import { VERIFICATION_STATUS } from "../../../constants/verification";
+import { IJob } from "../interfaces/job.interface";
+import { IAssignment } from "../../assignment/interfaces/assignment.interface";
 
 export interface JobLocation {
   address: string;
@@ -61,152 +63,127 @@ export interface JobResponseDTO {
 }
 
 export const mapJobToResponseDTO = async (
-  job: {
-    userId?: { _id?: unknown; id?: unknown; name?: string; email?: string; number?: string } | string;
-    skillId?: { name?: string };
-    hiredProviderId?: { _id?: unknown; id?: unknown; userId?: { _id?: unknown; id?: unknown; name?: string; email?: string } | string; headline?: string; profileImage?: string; verification?: { status?: string }; toString: () => string } | string;
-    location?: { coordinates?: { coordinates?: [number, number] }; address?: string; district?: { name?: string; toString: () => string }; additionalDetails?: string };
-    _id?: unknown;
-    id?: string;
-    title?: string;
-    description?: string;
-    contactNumber?: string;
-    createdAt?: Date;
-    updatedAt?: Date;
-    budget?: { min?: number; max?: number };
-    applicantsCount?: number;
-    status?: string;
-    schedule?: { startDate?: Date; endDate?: Date };
-    durationType?: string;
-    visibility?: string;
-    rejectionReason?: string;
-    freelancersNeeded?: number;
-    acceptedFreelancers?: number;
-    jobCode?: string;
-  },
-  assignmentData?: {
-    _id?: unknown;
-    workStatus?: string;
-    cancellation?: { reason?: string; cancelledAt?: Date; isLateCancel?: boolean; notes?: string };
-    absence?: { reportedAt?: Date; notes?: string; evidence?: string[] };
-    payment?: { status?: string; method?: string; amount?: number; paidAt?: Date; transactionId?: string };
-  },
+  job: IJob | Record<string, unknown>,
+  assignmentData?: IAssignment | Record<string, unknown> | null,
   clientMetrics?: { averageRating: number; totalReviews: number }
 ): Promise<JobResponseDTO> => {
-  const user = (typeof job.userId === 'object' && job.userId !== null ? job.userId : {}) as { _id?: unknown; id?: unknown; name?: string; email?: string; number?: string };
-  const skill = job.skillId || {};
+  const j = job as unknown as Record<string, unknown>;
+  const user = (typeof j.userId === 'object' && j.userId !== null ? j.userId : {}) as { _id?: unknown; id?: unknown; name?: string; email?: string; number?: string };
+  const skill = (j.skillId as { name?: string }) || {};
 
   let hiredProvider = undefined;
-  const hiredProv = typeof job.hiredProviderId === 'object' && job.hiredProviderId !== null ? job.hiredProviderId : null;
-  const hiredProvUser = hiredProv && typeof hiredProv.userId === 'object' && hiredProv.userId !== null ? hiredProv.userId : null;
+  const hiredProv = typeof j.hiredProviderId === 'object' && j.hiredProviderId !== null ? (j.hiredProviderId as Record<string, unknown>) : null;
+  const hiredProvUser = hiredProv && typeof hiredProv.userId === 'object' && hiredProv.userId !== null ? (hiredProv.userId as Record<string, unknown>) : null;
 
   if (hiredProv && hiredProvUser) {
     hiredProvider = {
-      id: hiredProv._id?.toString() || hiredProv.id,
-      userId: hiredProvUser._id?.toString() || hiredProvUser.id,
+      id: hiredProv._id ? (hiredProv._id as { toString(): string }).toString() : (hiredProv.id as string),
+      userId: hiredProvUser._id ? (hiredProvUser._id as { toString(): string }).toString() : (hiredProvUser.id as string),
       name: hiredProvUser.name,
       email: hiredProvUser.email,
       headline: hiredProv.headline,
       profileImage: hiredProv.profileImage,
-      isVerified: hiredProv.verification?.status === VERIFICATION_STATUS.VERIFIED,
-      assignmentId: assignmentData?._id?.toString() || null,
-      workStatus: assignmentData?.workStatus || null,
+      isVerified: ((hiredProv.verification as Record<string, unknown>)?.status === VERIFICATION_STATUS.VERIFIED),
+      assignmentId: assignmentData?._id ? (assignmentData._id as { toString(): string }).toString() : null,
+      workStatus: (assignmentData?.workStatus as string) || null,
       cancellation: assignmentData?.cancellation ? {
-        reason: assignmentData.cancellation.reason,
-        cancelledAt: assignmentData.cancellation.cancelledAt,
-        isLateCancel: assignmentData.cancellation.isLateCancel,
-        notes: assignmentData.cancellation.notes,
+        reason: (assignmentData.cancellation as Record<string, unknown>).reason as string,
+        cancelledAt: (assignmentData.cancellation as Record<string, unknown>).cancelledAt as Date,
+        isLateCancel: (assignmentData.cancellation as Record<string, unknown>).isLateCancel as boolean,
+        notes: (assignmentData.cancellation as Record<string, unknown>).notes as string,
       } : null,
       absence: assignmentData?.absence ? {
-        reportedAt: assignmentData.absence.reportedAt,
-        notes: assignmentData.absence.notes,
-        evidence: assignmentData.absence.evidence,
+        reportedAt: (assignmentData.absence as Record<string, unknown>).reportedAt as Date,
+        notes: (assignmentData.absence as Record<string, unknown>).notes as string,
+        evidence: (assignmentData.absence as Record<string, unknown>).evidence as string[],
       } : null,
       payment: assignmentData?.payment ? {
-        status: assignmentData.payment.status,
-        method: assignmentData.payment.method,
-        amount: assignmentData.payment.amount,
-        paidAt: assignmentData.payment.paidAt,
-        transactionId: assignmentData.payment.transactionId
+        status: (assignmentData.payment as Record<string, unknown>).status as string,
+        method: (assignmentData.payment as Record<string, unknown>).method as string,
+        amount: (assignmentData.payment as Record<string, unknown>).amount as number,
+        paidAt: (assignmentData.payment as Record<string, unknown>).paidAt as Date,
+        transactionId: (assignmentData.payment as Record<string, unknown>).transactionId as string
       } : null,
     };
   }
 
   const clientId =
-    user._id?.toString() ||
-    (typeof user === "string" ? user : user.id?.toString() || "");
+    user._id ? (user._id as { toString(): string }).toString() :
+    (typeof user === "string" ? user : (user.id as { toString(): string })?.toString() || "");
 
   const clientName = user.name || "Anonymous";
 
   let location: JobLocation | null = null;
+  const loc = j.location as { coordinates?: { coordinates?: [number, number] }; address?: string; district?: { _id?: unknown; id?: unknown; name?: string; toString(): string }; additionalDetails?: string } | undefined;
 
   if (
-    job.location &&
-    job.location.coordinates &&
-    Array.isArray(job.location.coordinates.coordinates)
+    loc &&
+    loc.coordinates &&
+    Array.isArray(loc.coordinates.coordinates)
   ) {
-    const [lng, lat] = job.location.coordinates.coordinates;
+    const [lng, lat] = loc.coordinates.coordinates;
 
     location = {
-      address: job.location.address,
+      address: loc.address || "",
       lat,
       lng,
-      districtId: job.location.district?.toString(),
-      districtName: job.location.district?.name,
+      districtId: loc.district?._id ? (loc.district._id as { toString(): string }).toString() : (loc.district ? loc.district.toString() : ""),
+      districtName: loc.district?.name,
     };
   }
 
+  const budgetObj = j.budget as { min?: number; max?: number } | undefined;
+  const scheduleObj = j.schedule as { startDate?: Date; endDate?: Date } | undefined;
+
   return {
-    id: job._id?.toString() || job.id,
+    id: j._id ? (j._id as { toString(): string }).toString() : ((j.id as string) || ""),
     clientId,
-    title: job.title,
-    description: job.description,
+    title: (j.title as string) || "",
+    description: (j.description as string) || "",
     clientName,
     clientInitials: getInitials(clientName),
 
     location,
 
-    additionalDetails: job.location?.additionalDetails,
+    additionalDetails: loc?.additionalDetails,
     clientEmail: user.email,
-    clientNumber: job.contactNumber || user.number,
+    clientNumber: (j.contactNumber as string) || user.number,
 
-    postedAt: getRelativeTime(job.createdAt),
+    postedAt: getRelativeTime((j.createdAt as Date) || new Date()),
 
     skills: skill?.name ? [skill.name] : [],
-    budget: formatBudget(job.budget),
+    budget: formatBudget({ min: budgetObj?.min || 0, max: budgetObj?.max || 0 }),
     budgetRange: {
-      min: job.budget?.min || 0,
-      max: job.budget?.max || 0,
+      min: budgetObj?.min || 0,
+      max: budgetObj?.max || 0,
     },
 
-    applicants: job.applicantsCount || 0,
-    status: job.status,
+    applicants: (j.applicantsCount as number) || 0,
+    status: (j.status as string) || "",
 
-    startDate: job.schedule ? formatDate(job.schedule.startDate) : "",
-    endDate: job.schedule ? formatDate(job.schedule.endDate) : "",
+    startDate: scheduleObj?.startDate ? formatDate(scheduleObj.startDate) : "",
+    endDate: scheduleObj?.endDate ? formatDate(scheduleObj.endDate) : "",
 
-    durationType: job.durationType || "",
-    visibility: job.visibility || "public",
+    durationType: (j.durationType as string) || "",
+    visibility: (j.visibility as string) || "public",
 
-    hiredProviderId:
-      job.hiredProviderId?._id?.toString() ||
-      job.hiredProviderId?.toString(),
+    hiredProviderId: hiredProv ? (hiredProv._id ? (hiredProv._id as { toString(): string }).toString() : (hiredProv.id as string)) : undefined,
 
     hiredProvider,
-    rejectionReason: job.rejectionReason,
+    rejectionReason: j.rejectionReason as string | undefined,
 
-    freelancersNeeded: job.freelancersNeeded || 1,
-    acceptedFreelancers: job.acceptedFreelancers || 0,
+    freelancersNeeded: (j.freelancersNeeded as number) || 1,
+    acceptedFreelancers: (j.acceptedFreelancers as number) || 0,
 
-    createdAt: job.createdAt,
-    updatedAt: job.updatedAt,
+    createdAt: (j.createdAt as Date) || new Date(),
+    updatedAt: (j.updatedAt as Date) || new Date(),
 
-    schedule: job.schedule ? {
-      startDate: job.schedule.startDate,
-      endDate: job.schedule.endDate,
+    schedule: scheduleObj?.startDate && scheduleObj?.endDate ? {
+      startDate: scheduleObj.startDate,
+      endDate: scheduleObj.endDate,
     } : undefined,
     clientRating: clientMetrics?.averageRating || 0,
     clientReviewsCount: clientMetrics?.totalReviews || 0,
-    jobCode: job.jobCode
+    jobCode: (j.jobCode as string) || ""
   };
 };
