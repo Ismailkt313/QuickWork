@@ -2,16 +2,14 @@ import React, { useEffect, useState, useCallback } from "react";
 import { adminSkillService, type Skill } from "../services/adminSkill.service";
 import { 
     RiBriefcaseLine, 
-    RiAddLine, 
-    RiSearchLine, 
     RiPencilLine, 
     RiDeleteBinLine, 
-    RiToggleLine,
-    RiArrowLeftSLine,
-    RiArrowRightSLine
+    RiToggleLine
 } from "react-icons/ri";
 import { toast } from "react-toastify";
 import useDebounce from "../../../hooks/useDebounce";
+import { AdminPageHeader, AdminFilterBar, DataTable, type Column } from "../components/table";
+import { CustomSelect } from "../../../shared/components/ui/CustomSelect";
 import "../admin.css";
 
 const SkillManagement: React.FC = () => {
@@ -21,11 +19,14 @@ const SkillManagement: React.FC = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [searchInput, setSearchInput] = useState("");
     const debouncedSearch = useDebounce(searchInput, 500);
+    const [statusFilter, setStatusFilter] = useState("");
     const [lastSearch, setLastSearch] = useState("");
+    const [lastStatus, setLastStatus] = useState("");
     const limit = 10;
 
-    if (debouncedSearch !== lastSearch) {
+    if (debouncedSearch !== lastSearch || statusFilter !== lastStatus) {
         setLastSearch(debouncedSearch);
+        setLastStatus(statusFilter);
         setPage(1);
     }
 
@@ -38,7 +39,7 @@ const SkillManagement: React.FC = () => {
     const fetchSkills = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await adminSkillService.getSkills(page, limit, debouncedSearch);
+            const response = await adminSkillService.getSkills(page, limit, debouncedSearch, statusFilter);
             if (response.success) {
                 setSkills(response.data);
                 setTotalPages(response.pagination.totalPages);
@@ -49,7 +50,7 @@ const SkillManagement: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [page, debouncedSearch]);
+    }, [page, debouncedSearch, statusFilter]);
 
     useEffect(() => {
         fetchSkills();
@@ -62,7 +63,7 @@ const SkillManagement: React.FC = () => {
             const response = await adminSkillService.toggleStatus(id);
             if (response.success) {
                 toast.success(response.message);
-                setSkills(prev => prev.map(s => s._id === id ? { ...s, isActive: !s.isActive } : s));
+                setSkills(prev => prev.map(s => (s._id === id || s.id === id) ? { ...s, isActive: !s.isActive } : s));
             }
         } catch {
             toast.error("Failed to update skill status");
@@ -78,8 +79,9 @@ const SkillManagement: React.FC = () => {
         try {
             setModalLoading(true);
             let response;
-            if (currentSkill._id) {
-                response = await adminSkillService.updateSkill(currentSkill._id, currentSkill);
+            const skillId = currentSkill._id || currentSkill.id;
+            if (skillId) {
+                response = await adminSkillService.updateSkill(skillId, currentSkill);
             } else {
                 response = await adminSkillService.createSkill(currentSkill);
             }
@@ -99,11 +101,12 @@ const SkillManagement: React.FC = () => {
     };
 
     const handleDeleteSkill = async () => {
-        if (!currentSkill?._id) return;
+        const skillId = currentSkill?._id || currentSkill?.id;
+        if (!skillId) return;
 
         try {
             setModalLoading(true);
-            const response = await adminSkillService.deleteSkill(currentSkill._id);
+            const response = await adminSkillService.deleteSkill(skillId);
             if (response.success) {
                 toast.success(response.message);
                 setIsDeleteModalOpen(false);
@@ -116,162 +119,138 @@ const SkillManagement: React.FC = () => {
         }
     };
 
-    return (
-        <div className="admin-page-container">
-            {/* Breadcrumb */}
-            <div className="admin-breadcrumb">
-                Admin <span className="separator">›</span> <span>Global Skill Directory</span>
-            </div>
-
-            {/* Header */}
-            <div className="admin-page-header">
-                <div>
-                    <h1 className="admin-page-title">Global Skill Directory</h1>
-                    <p className="admin-page-subtitle">
-                        Manage the master list of services and skills available on the platform.
-                    </p>
-                </div>
-                <button 
-                    className="btn btn-invite"
-                    onClick={() => {
-                        setCurrentSkill({ name: "", isActive: true });
-                        setIsEditModalOpen(true);
-                    }}
-                >
-                    <RiAddLine className="me-2" />
-                    Add New Skill
-                </button>
-            </div>
-
-            {/* Filter Bar */}
-            <div className="admin-filter-bar">
-                <RiSearchLine className="admin-search-icon" />
-                <input
-                    type="text"
-                    className="admin-search-input"
-                    placeholder="Search by skill name or description..."
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                />
-            </div>
-
-            {/* Table */}
-            <div className="admin-table-card">
-                <table className="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Skill Name</th>
-                            <th>Status</th>
-                            <th>Created At</th>
-                            <th className="text-end">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {loading ? (
-                            [...Array(5)].map((_, i) => (
-                                <tr key={i} className="opacity-50">
-                                    <td colSpan={4} className="py-4 text-center">
-                                        <div className="placeholder-glow">
-                                            <span className="placeholder col-12"></span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
-                        ) : skills.length === 0 ? (
-                            <tr>
-                                <td colSpan={4} className="py-10 text-center text-slate-400">
-                                    No skills found. Start by adding a new one.
-                                </td>
-                            </tr>
-                        ) : (
-                            skills.map((skill) => (
-                                <tr key={skill._id}>
-                                    <td>
-                                        <div className="d-flex align-items-center gap-3">
-                                            <div className="bg-blue-50 text-blue-600 p-2 rounded-lg">
-                                                <RiBriefcaseLine size={18} />
-                                            </div>
-                                            <div>
-                                                <div className="fw-bold text-slate-800">{skill.name}</div>
-                                                <div className="text-xs text-slate-400 font-monospace">slug: {skill.slug}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span className={`badge rounded-pill ${skill.isActive ? 'bg-success bg-opacity-10 text-success' : 'bg-slate-100 text-slate-500'}`}>
-                                            {skill.isActive ? 'Active' : 'Inactive'}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div className="text-slate-500 small">
-                                            {new Date(skill.createdAt).toLocaleDateString()}
-                                        </div>
-                                    </td>
-                                    <td className="text-end">
-                                        <div className="d-flex justify-content-end gap-2">
-                                            <button 
-                                                className={`btn btn-sm ${skill.isActive ? 'text-orange-600 hover:bg-orange-50' : 'text-green-600 hover:bg-green-50'}`}
-                                                onClick={() => handleToggleStatus(skill._id)}
-                                                title={skill.isActive ? "Deactivate" : "Activate"}
-                                            >
-                                                <RiToggleLine size={18} />
-                                            </button>
-                                            <button 
-                                                className="btn btn-sm text-blue-600 hover:bg-blue-50"
-                                                onClick={() => {
-                                                    setCurrentSkill(skill);
-                                                    setIsEditModalOpen(true);
-                                                }}
-                                                title="Edit"
-                                            >
-                                                <RiPencilLine size={18} />
-                                            </button>
-                                            <button 
-                                                className="btn btn-sm text-rose-600 hover:bg-rose-50"
-                                                onClick={() => {
-                                                    setCurrentSkill(skill);
-                                                    setIsDeleteModalOpen(true);
-                                                }}
-                                                title="Delete"
-                                            >
-                                                <RiDeleteBinLine size={18} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-
-                {/* Pagination */}
-                <div className="admin-table-footer">
-                    <div className="admin-pagination">
-                        <button disabled={page <= 1} onClick={() => setPage(page - 1)}>
-                            <RiArrowLeftSLine />
-                        </button>
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                            <button
-                                key={p}
-                                className={p === page ? "active" : ""}
-                                onClick={() => setPage(p)}
-                            >
-                                {p}
-                            </button>
-                        ))}
-                        <button disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
-                            <RiArrowRightSLine />
-                        </button>
+    const columns: Column<Skill>[] = [
+        {
+            key: "name",
+            header: "Skill Name",
+            render: (skill) => (
+                <div className="d-flex align-items-center gap-3">
+                    <div style={{ backgroundColor: "#eff6ff", color: "#2563eb", borderRadius: "8px", padding: "8px" }}>
+                        <RiBriefcaseLine size={18} />
+                    </div>
+                    <div>
+                        <div className="fw-bold text-slate-800">{skill.name}</div>
+                        <div className="text-xs font-monospace" style={{ fontSize: "11px", color: "#94a3b8" }}>slug: {skill.slug}</div>
                     </div>
                 </div>
-            </div>
+            )
+        },
+        {
+            key: "status",
+            header: "Status",
+            render: (skill) => (
+                <span className={`badge rounded-pill ${skill.isActive ? 'bg-success bg-opacity-10 text-success' : 'bg-secondary bg-opacity-10 text-secondary'}`}>
+                    {skill.isActive ? 'Active' : 'Inactive'}
+                </span>
+            )
+        },
+        {
+            key: "createdAt",
+            header: "Created At",
+            render: (skill) => (
+                <div className="small" style={{ color: "#64748b" }}>
+                    {new Date(skill.createdAt).toLocaleDateString()}
+                </div>
+            )
+        },
+        {
+            key: "actions",
+            header: "Actions",
+            align: "center",
+            render: (skill) => (
+                <div className="d-flex justify-content-center gap-2">
+                    <button 
+                        className={`btn btn-sm ${skill.isActive ? 'text-warning' : 'text-success'}`}
+                        onClick={() => handleToggleStatus(skill._id || skill.id!)}
+                        title={skill.isActive ? "Deactivate" : "Activate"}
+                        style={{ padding: "4px 8px", background: "none", border: "none" }}
+                    >
+                        <RiToggleLine size={18} />
+                    </button>
+                    <button 
+                        className="btn btn-sm text-primary"
+                        onClick={() => {
+                            setCurrentSkill(skill);
+                            setIsEditModalOpen(true);
+                        }}
+                        title="Edit"
+                        style={{ padding: "4px 8px", background: "none", border: "none" }}
+                    >
+                        <RiPencilLine size={18} />
+                    </button>
+                    <button 
+                        className="btn btn-sm text-danger"
+                        onClick={() => {
+                            setCurrentSkill(skill);
+                            setIsDeleteModalOpen(true);
+                        }}
+                        title="Delete"
+                        style={{ padding: "4px 8px", background: "none", border: "none" }}
+                    >
+                        <RiDeleteBinLine size={18} />
+                    </button>
+                </div>
+            )
+        }
+    ];
+
+    return (
+        <div className="admin-page-container">
+            <AdminPageHeader
+                title="Global Skill Directory"
+                subtitle="Manage the master list of services and skills available on the platform."
+                breadcrumb={<>Admin <span className="separator">›</span> <span>Global Skill Directory</span></>}
+                actionButton={{
+                    label: "Add New Skill",
+                    icon: "bi bi-plus-lg",
+                    onClick: () => {
+                        setCurrentSkill({ name: "", isActive: true });
+                        setIsEditModalOpen(true);
+                    }
+                }}
+            />
+
+            <AdminFilterBar
+                searchPlaceholder="Search by skill name or description..."
+                searchValue={searchInput}
+                onSearchChange={setSearchInput}
+                onReset={() => {
+                    setSearchInput("");
+                    setStatusFilter("");
+                    setPage(1);
+                }}
+            >
+                <CustomSelect
+                    value={statusFilter}
+                    onChange={(v) => { setStatusFilter(v); setPage(1); }}
+                    options={[
+                        { value: "", label: "All Statuses" },
+                        { value: "active", label: "Active Only" },
+                        { value: "inactive", label: "Inactive Only" }
+                    ]}
+                    size="sm"
+                    className="admin-filter-select-override"
+                />
+            </AdminFilterBar>
+
+            <DataTable
+                columns={columns}
+                data={skills}
+                loading={loading}
+                emptyMessage="No skills found. Start by adding a new one."
+                emptyIcon="bi bi-briefcase"
+                page={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                keyExtractor={(skill) => skill._id || skill.id || Math.random().toString()}
+            />
 
             {/* Edit/Create Modal */}
             {isEditModalOpen && (
                 <div className="confirm-modal-overlay">
                     <div className="confirm-modal-card" style={{ maxWidth: '500px' }}>
                         <div className="confirm-modal-title">
-                            {currentSkill?._id ? "Edit Skill" : "Add New Skill"}
+                            {(currentSkill?._id || currentSkill?.id) ? "Edit Skill" : "Add New Skill"}
                         </div>
                         <div className="p-4 pt-0">
                             <div className="mb-4">

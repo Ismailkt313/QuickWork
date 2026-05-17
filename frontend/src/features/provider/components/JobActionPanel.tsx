@@ -10,7 +10,7 @@ interface JobActionPanelProps {
   budget: string; duration: string; location: JobLocation | null;
   startDate: string; endDate?: string; freelancersNeeded?: number;
   isApplied: boolean; isAssigned: boolean; isPrivate?: boolean;
-  contactNumber?: string;
+  contactNumber?: string; status?: string;
   onAccept: () => void; onReject?: () => void; onMessage: () => void; onSave?: () => void;
 }
 
@@ -26,10 +26,11 @@ const InfoRow: React.FC<{ icon: React.ReactNode; label: string; value: string; i
 
 const JobActionPanel: React.FC<JobActionPanelProps> = ({
   budget, duration, location, startDate, endDate, freelancersNeeded,
-  isApplied, isAssigned, isPrivate, contactNumber,
+  isApplied, isAssigned, isPrivate, contactNumber, status,
   onAccept, onReject, onMessage,
 }) => {
-  const isDisabled = isAssigned || isApplied;
+  const isExpired = status === "expired";
+  const isDisabled = isAssigned || isApplied || isExpired;
 
   return (
     <div style={{ background:"#fff", borderRadius:16, border:"1px solid #e8edf4", overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.06)", position:"sticky", top:24 }}>
@@ -66,22 +67,23 @@ const JobActionPanel: React.FC<JobActionPanelProps> = ({
           disabled={isDisabled}
           style={{
             width:"100%", padding:"13px 20px", borderRadius:11,
-            background: isApplied ? "#f0fdf4" : isDisabled ? "#f1f5f9" : "linear-gradient(135deg,#6366f1,#4f46e5)",
-            color: isApplied ? "#16a34a" : isDisabled ? "#94a3b8" : "#fff",
+            background: isApplied ? "#f0fdf4" : isExpired ? "#fef2f2" : isDisabled ? "#f1f5f9" : "linear-gradient(135deg,#6366f1,#4f46e5)",
+            color: isApplied ? "#16a34a" : isExpired ? "#dc2626" : isDisabled ? "#94a3b8" : "#fff",
             fontWeight:700, fontSize:15, cursor: isDisabled ? "not-allowed" : "pointer",
             display:"flex", alignItems:"center", justifyContent:"center", gap:8,
             boxShadow: isDisabled ? "none" : "0 6px 18px rgba(99,102,241,0.35)",
-            border: isApplied ? "1.5px solid #bbf7d0" : "none",
+            border: isApplied ? "1.5px solid #bbf7d0" : isExpired ? "1.5px solid #fecaca" : "none",
             transition:"all 0.2s",
           }}
         >
-          {isApplied ? <><RiCheckDoubleLine size={18}/> Already Applied</>
+          {isExpired ? <><RiCloseLine size={18}/> Deadline Passed</>
+          : isApplied ? <><RiCheckDoubleLine size={18}/> Already Applied</>
           : isAssigned ? "Already Assigned"
           : isPrivate  ? <><RiFlashlightLine size={17}/> Accept Offer</>
           : <><RiFlashlightLine size={17}/> Accept This Job</>}
         </button>
 
-        {isPrivate && !isApplied && !isAssigned && (
+        {isPrivate && !isApplied && !isAssigned && !isExpired && (
           <button onClick={onReject}
             style={{ width:"100%", padding:"12px 20px", borderRadius:11, border:"1.5px solid #fecaca", background:"#fff", color:"#dc2626", fontWeight:700, fontSize:14, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:6, transition:"all 0.2s" }}
             onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.background="#fef2f2";}}

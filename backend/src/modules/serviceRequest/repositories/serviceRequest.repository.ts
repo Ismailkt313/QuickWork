@@ -20,17 +20,31 @@ export class ServiceRequestRepository extends BaseRepository<IServiceRequest> im
         return await ServiceRequestModel.find({ requestedBy: userId }).sort({ createdAt: -1 });
     }
 
-    async findAllPending(page: number, limit: number): Promise<IServiceRequest[]> {
+    async findAllPending(page: number, limit: number, search?: string): Promise<IServiceRequest[]> {
         const skip = (page - 1) * limit;
-        return await ServiceRequestModel.find({ status: 'pending' })
+        const query: any = { status: 'pending' };
+        if (search) {
+            query.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } }
+            ];
+        }
+        return await ServiceRequestModel.find(query)
             .populate('requestedBy', 'name email')
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
     }
 
-    async getPendingCount(): Promise<number> {
-        return await ServiceRequestModel.countDocuments({ status: 'pending' });
+    async getPendingCount(search?: string): Promise<number> {
+        const query: any = { status: 'pending' };
+        if (search) {
+            query.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } }
+            ];
+        }
+        return await ServiceRequestModel.countDocuments(query);
     }
 
 

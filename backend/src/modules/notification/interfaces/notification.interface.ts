@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { INotification } from '../models/notification.model';
+import { IBaseRepository } from '../../../shared/interfaces/base.repository.interface';
 export { INotification };
 
 export interface INotificationController {
@@ -24,11 +25,11 @@ export interface INotificationService {
     deleteNotification(notificationId: string, userId: string): Promise<INotification | null>;
 }
 
-export interface INotificationRepository {
+export interface INotificationRepository extends IBaseRepository<INotification> {
     findByUserId(userId: string, limit: number): Promise<INotification[]>;
     countUnreadByUserId(userId: string): Promise<number>;
     findOneAndMarkRead(notificationId: string, userId: string): Promise<INotification | null>;
     updateAllRead(userId: string): Promise<unknown>;
-    create(data: Partial<INotification>): Promise<INotification>;
+
     deleteOne(notificationId: string, userId: string): Promise<INotification | null>;
 }

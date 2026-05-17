@@ -82,7 +82,7 @@ export class AdminService implements IAdminService {
     public async getPendingProviders(query: IUserListQuery): Promise<IUserListResponse> {
         const [providers, total] = await Promise.all([
             this._adminRepository.getPendingProviders(query),
-            this._adminRepository.getPendingProviderCount()
+            this._adminRepository.getPendingProviderCount(query)
         ]);
 
         const totalPages = Math.ceil(total / query.limit);

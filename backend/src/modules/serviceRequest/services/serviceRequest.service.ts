@@ -58,7 +58,7 @@ export class ServiceRequestService implements IServiceRequestService {
         return { success: true, data: requests };
     }
 
-    async getPendingRequests(page: number, limit: number): Promise<{
+    async getPendingRequests(page: number, limit: number, search?: string): Promise<{
         success: boolean;
         data: IServiceRequest[];
         pagination: {
@@ -69,8 +69,8 @@ export class ServiceRequestService implements IServiceRequestService {
         };
     }> {
         const [requests, total] = await Promise.all([
-            this._serviceRequestRepository.findAllPending(page, limit),
-            this._serviceRequestRepository.getPendingCount()
+            this._serviceRequestRepository.findAllPending(page, limit, search),
+            this._serviceRequestRepository.getPendingCount(search)
         ]);
 
         return {

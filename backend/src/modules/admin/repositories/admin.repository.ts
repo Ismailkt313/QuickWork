@@ -58,15 +58,35 @@ export class AdminRepository implements IAdminRepository {
     }
     public async getPendingProviders(query: IUserListQuery): Promise<IServiceProviderWithUser[]> {
         const skip = (query.page - 1) * query.limit;
-        return ServiceProviderModel.find({ 'verification.status': VERIFICATION_STATUS.PENDING })
+        const filter: any = { 'verification.status': VERIFICATION_STATUS.PENDING };
+
+        if (query.search && query.search.trim() !== "") {
+            const regex = new RegExp(query.search.trim(), "i");
+            const matchingUsers = await UserModel.find({
+                $or: [{ name: { $regex: regex } }, { email: { $regex: regex } }]
+            }).select('_id').lean();
+            filter.userId = { $in: matchingUsers.map(u => u._id) };
+        }
+
+        return ServiceProviderModel.find(filter)
             .populate('userId', 'name email')
             .skip(skip)
             .limit(query.limit)
             .lean<IServiceProviderWithUser[]>();
     }
 
-    public async getPendingProviderCount(): Promise<number> {
-        return ServiceProviderModel.countDocuments({ 'verification.status': VERIFICATION_STATUS.PENDING });
+    public async getPendingProviderCount(query?: IUserListQuery): Promise<number> {
+        const filter: any = { 'verification.status': VERIFICATION_STATUS.PENDING };
+
+        if (query?.search && query.search.trim() !== "") {
+            const regex = new RegExp(query.search.trim(), "i");
+            const matchingUsers = await UserModel.find({
+                $or: [{ name: { $regex: regex } }, { email: { $regex: regex } }]
+            }).select('_id').lean();
+            filter.userId = { $in: matchingUsers.map(u => u._id) };
+        }
+
+        return ServiceProviderModel.countDocuments(filter);
     }
 
     public async approveProvider(providerId: string): Promise<void> {

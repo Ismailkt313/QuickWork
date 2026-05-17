@@ -5,6 +5,8 @@ import {
   rejectServiceRequest,
 } from "../services/adminServiceRequest.service";
 import type { ServiceRequest } from "../services/adminServiceRequest.service";
+import useDebounce from "../../../hooks/useDebounce";
+import { AdminPageHeader, AdminFilterBar, DataTable, type Column } from "../components/table";
 import "../admin.css";
 
 interface ToastItem {
@@ -29,7 +31,15 @@ const SkillRequests: React.FC = () => {
   const [rejectionReason, setRejectionReason] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearch = useDebounce(searchInput, 500);
+  const [lastSearch, setLastSearch] = useState("");
   const limit = 5;
+
+  if (debouncedSearch !== lastSearch) {
+    setLastSearch(debouncedSearch);
+    setPage(1);
+  }
 
   const [modal, setModal] = useState<ModalState>({
     mode: null,
@@ -50,10 +60,10 @@ const SkillRequests: React.FC = () => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const fetchRequests = useCallback(async (pageToFetch: number) => {
+  const fetchRequests = useCallback(async () => {
     setIsLoading(true);
     try {
-      const result = await getPendingServiceRequests({ page: pageToFetch, limit });
+      const result = await getPendingServiceRequests({ page, limit, search: debouncedSearch });
       setRequests(result.data || []);
       setTotalPages(result.pagination.totalPages);
     } catch (error) {
@@ -62,11 +72,11 @@ const SkillRequests: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [page, debouncedSearch]);
 
   useEffect(() => {
-    fetchRequests(page);
-  }, [fetchRequests, page]);
+    fetchRequests();
+  }, [fetchRequests]);
 
   const openModal = (
     mode: ModalMode,
@@ -129,6 +139,91 @@ const SkillRequests: React.FC = () => {
       year: "numeric",
     });
   };
+
+  const columns: Column<ServiceRequest>[] = [
+    {
+      key: "requestedSkill",
+      header: "Requested Skill",
+      render: (request) => (
+        <div className="d-flex align-items-center gap-3">
+          <div
+            className="bg-primary bg-opacity-10 text-primary rounded-3 d-flex align-items-center justify-content-center"
+            style={{ width: "40px", height: "40px" }}
+          >
+            <i className="bi bi-briefcase fw-bold"></i>
+          </div>
+          <div>
+            <span className="user-name fw-bold text-dark">{request.name}</span>
+            <span
+              className="badge bg-warning text-dark bg-opacity-25 rounded-pill border border-warning border-opacity-50 small mt-1 d-block w-auto"
+              style={{ fontSize: "10px" }}
+            >
+              PENDING REVIEW
+            </span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "requestedBy",
+      header: "Requested By",
+      render: (request) => (
+        <div className="d-flex align-items-center gap-2">
+          <div
+            className="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center text-primary fw-bold"
+            style={{
+              width: "32px",
+              height: "32px",
+              fontSize: "12px",
+            }}
+          >
+            {request.requestedBy?.name?.[0]?.toUpperCase() || "P"}
+          </div>
+          <div className="d-flex flex-column">
+            <span className="small fw-bold text-dark">
+              {request.requestedBy?.name || "Unknown"}
+            </span>
+            <span
+              className="user-email text-muted"
+              style={{ fontSize: "11px" }}
+            >
+              {request.requestedBy?.email}
+            </span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "dateSubmitted",
+      header: "Date Submitted",
+      render: (request) => (
+        <span className="text-secondary small">
+          {formatDate(request.createdAt)}
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      align: "center",
+      render: (request) => (
+        <div className="d-flex justify-content-center gap-2">
+          <button
+            className="btn-action-block unblock"
+            onClick={() => openModal("approve", request._id, request.name)}
+          >
+            APPROVE
+          </button>
+          <button
+            className="btn-action-block block"
+            onClick={() => openModal("reject", request._id, request.name)}
+          >
+            REJECT
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="admin-page-container">
@@ -231,151 +326,40 @@ const SkillRequests: React.FC = () => {
         </div>
       )}
 
-      <div className="admin-breadcrumb">
-        Admin <span className="separator">›</span> <span>Skill Requests</span>
-      </div>
+      <AdminPageHeader
+        title="Global Skill Requests"
+        subtitle="Review and approve new skill suggestions submitted by Service Providers during onboarding or profile updates."
+        breadcrumb={
+          <>Admin <span className="separator">›</span> <span>Skill Requests</span></>
+        }
+        actionButton={{
+          label: "Refresh List",
+          icon: `bi bi-arrow-clockwise ${isLoading ? "spin" : ""}`,
+          onClick: fetchRequests
+        }}
+      />
 
-      <div className="admin-page-header">
-        <div>
-          <h1 className="admin-page-title">Global Skill Requests</h1>
-          <p className="admin-page-subtitle">
-            Review and approve new skill suggestions submitted by Service
-            Providers during onboarding or profile updates.
-          </p>
-        </div>
-        <button
-          className="btn-invite"
-          onClick={() => fetchRequests(page)}
-          disabled={isLoading}
-        >
-          <i className={`bi bi-arrow-clockwise ${isLoading ? "spin" : ""}`}></i>
-          Refresh List
-        </button>
-      </div>
+      <AdminFilterBar
+        searchPlaceholder="Search by skill name or provider..."
+        searchValue={searchInput}
+        onSearchChange={setSearchInput}
+        onReset={() => {
+          setSearchInput("");
+          setPage(1);
+        }}
+      />
 
-      <div className="admin-table-card">
-        {isLoading ? (
-          <div className="admin-loading">
-            <div className="spinner-border text-primary" role="status"></div>
-            <p className="mt-3">Loading pending requests...</p>
-          </div>
-        ) : requests.length === 0 ? (
-          <div className="admin-empty">
-            <i className="bi bi-inbox d-block"></i>
-            <div>No pending skill requests</div>
-            <p className="small text-muted mt-2">
-              All submitted skill requests have been processed.
-            </p>
-          </div>
-        ) : (
-          <>
-            <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Requested Skill</th>
-                <th>Requested By</th>
-                <th>Date Submitted</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {requests.map((request) => (
-                <tr key={request._id}>
-                  <td>
-                    <div className="d-flex align-items-center gap-3">
-                      <div
-                        className="bg-primary bg-opacity-10 text-primary rounded-3 d-flex align-items-center justify-content-center"
-                        style={{ width: "40px", height: "40px" }}
-                      >
-                        <i className="bi bi-briefcase fw-bold"></i>
-                      </div>
-                      <div>
-                        <span className="user-name">{request.name}</span>
-                        <span
-                          className="badge bg-warning text-dark bg-opacity-25 rounded-pill border border-warning border-opacity-50 small mt-1"
-                          style={{ fontSize: "10px" }}
-                        >
-                          PENDING REVIEW
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="d-flex align-items-center gap-2">
-                      <div
-                        className="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center text-primary fw-bold"
-                        style={{
-                          width: "32px",
-                          height: "32px",
-                          fontSize: "12px",
-                        }}
-                      >
-                        {request.requestedBy?.name?.[0]?.toUpperCase() || "P"}
-                      </div>
-                      <div className="d-flex flex-column">
-                        <span className="small fw-bold text-dark">
-                          {request.requestedBy?.name || "Unknown"}
-                        </span>
-                        <span
-                          className="user-email"
-                          style={{ fontSize: "11px" }}
-                        >
-                          {request.requestedBy?.email}
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="text-secondary small">
-                      {formatDate(request.createdAt)}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="d-flex gap-2">
-                      <button
-                        className="btn-action-block unblock"
-                        onClick={() =>
-                          openModal("approve", request._id, request.name)
-                        }
-                      >
-                        APPROVE
-                      </button>
-                      <button
-                        className="btn-action-block block"
-                        onClick={() =>
-                          openModal("reject", request._id, request.name)
-                        }
-                      >
-                        REJECT
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="admin-table-footer">
-            <div className="admin-pagination">
-              <button disabled={page <= 1} onClick={() => setPage(page - 1)}>
-                <i className="bi bi-chevron-left" style={{ fontSize: "0.75rem" }}></i>
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  className={p === page ? "active" : ""}
-                  onClick={() => setPage(p)}
-                >
-                  {p}
-                </button>
-              ))}
-              <button disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
-                <i className="bi bi-chevron-right" style={{ fontSize: "0.75rem" }}></i>
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-    </div>
+      <DataTable
+        columns={columns}
+        data={requests}
+        loading={isLoading}
+        emptyMessage="No pending skill requests found."
+        emptyIcon="bi bi-inbox"
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        keyExtractor={(request) => request._id || Math.random().toString()}
+      />
 
       <style
         dangerouslySetInnerHTML={{

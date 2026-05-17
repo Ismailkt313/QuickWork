@@ -2,7 +2,7 @@ import { Adminapi } from './adminApi';
 import { ENDPOINTS } from '../../../constants/endpoints';
 
 export const adminReportService = {
-    getReports: async (params: { status?: string; page?: number; limit?: number }) => {
+    getReports: async (params: { status?: string; search?: string; page?: number; limit?: number }) => {
         const response = await Adminapi.get(ENDPOINTS.ADMIN.REPORTS, { params });
         return response.data;
     },

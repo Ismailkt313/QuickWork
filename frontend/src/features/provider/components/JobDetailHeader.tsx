@@ -9,9 +9,10 @@ interface JobLocation { address: string; lat: number; lng: number; districtId: s
 interface JobDetailHeaderProps {
   title: string; isUrgent?: boolean; isNew?: boolean; jobCode?: string;
   postedAt: string; location: JobLocation | null; additionalDetails?: string;
+  status?: string;
 }
 
-const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({ title, isUrgent, isNew, jobCode, postedAt, location, additionalDetails }) => {
+const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({ title, isUrgent, isNew, jobCode, postedAt, location, additionalDetails, status }) => {
   const providerLocation = useProviderLocation();
   const jobDistrict = location?.districtName?.toLowerCase().trim() ?? "";
   const myDistrict  = providerLocation?.toLowerCase().trim() ?? "";
@@ -28,6 +29,11 @@ const JobDetailHeader: React.FC<JobDetailHeaderProps> = ({ title, isUrgent, isNe
     <div style={{ marginBottom: 28 }}>
       {}
       <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:14 }}>
+        {status === "open" && badge("#f0fdf4","#15803d","#bbf7d0", null, "Open")}
+        {(status === "fully_assigned" || status === "partially_assigned") && badge("#eef2ff","#4338ca","#c7d2fe", null, "Assigned")}
+        {status === "in_progress" && badge("#fffbeb","#b45309","#fde68a", null, "In Progress")}
+        {status === "completed" && badge("#f8fafc","#475569","#e2e8f0", null, "Completed")}
+        {status === "expired" && badge("#f3f4f6","#374151","#d1d5db", null, "Expired")}
         {isUrgent && badge("#fef2f2","#dc2626","#fecaca", <RiFlashlightLine size={11}/>, "Urgent Hire")}
         {isNew    && badge("#eff6ff","#3b82f6","#bfdbfe", <RiSparklingLine size={11}/>, "New Post")}
         {badge("#f0fdf4","#059669","rgba(16,185,129,0.2)", <RiShieldCheckLine size={11}/>, "Verified Job")}

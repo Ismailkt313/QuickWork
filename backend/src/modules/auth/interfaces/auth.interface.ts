@@ -3,6 +3,7 @@ import { Document } from "mongoose";
 import type { UserResponseDTO } from "../dtos/userResponse.dto";
 import { ROLES } from "../../../constants/roles";
 import { OTP_TYPE } from "../../../constants/otp";
+import { IBaseRepository } from "../../../shared/interfaces/base.repository.interface";
 
 export interface IUser extends Document {
     name: string;
@@ -205,14 +206,11 @@ export interface IOtpRepository {
     deleteByRefreshToken(token: string): Promise<void>;
 }
 
-export interface IAuthRepository {
+export interface IAuthRepository extends IBaseRepository<IUser> {
     findByEmail(email: string): Promise<IUser | null>;
     findByEmailWithPassword(email: string): Promise<IUser | null>;
-    findById(id: string): Promise<IUser | null>;
-    createUser(data: ICreateUserData): Promise<IUser>;
     updatePassword(userId: string, hashedPassword: string): Promise<void>;
     updateUserRole(userId: string, role: ROLES): Promise<void>;
-    updateUser(userId: string, data: Partial<IUser>): Promise<IUser | null>;
     incrementWarningCount(userId: string): Promise<void>;
     blockUser(userId: string): Promise<void>;
     countTotalUsers(): Promise<number>;

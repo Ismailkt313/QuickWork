@@ -42,7 +42,7 @@ export interface IAdminRepository {
     getUserCount(query: IUserListQuery): Promise<number>;
     toggleBlockUser(userId: string): Promise<IUser>;
     getPendingProviders(query: IUserListQuery):Promise<IServiceProviderWithUser[]>;
-    getPendingProviderCount(): Promise<number>;
+    getPendingProviderCount(query?: IUserListQuery): Promise<number>;
     approveProvider(providerId: string): Promise<void>;
     rejectProvider(providerId: string, reason: string): Promise<void>;
     getProviderDetails(providerId: string): Promise<IServiceProviderDetails>;

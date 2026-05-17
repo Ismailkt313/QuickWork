@@ -41,8 +41,8 @@ export class SkillService implements ISkillService {
         };
     }
 
-    async getAdminSkills(page: number, limit: number, search?: string): Promise<{ success: boolean; data: ISkill[], pagination: { total: number; page: number; limit: number; totalPages: number } }> {
-        const { data, total } = await this._skillRepository.getAdminSkills(page, limit, search);
+    async getAdminSkills(page: number, limit: number, search?: string, status?: string): Promise<{ success: boolean; data: ISkill[], pagination: { total: number; page: number; limit: number; totalPages: number } }> {
+        const { data, total } = await this._skillRepository.getAdminSkills(page, limit, search, status);
         return {
             success: true,
             data,

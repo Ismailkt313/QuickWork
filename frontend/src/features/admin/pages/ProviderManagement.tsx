@@ -8,6 +8,8 @@ import {
 import type { IUserListItem, IServiceProviderDetails } from "../types/admin.types";
 import ProviderProfileModal from "../components/ProviderProfileModal";
 import axios from "axios";
+import useDebounce from "../../../hooks/useDebounce";
+import { AdminPageHeader, AdminFilterBar, DataTable, type Column } from "../components/table";
 import "../admin.css";
 
 interface ToastItem {
@@ -33,7 +35,15 @@ const ProviderManagement = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearch = useDebounce(searchInput, 500);
+  const [lastSearch, setLastSearch] = useState("");
   const limit = 4;
+
+  if (debouncedSearch !== lastSearch) {
+    setLastSearch(debouncedSearch);
+    setPage(1);
+  }
 
   const [modal, setModal] = useState<ModalState>({
     mode: null,
@@ -58,10 +68,10 @@ const ProviderManagement = () => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const fetchProviders = useCallback(async (pageToFetch: number) => {
+  const fetchProviders = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await getPendingProviders({ page: pageToFetch, limit });
+      const res = await getPendingProviders({ page, limit, search: debouncedSearch });
       setProviders(res.data.data);
       setTotal(res.data.pagination.total);
       setTotalPages(res.data.pagination.totalPages);
@@ -71,11 +81,11 @@ const ProviderManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, debouncedSearch]);
 
   useEffect(() => {
-    fetchProviders(page);
-  }, [fetchProviders, page]);
+    fetchProviders();
+  }, [fetchProviders]);
 
   const openModal = (
     mode: ModalMode,
@@ -172,8 +182,89 @@ const ProviderManagement = () => {
     }
   };
 
+  const columns: Column<IUserListItem>[] = [
+    {
+      key: "providerName",
+      header: "Provider Name",
+      render: (provider) => (
+        <span className="user-name fw-bold text-dark">{provider.name}</span>
+      ),
+    },
+    {
+      key: "email",
+      header: "Email",
+      render: (provider) => (
+        <span className="user-email text-muted" style={{ fontSize: "0.8125rem" }}>
+          {provider.email}
+        </span>
+      ),
+    },
+    {
+      key: "appliedDate",
+      header: "Applied Date",
+      render: (provider) => (
+        <span className="text-secondary small">{formatDate(provider.createdAt.toString())}</span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: () => (
+        <span className="status-indicator">
+          <span className="status-dot" style={{ background: "#f59e0b" }}></span>
+          Pending
+        </span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      align: "center",
+      render: (provider) => (
+        <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center" }}>
+          <button
+            className="btn-action-block unblock"
+            onClick={() => openModal("approve", provider.id, provider.name)}
+            style={{ textTransform: "uppercase" }}
+          >
+            APPROVE
+          </button>
+          <button
+            className="btn-action-block block"
+            onClick={() => openModal("reject", provider.id, provider.name)}
+            style={{ textTransform: "uppercase" }}
+          >
+            REJECT
+          </button>
+        </div>
+      ),
+    },
+    {
+      key: "profile",
+      header: "Profile",
+      align: "center",
+      render: (provider) => (
+        <button
+          className="btn-action-block unblock mx-auto"
+          onClick={() => handleViewProfile(provider.id)}
+          disabled={fetchingDetail}
+          style={{
+            textTransform: "uppercase",
+            background: "#f8fafc",
+            color: "#334155",
+            borderColor: "#e2e8f0",
+          }}
+        >
+          {fetchingDetail && selectedProvider?._id === provider.id
+            ? "Fetching..."
+            : "VIEW PROFILE"}
+        </button>
+      ),
+    },
+  ];
+
   return (
-    <div>
+    <div className="admin-page-container">
       {toasts.length > 0 && (
         <div className="toast-container">
           {toasts.map((toast) => (
@@ -270,26 +361,18 @@ const ProviderManagement = () => {
         </div>
       )}
 
-      <div className="admin-breadcrumb">
-        Admin <span className="separator">›</span> <span>Providers</span>
-      </div>
-
-      <div className="admin-page-header">
-        <div>
-          <h1 className="admin-page-title">Provider Management</h1>
-          <p className="admin-page-subtitle">
-            Review pending provider applications and approve or reject them.
-          </p>
-        </div>
-        <button
-          className="btn btn-invite"
-          onClick={() => fetchProviders(page)}
-          disabled={loading}
-        >
-          <i className={`bi bi-arrow-clockwise ${loading ? "spin" : ""}`}></i>
-          Refresh
-        </button>
-      </div>
+      <AdminPageHeader
+        title="Provider Management"
+        subtitle="Review pending provider applications and approve or reject them."
+        breadcrumb={
+          <>Admin <span className="separator">›</span> <span>Providers</span></>
+        }
+        actionButton={{
+          label: "Refresh",
+          icon: `bi bi-arrow-clockwise ${loading ? "spin" : ""}`,
+          onClick: fetchProviders
+        }}
+      />
 
       <div className="admin-stats-row" style={{ marginBottom: "1.5rem" }}>
         <div className="admin-stat-card">
@@ -304,119 +387,27 @@ const ProviderManagement = () => {
         </div>
       </div>
 
-      <div className="admin-table-card">
-        {loading ? (
-          <div className="admin-loading">
-            <div className="spinner-border spinner-border-sm"></div>
-            <span>Loading pending providers...</span>
-          </div>
-        ) : providers.length === 0 ? (
-          <div className="admin-empty">
-            <i className="bi bi-person-check d-block"></i>
-            <div>No pending provider applications</div>
-          </div>
-        ) : (
-          <>
-            <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Provider Name</th>
-                <th>Email</th>
-                <th>Applied Date</th>
-                <th>Status</th>
-                <th>Actions</th>
-                <th>Profile</th>
-              </tr>
-            </thead>
-            <tbody>
-              {providers.map((provider) => (
-                <tr key={provider.id}>
-                  <td>
-                    <span className="user-name">{provider.name}</span>
-                  </td>
-                  <td>
-                    <span
-                      className="user-email"
-                      style={{ fontSize: "0.8125rem" }}
-                    >
-                      {provider.email}
-                    </span>
-                  </td>
-                  <td>{formatDate(provider.createdAt)}</td>
-                  <td>
-                    <span className="status-indicator">
-                      <span
-                        className="status-dot"
-                        style={{ background: "#f59e0b" }}
-                      ></span>
-                      Pending
-                    </span>
-                  </td>
-                  <td>
-                    <div style={{ display: "flex", gap: "0.5rem" }}>
-                      <button
-                        className="btn-action-block unblock"
-                        onClick={() =>
-                          openModal("approve", provider.id, provider.name)
-                        }
-                        style={{ textTransform: "uppercase" }}
-                      >
-                        APPROVE
-                      </button>
-                      <button
-                        className="btn-action-block block"
-                        onClick={() =>
-                          openModal("reject", provider.id, provider.name)
-                        }
-                        style={{ textTransform: "uppercase" }}
-                      >
-                        REJECT
-                      </button>
-                    </div>
-                  </td>
-                  <td>
-                    <button
-                      className="btn-action-block unblock"
-                      onClick={() => handleViewProfile(provider.id)}
-                      disabled={fetchingDetail}
-                      style={{
-                        textTransform: "uppercase",
-                        background: "#f8fafc",
-                        color: "#334155",
-                        borderColor: "#e2e8f0",
-                      }}
-                    >
-                      {fetchingDetail && selectedProvider?._id === provider.id
-                        ? "Fetching..."
-                        : "VIEW PROFILE"}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="admin-table-footer">
-            <div className="admin-pagination">
-              <button disabled={page <= 1} onClick={() => setPage(page - 1)}>
-                <i className="bi bi-chevron-left" style={{ fontSize: "0.75rem" }}></i>
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  className={p === page ? "active" : ""}
-                  onClick={() => setPage(p)}
-                >
-                  {p}
-                </button>
-              ))}
-              <button disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
-                <i className="bi bi-chevron-right" style={{ fontSize: "0.75rem" }}></i>
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-    </div>
+      <AdminFilterBar
+        searchPlaceholder="Search by provider name or email..."
+        searchValue={searchInput}
+        onSearchChange={setSearchInput}
+        onReset={() => {
+          setSearchInput("");
+          setPage(1);
+        }}
+      />
+
+      <DataTable
+        columns={columns}
+        data={providers}
+        loading={loading}
+        emptyMessage="No pending provider applications found."
+        emptyIcon="bi bi-person-check"
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        keyExtractor={(provider) => provider.id || Math.random().toString()}
+      />
 
       {detailModalOpen && selectedProvider && (
         <ProviderProfileModal

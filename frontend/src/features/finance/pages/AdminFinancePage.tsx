@@ -7,15 +7,11 @@ import {
   RiExchangeLine,
   RiBankCardLine,
   RiCashLine,
-  RiErrorWarningLine,
-  RiCalendarLine,
-  RiArrowLeftSLine,
-  RiArrowRightSLine,
-  RiLoader4Line,
-  RiHistoryLine,
-  RiSearchLine
+  RiErrorWarningLine
 } from "react-icons/ri";
 import { CustomSelect } from "../../../shared/components/ui/CustomSelect";
+import { AdminPageHeader, AdminFilterBar, DataTable, type Column } from "../../admin/components/table";
+import useDebounce from "../../../hooks/useDebounce";
 
 const AdminFinancePage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -32,45 +28,96 @@ const AdminFinancePage: React.FC = () => {
     search: "",
   });
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearch = useDebounce(searchInput, 500);
+  const [lastSearch, setLastSearch] = useState("");
+
+  if (debouncedSearch !== lastSearch) {
+    setLastSearch(debouncedSearch);
+    setFilters(prev => ({ ...prev, search: debouncedSearch, page: 1 }));
+  }
 
   useEffect(() => {
     dispatch(fetchFinanceOverview());
   }, [dispatch]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setFilters(prev => ({ ...prev, search: searchTerm, page: 1 }));
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
-  useEffect(() => {
     dispatch(fetchTransactions(filters));
   }, [dispatch, filters]);
-
-  const handlePageChange = (newPage: number) => {
-    setFilters({ ...filters, page: newPage });
-  };
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
     const { name, value } = e.target;
     setFilters({ ...filters, [name]: value, page: 1 });
   };
 
-  return (
-    <div className="container-fluid py-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div className="d-flex align-items-center gap-3">
-          <div className="bg-dark p-3 rounded-4 text-white shadow-sm">
-            <RiHistoryLine size={32} />
-          </div>
-          <div>
-            <h2 className="fw-bold text-dark mb-1">Financial Ledger</h2>
-            <p className="text-muted mb-0">Track platform earnings and transaction history</p>
-          </div>
+  const columns: Column<Transaction>[] = [
+    {
+      key: "date",
+      header: "Date",
+      render: (tx) => (
+        <div className="d-flex flex-column">
+          <span className="fw-bold text-dark">{new Date(tx.createdAt).toLocaleDateString()}</span>
+          <span className="text-muted small" style={{ fontSize: '11px' }}>{new Date(tx.createdAt).toLocaleTimeString()}</span>
         </div>
-      </div>
+      ),
+    },
+    {
+      key: "jobId",
+      header: "Job ID",
+      render: (tx) => (
+        <div className="d-flex flex-column">
+          <span className="badge bg-light text-dark font-monospace w-auto d-inline-block text-start mb-1" style={{ maxWidth: "max-content" }}>
+            #{tx.jobId?.jobCode || (tx.jobId?._id ? tx.jobId._id.slice(-6).toUpperCase() : 'N/A')}
+          </span>
+          <span className="text-muted small text-truncate" style={{ maxWidth: "150px" }} title={tx.jobId?.title}>
+            {tx.jobId?.title || "Unknown Job"}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: "providerId",
+      header: "Provider ID",
+      render: (tx) => <span className="text-muted small font-monospace">{tx.providerId}</span>,
+    },
+    {
+      key: "method",
+      header: "Method",
+      render: (tx) => (
+        <span className={`badge rounded-pill ${tx.paymentMethod === 'ONLINE' ? 'bg-success bg-opacity-10 text-success' : 'bg-warning bg-opacity-10 text-warning text-dark'}`}>
+          {tx.paymentMethod}
+        </span>
+      ),
+    },
+    {
+      key: "total",
+      header: "Total",
+      align: "right",
+      render: (tx) => <span className="fw-bold text-dark">₹{tx.totalAmount.toLocaleString()}</span>,
+    },
+    {
+      key: "fee",
+      header: "Fee",
+      align: "right",
+      render: (tx) => <span className="text-primary fw-medium">₹{tx.platformFee.toLocaleString()}</span>,
+    },
+    {
+      key: "net",
+      header: "Net Payout",
+      align: "right",
+      render: (tx) => <span className="text-muted">₹{tx.providerAmount.toLocaleString()}</span>,
+    },
+  ];
+
+  return (
+    <div>
+      <AdminPageHeader
+        title="Financial Ledger"
+        subtitle="Track platform earnings and transaction history"
+        breadcrumb={
+          <>Admin <span className="separator">›</span> <span>Finance</span></>
+        }
+      />
 
       {}
       <div className="row g-4 mb-5">
@@ -131,157 +178,59 @@ const AdminFinancePage: React.FC = () => {
         </div>
       </div>
 
-      {}
-      <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
-        <div className="card-header bg-white p-4 border-bottom">
-          <div className="row g-3 align-items-end">
-            <div className="col-12 col-md-3">
-              <label className="form-label fw-bold small text-muted text-uppercase mb-2">Payment Method</label>
-              <CustomSelect
-                value={filters.paymentMethod}
-                onChange={(v) => setFilters({ ...filters, paymentMethod: v, page: 1 })}
-                options={[
-                  { value: "all", label: "All Methods" },
-                  { value: "ONLINE", label: "Online (Razorpay)" },
-                  { value: "CASH", label: "Cash (Direct)" },
-                ]}
-                fullWidth
-                size="md"
-              />
-            </div>
-            <div className="col-12 col-md-3">
-              <label className="form-label fw-bold small text-muted text-uppercase mb-2">
-                <RiCalendarLine size={14} className="me-1" /> Start Date
-              </label>
-              <input
-                type="date"
-                className="form-control border rounded-3 py-2"
-                name="startDate"
-                value={filters.startDate}
-                onChange={handleFilterChange}
-              />
-            </div>
-            <div className="col-12 col-md-3">
-              <label className="form-label fw-bold small text-muted text-uppercase mb-2">
-                <RiCalendarLine size={14} className="me-1" /> End Date
-              </label>
-              <input
-                type="date"
-                className="form-control border rounded-3 py-2"
-                name="endDate"
-                value={filters.endDate}
-                onChange={handleFilterChange}
-              />
-            </div>
-            <div className="col-12 col-md-3">
-              <label className="form-label fw-bold small text-muted text-uppercase mb-2">
-                <RiSearchLine size={14} className="me-1" /> Search
-              </label>
-              <div className="position-relative">
-                <RiSearchLine className="position-absolute top-50 translate-middle-y ms-3 text-muted" />
-                <input
-                  type="text"
-                  className="form-control border rounded-3 py-2 ps-5"
-                  placeholder="Search by ID..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+      <AdminFilterBar
+        searchPlaceholder="Search by ID..."
+        searchValue={searchInput}
+        onSearchChange={setSearchInput}
+        onReset={() => {
+          setSearchInput("");
+          setFilters({ page: 1, limit: 10, paymentMethod: "all", startDate: "", endDate: "", search: "" });
+        }}
+      >
+        <CustomSelect
+          value={filters.paymentMethod}
+          onChange={(v) => setFilters({ ...filters, paymentMethod: v, page: 1 })}
+          options={[
+            { value: "all", label: "All Methods" },
+            { value: "ONLINE", label: "Online (Razorpay)" },
+            { value: "CASH", label: "Cash (Direct)" },
+          ]}
+          size="sm"
+          className="admin-filter-select-override"
+        />
 
-        <div className="table-responsive">
-          <table className="table table-hover align-middle mb-0">
-            <thead className="bg-light text-muted small text-uppercase">
-              <tr>
-                <th className="py-3 px-4 border-0">Date</th>
-                <th className="py-3 px-4 border-0">Job ID</th>
-                <th className="py-3 px-4 border-0">Provider ID</th>
-                <th className="py-3 px-4 border-0">Method</th>
-                <th className="py-3 px-4 border-0 text-end">Total</th>
-                <th className="py-3 px-4 border-0 text-end">Fee</th>
-                <th className="py-3 px-4 border-0 text-end">Net Payout</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={7} className="text-center py-5">
-                    <RiLoader4Line size={40} className="qw-spin text-primary mb-2" />
-                    <p className="text-muted mb-0">Loading transactions...</p>
-                  </td>
-                </tr>
-              ) : transactions.length > 0 ? (
-                transactions.map((tx: Transaction) => (
-                  <tr key={tx._id}>
-                    <td className="py-3 px-4">
-                      <div className="d-flex flex-column">
-                        <span className="fw-bold text-dark">{new Date(tx.createdAt).toLocaleDateString()}</span>
-                        <span className="text-muted small" style={{ fontSize: '11px' }}>{new Date(tx.createdAt).toLocaleTimeString()}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="d-flex flex-column">
-                        <span className="badge bg-light text-dark font-monospace w-auto d-inline-block text-start mb-1" style={{ maxWidth: "max-content" }}>
-                          #{tx.jobId?.jobCode || (tx.jobId?._id ? tx.jobId._id.slice(-6).toUpperCase() : 'N/A')}
-                        </span>
-                        <span className="text-muted small text-truncate" style={{ maxWidth: "150px" }} title={tx.jobId?.title}>
-                          {tx.jobId?.title || "Unknown Job"}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="text-muted small font-monospace">{tx.providerId}</span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className={`badge rounded-pill ${tx.paymentMethod === 'ONLINE' ? 'bg-success bg-opacity-10 text-success' : 'bg-warning bg-opacity-10 text-warning text-dark'}`}>
-                        {tx.paymentMethod}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-end fw-bold text-dark">₹{tx.totalAmount.toLocaleString()}</td>
-                    <td className="py-3 px-4 text-end text-primary fw-medium">₹{tx.platformFee.toLocaleString()}</td>
-                    <td className="py-3 px-4 text-end text-muted">₹{tx.providerAmount.toLocaleString()}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={7} className="text-center py-5">
-                    <RiExchangeLine size={48} className="text-muted mb-3 opacity-25" />
-                    <p className="text-muted fw-medium fs-5">No transactions found</p>
-                    <p className="text-muted small">Adjust your filters to refine the search</p>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <input
+            type="date"
+            className="admin-search-input"
+            name="startDate"
+            value={filters.startDate}
+            onChange={handleFilterChange}
+            style={{ width: "140px" }}
+          />
+          <span className="text-muted" style={{ fontSize: "0.85rem" }}>to</span>
+          <input
+            type="date"
+            className="admin-search-input"
+            name="endDate"
+            value={filters.endDate}
+            onChange={handleFilterChange}
+            style={{ width: "140px" }}
+          />
         </div>
+      </AdminFilterBar>
 
-        {}
-        {pagination && pagination.pages > 1 && (
-          <div className="card-footer bg-white p-4 border-top d-flex justify-content-between align-items-center">
-            <span className="text-muted small">
-              Page <span className="fw-bold">{pagination.page}</span> of <span className="fw-bold">{pagination.pages}</span>
-            </span>
-            <div className="d-flex gap-2">
-              <button
-                className="btn btn-outline-secondary btn-sm rounded-3 px-3 d-flex align-items-center"
-                disabled={pagination.page === 1}
-                onClick={() => handlePageChange(pagination.page - 1)}
-              >
-                <RiArrowLeftSLine size={18} /> Previous
-              </button>
-              <button
-                className="btn btn-outline-secondary btn-sm rounded-3 px-3 d-flex align-items-center"
-                disabled={pagination.page === pagination.pages}
-                onClick={() => handlePageChange(pagination.page + 1)}
-              >
-                Next <RiArrowRightSLine size={18} />
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+      <DataTable
+        columns={columns}
+        data={transactions}
+        loading={loading}
+        emptyMessage="No transactions found. Adjust your filters to refine the search."
+        emptyIcon="bi bi-cash-stack"
+        page={pagination?.page || 1}
+        totalPages={pagination?.pages || 1}
+        onPageChange={(p) => setFilters({ ...filters, page: p })}
+        keyExtractor={(tx) => tx._id}
+      />
 
       <style>{`
         .bg-indigo-soft { background-color: #eef2ff; }

@@ -20,7 +20,7 @@ export interface IServiceRequest extends Document {
 export interface IServiceRequestService {
     createRequest(userId: string, dto: CreateServiceRequestDTO): Promise<{ success: boolean; message: string; data?: IServiceRequest }>;
     getUserRequests(userId: string): Promise<{ success: boolean; data: IServiceRequest[] }>;
-    getPendingRequests(page: number, limit: number): Promise<{
+    getPendingRequests(page: number, limit: number, search?: string): Promise<{
         success: boolean;
         data: IServiceRequest[];
         pagination: {
@@ -39,8 +39,8 @@ import { IBaseRepository } from '../../../shared/interfaces/base.repository.inte
 export interface IServiceRequestRepository extends IBaseRepository<IServiceRequest> {
     findPendingByName(name: string): Promise<IServiceRequest | null>;
     findByUser(userId: string): Promise<IServiceRequest[]>;
-    findAllPending(page: number, limit: number): Promise<IServiceRequest[]>;
-    getPendingCount(): Promise<number>;
+    findAllPending(page: number, limit: number, search?: string): Promise<IServiceRequest[]>;
+    getPendingCount(search?: string): Promise<number>;
     updateStatus(id: string, updateData: Partial<IServiceRequest>, session?: ClientSession): Promise<IServiceRequest | null>;
 }
 

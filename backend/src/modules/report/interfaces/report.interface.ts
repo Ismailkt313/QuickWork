@@ -32,7 +32,7 @@ export interface IReportRepository {
     getCount(): Promise<number>;
     findById(id: string): Promise<IReport | null>;
     updateStatus(id: string, status: REPORT_STATUS): Promise<IReport | null>;
-    findWithFilters(query: { status?: string; page?: number; limit?: number }): Promise<{
+    findWithFilters(query: { status?: string; search?: string; page?: number; limit?: number }): Promise<{
         reports: IReport[];
         total: number;
         page: number;
@@ -85,7 +85,7 @@ export interface IModerationController {
 }
 
 export interface IModerationService {
-    getReports(query: { status?: string; page?: number; limit?: number }): Promise<{ reports: IReport[]; total: number; page: number; pages: number }>;
+    getReports(query: { status?: string; search?: string; page?: number; limit?: number }): Promise<{ reports: IReport[]; total: number; page: number; pages: number }>;
     getReportDetail(id: string): Promise<{ report: IReport; moderationLogs: IModerationLog[] }>;
     takeAction(reportId: string, adminId: string, action: 'warn' | 'block' | 'reject', reason: string): Promise<{ report: IReport; moderationLogs: IModerationLog[] }>;
 }

@@ -18,7 +18,7 @@ export interface ISkillRepository extends IBaseRepository<ISkill> {
     skills(filter: Record<string, unknown>): Promise<ISkill[] | null>;
     getServices(): Promise<ISkill[]>;
     getAllSkills(page: number, limit: number, search?: string, locationId?: string): Promise<{ data: ISkill[], total: number }>;
-    getAdminSkills(page: number, limit: number, search?: string): Promise<{ data: ISkill[], total: number }>;
+    getAdminSkills(page: number, limit: number, search?: string, status?: string): Promise<{ data: ISkill[], total: number }>;
     getSkills(): Promise<ISkill[]>;
     getMySkill(userId: string): Promise<ISkill[]>
 }
@@ -26,7 +26,7 @@ export interface ISkillRepository extends IBaseRepository<ISkill> {
 export interface ISkillService {
     searchSkills(query: string): Promise<{ success: boolean; data?: ISkill[] }>;
     getAllSkills(page: number, limit: number, search?: string, locationId?: string): Promise<{ success: boolean; data: ISkill[]; pagination: { total: number; page: number; limit: number; totalPages: number } }>;
-    getAdminSkills(page: number, limit: number, search?: string): Promise<{ success: boolean; data: ISkill[], pagination: { total: number; page: number; limit: number; totalPages: number } }>;
+    getAdminSkills(page: number, limit: number, search?: string, status?: string): Promise<{ success: boolean; data: ISkill[], pagination: { total: number; page: number; limit: number; totalPages: number } }>;
     createSkill(skillData: Partial<ISkill>): Promise<{ success: boolean; message: string; data?: ISkill }>;
     updateSkill(id: string, skillData: Partial<ISkill>): Promise<{ success: boolean; message: string; data?: ISkill }>;
     deleteSkill(id: string): Promise<{ success: boolean; message: string }>;

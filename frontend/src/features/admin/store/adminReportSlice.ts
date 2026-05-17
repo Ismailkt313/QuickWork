@@ -58,7 +58,7 @@ const initialState: AdminReportState = {
 
 export const fetchAdminReports = createAsyncThunk(
     'adminReport/fetchReports',
-    async (params: { status?: string; page?: number; limit?: number }, { rejectWithValue }) => {
+    async (params: { status?: string; search?: string; page?: number; limit?: number }, { rejectWithValue }) => {
         try {
             const response = await adminReportService.getReports(params);
             if (response.success) {

@@ -2,7 +2,8 @@ import { Adminapi as api } from "../services/adminApi";
 import { ENDPOINTS } from "../../../constants/endpoints";
 
 export interface Skill {
-  _id: string;
+  _id?: string;
+  id?: string;
   name: string;
   slug: string;
   description?: string;
@@ -24,9 +25,9 @@ export interface SkillResponse {
 }
 
 export const adminSkillService = {
-  getSkills: async (page = 1, limit = 10, search = "") => {
+  getSkills: async (page = 1, limit = 10, search = "", status = "") => {
     const response = await api.get(ENDPOINTS.ADMIN.SKILLS_LIST, {
-      params: { page, limit, search }
+      params: { page, limit, search, status }
     });
     return response.data;
   },

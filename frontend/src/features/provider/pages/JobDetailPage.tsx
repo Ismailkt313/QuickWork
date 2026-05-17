@@ -126,6 +126,7 @@ const JobDetailPage: React.FC = () => {
               postedAt={job.postedAt}
               isUrgent={job.isUrgent}
               isNew={isNew}
+              status={job.status}
             />
 
             {}
@@ -171,6 +172,7 @@ const JobDetailPage: React.FC = () => {
             isAssigned={job.status === "fully_assigned"}
             isPrivate={job.visibility === "private"}
             contactNumber={job.clientNumber}
+            status={job.status}
             onAccept={handleAccept}
             onReject={() => setIsRejectModalOpen(true)}
             onMessage={handleMessage}

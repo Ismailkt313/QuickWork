@@ -41,7 +41,8 @@ export class SkillController implements ISkillController {
             const page = parseInt(req.query.page as string) || 1;
             const limit = parseInt(req.query.limit as string) || 10;
             const search = req.query.search as string || undefined;
-            const result = await this._skillService.getAdminSkills(page, limit, search);
+            const status = req.query.status as string || undefined;
+            const result = await this._skillService.getAdminSkills(page, limit, search, status);
             res.status(HttpStatusCode.OK).json({ ...result, data: result.data ? result.data.map(mapSkillToResponseDTO) : [] });
         } catch (error) {
             next(error);

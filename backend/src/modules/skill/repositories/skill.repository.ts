@@ -68,13 +68,18 @@ export class SkillRepository extends BaseRepository<ISkill> implements ISkillRep
     }
 
 
-    async getAdminSkills(page: number, limit: number, search?: string): Promise<{ data: ISkill[], total: number }> {
+    async getAdminSkills(page: number, limit: number, search?: string, status?: string): Promise<{ data: ISkill[], total: number }> {
         const query: FilterQuery<ISkill> = {};
         if (search) {
             query.$or = [
                 { name: { $regex: search, $options: 'i' } },
                 { description: { $regex: search, $options: 'i' } }
             ];
+        }
+        if (status === 'active') {
+            query.isActive = true;
+        } else if (status === 'inactive') {
+            query.isActive = false;
         }
 
         const [data, total] = await Promise.all([

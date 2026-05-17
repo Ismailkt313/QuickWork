@@ -349,8 +349,13 @@ export class JobService implements IJobService {
             return { success: false, message: ErrorMessages.JOB_UNAVAILABLE };
         }
 
-        if ([JOB_STATUS.FULLY_ASSIGNED, JOB_STATUS.COMPLETED, JOB_STATUS.CANCELLED, JOB_STATUS.REJECTED].includes(job.status)) {
+        if ([JOB_STATUS.FULLY_ASSIGNED, JOB_STATUS.COMPLETED, JOB_STATUS.CANCELLED, JOB_STATUS.REJECTED].includes(job.status as JOB_STATUS)) {
             return { success: false, message: ErrorMessages.JOB_NOT_OPEN };
+        }
+
+        const now = new Date();
+        if (job.schedule && job.schedule.startDate && now > job.schedule.startDate) {
+            return { success: false, message: "Job deadline has expired. You can no longer accept this job." };
         }
 
         const { assignments: existingAssignments } = await this._assignmentService.getAssignmentsByProvider(provider._id.toString(), { limit: 1000 });
@@ -467,6 +472,11 @@ export class JobService implements IJobService {
 
         if (job.hiredProviderId?._id.toString() !== provider._id.toString()) {
             return { success: false, message: ErrorMessages.OFFER_NOT_FOR_USER };
+        }
+
+        const now = new Date();
+        if (job.schedule && job.schedule.startDate && now > job.schedule.startDate) {
+            return { success: false, message: "Job deadline has expired. You can no longer accept this offer." };
         }
 
         const { assignments: existingAssignments } = await this._assignmentService.getAssignmentsByProvider(provider._id.toString(), { limit: 1000 });

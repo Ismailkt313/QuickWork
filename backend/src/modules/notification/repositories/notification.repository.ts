@@ -1,7 +1,11 @@
 import { NotificationModel, INotification } from '../models/notification.model';
 import { INotificationRepository } from '../interfaces/notification.interface';
+import { BaseRepository } from '../../../shared/repositories/base.repository';
 
-export class NotificationRepository implements INotificationRepository {
+export class NotificationRepository extends BaseRepository<INotification> implements INotificationRepository {
+    constructor() {
+        super(NotificationModel);
+    }
     async findByUserId(userId: string, limit: number) {
         return await NotificationModel.find({ recipient: userId })
             .sort({ createdAt: -1 })
@@ -25,10 +29,6 @@ export class NotificationRepository implements INotificationRepository {
             { recipient: userId, isRead: false },
             { isRead: true }
         );
-    }
-
-    async create(data: Partial<INotification>) {
-        return await NotificationModel.create(data);
     }
 
     async deleteOne(notificationId: string, userId: string) {

@@ -229,7 +229,8 @@ export class JobRepository implements IJobRepository {
         const query: Record<string, unknown> = {
             status: { $in: [JOB_STATUS.OPEN, JOB_STATUS.PARTIALLY_ASSIGNED] },
             visibility: 'public',
-            skillId: { $in: skill }
+            skillId: { $in: skill },
+            'schedule.startDate': { $gt: new Date() }
         };
 
         if (currentUserId) {

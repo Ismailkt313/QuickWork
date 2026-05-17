@@ -55,6 +55,13 @@ const STATUS_CONFIG: Record<string, { label: string; dot: string; bg: string; te
     text: '#c2410c',
     border: '#fed7aa',
   },
+  [JOB_STATUS.EXPIRED]: {
+    label: 'Expired',
+    dot: '#6b7280',
+    bg: '#f3f4f6',
+    text: '#374151',
+    border: '#d1d5db',
+  },
 };
 
 export const AdminJobStatusBadge: React.FC<AdminJobStatusBadgeProps> = ({ status }) => {

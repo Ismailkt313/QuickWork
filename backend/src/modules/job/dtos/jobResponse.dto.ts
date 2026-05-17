@@ -1,5 +1,6 @@
 import { formatBudget, formatDate, getInitials, getRelativeTime } from "../../../utils/mapper.utils";
 import { VERIFICATION_STATUS } from "../../../constants/verification";
+import { JOB_STATUS } from "../../../constants/jobStatus";
 import { IJob } from "../interfaces/job.interface";
 import { IAssignment } from "../../assignment/interfaces/assignment.interface";
 
@@ -159,7 +160,13 @@ export const mapJobToResponseDTO = async (
     },
 
     applicants: (j.applicantsCount as number) || 0,
-    status: (j.status as string) || "",
+    status: (function() {
+      const currentStatus = (j.status as string) || "";
+      if (currentStatus === JOB_STATUS.OPEN && scheduleObj?.startDate && new Date() > scheduleObj.startDate) {
+        return JOB_STATUS.EXPIRED;
+      }
+      return currentStatus;
+    })(),
 
     startDate: scheduleObj?.startDate ? formatDate(scheduleObj.startDate) : "",
     endDate: scheduleObj?.endDate ? formatDate(scheduleObj.endDate) : "",

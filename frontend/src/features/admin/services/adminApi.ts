@@ -120,6 +120,7 @@ export const adminLogin = (data: { email: string; password: string }): Promise<A
 export const getPendingProviders = (params?: {
   page?: number;
   limit?: number;
+  search?: string;
 }): Promise<AxiosResponse<IPaginatedResponse<IUserListItem>>> => {
   return Adminapi.get(ENDPOINTS.ADMIN.PENDING_PROVIDERS, { params });
 };

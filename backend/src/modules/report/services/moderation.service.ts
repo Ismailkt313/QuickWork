@@ -28,7 +28,7 @@ export class ModerationService implements IModerationService {
         this._notificationService = notificationService;
     }
 
-    async getReports(query: { status?: string; page?: number; limit?: number }) {
+    async getReports(query: { status?: string; search?: string; page?: number; limit?: number }) {
         return await this._reportRepository.findWithFilters(query);
     }
 

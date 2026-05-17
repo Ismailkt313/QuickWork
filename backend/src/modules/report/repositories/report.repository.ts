@@ -1,5 +1,6 @@
 import { IReport, IReportRepository, REPORT_STATUS } from '../interfaces/report.interface';
 import { ReportModel } from '../models/report.model';
+import { UserModel } from '../../auth/models/user.model';
 
 export class ReportRepository implements IReportRepository {
     async create(data: Partial<IReport>): Promise<IReport> {
@@ -38,15 +39,33 @@ export class ReportRepository implements IReportRepository {
 
     async findWithFilters(query: {
         status?: string;
+        search?: string;
         page?: number;
         limit?: number;
     }): Promise<{ reports: IReport[]; total: number; page: number; pages: number }> {
-        const { status, page = 1, limit = 10 } = query;
+        const { status, search, page = 1, limit = 10 } = query;
         const skip = (page - 1) * limit;
 
         const filter: Record<string, unknown> = {};
+        
         if (status && status !== 'all') {
             filter.status = status;
+        }
+
+        if (search && search.trim() !== '') {
+            const regex = new RegExp(search.trim(), 'i');
+            const matchingUsers = await UserModel.find(
+                { $or: [{ name: { $regex: regex } }, { email: { $regex: regex } }] },
+                '_id'
+            ).lean();
+            
+            const userIds = matchingUsers.map(u => u._id);
+
+            filter.$or = [
+                { reason: { $regex: regex } },
+                { reporterId: { $in: userIds } },
+                { reportedUserId: { $in: userIds } }
+            ];
         }
 
         const [reports, total] = await Promise.all([

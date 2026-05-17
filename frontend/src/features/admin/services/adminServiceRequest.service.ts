@@ -22,6 +22,7 @@ export interface ServiceRequest {
 export const getPendingServiceRequests = async (params?: {
   page?: number;
   limit?: number;
+  search?: string;
 }): Promise<IPaginatedResponse<ServiceRequest>> => {
   const response = await Adminapi.get<IPaginatedResponse<ServiceRequest>>("/admin/service-requests", { params });
   return response.data;

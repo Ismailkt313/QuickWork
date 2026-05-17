@@ -112,7 +112,7 @@ export class AuthService implements IAuthService {
             throw new AppError(ErrorMessages.INVALID_OTP, HttpStatusCode.BAD_REQUEST);
         }
 
-        await this._authRepository.createUser(otpEntry.userData!);
+        await this._authRepository.create(otpEntry.userData!);
         await this._otpRepository.deleteByEmailAndType(input.email, OTP_TYPE.REGISTRATION);
 
         return {
@@ -353,7 +353,7 @@ export class AuthService implements IAuthService {
 
         }
 
-        const user = await this._authRepository.updateUser(userId, data as Partial<IUser>);
+        const user = await this._authRepository.updateById(userId, data as Partial<IUser>);
         if (!user) {
             throw new AppError(ErrorMessages.USER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
         }
@@ -452,7 +452,7 @@ export class AuthService implements IAuthService {
             throw new AppError(ErrorMessages.EMAIL_ALREADY_EXISTS, HttpStatusCode.CONFLICT);
         }
 
-        const updatedUser = await this._authRepository.updateUser(userId, { email: newEmail } as Partial<IUser>);
+        const updatedUser = await this._authRepository.updateById(userId, { email: newEmail } as Partial<IUser>);
         if (!updatedUser) {
             throw new AppError(ErrorMessages.USER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
         }

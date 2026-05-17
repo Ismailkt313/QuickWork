@@ -6,6 +6,7 @@ import { ROLES } from "../../../constants/roles";
 import useDebounce from "../../../hooks/useDebounce";
 import axios from "axios";
 import { CustomSelect, type SelectOption } from "../../../shared/components/ui/CustomSelect";
+import { DataTable, type Column, AdminFilterBar, AdminPageHeader } from "../components/table";
 
 interface ToastItem {
   id: number;
@@ -244,37 +245,91 @@ const UserManagement = () => {
   const activeCount = users ? users.filter((u) => !u.isBlocked).length : 0;
   const blockedCount = users ? users.filter((u) => u.isBlocked).length : 0;
 
-  const renderPagination = () => {
-    const pages: number[] = [];
-    const maxVisible = 3;
-    let start = Math.max(1, page - 1);
-    const end = Math.min(totalPages, start + maxVisible - 1);
-    start = Math.max(1, end - maxVisible + 1);
-    for (let i = start; i <= end; i++) pages.push(i);
-
-    return (
-      <div className="admin-pagination">
-        <button disabled={page <= 1} onClick={() => setPage(page - 1)}>
-          <i className="bi bi-chevron-left" style={{ fontSize: "0.75rem" }}></i>
-        </button>
-        {pages.map((p) => (
+  const columns: Column<IUserListItem>[] = [
+    {
+      key: "user",
+      header: "User Name",
+      render: (user) => (
+        <>
+          <span className="user-name">{user.name}</span>
+          <span className="user-email">{user.email}</span>
+        </>
+      ),
+    },
+    {
+      key: "role",
+      header: "Role",
+      render: (user) => (
+        <span className={`role-badge ${getRoleBadgeClass(user.role)}`}>
+          {getRoleLabel(user.role)}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (user) => (
+        <span className="status-indicator">
+          <span className={`status-dot ${user.isBlocked ? "blocked" : "active"}`}></span>
+          {user.isBlocked ? "Blocked" : "Active"}
+        </span>
+      ),
+    },
+    {
+      key: "createdAt",
+      header: "Joined Date",
+      render: (user) => formatDate(user.createdAt),
+    },
+    {
+      key: "trustScore",
+      header: "Trust Score",
+      render: (user) => {
+        const score = getStableTrustScore(user.id || user._id || "");
+        const level = getTrustLevel(score);
+        return (
+          <div className="trust-score-container">
+            <div className="trust-score-bar">
+              <div className={`trust-score-fill ${level}`} style={{ width: `${score}%` }}></div>
+            </div>
+            <span className="trust-score-value">{score}</span>
+          </div>
+        );
+      },
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      render: (user) => (
+        <div style={{ display: "flex", gap: "0.5rem" }}>
           <button
-            key={p}
-            className={p === page ? "active" : ""}
-            onClick={() => setPage(p)}
+            className={`btn-action-block ${user.isBlocked ? "unblock" : "block"}`}
+            onClick={() => openBlockConfirm(user.id, user.name, user.isBlocked)}
           >
-            {p}
+            {user.isBlocked ? "UNBLOCK" : "BLOCK"}
           </button>
-        ))}
-        <button disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
-          <i
-            className="bi bi-chevron-right"
-            style={{ fontSize: "0.75rem" }}
-          ></i>
+        </div>
+      ),
+    },
+    {
+      key: "profile",
+      header: "Profile",
+      render: (user) => (
+        <button
+          className="btn-action-block unblock"
+          onClick={() => handleViewUser(user.id)}
+          disabled={fetchingDetail}
+          style={{
+            textTransform: "uppercase",
+            background: "#f8fafc",
+            color: "#334155",
+            borderColor: "#e2e8f0",
+          }}
+        >
+          {fetchingDetail && selectedUser?.id === user.id ? "..." : "DETAILS"}
         </button>
-      </div>
-    );
-  };
+      ),
+    },
+  ];
 
   return (
     <div>
@@ -345,34 +400,30 @@ const UserManagement = () => {
         </div>
       )}
 
-      <div className="admin-breadcrumb">
-        Admin <span className="separator">›</span> <span>Users</span>
-      </div>
+      <AdminPageHeader
+        title="User Management"
+        subtitle="Review user activity, manage account status, and monitor platform safety scores."
+        action={
+          <button className="btn btn-invite">
+            <i className="bi bi-plus-lg"></i>
+            Invite User
+          </button>
+        }
+        breadcrumb={
+          <>Admin <span className="separator">›</span> <span>Users</span></>
+        }
+      />
 
-      <div className="admin-page-header">
-        <div>
-          <h1 className="admin-page-title">User Management</h1>
-          <p className="admin-page-subtitle">
-            Review user activity, manage account status, and monitor platform
-            safety scores.
-          </p>
-        </div>
-        <button className="btn btn-invite">
-          <i className="bi bi-plus-lg"></i>
-          Invite User
-        </button>
-      </div>
-
-      <div className="admin-filter-bar">
-        <i className="bi bi-search admin-search-icon"></i>
-        <input
-          type="text"
-          className="admin-search-input"
-          placeholder="Search by name, email, or user ID..."
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-        />
-        
+      <AdminFilterBar
+        searchPlaceholder="Search by name, email, or user ID..."
+        searchValue={searchInput}
+        onSearchChange={setSearchInput}
+        onReset={() => {
+          setSearchInput("");
+          setFilterRole("");
+          setFilterStatus("");
+        }}
+      >
         <CustomSelect 
           size="sm"
           options={roleOptions}
@@ -388,126 +439,19 @@ const UserManagement = () => {
           onChange={setFilterStatus}
           className="admin-filter-select-override"
         />
+      </AdminFilterBar>
 
-        <button 
-          type="button" 
-          className="admin-filter-btn"
-          onClick={() => {
-            setSearchInput("");
-            setFilterRole("");
-            setFilterStatus("");
-          }}
-        >
-          <i className="bi bi-arrow-counterclockwise"></i> Reset
-        </button>
-      </div>
-
-      <div className="admin-table-card">
-        {loading ? (
-          <div className="admin-loading">
-            <div className="spinner-border spinner-border-sm"></div>
-            <span>Loading users...</span>
-          </div>
-        ) : users && users.length === 0 ? (
-          <div className="admin-empty">
-            <i className="bi bi-people d-block"></i>
-            <div>No users found</div>
-          </div>
-        ) : (
-          <>
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>User Name</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Joined Date</th>
-                  <th>Trust Score</th>
-                  <th>Actions</th>
-                  <th>Profile</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users &&
-                  users.map((user) => {
-                    const score = getStableTrustScore(user.id || user._id || "");
-                    const level = getTrustLevel(score);
-                    return (
-                      <tr key={user.id}>
-                        <td>
-                          <span className="user-name">{user.name}</span>
-                          <span className="user-email">{user.email}</span>
-                        </td>
-                        <td>
-                          <span
-                            className={`role-badge ${getRoleBadgeClass(user.role)}`}
-                          >
-                            {getRoleLabel(user.role)}
-                          </span>
-                        </td>
-                        <td>
-                          <span className="status-indicator">
-                            <span
-                              className={`status-dot ${user.isBlocked ? "blocked" : "active"}`}
-                            ></span>
-                            {user.isBlocked ? "Blocked" : "Active"}
-                          </span>
-                        </td>
-                        <td>{formatDate(user.createdAt)}</td>
-                        <td>
-                          <div className="trust-score-container">
-                            <div className="trust-score-bar">
-                              <div
-                                className={`trust-score-fill ${level}`}
-                                style={{ width: `${score}%` }}
-                              ></div>
-                            </div>
-                            <span className="trust-score-value">{score}</span>
-                          </div>
-                        </td>
-                        <td>
-                          <div style={{ display: "flex", gap: "0.5rem" }}>
-                            <button
-                              className={`btn-action-block ${user.isBlocked ? "unblock" : "block"}`}
-                              onClick={() =>
-                                openBlockConfirm(
-                                  user.id,
-                                  user.name,
-                                  user.isBlocked,
-                                )
-                              }
-                            >
-                              {user.isBlocked ? "UNBLOCK" : "BLOCK"}
-                            </button>
-                          </div>
-                        </td>
-                        <td>
-                          <button
-                            className="btn-action-block unblock"
-                            onClick={() => handleViewUser(user.id)}
-                            disabled={fetchingDetail}
-                            style={{
-                              textTransform: "uppercase",
-                              background: "#f8fafc",
-                              color: "#334155",
-                              borderColor: "#e2e8f0",
-                            }}
-                          >
-                            {fetchingDetail && selectedUser?.id === user.id
-                              ? "..."
-                              : "DETAILS"}
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
-
-            <div className="admin-table-footer">{renderPagination()}</div>
-          </>
-        )}
-      </div>
+      <DataTable
+        columns={columns}
+        data={users || []}
+        loading={loading}
+        emptyMessage="No users found"
+        emptyIcon="bi bi-people"
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        keyExtractor={(user) => user.id || user._id || Math.random().toString()}
+      />
 
       {detailModalOpen && selectedUser && (
         <UserDetailModal

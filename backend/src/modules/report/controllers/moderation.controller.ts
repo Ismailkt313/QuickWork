@@ -24,9 +24,10 @@ export class ModerationController implements IModerationController {
 
     public getReports = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { status, page, limit } = req.query;
+            const { status, search, page, limit } = req.query;
             const result = await this._moderationService.getReports({
                 status: status as string,
+                search: search as string,
                 page: page ? parseInt(page as string) : 1,
                 limit: limit ? parseInt(limit as string) : 10
             });
