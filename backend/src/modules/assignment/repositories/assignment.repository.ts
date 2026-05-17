@@ -88,23 +88,23 @@ export class AssignmentRepository extends BaseRepository<IAssignment> implements
                     activeJobs: {
                         $sum: {
                             $cond: [
-                                { $in: ['$workStatus', ['IN_PROGRESS', 'ASSIGNED']] },
+                                { $in: ['$workStatus', ['IN_PROGRESS', 'in_progress', 'ASSIGNED', 'assigned']] },
                                 1,
                                 0
                             ]
                         }
                     },
-                    completedJobs: { $sum: { $cond: [{ $eq: ['$workStatus', 'COMPLETED'] }, 1, 0] } },
-                    pendingAssignments: { $sum: { $cond: [{ $eq: ['$invite.status', 'PENDING'] }, 1, 0] } },
-                    upcomingJobs: { $sum: { $cond: [{ $eq: ['$workStatus', 'ASSIGNED'] }, 1, 0] } },
+                    completedJobs: { $sum: { $cond: [{ $in: ['$workStatus', ['COMPLETED', 'completed']] }, 1, 0] } },
+                    pendingAssignments: { $sum: { $cond: [{ $in: ['$invite.status', ['PENDING', 'pending']] }, 1, 0] } },
+                    upcomingJobs: { $sum: { $cond: [{ $in: ['$workStatus', ['ASSIGNED', 'assigned']] }, 1, 0] } },
                     totalAssignments: { $sum: 1 },
                     assignmentEarnings: {
                         $sum: {
                             $cond: [
                                 {
                                     $and: [
-                                        { $eq: ['$workStatus', 'COMPLETED'] },
-                                        { $eq: ['$payment.status', 'completed'] }
+                                        { $in: ['$workStatus', ['COMPLETED', 'completed']] },
+                                        { $in: ['$payment.status', ['COMPLETED', 'completed']] }
                                     ]
                                 },
                                 { $ifNull: ['$payment.amount', 0] },
@@ -163,10 +163,10 @@ export class AssignmentRepository extends BaseRepository<IAssignment> implements
                 $group: {
                     _id: null,
                     total: { $sum: 1 },
-                    completed: { $sum: { $cond: [{ $eq: ['$workStatus', 'COMPLETED'] }, 1, 0] } },
-                    accepted: { $sum: { $cond: [{ $eq: ['$invite.status', 'ACCEPTED'] }, 1, 0] } },
-                    rejected: { $sum: { $cond: [{ $eq: ['$invite.status', 'REJECTED'] }, 1, 0] } },
-                    pending: { $sum: { $cond: [{ $eq: ['$invite.status', 'PENDING'] }, 1, 0] } }
+                    completed: { $sum: { $cond: [{ $in: ['$workStatus', ['COMPLETED', 'completed']] }, 1, 0] } },
+                    accepted: { $sum: { $cond: [{ $in: ['$invite.status', ['ACCEPTED', 'accepted']] }, 1, 0] } },
+                    rejected: { $sum: { $cond: [{ $in: ['$invite.status', ['REJECTED', 'rejected']] }, 1, 0] } },
+                    pending: { $sum: { $cond: [{ $in: ['$invite.status', ['PENDING', 'pending']] }, 1, 0] } }
                 }
             }
         ]);

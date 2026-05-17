@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ILocationService, ILocationController } from '../interfaces/location.interface';
-import {HttpStatusCode} from "../../../constants/httpStatusCode"
+import {HttpStatusCode} from "../../../constants/httpStatusCode";
+import { ApiResponse } from '../../../utils/ApiResponse';
 
 export class LocationController implements ILocationController {
     private _locationService: ILocationService;
@@ -12,7 +13,7 @@ export class LocationController implements ILocationController {
     public getAllLocations = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const result = await this._locationService.getAllLocations();
-            res.status(HttpStatusCode.OK).json(result);
+            ApiResponse.sendSuccess(res, result.data, undefined, HttpStatusCode.OK);
         } catch (error) {
             next(error);
         }

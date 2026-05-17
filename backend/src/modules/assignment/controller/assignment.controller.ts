@@ -6,6 +6,7 @@ import { mapAssignmentToResponseDTO } from '../dtos/assignmentResponse.dto';
 import { HttpStatusCode } from '../../../constants/httpStatusCode'
 import { SuccessMessages } from '../../../constants/messages/successMessages';
 import { ErrorMessages } from '../../../constants/messages/errorMessages';
+import { ApiResponse } from '../../../utils/ApiResponse';
 
 export class AssignmentController implements IAssignmentController {
     private _assignmentService: IAssignmentService;
@@ -38,14 +39,7 @@ export class AssignmentController implements IAssignmentController {
 
             const { assignments, total, counts } = await this._assignmentService.getAssignmentsByProvider(provider._id.toString(), { page, limit, search, status });
 
-            res.status(HttpStatusCode.OK).json({
-                success: true,
-                data: await Promise.all(assignments.map(mapAssignmentToResponseDTO)),
-                total,
-                page,
-                limit,
-                counts
-            });
+            ApiResponse.sendPagination(res, await Promise.all(assignments.map(mapAssignmentToResponseDTO)), { total, page, limit, counts });
         } catch (error) {
             next(error);
         }
@@ -84,10 +78,7 @@ export class AssignmentController implements IAssignmentController {
             const responseData = await mapAssignmentToResponseDTO(assignment);
             responseData.coWorkers = mappedCoWorkers;
 
-            res.status(HttpStatusCode.OK).json({
-                success: true,
-                data: responseData
-            });
+            ApiResponse.sendSuccess(res, responseData);
         } catch (error) {
             next(error);
         }
@@ -109,11 +100,7 @@ export class AssignmentController implements IAssignmentController {
             }
 
             const updated = await this._assignmentService.updateStatus(assignmentId, status);
-            res.status(HttpStatusCode.OK).json({
-                success: true,
-                message: SuccessMessages.STATUS_UPDATED(status),
-                data: updated ? await mapAssignmentToResponseDTO(updated) : null
-            });
+            ApiResponse.sendSuccess(res, updated ? await mapAssignmentToResponseDTO(updated) : null, SuccessMessages.STATUS_UPDATED(status));
         } catch (error) {
             next(error);
         }
@@ -135,11 +122,7 @@ export class AssignmentController implements IAssignmentController {
             }
 
             const updated = await this._assignmentService.submitProof(assignmentId, { images, description });
-            res.status(HttpStatusCode.OK).json({
-                success: true,
-                message: SuccessMessages.PROOF_SUBMITTED,
-                data: updated ? await mapAssignmentToResponseDTO(updated) : null
-            });
+            ApiResponse.sendSuccess(res, updated ? await mapAssignmentToResponseDTO(updated) : null, SuccessMessages.PROOF_SUBMITTED);
         } catch (error) {
             next(error);
         }
@@ -158,11 +141,7 @@ export class AssignmentController implements IAssignmentController {
 
             const updated = await this._assignmentService.cancelByProvider(id, provider._id.toString(), notes);
 
-            res.status(HttpStatusCode.OK).json({
-                success: true,
-                message: 'Assignment cancelled successfully by provider',
-                data: await mapAssignmentToResponseDTO(updated)
-            });
+            ApiResponse.sendSuccess(res, await mapAssignmentToResponseDTO(updated), 'Assignment cancelled successfully by provider');
         } catch (error) {
             next(error);
         }
@@ -176,11 +155,7 @@ export class AssignmentController implements IAssignmentController {
 
             const updated = await this._assignmentService.cancelByClient(id, userId as string, notes);
 
-            res.status(HttpStatusCode.OK).json({
-                success: true,
-                message: 'Assignment cancelled successfully by client',
-                data: await mapAssignmentToResponseDTO(updated)
-            });
+            ApiResponse.sendSuccess(res, await mapAssignmentToResponseDTO(updated), 'Assignment cancelled successfully by client');
         } catch (error) {
             next(error);
         }
@@ -193,11 +168,7 @@ export class AssignmentController implements IAssignmentController {
             const { notes, evidence } = req.body;
             const updated = await this._assignmentService.reportAbsence(id, userId as string, notes, evidence);
 
-            res.status(HttpStatusCode.OK).json({
-                success: true,
-                message: 'Absence reported successfully',
-                data: await mapAssignmentToResponseDTO(updated)
-            });
+            ApiResponse.sendSuccess(res, await mapAssignmentToResponseDTO(updated), 'Absence reported successfully');
         } catch (error) {
 
             next(error);
@@ -209,11 +180,7 @@ export class AssignmentController implements IAssignmentController {
             const userId = req.user?.userId;
             const id = req.params.id as string;
             const updated = await this._assignmentService.markAsPaidByCash(id, userId as string);
-            res.status(HttpStatusCode.OK).json({
-                success: true,
-                message: 'Payment marked as paid by cash',
-                data: await mapAssignmentToResponseDTO(updated)
-            });
+            ApiResponse.sendSuccess(res, await mapAssignmentToResponseDTO(updated), 'Payment marked as paid by cash');
         } catch (error) {
             next(error);
         }
@@ -227,11 +194,7 @@ export class AssignmentController implements IAssignmentController {
             if (!provider) throw new AppError('Provider not found', HttpStatusCode.NOT_FOUND);
 
             const updated = await this._assignmentService.confirmPayment(id, provider._id.toString());
-            res.status(HttpStatusCode.OK).json({
-                success: true,
-                message: 'Payment confirmed',
-                data: await mapAssignmentToResponseDTO(updated)
-            });
+            ApiResponse.sendSuccess(res, await mapAssignmentToResponseDTO(updated), 'Payment confirmed');
         } catch (error) {
             next(error);
         }
@@ -246,11 +209,7 @@ export class AssignmentController implements IAssignmentController {
             if (!provider) throw new AppError('Provider not found', HttpStatusCode.NOT_FOUND);
 
             const updated = await this._assignmentService.providerMarkAsPaid(id, provider._id.toString());
-            res.status(HttpStatusCode.OK).json({
-                success: true,
-                message: 'Payment marked as received by hand',
-                data: await mapAssignmentToResponseDTO(updated)
-            });
+            ApiResponse.sendSuccess(res, await mapAssignmentToResponseDTO(updated), 'Payment marked as received by hand');
         } catch (error) {
             next(error);
         }
@@ -264,11 +223,7 @@ export class AssignmentController implements IAssignmentController {
             if (!provider) throw new AppError('Provider not found', HttpStatusCode.NOT_FOUND);
 
             const updated = await this._assignmentService.rejectPayment(id, provider._id.toString());
-            res.status(HttpStatusCode.OK).json({
-                success: true,
-                message: 'Payment confirmation rejected',
-                data: await mapAssignmentToResponseDTO(updated)
-            });
+            ApiResponse.sendSuccess(res, await mapAssignmentToResponseDTO(updated), 'Payment confirmation rejected');
         } catch (error) {
             next(error);
         }

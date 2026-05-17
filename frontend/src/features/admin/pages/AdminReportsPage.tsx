@@ -4,14 +4,7 @@ import { useNavigate } from "react-router-dom";
 import type { AppDispatch, RootState } from "../../../app/store";
 import { fetchAdminReports } from "../store/adminReportSlice";
 import useDebounce from "../../../hooks/useDebounce";
-import {
-  RiFlagLine,
-  RiArrowLeftSLine,
-  RiArrowRightSLine,
-  RiLoader4Line,
-  RiShieldUserLine,
-  RiArrowRightLine
-} from "react-icons/ri";
+import { RiArrowRightLine } from "react-icons/ri";
 import { CustomSelect } from "../../../shared/components/ui/CustomSelect";
 import { AdminPageHeader, AdminFilterBar, DataTable, type Column } from "../components/table";
 

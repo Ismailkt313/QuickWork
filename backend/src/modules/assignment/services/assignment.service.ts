@@ -324,7 +324,8 @@ export class AssignmentService implements IAssignmentService {
             throw new Error('Unauthorized: Only the job owner can report absence');
         }
 
-        if (new Date() < assignment.schedule.startDate) {
+        const startDate = new Date(assignment.schedule.startDate);
+        if (new Date() < startDate) {
             throw new Error('Absence can only be reported after the job start time');
         }
 

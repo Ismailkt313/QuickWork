@@ -190,6 +190,12 @@ const AdminJobsPage: React.FC<AdminJobsPageProps> = ({ defaultType }) => {
         }
       />
 
+      {error && (
+        <div className="alert alert-danger mb-4" role="alert">
+          Failed to load jobs. Please try refreshing the page.
+        </div>
+      )}
+
       <div className="admin-stats-row mb-4">
         <div className="admin-stat-card">
           <div className="admin-stat-label">Total Jobs</div>
@@ -227,7 +233,7 @@ const AdminJobsPage: React.FC<AdminJobsPageProps> = ({ defaultType }) => {
         }}
       >
         <CustomSelect
-          value={filters.status}
+          value={filters.status || ''}
           onChange={(v) => setFilters({ ...filters, status: v, page: 1 })}
           options={[
             { value: '', label: 'All Statuses' },

@@ -1570,6 +1570,18 @@ const UserJobDetailPage: React.FC = () => {
                           Cancel Offer
                         </button>
                       )}
+                    {hp.workStatus === "assigned" && job?.startDate && new Date() > new Date(job.startDate) && (
+                      <button
+                        className="btn btn-outline-warning btn-sm rounded-pill px-3 fw-bold ms-2"
+                        onClick={() => {
+                          setSelectedAssignmentId(hp.assignmentId);
+                          setSelectedProviderName(hp.name);
+                          setIsAbsenceModalOpen(true);
+                        }}
+                      >
+                        Report Absence
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -1741,18 +1753,21 @@ const UserJobDetailPage: React.FC = () => {
                 )}
 
                 {assignment.workStatus !== "completed" &&
-                  assignment.workStatus !== "cancelled" && (
+                  assignment.workStatus !== "cancelled" &&
+                  assignment.workStatus !== "absent" && (
                     <div className="mt-3 pt-3 border-top border-f1f5f9 d-flex justify-content-end gap-2">
-                      <button
-                        className="btn btn-outline-warning btn-sm rounded-pill px-3 fw-bold"
-                        onClick={() => {
-                          setSelectedAssignmentId(assignment.assignmentId);
-                          setSelectedProviderName(assignment.provider.name);
-                          setIsAbsenceModalOpen(true);
-                        }}
-                      >
-                        Report Absence
-                      </button>
+                      {assignment.workStatus === "assigned" && job?.startDate && new Date() > new Date(job.startDate) && (
+                        <button
+                          className="btn btn-outline-warning btn-sm rounded-pill px-3 fw-bold"
+                          onClick={() => {
+                            setSelectedAssignmentId(assignment.assignmentId);
+                            setSelectedProviderName(assignment.provider.name);
+                            setIsAbsenceModalOpen(true);
+                          }}
+                        >
+                          Report Absence
+                        </button>
+                      )}
                       {!hasAwaitingPayment && (
                         <button
                           className="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold"

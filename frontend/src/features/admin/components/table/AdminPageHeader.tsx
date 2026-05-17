@@ -1,10 +1,15 @@
-import React, { ReactNode } from "react";
+import React, { type ReactNode } from "react";
 
 interface AdminPageHeaderProps {
   title: string;
   subtitle?: string;
   action?: ReactNode;
   breadcrumb?: ReactNode;
+  actionButton?: {
+    label: string;
+    icon?: string;
+    onClick: () => void | Promise<void>;
+  };
 }
 
 export const AdminPageHeader: React.FC<AdminPageHeaderProps> = ({
@@ -12,6 +17,7 @@ export const AdminPageHeader: React.FC<AdminPageHeaderProps> = ({
   subtitle,
   action,
   breadcrumb,
+  actionButton,
 }) => {
   return (
     <>
@@ -21,7 +27,20 @@ export const AdminPageHeader: React.FC<AdminPageHeaderProps> = ({
           <h1 className="admin-page-title">{title}</h1>
           {subtitle && <p className="admin-page-subtitle">{subtitle}</p>}
         </div>
-        {action && <div>{action}</div>}
+        {(action || actionButton) && (
+          <div className="d-flex gap-2">
+            {action}
+            {actionButton && (
+              <button
+                className="btn btn-primary d-flex align-items-center gap-2"
+                onClick={actionButton.onClick}
+              >
+                {actionButton.icon && <i className={actionButton.icon}></i>}
+                {actionButton.label}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </>
   );

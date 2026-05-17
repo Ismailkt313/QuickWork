@@ -51,6 +51,13 @@ export class WorkHistoryService implements IWorkHistoryService {
         if (assignment.workStatus === 'cancelled') finalStatus = 'CANCELLED';
         if (assignment.workStatus === 'absent') finalStatus = 'ABSENT';
 
+        const existing = await this._workHistoryRepo.findByAssignmentId(assignment._id as string);
+        if (existing) {
+            existing.finalStatus = finalStatus;
+            existing.endedAt = assignment.completedAt || assignment.cancellation?.cancelledAt || assignment.absence?.reportedAt || new Date();
+            return await this._workHistoryRepo.save(existing);
+        }
+
         const workHistory = await this._workHistoryRepo.create({
             jobId: assignment.jobId?._id || assignment.jobId,
             clientId,

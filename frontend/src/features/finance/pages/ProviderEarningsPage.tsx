@@ -284,8 +284,8 @@ const ProviderEarningsPage: React.FC = () => {
                 {pendingLoading ? (
                     <div className="text-center py-4">Loading...</div>
                 ) : (
-                    pendingHistory.map(p => (
-                        <div key={p._id} className="qw-pending-item">
+                    pendingHistory.map((p, index) => (
+                        <div key={p._id || (p as any).id || index} className="qw-pending-item">
                           <div className="qw-pending-info">
                             <h6>
                               {p.jobId?.title || "Assignment"}
@@ -376,8 +376,8 @@ const ProviderEarningsPage: React.FC = () => {
                     ) : invoices.length === 0 ? (
                       <tr><td colSpan={5} className="text-center py-5">No invoices found</td></tr>
                     ) : (
-                      invoices.map(inv => (
-                        <tr key={inv._id}>
+                      invoices.map((inv, index) => (
+                        <tr key={inv._id || (inv as any).id || index}>
                           <td>
                             <div className="qw-td-info">
                               <div className="qw-td-icon credit"><RiBillLine /></div>
@@ -432,26 +432,26 @@ const ProviderEarningsPage: React.FC = () => {
                   ) : transactions.length === 0 ? (
                     <tr><td colSpan={5} className="text-center py-5">No transactions found</td></tr>
                   ) : (
-                    transactions.map(t => (
-                      <tr key={t._id}>
+                    transactions.map((t, index) => (
+                      <tr key={t._id || (t as any).id || index}>
                         <td>
                           <div className="qw-td-info">
                             <div className={`qw-td-icon ${t.type}`}>
                               {t.type === "credit" ? <RiArrowDownCircleLine /> : <RiArrowUpCircleLine />}
                             </div>
                             <div>
-                              <span className="qw-td-title">{t.source.replace("_", " ")}</span>
-                              <span className="qw-td-sub">ID: {t._id.slice(-8).toUpperCase()}</span>
+                              <span className="qw-td-title">{t.source?.replace("_", " ") || "Transaction"}</span>
+                              <span className="qw-td-sub">ID: {(t._id || (t as any).id || "").slice(-8).toUpperCase()}</span>
                             </div>
                           </div>
                         </td>
                         <td><span className={`qw-type-tag ${t.type}`}>{t.type}</span></td>
                         <td>
                           <span className={`qw-td-amount ${t.type}`}>
-                            {t.type === "credit" ? "+" : "-"}₹{t.amount.toLocaleString()}
+                            {t.type === "credit" ? "+" : "-"}₹{(t.amount || 0).toLocaleString()}
                           </span>
                         </td>
-                        <td>{new Date(t.createdAt).toLocaleDateString()}</td>
+                        <td>{new Date(t.createdAt || Date.now()).toLocaleDateString()}</td>
                         <td><span className="qw-status-pill success">Successful</span></td>
                       </tr>
                     ))
