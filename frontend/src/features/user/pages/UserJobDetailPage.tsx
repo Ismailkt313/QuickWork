@@ -36,6 +36,7 @@ import {
   RiHandCoinLine,
   RiTimeLine,
   RiCashLine,
+  RiAlertLine,
 } from "react-icons/ri";
 import CancellationModal from "../../provider/components/CancellationModal";
 import ReportAbsenceModal from "../../provider/components/ReportAbsenceModal";
@@ -307,27 +308,24 @@ const UserJobDetailPage: React.FC = () => {
     }
   };
 
-  const handleReportAbsence = async (notes: string, evidence: string[]) => {
-    if (!selectedAssignmentId) return;
+  const handleReportAbsence = async (assignmentId: string, notes: string, evidence: string[]) => {
+    console.log('user job detail', assignmentId, notes, evidence);
+    if (!assignmentId) return;
     try {
       setLoading(true);
       const response = await reportAbsence(
-        selectedAssignmentId,
+        assignmentId,
         notes,
         evidence,
       );
       if (response.success) {
         toast.success("Absence reported successfully");
-        fetchData();
+        await fetchData(true);
       }
     } catch (error) {
-      const axiosError = error as AxiosError<{ message: string }>;
-      toast.error(
-        axiosError.response?.data?.message || "Failed to report absence",
-      );
+      throw error;
     } finally {
       setLoading(false);
-      setSelectedAssignmentId(null);
     }
   };
 
@@ -717,6 +715,19 @@ const UserJobDetailPage: React.FC = () => {
             >
               <RiFlagLine />
             </button>
+            {assignmentId && workStatus !== "completed" && workStatus !== "cancelled" && workStatus !== "absent" && (job?.status === "expired" || (job?.startDate && new Date() > new Date(job.startDate))) && (
+              <button
+                className="m-p-btn report text-warning"
+                onClick={() => {
+                  setSelectedAssignmentId(assignmentId);
+                  setSelectedProviderName(p.name);
+                  setIsAbsenceModalOpen(true);
+                }}
+                title="Report Absence"
+              >
+                <RiAlertLine />
+              </button>
+            )}
           </div>
         </div>
 
@@ -790,7 +801,7 @@ const UserJobDetailPage: React.FC = () => {
           <h3 className="m-section-title">
             {isDirectHire ? "Hired Provider" : "Assigned Providers"}
           </h3>
-          {isDirectHire ? (
+           {isDirectHire ? (
             job?.hiredProvider ? (
               <MobileProviderCard provider={job?.hiredProvider} />
             ) : (
@@ -978,6 +989,7 @@ const UserJobDetailPage: React.FC = () => {
         .m-p-headline { font-size: 13px; color: #64748b; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .m-p-badges { display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
         .m-work-status { font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 6px; background: #eff6ff; color: #2563eb; text-transform: uppercase; letter-spacing: 0.5px; }
+        .m-work-status.absent { background: #fef2f2; color: #dc2626; }
         .m-pay-status { font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 6px; background: #f1f5f9; color: #475569; letter-spacing: 0.5px; }
         
         .m-p-actions { display: flex; gap: 12px; width: 100%; border-top: 1px solid #f1f5f9; padding-top: 16px; }
@@ -1088,6 +1100,26 @@ const UserJobDetailPage: React.FC = () => {
       `}</style>
     </div>
   );
+
+  if (loading) {
+    return (
+      <div className="d-flex flex-column align-items-center justify-content-center" style={{ minHeight: "60vh" }}>
+        <RiLoader4Line className="qw-spin text-primary mb-3" size={40} />
+        <p className="text-muted fw-bold text-uppercase small" style={{ letterSpacing: "1px" }}>Loading job details...</p>
+      </div>
+    );
+  }
+
+  if (!job) {
+    return (
+      <div className="d-flex flex-column align-items-center justify-content-center" style={{ minHeight: "60vh" }}>
+        <RiErrorWarningLine className="text-secondary mb-3" size={48} />
+        <h3 className="fw-bold text-dark mb-2" style={{ fontFamily: "Syne, sans-serif" }}>Job Not Found</h3>
+        <p className="text-muted mb-4 small">The job details could not be found or you do not have permission to view them.</p>
+        <Link to="/user/jobs" className="btn btn-dark rounded-pill px-4 py-2 fw-bold small">Back to My Jobs</Link>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -1488,7 +1520,9 @@ const UserJobDetailPage: React.FC = () => {
                               ? "bg-success-subtle text-success"
                               : hp.workStatus === "in_progress"
                                 ? "bg-warning-subtle text-warning"
-                                : "bg-info-subtle text-info"
+                                : hp.workStatus === "absent"
+                                  ? "bg-danger-subtle text-danger"
+                                  : "bg-info-subtle text-info"
                             }`}
                         >
                           {hp.workStatus?.replace("_", " ") || "Assigned"}
@@ -1570,7 +1604,7 @@ const UserJobDetailPage: React.FC = () => {
                           Cancel Offer
                         </button>
                       )}
-                    {hp.workStatus === "assigned" && job?.startDate && new Date() > new Date(job.startDate) && (
+                    {hp.assignmentId && hp.workStatus !== "completed" && hp.workStatus !== "cancelled" && hp.workStatus !== "absent" && (job?.status === "expired" || (job?.startDate && new Date() > new Date(job.startDate))) && (
                       <button
                         className="btn btn-outline-warning btn-sm rounded-pill px-3 fw-bold ms-2"
                         onClick={() => {
@@ -1650,7 +1684,9 @@ const UserJobDetailPage: React.FC = () => {
                               ? "bg-success-subtle text-success"
                               : assignment.workStatus === "in_progress"
                                 ? "bg-warning-subtle text-warning"
-                                : "bg-info-subtle text-info"
+                                : assignment.workStatus === "absent"
+                                  ? "bg-danger-subtle text-danger"
+                                  : "bg-info-subtle text-info"
                             }`}
                           style={{ fontSize: "9px" }}
                         >
@@ -1756,7 +1792,7 @@ const UserJobDetailPage: React.FC = () => {
                   assignment.workStatus !== "cancelled" &&
                   assignment.workStatus !== "absent" && (
                     <div className="mt-3 pt-3 border-top border-f1f5f9 d-flex justify-content-end gap-2">
-                      {assignment.workStatus === "assigned" && job?.startDate && new Date() > new Date(job.startDate) && (
+                      {assignment.assignmentId && (job?.status === "expired" || (job?.startDate && new Date() > new Date(job.startDate))) && (
                         <button
                           className="btn btn-outline-warning btn-sm rounded-pill px-3 fw-bold"
                           onClick={() => {
@@ -1825,6 +1861,7 @@ const UserJobDetailPage: React.FC = () => {
         }}
         onSubmit={handleReportAbsence}
         providerName={selectedProviderName}
+        assignmentId={selectedAssignmentId}
       />
 
       <ReviewModal

@@ -2,6 +2,7 @@ import { IWallet, IWalletTransaction, IInvoice, IWorkHistory } from '../interfac
 
 export interface WalletResponseDTO {
     id: string;
+    _id: string;
     providerId: string;
     balance: number;
     createdAt: Date;
@@ -10,6 +11,7 @@ export interface WalletResponseDTO {
 
 export interface WalletTransactionResponseDTO {
     id: string;
+    _id: string;
     providerId: string;
     type: string;
     source: string;
@@ -23,6 +25,7 @@ export const mapWalletToResponseDTO = (wallet: IWallet | Record<string, unknown>
     const w = wallet as unknown as Record<string, unknown>;
     return {
         id: w._id ? (w._id as { toString(): string }).toString() : ((w.id as string) || ""),
+        _id: w._id ? (w._id as { toString(): string }).toString() : ((w.id as string) || ""),
         providerId: w.providerId ? (w.providerId as { toString(): string }).toString() : "",
         balance: (w.balance as number) || 0,
         createdAt: (w.createdAt as Date) || new Date(),
@@ -34,6 +37,7 @@ export const mapWalletTransactionToResponseDTO = (transaction: IWalletTransactio
     const t = transaction as unknown as Record<string, unknown>;
     return {
         id: t._id ? (t._id as { toString(): string }).toString() : ((t.id as string) || ""),
+        _id: t._id ? (t._id as { toString(): string }).toString() : ((t.id as string) || ""),
         providerId: t.providerId ? (t.providerId as { toString(): string }).toString() : "",
         type: (t.type as string) || "",
         source: (t.source as string) || "",
@@ -46,6 +50,7 @@ export const mapWalletTransactionToResponseDTO = (transaction: IWalletTransactio
 
 export interface InvoiceResponseDTO {
     id: string;
+    _id: string;
     invoiceNumber: string;
     workHistoryId: string;
     jobId: string;
@@ -88,6 +93,7 @@ export const mapInvoiceToResponseDTO = (invoice: IInvoice | Record<string, unkno
 
     return {
         id: i._id ? (i._id as { toString(): string }).toString() : ((i.id as string) || ""),
+        _id: i._id ? (i._id as { toString(): string }).toString() : ((i.id as string) || ""),
         invoiceNumber: (i.invoiceNumber as string) || "",
         workHistoryId: i.workHistoryId ? (i.workHistoryId as { toString(): string }).toString() : "",
         jobId: i.jobId ? (i.jobId as { toString(): string }).toString() : "",
@@ -121,6 +127,7 @@ export const mapInvoiceToResponseDTO = (invoice: IInvoice | Record<string, unkno
 
 export interface WorkHistoryResponseDTO {
     id: string;
+    _id: string;
     jobId: string;
     clientId: string;
     providerId: string;
@@ -145,6 +152,7 @@ export const mapWorkHistoryToResponseDTO = (workHistory: IWorkHistory | Record<s
 
     return {
         id: wh._id ? (wh._id as { toString(): string }).toString() : ((wh.id as string) || ""),
+        _id: wh._id ? (wh._id as { toString(): string }).toString() : ((wh.id as string) || ""),
         jobId: wh.jobId ? (wh.jobId as { toString(): string }).toString() : "",
         clientId: wh.clientId ? (wh.clientId as { toString(): string }).toString() : "",
         providerId: wh.providerId ? (wh.providerId as { toString(): string }).toString() : "",

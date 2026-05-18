@@ -53,6 +53,7 @@ export class InvoiceController implements IInvoiceController {
     public getInvoiceById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params;
+            console.log("id", id)
             const invoice = await this._invoiceService.getInvoiceById(id as string);
             if (!invoice) {
                 res.status(HttpStatusCode.NOT_FOUND).json({ success: false, message: ErrorMessages.INVOICE_NOT_FOUND });

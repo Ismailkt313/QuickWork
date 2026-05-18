@@ -15,8 +15,9 @@ import { ErrorMessages } from "../../../constants/messages/errorMessages";
 interface ReportAbsenceModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (notes: string, evidence: string[]) => Promise<void>;
+  onSubmit: (assignmentId: string, notes: string, evidence: string[]) => Promise<void>;
   providerName?: string;
+  assignmentId?: string | null;
 }
 
 const ReportAbsenceModal: React.FC<ReportAbsenceModalProps> = ({
@@ -24,6 +25,7 @@ const ReportAbsenceModal: React.FC<ReportAbsenceModalProps> = ({
   onClose,
   onSubmit,
   providerName = "Provider",
+  assignmentId,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [notes, setNotes] = useState("");
@@ -64,15 +66,21 @@ const ReportAbsenceModal: React.FC<ReportAbsenceModalProps> = ({
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log('report modal', assignmentId, notes, uploadedImages);
     e.preventDefault();
     if (!notes.trim()) {
       toast.warning("Please provide a description of the absence");
       return;
     }
+    if (!assignmentId) {
+      toast.error("Assignment ID is missing");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
-      await onSubmit(notes, uploadedImages);
+      console.log('report modal', assignmentId, notes, uploadedImages);
+      await onSubmit(assignmentId, notes, uploadedImages);
       onClose();
     } catch (error: unknown) {
       console.error("Report failed", error);
@@ -138,6 +146,7 @@ const ReportAbsenceModal: React.FC<ReportAbsenceModalProps> = ({
               style={{ fontSize: "15px", resize: "none" }}
               required
             />
+            
           </div>
 
           <div className="mb-4">

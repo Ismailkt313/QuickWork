@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { WalletController } from '../controllers/wallet.controller';
+import { IWalletController } from '../interfaces/finance.interface';
 import { authMiddleware } from '../../../middleware/auth.middleware';
 import { authorizeRoles } from '../../../middleware/role.middleware';
 
-export const createWalletRouter = (walletController: WalletController) => {
+export const createWalletRouter = (walletController: IWalletController) => {
     const router = Router();
 
     router.get('/me', authMiddleware, walletController.getMe);

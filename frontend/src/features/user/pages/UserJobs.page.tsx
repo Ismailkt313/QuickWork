@@ -28,8 +28,7 @@ const UserJobsPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const initialPage = parseInt(searchParams.get("page") || "1", 10);
-  const initialTab = searchParams.get("status") || "all";
+ 
   const initialSearch = searchParams.get("search") || "";
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -38,10 +37,10 @@ const UserJobsPage: React.FC = () => {
   const [isCancelling, setIsCancelling] = useState(false);
   const [jobs, setJobs] = useState<UserJob[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filterTab] = useState(initialTab);
+  const filterTab = searchParams.get("status") || "all";
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const debouncedSearch = useDebounce(searchTerm, 400);
-  const [currentPage] = useState(initialPage);
+  const currentPage = parseInt(searchParams.get("page") || "1", 10);
 
   const fetchJobs = useCallback(async () => {
     const page = parseInt(searchParams.get("page") || "1", 10);
@@ -274,7 +273,7 @@ const UserJobsPage: React.FC = () => {
                 <nav aria-label="breadcrumb" className="mb-2">
                   <ol className="breadcrumb mb-0" style={{ fontSize: "12px" }}>
                     <li className="breadcrumb-item">
-                      <Link to="/user" className="text-decoration-none text-muted">
+                      <Link to="/" className="text-decoration-none text-muted">
                         Dashboard
                       </Link>
                     </li>

@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { InvoiceController } from '../controllers/invoice.controller';
+import { IInvoiceController } from '../interfaces/finance.interface';
 import { authMiddleware } from '../../../middleware/auth.middleware';
 
-export const createInvoiceRouter = (invoiceController: InvoiceController) => {
+export const createInvoiceRouter = (invoiceController: IInvoiceController) => {
     const router = Router();
 
     router.get('/', authMiddleware, invoiceController.getMyInvoices);

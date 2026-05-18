@@ -167,7 +167,6 @@ const PaymentHistoryPage: React.FC = () => {
           </div>
         </div>
       </div>
-
       <div className="qw-history-card">
         {loading ? (
           <div className="p-5 text-center text-muted">
@@ -182,11 +181,12 @@ const PaymentHistoryPage: React.FC = () => {
           </div>
         ) : (
           <div className="qw-mobile-transaction-list">
+            
             {filteredInvoices.map((inv) => (
               <div 
-                key={inv._id} 
+                key={inv.id} 
                 className="qw-mobile-tx-card"
-                onClick={() => openInvoiceDetails(inv._id)}
+                onClick={() => openInvoiceDetails(inv.id)}
               >
                 <div className="qw-tx-left">
                   <div className={`qw-tx-icon ${inv.paymentMethod.toLowerCase()}`}>
@@ -281,8 +281,9 @@ const PaymentHistoryPage: React.FC = () => {
               ) : filteredInvoices.length === 0 ? (
                 <tr><td colSpan={6} className="text-center py-5">No payments found</td></tr>
               ) : (
+                
                 filteredInvoices.map((inv) => (
-                  <tr key={inv._id} className="history-row">
+                  <tr key={inv.id} className="history-row">
                     <td>
                       <span className="invoice-num">{inv.invoiceNumber}</span>
                     </td>
@@ -311,14 +312,14 @@ const PaymentHistoryPage: React.FC = () => {
                         <button
                           className="icon-btn view"
                           title="View Details"
-                          onClick={() => openInvoiceDetails(inv._id)}
+                          onClick={() => openInvoiceDetails(inv.id)}
                         >
                           <RiExternalLinkLine />
                         </button>
                         <button
                           className="icon-btn download"
                           title="Download PDF"
-                          onClick={() => handleDownload(inv._id, inv.invoiceNumber)}
+                          onClick={() => handleDownload(inv.id, inv.invoiceNumber)}
                         >
                           <RiDownload2Line />
                         </button>

@@ -7,6 +7,8 @@ import { Types } from 'mongoose';
 import { getObjectId } from '../../../utils/getObjectId';
 import { INotificationService } from '../../notification/interfaces/notification.interface';
 import { IWorkHistoryService, IPaymentService } from '../../finance/interfaces/finance.interface';
+import { AppError } from '../../../utils/AppError';
+import { HttpStatusCode } from '../../../constants/httpStatusCode';
 
 export class AssignmentService implements IAssignmentService {
     private _assignmentRepository: IAssignmentRepository;
@@ -162,7 +164,8 @@ export class AssignmentService implements IAssignmentService {
             }
         }
 
-        return updated;
+        const populatedAssignment = await this._assignmentRepository.findById(id);
+        return populatedAssignment || updated;
     }
 
     async submitProof(id: string, proofData: { images: string[], description: string }): Promise<IAssignment | null> {
@@ -191,7 +194,8 @@ export class AssignmentService implements IAssignmentService {
             }
         }
 
-        return updated;
+        const populatedAssignment = await this._assignmentRepository.findById(id);
+        return populatedAssignment || updated;
     }
 
     async getAssignmentCountByJob(jobId: string): Promise<number> {
@@ -222,15 +226,15 @@ export class AssignmentService implements IAssignmentService {
 
     async cancelByProvider(id: string, providerId: string, notes?: string): Promise<IAssignment> {
         const assignment = await this._assignmentRepository.findById(id);
-        if (!assignment) throw new Error('Assignment not found');
+        if (!assignment) throw new AppError('Assignment not found', HttpStatusCode.NOT_FOUND);
 
         const freelancerId = getObjectId(assignment.freelancerId);
         if (freelancerId !== providerId) {
-            throw new Error('Unauthorized: Only the assigned provider can cancel this assignment');
+            throw new AppError('Unauthorized: Only the assigned provider can cancel this assignment', HttpStatusCode.FORBIDDEN);
         }
 
         if ([WORK_STATUS.CANCELLED, WORK_STATUS.ABSENT, WORK_STATUS.COMPLETED].includes(assignment.workStatus)) {
-            throw new Error(`Cannot cancel an assignment that is already ${assignment.workStatus}`);
+            throw new AppError(`Cannot cancel an assignment that is already ${assignment.workStatus}`, HttpStatusCode.BAD_REQUEST);
         }
 
         const isLateCancel = new Date() > assignment.schedule.startDate;
@@ -248,7 +252,7 @@ export class AssignmentService implements IAssignmentService {
             }
         });
 
-        if (!updated) throw new Error('Failed to update assignment');
+        if (!updated) throw new AppError('Failed to update assignment', HttpStatusCode.INTERNAL_SERVER_ERROR);
 
         await this._workHistoryService.createFromAssignment(updated as unknown as Record<string, unknown>);
 
@@ -266,25 +270,26 @@ export class AssignmentService implements IAssignmentService {
             });
         }
 
-        return updated;
+        const populatedAssignment = await this._assignmentRepository.findById(id);
+        return populatedAssignment || updated;
     }
 
     async cancelByClient(id: string, clientId: string, notes?: string): Promise<IAssignment> {
         const assignment = await this._assignmentRepository.findById(id);
-        if (!assignment) throw new Error('Assignment not found');
+        if (!assignment) throw new AppError('Assignment not found', HttpStatusCode.NOT_FOUND);
 
         const jobId = getObjectId(assignment.jobId);
         const job = await this._jobRepository.findById(jobId);
 
-        if (!job) throw new Error('Job not found');
+        if (!job) throw new AppError('Job not found', HttpStatusCode.NOT_FOUND);
 
         const jobOwnerId = getObjectId(job.userId);
         if (jobOwnerId !== clientId) {
-            throw new Error('Unauthorized: Only the job owner can cancel this assignment');
+            throw new AppError('Unauthorized: Only the job owner can cancel this assignment', HttpStatusCode.FORBIDDEN);
         }
 
         if ([WORK_STATUS.CANCELLED, WORK_STATUS.ABSENT, WORK_STATUS.COMPLETED].includes(assignment.workStatus)) {
-            throw new Error(`Cannot cancel an assignment that is already ${assignment.workStatus}`);
+            throw new AppError(`Cannot cancel an assignment that is already ${assignment.workStatus}`, HttpStatusCode.BAD_REQUEST);
         }
 
         const isLateCancel = new Date() > assignment.schedule.startDate;
@@ -300,41 +305,45 @@ export class AssignmentService implements IAssignmentService {
             }
         });
 
-        if (!updated) throw new Error('Failed to update assignment');
+        if (!updated) throw new AppError('Failed to update assignment', HttpStatusCode.INTERNAL_SERVER_ERROR);
 
         await this._workHistoryService.createFromAssignment(updated as unknown as Record<string, unknown>);
 
         const freelancerId = getObjectId(assignment.freelancerId);
         await this._handleJobReopening(getObjectId(updated.jobId), freelancerId);
 
-        return updated;
+        const populatedAssignment = await this._assignmentRepository.findById(id);
+        return populatedAssignment || updated;
     }
 
     async reportAbsence(id: string, clientId: string, notes?: string, evidence?: string[]): Promise<IAssignment> {
         const assignment = await this._assignmentRepository.findById(id);
-        if (!assignment) throw new Error('Assignment not found');
+        console.log( "inside service", assignment);
+        if (!assignment) throw new AppError('Assignment not found', HttpStatusCode.NOT_FOUND);
 
         const jobId = getObjectId(assignment.jobId);
         const job = await this._jobRepository.findById(jobId);
 
-        if (!job) throw new Error('Job not found');
+        if (!job) throw new AppError('Job not found', HttpStatusCode.NOT_FOUND);
 
         const jobOwnerId = getObjectId(job.userId);
         if (jobOwnerId !== clientId) {
-            throw new Error('Unauthorized: Only the job owner can report absence');
+            throw new AppError('Unauthorized: Only the job owner can report absence', HttpStatusCode.FORBIDDEN);
         }
 
         const startDate = new Date(assignment.schedule.startDate);
-        if (new Date() < startDate) {
-            throw new Error('Absence can only be reported after the job start time');
+        const startOfDay = new Date(startDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        if (new Date() < startOfDay) {
+            throw new AppError('Absence can only be reported on or after the job start date', HttpStatusCode.BAD_REQUEST);
         }
 
         if ([WORK_STATUS.CANCELLED, WORK_STATUS.ABSENT, WORK_STATUS.COMPLETED].includes(assignment.workStatus)) {
-            throw new Error(`Cannot report absence for an assignment that is already ${assignment.workStatus}`);
+            throw new AppError(`Cannot report absence for an assignment that is already ${assignment.workStatus}`, HttpStatusCode.BAD_REQUEST);
         }
 
         const updated = await this._assignmentRepository.updateById(id, {
-            workStatus: WORK_STATUS.ABSENT,
+            workStatus: WORK_STATUS.CANCELLED,
             absence: {
                 reportedBy: new Types.ObjectId(clientId),
                 reportedAt: new Date(),
@@ -343,14 +352,15 @@ export class AssignmentService implements IAssignmentService {
             }
         });
 
-        if (!updated) throw new Error('Failed to update assignment');
+        if (!updated) throw new AppError('Failed to update assignment', HttpStatusCode.INTERNAL_SERVER_ERROR);
 
         await this._workHistoryService.createFromAssignment(updated as unknown as Record<string, unknown>);
 
         const freelancerId = getObjectId(assignment.freelancerId);
         await this._handleJobReopening(getObjectId(updated.jobId), freelancerId);
 
-        return updated;
+        const populatedAssignment = await this._assignmentRepository.findById(id);
+        return populatedAssignment || updated;
     }
 
     private async _handleJobReopening(jobId: string, freelancerId: string): Promise<void> {
@@ -388,15 +398,15 @@ export class AssignmentService implements IAssignmentService {
 
     async markAsPaidByCash(id: string, clientId: string): Promise<IAssignment> {
         const assignment = await this._assignmentRepository.findById(id);
-        if (!assignment) throw new Error('Assignment not found');
+        if (!assignment) throw new AppError('Assignment not found', HttpStatusCode.NOT_FOUND);
 
         const job = await this._jobRepository.findById(getObjectId(assignment.jobId));
         if (!job || getObjectId(job.userId) !== clientId) {
-            throw new Error('Unauthorized: Only the job owner can mark as paid');
+            throw new AppError('Unauthorized: Only the job owner can mark as paid', HttpStatusCode.FORBIDDEN);
         }
 
         if (assignment.workStatus !== WORK_STATUS.COMPLETED) {
-            throw new Error('Payment can only be marked after work is completed');
+            throw new AppError('Payment can only be marked after work is completed', HttpStatusCode.BAD_REQUEST);
         }
 
         const updated = await this._assignmentRepository.updateById(id, {
@@ -407,7 +417,7 @@ export class AssignmentService implements IAssignmentService {
             }
         });
 
-        if (!updated) throw new Error('Failed to update assignment');
+        if (!updated) throw new AppError('Failed to update assignment', HttpStatusCode.INTERNAL_SERVER_ERROR);
 
         await this._notificationService.createNotification({
             recipient: (assignment.freelancerId as { userId?: { _id?: { toString: () => string }; toString: () => string } }).userId?._id?.toString() || (assignment.freelancerId as { userId?: { _id?: { toString: () => string }; toString: () => string } }).userId?.toString() || '',
@@ -429,10 +439,10 @@ export class AssignmentService implements IAssignmentService {
         }
 
         const assignment = await this._assignmentRepository.findById(id);
-        if (!assignment) throw new Error('Assignment not found');
+        if (!assignment) throw new AppError('Assignment not found', HttpStatusCode.NOT_FOUND);
 
         if (getObjectId(assignment.freelancerId) !== providerId) {
-            throw new Error('Unauthorized: Only the assigned provider can confirm payment');
+            throw new AppError('Unauthorized: Only the assigned provider can confirm payment', HttpStatusCode.FORBIDDEN);
         }
 
         const updated = await this._assignmentRepository.updateById(id, {
@@ -443,7 +453,7 @@ export class AssignmentService implements IAssignmentService {
             }
         });
 
-        if (!updated) throw new Error('Failed to update assignment');
+        if (!updated) throw new AppError('Failed to update assignment', HttpStatusCode.INTERNAL_SERVER_ERROR);
 
         return updated;
     }
@@ -457,10 +467,10 @@ export class AssignmentService implements IAssignmentService {
         }
 
         const assignment = await this._assignmentRepository.findById(id);
-        if (!assignment) throw new Error('Assignment not found');
+        if (!assignment) throw new AppError('Assignment not found', HttpStatusCode.NOT_FOUND);
 
         if (getObjectId(assignment.freelancerId) !== providerId) {
-            throw new Error('Unauthorized: Only the assigned provider can mark as paid');
+            throw new AppError('Unauthorized: Only the assigned provider can mark as paid', HttpStatusCode.FORBIDDEN);
         }
 
         const updated = await this._assignmentRepository.updateById(id, {
@@ -472,7 +482,7 @@ export class AssignmentService implements IAssignmentService {
             }
         });
 
-        if (!updated) throw new Error('Failed to update assignment');
+        if (!updated) throw new AppError('Failed to update assignment', HttpStatusCode.INTERNAL_SERVER_ERROR);
 
         const job = await this._jobRepository.findById(getObjectId(assignment.jobId));
         if (job) {
@@ -490,10 +500,10 @@ export class AssignmentService implements IAssignmentService {
 
     async rejectPayment(id: string, providerId: string): Promise<IAssignment> {
         const assignment = await this._assignmentRepository.findById(id);
-        if (!assignment) throw new Error('Assignment not found');
+        if (!assignment) throw new AppError('Assignment not found', HttpStatusCode.NOT_FOUND);
 
         if (getObjectId(assignment.freelancerId) !== providerId) {
-            throw new Error('Unauthorized: Only the assigned provider can reject payment');
+            throw new AppError('Unauthorized: Only the assigned provider can reject payment', HttpStatusCode.FORBIDDEN);
         }
 
         const updated = await this._assignmentRepository.updateById(id, {
@@ -504,7 +514,7 @@ export class AssignmentService implements IAssignmentService {
             }
         });
 
-        if (!updated) throw new Error('Failed to update assignment');
+        if (!updated) throw new AppError('Failed to update assignment', HttpStatusCode.INTERNAL_SERVER_ERROR);
 
         const job = await this._jobRepository.findById(getObjectId(assignment.jobId));
         if (job) {
@@ -521,6 +531,10 @@ export class AssignmentService implements IAssignmentService {
     }
 
     async getAssignmentByJobAndFreelancer(jobId: string, freelancerId: string): Promise<IAssignment | null> {
-        return await this._assignmentRepository.findOne({ jobId, freelancerId, 'invite.status': ASSIGNMENT_STATUS.ACCEPTED });
+        return await this._assignmentRepository.findOne({ 
+            jobId, 
+            freelancerId, 
+            'invite.status': { $in: [ASSIGNMENT_STATUS.ACCEPTED, ASSIGNMENT_STATUS.PENDING] } 
+        });
     }
 }

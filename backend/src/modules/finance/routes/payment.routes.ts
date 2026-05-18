@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { PaymentController } from '../controllers/payment.controller';
+import { IPaymentController } from '../interfaces/finance.interface';
 import { authMiddleware } from '../../../middleware/auth.middleware';
 
-export const createPaymentRouter = (paymentController: PaymentController) => {
+export const createPaymentRouter = (paymentController: IPaymentController) => {
     const router = Router();
 
     router.post('/cash/:workHistoryId', authMiddleware, paymentController.markAsPaidCash);

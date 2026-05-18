@@ -102,7 +102,7 @@ export class ReviewController implements IReviewController {
             res.status(HttpStatusCode.OK).json({
                 success: true,
                 message: "Provider reviews for client fetched successfully",
-                data: result.data.map(mapReviewToResponseDTO),
+                data: result.data,
                 pagination: result.pagination,
                 meta: result.meta
             });

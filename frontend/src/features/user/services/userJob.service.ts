@@ -135,6 +135,7 @@ export const reportAbsence = async (
   evidence?: string[],
 ) => {
   try {
+    console.log("inside api function", assignmentId, notes, evidence);
     const response = await api.post(ENDPOINTS.ASSIGNMENT.ABSENCE(assignmentId), {
       notes,
       evidence,
@@ -142,6 +143,7 @@ export const reportAbsence = async (
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError<{ message: string }>;
+    console.error("api error in reportAbsence", axiosError, axiosError.response?.status, axiosError.response?.data);
     throw new Error(
       axiosError.response?.data?.message || "Failed to report absence",
     );
