@@ -179,6 +179,9 @@ export class JobController implements IJobController {
 
             const jobId = req.params.jobId as string;
             const result = await this._jobService.cancelJob(jobId, userId);
+            if (!result.success) {
+                throw new AppError(result.message, HttpStatusCode.BAD_REQUEST);
+            }
             res.status(HttpStatusCode.OK).json(result);
         } catch (error) {
             next(error);

@@ -292,6 +292,10 @@ export class AssignmentService implements IAssignmentService {
             throw new AppError(`Cannot cancel an assignment that is already ${assignment.workStatus}`, HttpStatusCode.BAD_REQUEST);
         }
 
+        if (assignment.workStatus === WORK_STATUS.IN_PROGRESS || job.status === JOB_STATUS.IN_PROGRESS) {
+            throw new AppError('Cannot cancel an assignment when the job or work is in progress', HttpStatusCode.BAD_REQUEST);
+        }
+
         const isLateCancel = new Date() > assignment.schedule.startDate;
 
         const updated = await this._assignmentRepository.updateById(id, {

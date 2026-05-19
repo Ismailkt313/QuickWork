@@ -10,4 +10,6 @@ export interface IUser {
   };
   number?: string;
   verificationStatus?: "pending" | "verified" | "rejected";
+  authProvider?: "local" | "google" | "hybrid";
+  hasPassword?: boolean;
 }

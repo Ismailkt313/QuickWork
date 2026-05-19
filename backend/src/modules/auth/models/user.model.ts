@@ -45,6 +45,15 @@ const UserSchema: Schema<IUser> = new Schema<IUser>(
             url: { type: String, default: null },
             public_id: { type: String, default: null },
         },
+        authProvider: {
+            type: String,
+            enum: ['local', 'google', 'hybrid'],
+            default: 'local',
+        },
+        hasPassword: {
+            type: Boolean,
+            default: true,
+        },
     },
     {
         timestamps: { createdAt: true, updatedAt: false },

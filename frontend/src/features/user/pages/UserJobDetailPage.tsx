@@ -37,6 +37,7 @@ import {
   RiTimeLine,
   RiCashLine,
   RiAlertLine,
+  RiLockLine,
 } from "react-icons/ri";
 import CancellationModal from "../../provider/components/CancellationModal";
 import ReportAbsenceModal from "../../provider/components/ReportAbsenceModal";
@@ -63,6 +64,7 @@ interface JobDetail {
   rejectionReason?: string;
   freelancersNeeded: number;
   acceptedFreelancers: number;
+  isCancellationBlocked?: boolean;
   hiredProvider?: {
     userId: string;
     name: string;
@@ -322,8 +324,6 @@ const UserJobDetailPage: React.FC = () => {
         toast.success("Absence reported successfully");
         await fetchData(true);
       }
-    } catch (error) {
-      throw error;
     } finally {
       setLoading(false);
     }
@@ -756,14 +756,35 @@ const UserJobDetailPage: React.FC = () => {
   };
 
   const StickyActionBar = () => {
-    if (job?.status === "completed" || job?.status === "cancelled") return null;
+    if (job?.status === "completed" || job?.status === "cancelled" || job?.status === "rejected") return null;
 
     return (
       <div className="m-sticky-actions">
-        {job?.status === "open" && isDirectHire && !hasAwaitingPayment && (
-          <button className="m-action-btn cancel" onClick={handleCancelJob}>
-            Cancel Offer
-          </button>
+        {job?.isCancellationBlocked ? (
+          <span
+            className="m-action-btn text-muted"
+            style={{
+              background: "#f1f5f9",
+              border: "1px solid #e2e8f0",
+              cursor: "help",
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+              fontSize: "14px",
+              fontWeight: 700
+            }}
+            title="Cancellation becomes unavailable once all providers begin operational work."
+          >
+            <RiLockLine size={14} /> Cancellation Locked
+          </span>
+        ) : (
+          !hasAwaitingPayment && (
+            <button className="m-action-btn cancel" onClick={handleCancelJob}>
+              {isDirectHire ? "Cancel Offer" : "Cancel Job"}
+            </button>
+          )
         )}
         <button
           className="m-action-btn primary"
@@ -1210,6 +1231,28 @@ const UserJobDetailPage: React.FC = () => {
               {job?.description}
             </p>
           </div>
+          {job && !["completed", "cancelled", "rejected"].includes(job.status) && (
+            <div className="d-flex align-items-center gap-2">
+              {job.isCancellationBlocked ? (
+                <span
+                  className="badge bg-secondary-subtle text-secondary border px-3 py-2 fw-bold text-uppercase d-inline-flex align-items-center gap-1 hover-lift"
+                  style={{ fontSize: "12px", cursor: "help" }}
+                  title="Cancellation becomes unavailable once all providers begin operational work."
+                >
+                  <RiLockLine size={14} /> Cancellation Locked
+                </span>
+              ) : (
+                !hasAwaitingPayment && (
+                  <button
+                    className="btn btn-outline-danger rounded-pill px-4 py-2 fw-bold hover-lift transition-all"
+                    onClick={handleCancelJob}
+                  >
+                    Cancel Job
+                  </button>
+                )
+              )}
+            </div>
+          )}
         </div>
 
         <div className="row g-4 border-top pt-4">
@@ -1804,7 +1847,7 @@ const UserJobDetailPage: React.FC = () => {
                           Report Absence
                         </button>
                       )}
-                      {!hasAwaitingPayment && (
+                      {!hasAwaitingPayment && assignment.workStatus !== "in_progress" && job?.status !== "in_progress" && (
                         <button
                           className="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold"
                           onClick={() => {

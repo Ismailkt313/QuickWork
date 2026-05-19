@@ -27,6 +27,8 @@ interface IUser {
     url: string;
     public_id: string;
   };
+  hasPassword?: boolean;
+  authProvider?: string;
 }
 
 const UserProfilePage: React.FC = () => {
@@ -165,7 +167,7 @@ const UserProfilePage: React.FC = () => {
             <div className="m-ai-icon"><RiShieldLine /></div>
             <div className="m-ai-text">
               <span className="m-ai-title">Login & Security</span>
-              <span className="m-ai-sub">Manage password and safety</span>
+              <span className="m-ai-sub">{user.hasPassword === false ? "Set a password" : "Manage password and safety"}</span>
             </div>
             <RiArrowRightSLine className="m-ai-arrow" />
           </button>
@@ -608,7 +610,9 @@ const UserProfilePage: React.FC = () => {
                         color: "#64748b", fontSize: 13, margin: 0,
                         fontWeight: 500,
                       }}>
-                        It's a good idea to use a strong password that you're not using elsewhere
+                        {user.hasPassword === false
+                          ? "You signed in with Google. Set a password to also allow email login."
+                          : "It's a good idea to use a strong password that you're not using elsewhere"}
                       </p>
                     </div>
                     <button
@@ -624,7 +628,7 @@ const UserProfilePage: React.FC = () => {
                       onMouseEnter={(e) => { (e.target as HTMLElement).style.borderColor = "#3b82f6"; (e.target as HTMLElement).style.color = "#3b82f6"; (e.target as HTMLElement).style.background = "#eff6ff"; }}
                       onMouseLeave={(e) => { (e.target as HTMLElement).style.borderColor = "#e2e8f0"; (e.target as HTMLElement).style.color = "#0f172a"; (e.target as HTMLElement).style.background = "#fff"; }}
                     >
-                      Change Password
+                      {user.hasPassword === false ? "Set Password" : "Change Password"}
                     </button>
                   </div>
                 </div>
@@ -643,6 +647,8 @@ const UserProfilePage: React.FC = () => {
       <UpdatePasswordModal
         isOpen={isUpdatePasswordOpen}
         onClose={() => setIsUpdatePasswordOpen(false)}
+        hasPassword={user.hasPassword}
+        onSuccess={fetchProfile}
       />
       <UpdateEmailModal
         isOpen={isUpdateEmailOpen}

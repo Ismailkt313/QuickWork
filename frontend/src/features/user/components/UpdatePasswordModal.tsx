@@ -7,11 +7,9 @@ import { toast } from "react-toastify";
 import { RiSaveLine, RiShieldLine, RiLockLine } from "react-icons/ri";
 import { createPortal } from "react-dom";
 
-const passwordSchema = z
+const getPasswordSchema = (hasPassword?: boolean) => z
   .object({
-    currentPassword: z
-      .string()
-      .min(6, "Current password must be at least 6 characters"),
+    currentPassword: hasPassword === false ? z.string().optional() : z.string().min(6, "Current password must be at least 6 characters"),
     newPassword: z
       .string()
       .min(6, "New password must be at least 6 characters")
@@ -27,16 +25,24 @@ const passwordSchema = z
     path: ["confirmPassword"],
   });
 
-type PasswordFormData = z.infer<typeof passwordSchema>;
+type PasswordFormData = {
+  currentPassword?: string;
+  newPassword: string;
+  confirmPassword: string;
+};
 
 interface UpdatePasswordModalProps {
   isOpen: boolean;
   onClose: () => void;
+  hasPassword?: boolean;
+  onSuccess?: () => void;
 }
 
 const UpdatePasswordModal: React.FC<UpdatePasswordModalProps> = ({
   isOpen,
   onClose,
+  hasPassword,
+  onSuccess,
 }) => {
   const {
     register,
@@ -45,7 +51,7 @@ const UpdatePasswordModal: React.FC<UpdatePasswordModalProps> = ({
     setError,
     formState: { errors, isSubmitting },
   } = useForm<PasswordFormData>({
-    resolver: zodResolver(passwordSchema),
+    resolver: zodResolver(getPasswordSchema(hasPassword)) as any,
   });
 
   const onSubmit = async (data: PasswordFormData) => {
@@ -53,9 +59,10 @@ const UpdatePasswordModal: React.FC<UpdatePasswordModalProps> = ({
       const response = await changePassword(data);
 
       if (response.success) {
-        toast.success("Password changed successfully");
+        toast.success(hasPassword === false ? "Password set successfully" : "Password changed successfully");
         reset();
         onClose();
+        if (onSuccess) onSuccess();
       } else {
         toast.error(response.message || "Failed to change password");
       }
@@ -134,7 +141,7 @@ const UpdatePasswordModal: React.FC<UpdatePasswordModalProps> = ({
           }} />
         )}
         <div className="modal-header border-0 bg-primary text-white p-4" style={{ flexShrink: 0 }}>
-          <h5 className="modal-title fw-bold m-0">Change Password</h5>
+          <h5 className="modal-title fw-bold m-0">{hasPassword === false ? "Set Password" : "Change Password"}</h5>
           <button
             type="button"
             className="btn-close btn-close-white"
@@ -144,28 +151,30 @@ const UpdatePasswordModal: React.FC<UpdatePasswordModalProps> = ({
         </div>
         <form onSubmit={handleSubmit(onSubmit)} style={{ overflowY: "auto", flexGrow: 1 }}>
           <div className="modal-body p-4 pt-4">
-            <div className="mb-4 text-start">
-              <label className="form-label small fw-bold text-secondary mb-2">
-                Current Password
-              </label>
-              <div className="input-group">
-                <span className="input-group-text bg-light border-end-0 text-secondary px-3">
-                  <RiShieldLine size={18} />
-                </span>
-                <input
-                  {...register("currentPassword")}
-                  type="password"
-                  className={`form-control bg-light border-start-0 ps-0 ${errors.currentPassword ? "is-invalid" : ""}`}
-                  placeholder="Enter your current password"
-                  style={{ height: "48px", fontSize: isMobile ? "16px" : "14px" }}
-                />
-              </div>
-              {errors.currentPassword && (
-                <div className="text-danger small mt-1 ps-1">
-                  {errors.currentPassword.message}
+            {hasPassword !== false && (
+              <div className="mb-4 text-start">
+                <label className="form-label small fw-bold text-secondary mb-2">
+                  Current Password
+                </label>
+                <div className="input-group">
+                  <span className="input-group-text bg-light border-end-0 text-secondary px-3">
+                    <RiShieldLine size={18} />
+                  </span>
+                  <input
+                    {...register("currentPassword")}
+                    type="password"
+                    className={`form-control bg-light border-start-0 ps-0 ${errors.currentPassword ? "is-invalid" : ""}`}
+                    placeholder="Enter your current password"
+                    style={{ height: "48px", fontSize: isMobile ? "16px" : "14px" }}
+                  />
                 </div>
-              )}
-            </div>
+                {errors.currentPassword && (
+                  <div className="text-danger small mt-1 ps-1">
+                    {errors.currentPassword.message}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="mb-4 text-start">
               <label className="form-label small fw-bold text-secondary mb-2">
@@ -237,7 +246,7 @@ const UpdatePasswordModal: React.FC<UpdatePasswordModalProps> = ({
               ) : (
                 <>
                   <RiSaveLine className="me-2" />
-                  Update Password
+                  {hasPassword === false ? "Set Password" : "Update Password"}
                 </>
               )}
             </button>

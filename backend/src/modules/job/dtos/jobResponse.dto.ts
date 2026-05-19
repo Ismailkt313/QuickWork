@@ -46,6 +46,7 @@ export interface JobResponseDTO {
   freelancersNeeded: number;
   acceptedFreelancers: number;
   hasPendingPayment?: boolean;
+  isCancellationBlocked?: boolean;
   createdAt: Date;
   updatedAt: Date;
   schedule?: {

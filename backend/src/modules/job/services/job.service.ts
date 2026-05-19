@@ -205,6 +205,17 @@ export class JobService implements IJobService {
 
             dto.hasPendingPayment = workHistories.some(wh => wh.payment.status !== 'completed');
 
+            const assignments = await this._assignmentService.getAssignmentsByJobId(j._id.toString());
+            const activeAssignments = assignments.filter(a =>
+                a.workStatus !== WORK_STATUS.CANCELLED &&
+                a.workStatus !== WORK_STATUS.ABSENT
+            );
+            if (activeAssignments.length > 0) {
+                dto.isCancellationBlocked = activeAssignments.every(a => a.workStatus !== WORK_STATUS.ASSIGNED);
+            } else {
+                dto.isCancellationBlocked = false;
+            }
+
             return dto;
         }));
 
@@ -279,6 +290,17 @@ export class JobService implements IJobService {
         const dto = await mapJobToResponseDTO(job, assignmentData, clientMetrics);
 
         dto.applicants = await this._assignmentService.getAssignmentCountByJob(jobId);
+
+        const assignmentsObj = await this._assignmentService.getAssignmentsByJobId(jobId);
+        const activeAssignments = assignmentsObj.filter(a =>
+            a.workStatus !== WORK_STATUS.CANCELLED &&
+            a.workStatus !== WORK_STATUS.ABSENT
+        );
+        if (activeAssignments.length > 0) {
+            dto.isCancellationBlocked = activeAssignments.every(a => a.workStatus !== WORK_STATUS.ASSIGNED);
+        } else {
+            dto.isCancellationBlocked = false;
+        }
 
         if (userId) {
             const provider = await this._serviceProviderRepository.findByUserId(userId);
@@ -608,6 +630,19 @@ export class JobService implements IJobService {
 
         if ([JOB_STATUS.COMPLETED, JOB_STATUS.CANCELLED, JOB_STATUS.REJECTED].includes(job.status)) {
             return { success: false, message: ErrorMessages.CANCEL_ALREADY_CLOSED(job.status) };
+        }
+
+        const assignments = await this._assignmentService.getAssignmentsByJobId(jobId);
+        const activeAssignments = assignments.filter(a =>
+            a.workStatus !== WORK_STATUS.CANCELLED &&
+            a.workStatus !== WORK_STATUS.ABSENT
+        );
+
+        if (activeAssignments.length > 0) {
+            const allMovedBeyondAssigned = activeAssignments.every(a => a.workStatus !== WORK_STATUS.ASSIGNED);
+            if (allMovedBeyondAssigned) {
+                return { success: false, message: ErrorMessages.CANCEL_WORK_STARTED };
+            }
         }
 
         await this._jobRepository.updateStatus(jobId, JOB_STATUS.CANCELLED);

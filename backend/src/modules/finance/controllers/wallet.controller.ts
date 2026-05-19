@@ -24,6 +24,12 @@ export class WalletController implements IWalletController {
             const userId = req.user?.userId;
             if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
 
+            const role = req.user?.role;
+            if (role !== 'provider') {
+                res.status(HttpStatusCode.OK).json({ success: true, data: null });
+                return;
+            }
+
             const provider = await this._serviceProviderService.getProviderByUserId(userId);
             if (!provider) throw new AppError(ErrorMessages.PROVIDER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
 
@@ -40,6 +46,21 @@ export class WalletController implements IWalletController {
             if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
 
             const { page = 1, limit = 10, search, type, source } = req.query;
+
+            const role = req.user?.role;
+            if (role !== 'provider') {
+                res.status(HttpStatusCode.OK).json({
+                    success: true,
+                    data: [],
+                    pagination: {
+                        total: 0,
+                        page: Number(page),
+                        limit: Number(limit),
+                        pages: 0
+                    }
+                });
+                return;
+            }
 
             const provider = await this._serviceProviderService.getProviderByUserId(userId);
             if (!provider) throw new AppError(ErrorMessages.PROVIDER_NOT_FOUND, HttpStatusCode.NOT_FOUND);

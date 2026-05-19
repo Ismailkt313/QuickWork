@@ -12,6 +12,8 @@ export interface UserResponseDTO {
         url: string;
         public_id: string;
     };
+    authProvider: 'local' | 'google' | 'hybrid';
+    hasPassword: boolean;
     createdAt: Date;
 }
 
@@ -24,6 +26,8 @@ export const mapUserToResponseDTO = (user: IUser): UserResponseDTO => {
         role: user.role,
         isBlocked: user.isBlocked,
         profileImage: user.profileImage,
+        authProvider: user.authProvider || 'local',
+        hasPassword: user.hasPassword !== undefined ? user.hasPassword : !!user.hashedPassword,
         createdAt: user.createdAt,
     };
 };

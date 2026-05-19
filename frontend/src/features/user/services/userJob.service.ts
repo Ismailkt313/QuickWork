@@ -26,6 +26,7 @@ export interface UserJob {
   skills?: string[];
   locationName?: string;
   hasPendingPayment?: boolean;
+  isCancellationBlocked?: boolean;
   providers?: {
     providerId: string;
     finalStatus: string;

@@ -151,6 +151,9 @@ export class AuthService implements IAuthService {
         }
 
         if (!user.hashedPassword) {
+            if (user.authProvider === 'google') {
+                throw new AppError("This account was created using Google Sign-In. Please continue with Google or set a password.", HttpStatusCode.BAD_REQUEST);
+            }
             throw new AppError(ErrorMessages.INVALID_CREDENTIALS, HttpStatusCode.UNAUTH0RIZED);
         }
 
@@ -317,6 +320,9 @@ export class AuthService implements IAuthService {
 
         const hashedPassword = await bcrypt.hash(input.newPassword, config.BCRYPT_SALT_ROUNDS);
         await this._authRepository.updatePassword(user._id.toString(), hashedPassword);
+        if (user.authProvider === 'google') {
+            await this._authRepository.updateById(user._id.toString(), { authProvider: 'hybrid', hasPassword: true } as any);
+        }
         await this._otpRepository.deleteByEmailAndType(input.email, OTP_TYPE.PASSWORD_RESET);
 
         return {
@@ -366,9 +372,30 @@ export class AuthService implements IAuthService {
             throw new AppError(ErrorMessages.USER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
         }
         const user = await this._authRepository.findByEmailWithPassword(existingUser.email);
-        if (!user || !user.hashedPassword) {
+        if (!user) {
             throw new AppError(ErrorMessages.USER_NOT_FOUND, HttpStatusCode.BAD_REQUEST);
         }
+
+        if (!user.hashedPassword && user.authProvider === 'google') {
+            if (data.newPassword.length < 6) throw new AppError("New password must be at least 6 characters", HttpStatusCode.BAD_REQUEST);
+            if (!/[A-Z]/.test(data.newPassword)) throw new AppError("New password must contain at least one uppercase letter", HttpStatusCode.BAD_REQUEST);
+            if (!/[0-9]/.test(data.newPassword)) throw new AppError("New password must contain at least one number", HttpStatusCode.BAD_REQUEST);
+            if (!/[!@#$%^&*(),.?":{}|<>]/.test(data.newPassword)) throw new AppError("New password must contain at least one special character", HttpStatusCode.BAD_REQUEST);
+
+            const hashedNewPassword = await bcrypt.hash(data.newPassword, config.BCRYPT_SALT_ROUNDS);
+            await this._authRepository.updatePassword(userId, hashedNewPassword);
+            await this._authRepository.updateById(userId, { authProvider: 'hybrid', hasPassword: true } as any);
+            return;
+        }
+
+        if (!user.hashedPassword) {
+            throw new AppError(ErrorMessages.USER_NOT_FOUND, HttpStatusCode.BAD_REQUEST);
+        }
+        
+        if (!data.currentPassword) {
+            throw new AppError("Current password is required", HttpStatusCode.BAD_REQUEST);
+        }
+
         const isPasswordValid = await bcrypt.compare(data.currentPassword, user.hashedPassword);
         if (!isPasswordValid) {
             throw new AppError(ErrorMessages.INVALID_CURRENT_PASSWORD, HttpStatusCode.BAD_REQUEST);

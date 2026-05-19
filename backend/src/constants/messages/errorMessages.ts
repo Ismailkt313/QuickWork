@@ -61,6 +61,7 @@ export const ErrorMessages = {
   OFFER_INVALID: "Offer is no longer valid or already accepted",
   UNAUTHORIZED_CANCEL: "Unauthorized to cancel this job",
   CANCEL_ALREADY_CLOSED: (status: string) => `Cannot cancel a job that is already ${status}`,
+  CANCEL_WORK_STARTED: "This job can no longer be cancelled because all assigned providers have already started work.",
   PROFILE_UNDER_VERIFICATION: "Profile under verification by admin",
   JOB_NOT_OPEN: "Job is no longer open for acceptance",
 

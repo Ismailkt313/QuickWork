@@ -25,16 +25,16 @@ async function ensureFontExists(fontPath: string, url: string): Promise<void> {
                 https.get(response.headers.location!, (res) => {
                     res.pipe(file);
                     file.on('finish', () => { file.close(); resolve(); });
-                }).on('error', (err) => { fs.unlink(fontPath, () => {}); reject(err); });
+                }).on('error', (err) => { fs.unlink(fontPath, () => { }); reject(err); });
             } else if (response.statusCode === 200) {
                 response.pipe(file);
                 file.on('finish', () => { file.close(); resolve(); });
             } else {
                 file.close();
-                fs.unlink(fontPath, () => {});
+                fs.unlink(fontPath, () => { });
                 reject(new Error(`Failed to download font, status code: ${response.statusCode}`));
             }
-        }).on('error', (err) => { fs.unlink(fontPath, () => {}); reject(err); });
+        }).on('error', (err) => { fs.unlink(fontPath, () => { }); reject(err); });
     });
 }
 
@@ -65,16 +65,25 @@ export class InvoiceService implements IInvoiceService {
         if (history.payment.status !== 'completed') throw new Error('Invoice can only be generated for completed payments');
 
 
-        const job = await this._jobRepo.findById(history.jobId.toString());
+        const getIdStr = (val: unknown): string => {
+            if (!val) return '';
+            if (typeof val === 'object' && val !== null && '_id' in val) {
+                const obj = val as { _id: { toString(): string } };
+                return obj._id.toString();
+            }
+            return String(val);
+        };
+
+        const job = await this._jobRepo.findById(getIdStr(history.jobId));
         if (!job) throw new Error('Job not found');
 
-        const client = await this._authRepo.findById(history.clientId.toString());
+        const client = await this._authRepo.findById(getIdStr(history.clientId));
         if (!client) throw new Error('Client not found');
 
-        const provider = await this._providerRepo.findById(history.providerId.toString());
+        const provider = await this._providerRepo.findById(getIdStr(history.providerId));
         if (!provider) throw new Error('Provider not found');
 
-        const providerUser = await this._authRepo.findById(provider.userId.toString());
+        const providerUser = await this._authRepo.findById(getIdStr(provider.userId));
         if (!providerUser) throw new Error('Provider user not found');
 
         const invoiceNumber = await this._invoiceRepo.getNextInvoiceNumber();

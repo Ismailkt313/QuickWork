@@ -25,6 +25,7 @@ passport.use(
                 if (user) {
                     if (!user.googleId) {
                         user.googleId = profile.id;
+                        user.authProvider = 'hybrid';
                         await user.save();
                     }
 
@@ -40,8 +41,9 @@ passport.use(
                     name: profile.displayName,
                     googleId: profile.id,
                     role: ROLES.USER,
-                    isService_provider: false,
                     isBlocked: false,
+                    authProvider: 'google',
+                    hasPassword: false,
                 });
                 await newUser.save();
                 return done(null, newUser as Express.User);

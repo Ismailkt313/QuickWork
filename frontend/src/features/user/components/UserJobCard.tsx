@@ -132,12 +132,23 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView, onRefr
                   job.status === "fully_assigned" ||
                   job.status === "in_progress") && (
                     <li>
-                      <button
-                        className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 rounded-3 text-danger"
-                        onClick={() => onCancel?.(job.id)}
-                      >
-                        <RiCloseCircleLine size={18} /> Cancel Job
-                      </button>
+                      {job.isCancellationBlocked ? (
+                        <button
+                          className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 rounded-3 text-muted"
+                          disabled
+                          style={{ cursor: "not-allowed", opacity: 0.6 }}
+                          title="Cancellation becomes unavailable once all providers begin operational work."
+                        >
+                          <RiLockLine size={18} /> Cancellation Locked
+                        </button>
+                      ) : (
+                        <button
+                          className="dropdown-item d-flex align-items-center gap-2 py-2 px-3 rounded-3 text-danger"
+                          onClick={() => onCancel?.(job.id)}
+                        >
+                          <RiCloseCircleLine size={18} /> Cancel Job
+                        </button>
+                      )}
                     </li>
                   )}
               </ul>
@@ -204,6 +215,14 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView, onRefr
                 <div className="qw-status-display">
                   {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
                 </div>
+              ) : job.isCancellationBlocked ? (
+                <span
+                  className="qw-locked-badge"
+                  onClick={(e) => e.stopPropagation()}
+                  title="Cancellation becomes unavailable once all providers begin operational work."
+                >
+                  <RiLockLine size={12} /> Locked
+                </span>
               ) : (
                 <button
                   className="qw-cancel-btn"
@@ -419,6 +438,22 @@ const UserJobCard: React.FC<UserJobCardProps> = ({ job, onCancel, onView, onRefr
         .qw-cancel-btn:hover {
           background: #ef4444;
           color: white;
+        }
+
+        .qw-locked-badge {
+          background: #f8fafc;
+          color: #94a3b8;
+          border: 1px solid #e2e8f0;
+          padding: 8px 16px;
+          border-radius: 12px;
+          font-weight: 700;
+          font-size: 13px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          min-width: 100px;
+          cursor: help;
         }
 
         @media (max-width: 576px) {

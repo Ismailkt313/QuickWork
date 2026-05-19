@@ -18,6 +18,8 @@ export interface IUser extends Document {
     };
     isBlocked: boolean;
     warningCount: number;
+    authProvider: 'local' | 'google' | 'hybrid';
+    hasPassword: boolean;
     createdAt: Date;
 }
 
@@ -29,6 +31,8 @@ export interface ICreateUserData {
     googleId?: string;
     role: ROLES;
     isBlocked: boolean;
+    authProvider?: 'local' | 'google' | 'hybrid';
+    hasPassword?: boolean;
 }
 
 export interface IOtpEntry extends Document {
@@ -151,7 +155,7 @@ export interface IRefreshTokenResponse {
 }
 
 export interface IChangePasswordInput {
-    currentPassword: string;
+    currentPassword?: string;
     newPassword: string;
 }
 
