@@ -22,7 +22,7 @@ export class ServiceRequestRepository extends BaseRepository<IServiceRequest> im
 
     async findAllPending(page: number, limit: number, search?: string): Promise<IServiceRequest[]> {
         const skip = (page - 1) * limit;
-        const query: any = { status: 'pending' };
+        const query: Record<string, unknown> = { status: 'pending' };
         if (search) {
             query.$or = [
                 { name: { $regex: search, $options: 'i' } },
@@ -37,7 +37,7 @@ export class ServiceRequestRepository extends BaseRepository<IServiceRequest> im
     }
 
     async getPendingCount(search?: string): Promise<number> {
-        const query: any = { status: 'pending' };
+        const query: Record<string, unknown> = { status: 'pending' };
         if (search) {
             query.$or = [
                 { name: { $regex: search, $options: 'i' } },

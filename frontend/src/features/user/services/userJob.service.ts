@@ -136,7 +136,6 @@ export const reportAbsence = async (
   evidence?: string[],
 ) => {
   try {
-    console.log("inside api function", assignmentId, notes, evidence);
     const response = await api.post(ENDPOINTS.ASSIGNMENT.ABSENCE(assignmentId), {
       notes,
       evidence,

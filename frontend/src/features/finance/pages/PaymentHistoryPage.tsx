@@ -49,7 +49,6 @@ const PaymentHistoryPage: React.FC = () => {
         setPagination(res.pagination);
       } catch (err) {
         console.error("Failed to fetch invoices", err);
-        // toast.error("Failed to load payment history");
       } finally {
         setLoading(false);
       }

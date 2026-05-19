@@ -24,16 +24,8 @@ class SocketService {
       autoConnect: true,
     });
 
-    this.socket.on("connect", () => {
-      console.log("DEBUG: Socket connected as singleton", this.socket?.id);
-    });
-
     this.socket.on("connect_error", (error) => {
-      console.error("DEBUG: Socket connection error:", error.message);
-    });
-
-    this.socket.on("disconnect", (reason) => {
-      console.log("DEBUG: Socket disconnected", reason);
+      console.error("Socket connection error:", error.message);
     });
 
     return this.socket;

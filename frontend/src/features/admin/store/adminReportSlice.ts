@@ -9,7 +9,7 @@ interface ReportUser {
     warningCount?: number;
 }
 
-interface Report {
+export interface Report {
     _id: string;
     assignmentId: string;
     reporterId: ReportUser;

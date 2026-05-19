@@ -58,7 +58,7 @@ export class AdminRepository implements IAdminRepository {
     }
     public async getPendingProviders(query: IUserListQuery): Promise<IServiceProviderWithUser[]> {
         const skip = (query.page - 1) * query.limit;
-        const filter: any = { 'verification.status': VERIFICATION_STATUS.PENDING };
+        const filter: Record<string, unknown> = { 'verification.status': VERIFICATION_STATUS.PENDING };
 
         if (query.search && query.search.trim() !== "") {
             const regex = new RegExp(query.search.trim(), "i");
@@ -76,7 +76,7 @@ export class AdminRepository implements IAdminRepository {
     }
 
     public async getPendingProviderCount(query?: IUserListQuery): Promise<number> {
-        const filter: any = { 'verification.status': VERIFICATION_STATUS.PENDING };
+        const filter: Record<string, unknown> = { 'verification.status': VERIFICATION_STATUS.PENDING };
 
         if (query?.search && query.search.trim() !== "") {
             const regex = new RegExp(query.search.trim(), "i");

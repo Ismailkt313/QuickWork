@@ -66,7 +66,6 @@ const ReportAbsenceModal: React.FC<ReportAbsenceModalProps> = ({
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log('report modal', assignmentId, notes, uploadedImages);
     e.preventDefault();
     if (!notes.trim()) {
       toast.warning("Please provide a description of the absence");
@@ -79,7 +78,6 @@ const ReportAbsenceModal: React.FC<ReportAbsenceModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      console.log('report modal', assignmentId, notes, uploadedImages);
       await onSubmit(assignmentId, notes, uploadedImages);
       onClose();
     } catch (error: unknown) {

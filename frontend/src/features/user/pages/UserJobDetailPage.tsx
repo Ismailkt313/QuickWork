@@ -311,7 +311,6 @@ const UserJobDetailPage: React.FC = () => {
   };
 
   const handleReportAbsence = async (assignmentId: string, notes: string, evidence: string[]) => {
-    console.log('user job detail', assignmentId, notes, evidence);
     if (!assignmentId) return;
     try {
       setLoading(true);

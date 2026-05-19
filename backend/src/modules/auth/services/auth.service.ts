@@ -321,7 +321,7 @@ export class AuthService implements IAuthService {
         const hashedPassword = await bcrypt.hash(input.newPassword, config.BCRYPT_SALT_ROUNDS);
         await this._authRepository.updatePassword(user._id.toString(), hashedPassword);
         if (user.authProvider === 'google') {
-            await this._authRepository.updateById(user._id.toString(), { authProvider: 'hybrid', hasPassword: true } as any);
+            await this._authRepository.updateById(user._id.toString(), { authProvider: 'hybrid', hasPassword: true } as Partial<IUser>);
         }
         await this._otpRepository.deleteByEmailAndType(input.email, OTP_TYPE.PASSWORD_RESET);
 
@@ -384,7 +384,7 @@ export class AuthService implements IAuthService {
 
             const hashedNewPassword = await bcrypt.hash(data.newPassword, config.BCRYPT_SALT_ROUNDS);
             await this._authRepository.updatePassword(userId, hashedNewPassword);
-            await this._authRepository.updateById(userId, { authProvider: 'hybrid', hasPassword: true } as any);
+            await this._authRepository.updateById(userId, { authProvider: 'hybrid', hasPassword: true } as Partial<IUser>);
             return;
         }
 

@@ -18,7 +18,7 @@ export abstract class BaseRepository<T extends Document> implements IBaseReposit
     }
 
     async updateById(id: string, data: Partial<T>): Promise<T | null> {
-        return await this.model.findByIdAndUpdate(id, data as any, { new: true }).exec();
+        return await this.model.findByIdAndUpdate(id, data as import('mongoose').UpdateQuery<T>, { new: true }).exec();
     }
 
     async deleteById(id: string): Promise<boolean> {

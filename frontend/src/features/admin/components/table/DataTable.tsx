@@ -71,7 +71,7 @@ export function DataTable<T>({
                         key={col.key}
                         style={{ textAlign: col.align || "left" }}
                       >
-                        {col.render ? col.render(item) : (item as any)[col.key]}
+                        {col.render ? col.render(item) : ((item as Record<string, unknown>)[col.key] as ReactNode)}
                       </td>
                     ))}
                   </tr>

@@ -166,12 +166,10 @@ export class AssignmentController implements IAssignmentController {
             const userId = req.user?.userId;
             const id = req.params.id as string;
             const { notes, evidence } = req.body;
-            console.log("inside controller reportAbsence", id, userId, notes, evidence);
             const updated = await this._assignmentService.reportAbsence(id, userId as string, notes, evidence);
 
             ApiResponse.sendSuccess(res, await mapAssignmentToResponseDTO(updated), 'Absence reported successfully');
         } catch (error) {
-            console.error("controller reportAbsence error", error);
             next(error);
         }
     };

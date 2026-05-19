@@ -322,7 +322,6 @@ export class AssignmentService implements IAssignmentService {
 
     async reportAbsence(id: string, clientId: string, notes?: string, evidence?: string[]): Promise<IAssignment> {
         const assignment = await this._assignmentRepository.findById(id);
-        console.log( "inside service", assignment);
         if (!assignment) throw new AppError('Assignment not found', HttpStatusCode.NOT_FOUND);
 
         const jobId = getObjectId(assignment.jobId);

@@ -1,4 +1,4 @@
-import { IAuthRepository, IUser, ICreateUserData } from "../interfaces/auth.interface";
+import { IAuthRepository, IUser } from "../interfaces/auth.interface";
 import { ROLES } from "../../../constants/roles";
 import { UserModel } from "../models/user.model";
 import { BaseRepository } from "../../../shared/repositories/base.repository";

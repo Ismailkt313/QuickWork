@@ -666,7 +666,6 @@ export class JobService implements IJobService {
             const threeDaysAgo = new Date();
             threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
             finalFilters.status = JOB_STATUS.OPEN;
-            // No assignment activity check could be added if repository supports it
         }
 
         const { jobs, total } = await this._jobRepository.findAllPaginated(page, limit, finalFilters);

@@ -140,7 +140,6 @@ export const financeService = {
   },
 
   getInvoiceById: async (id: string) => {
-    console.log("id", id)
     const response = await api.get(ENDPOINTS.FINANCE.INVOICE_DETAIL(id));
     return response.data;
   },

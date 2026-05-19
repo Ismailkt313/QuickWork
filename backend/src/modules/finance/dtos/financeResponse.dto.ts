@@ -108,7 +108,7 @@ export const mapInvoiceToResponseDTO = (invoice: IInvoice | Record<string, unkno
             name: (provider.name as string) || "",
             email: (provider.email as string) || "",
         },
-        items: (i.items as any[]) || [],
+        items: (i.items as InvoiceResponseDTO['items']) || [],
         subtotal: (i.subtotal as number) || 0,
         platformFee: (i.platformFee as number) || 0,
         platformFeePercent: (i.platformFeePercent as number) || 0,

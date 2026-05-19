@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { AppDispatch, RootState } from "../../../app/store";
-import { fetchAdminReports } from "../store/adminReportSlice";
+import { fetchAdminReports, type Report } from "../store/adminReportSlice";
 import useDebounce from "../../../hooks/useDebounce";
 import { RiArrowRightLine } from "react-icons/ri";
 import { CustomSelect } from "../../../shared/components/ui/CustomSelect";
@@ -52,7 +52,7 @@ const AdminReportsPage: React.FC = () => {
     );
   };
 
-  const columns: Column<any>[] = [
+  const columns: Column<Report>[] = [
     {
       key: "createdAt",
       header: "Date",

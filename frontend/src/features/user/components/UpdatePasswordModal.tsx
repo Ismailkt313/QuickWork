@@ -51,7 +51,7 @@ const UpdatePasswordModal: React.FC<UpdatePasswordModalProps> = ({
     setError,
     formState: { errors, isSubmitting },
   } = useForm<PasswordFormData>({
-    resolver: zodResolver(getPasswordSchema(hasPassword)) as any,
+    resolver: zodResolver(getPasswordSchema(hasPassword)) as unknown as import("react-hook-form").Resolver<PasswordFormData>,
   });
 
   const onSubmit = async (data: PasswordFormData) => {
