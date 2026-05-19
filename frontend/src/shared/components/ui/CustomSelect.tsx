@@ -2,8 +2,6 @@ import React from "react";
 import * as RadixSelect from "@radix-ui/react-select";
 import { RiArrowDownSLine, RiCheckLine } from "react-icons/ri";
 
-/** Radix forbids empty-string values on SelectItem.
- *  We transparently map "" → "__NONE__" inside the component. */
 const NONE = "__NONE__";
 const toRadix  = (v: string) => (v === "" ? NONE : v);
 const fromRadix = (v: string) => (v === NONE ? "" : v);
@@ -21,28 +19,17 @@ export interface SelectGroup {
 }
 
 export interface CustomSelectProps {
-  /** Current selected value */
   value: string;
-  /** Called when selection changes */
   onChange: (value: string) => void;
-  /** Flat list of options OR grouped list */
   options?: SelectOption[];
   groups?: SelectGroup[];
-  /** Placeholder shown when nothing is selected */
   placeholder?: string;
-  /** Disable the entire dropdown */
   disabled?: boolean;
-  /** Full-width on its parent container */
   fullWidth?: boolean;
-  /** Size variant */
   size?: "sm" | "md" | "lg";
-  /** Optional leading icon shown in the trigger */
   icon?: React.ReactNode;
-  /** Used for aria-label */
   label?: string;
-  /** Extra CSS class for the trigger */
   className?: string;
-  /** Show an error state */
   error?: boolean;
 }
 
@@ -66,7 +53,6 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   className = "",
   error = false,
 }) => {
-  /** Flatten to find the current label */
   const allOptions: SelectOption[] = groups
     ? groups.flatMap((g) => g.options)
     : (options ?? []);
@@ -269,7 +255,6 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   );
 };
 
-/* ── Internal SelectItem ── */
 const SelectItem: React.FC<{ option: SelectOption }> = ({ option }) => (
   <RadixSelect.Item
     value={toRadix(option.value)}

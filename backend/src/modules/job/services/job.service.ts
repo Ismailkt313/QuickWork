@@ -783,7 +783,6 @@ export class JobService implements IJobService {
             }
         );
 
-        // Notify Client
         await this._notificationService.createNotification({
             recipient: ((job.userId as { _id?: { toString: () => string } })._id?.toString()) || job.userId.toString(),
             title: `Job Cancelled by Administration`,
@@ -792,7 +791,6 @@ export class JobService implements IJobService {
             link: `/user/jobs/${job._id}`
         });
 
-        // Notify All Assigned Providers
         const assignments = await this._assignmentService.getAssignmentsByJobId(jobId);
         for (const assignment of assignments) {
             const providerUserId = (assignment.freelancerId as { userId?: { _id?: { toString: () => string }; toString: () => string } }).userId?._id?.toString() || (assignment.freelancerId as { userId?: { _id?: { toString: () => string }; toString: () => string } }).userId?.toString();
