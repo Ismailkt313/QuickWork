@@ -1,9 +1,9 @@
-import AuthNavbar from "../components/AuthNavbar";
 import RegisterForm from "../components/RegisterForm";
 import { useEffect, useState } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import LoginRestrictionModal from "../components/LoginRestrictionModal";
+import AuthLayout from "../components/AuthLayout";
 
 const LoginPage = () => {
   const location = useLocation();
@@ -34,25 +34,21 @@ const LoginPage = () => {
   }, [searchParams, setSearchParams]);
 
   return (
-    <div className="auth-page">
-      <AuthNavbar mode="/auth/login" />
-      <main className="flex-grow-1 d-flex align-items-center justify-content-center py-5 px-3">
+    <>
+      <AuthLayout 
+        mode="/auth/login"
+        visualTitle="Welcome Back to QuickWork"
+        visualSubtitle="Access your premium dashboard, manage your projects, and connect with elite professionals."
+      >
         <RegisterForm mode="/auth/login" />
-      </main>
+      </AuthLayout>
 
       <LoginRestrictionModal
         isOpen={!!modalType}
         onClose={() => setModalType(null)}
         type={modalType || "restricted"}
       />
-
-      <footer
-        className="text-center py-4 text-secondary"
-        style={{ fontSize: "0.75rem" }}
-      >
-        © QuickWork Marketplace Inc. All rights reserved.
-      </footer>
-    </div>
+    </>
   );
 };
 

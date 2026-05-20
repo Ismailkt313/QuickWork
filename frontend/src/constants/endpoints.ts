@@ -23,7 +23,7 @@ export const ENDPOINTS = {
     APPLY: "/provider/apply",
     PROFILE: "/provider/profile",
     RESET: "/provider/reset",
-    ME_PROFILE: "/provider/me/profile",
+    ME_PROFILE: "/provider/profile",
     DETAILS: (id: string) => `/provider/${id}`,
     AVAILABILITY: "/provider/availability",
     BLOCKED_DATES: "/provider/blocked-dates",
