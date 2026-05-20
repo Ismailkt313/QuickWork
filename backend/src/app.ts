@@ -38,7 +38,7 @@ app.use(passport.initialize());
 app.get("/", (req, res) => {
   res.send("Backend is running successfully!");
 });
-console.log('reahing here')
+
 registerdRoutes(app);
 
 app.use(errorHandler);
