@@ -30,10 +30,10 @@ const processQueue = (error: unknown, token: string | null = null) => {
 
 apiClient.interceptors.request.use((config) => {
   const isAdminRequest = config.url?.includes("/admin");
-  const token = isAdminRequest 
+  const token = isAdminRequest
     ? (localStorage.getItem("adminAccessToken") || localStorage.getItem("token"))
     : (localStorage.getItem("token") || localStorage.getItem("adminAccessToken"));
-    
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -44,6 +44,10 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const isAdminRequest = originalRequest.url?.includes("/admin");
+    const hasToken = isAdminRequest 
+      ? !!localStorage.getItem("adminAccessToken")
+      : !!localStorage.getItem("token");
 
     if (
       error.response?.status === 401 &&
@@ -51,6 +55,15 @@ apiClient.interceptors.response.use(
       !originalRequest.url?.includes("/auth/login") &&
       !originalRequest.url?.includes("/auth/refresh-token")
     ) {
+      if (!hasToken) {
+        if (isAdminRequest) {
+          window.location.href = `/admin/login?error=restricted`;
+        } else {
+          window.location.href = `/auth/login?error=restricted`;
+        }
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
         return new Promise(function (resolve, reject) {
           failedQueue.push({ resolve, reject });
@@ -75,7 +88,11 @@ apiClient.interceptors.response.use(
         );
 
         const { accessToken } = response.data.data;
-        localStorage.setItem("token", accessToken);
+        if (isAdminRequest) {
+          localStorage.setItem("adminAccessToken", accessToken);
+        } else {
+          localStorage.setItem("token", accessToken);
+        }
         apiClient.defaults.headers.common["Authorization"] = "Bearer " + accessToken;
         originalRequest.headers["Authorization"] = "Bearer " + accessToken;
 
@@ -83,10 +100,16 @@ apiClient.interceptors.response.use(
         return apiClient(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("user");
-        window.location.href = `/auth/login?error=session_expired`;
+        if (isAdminRequest) {
+          localStorage.removeItem("adminAccessToken");
+          localStorage.removeItem("adminRefreshToken");
+          window.location.href = `/admin/login?error=session_expired`;
+        } else {
+          localStorage.removeItem("token");
+          localStorage.removeItem("refreshToken");
+          localStorage.removeItem("user");
+          window.location.href = `/auth/login?error=session_expired`;
+        }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

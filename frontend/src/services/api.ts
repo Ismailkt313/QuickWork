@@ -40,6 +40,7 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const hasToken = !!localStorage.getItem("token");
 
     if (
       error.response?.status === 401 &&
@@ -47,6 +48,11 @@ api.interceptors.response.use(
       !originalRequest.url?.includes("/auth/login") &&
       !originalRequest.url?.includes("/auth/refresh-token")
     ) {
+      if (!hasToken) {
+        window.location.href = `/auth/login?error=restricted`;
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
         return new Promise(function (resolve, reject) {
           failedQueue.push({ resolve, reject });

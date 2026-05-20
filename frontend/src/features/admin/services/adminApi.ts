@@ -45,6 +45,7 @@ Adminapi.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const hasAdminToken = !!localStorage.getItem("adminAccessToken");
 
     // Handle 401 Unauthorized (Token Expired)
     if (
@@ -53,6 +54,11 @@ Adminapi.interceptors.response.use(
       !originalRequest.url?.includes("/admin/login") &&
       !originalRequest.url?.includes("/refresh-token")
     ) {
+      if (!hasAdminToken) {
+        window.location.href = `/admin/login?error=restricted`;
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
         return new Promise(function (resolve, reject) {
           failedQueue.push({ resolve, reject });
@@ -77,11 +83,11 @@ Adminapi.interceptors.response.use(
         );
 
         const { accessToken } = response.data.data;
-        
+
         // CRITICAL: Check if the refreshed token actually belongs to an admin
         const decoded = jwtDecode<{ role: string }>(accessToken);
         if (decoded.role !== 'admin') {
-           throw new Error("Refreshed token is not an admin token");
+          throw new Error("Refreshed token is not an admin token");
         }
 
         localStorage.setItem("adminAccessToken", accessToken);

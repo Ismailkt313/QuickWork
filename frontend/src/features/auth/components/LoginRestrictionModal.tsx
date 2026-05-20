@@ -143,7 +143,7 @@ const LoginRestrictionModal: React.FC<LoginRestrictionModalProps> = ({
 
         <div style={{ marginTop: 24 }}>
           <button
-            onClick={onClose}
+            onClick={() => window.location.href = "/"}
             style={{
               background: "none",
               border: "none",
