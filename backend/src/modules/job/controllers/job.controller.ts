@@ -25,7 +25,7 @@ export class JobController implements IJobController {
         try {
             const userId = (req as RequestWithUser).user?.userId;
             if (!userId) {
-                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
             }
              const dto = CreateJobDTO.create(req.body);
 
@@ -106,7 +106,7 @@ export class JobController implements IJobController {
         try {
             const userId = (req as RequestWithUser).user?.userId;
             if (!userId) {
-                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
             }
 
             const page = parseInt(req.query.page as string) || 1;
@@ -125,7 +125,7 @@ export class JobController implements IJobController {
         try {
             const userId = (req as RequestWithUser).user?.userId;
             if (!userId) {
-                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
             }
 
             const jobId = req.params.jobId as string;
@@ -142,7 +142,7 @@ export class JobController implements IJobController {
             const userId = (req as RequestWithUser).user?.userId;
 
             if (!userId) {
-                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
             }
 
             const jobId = req.params.jobId as string;
@@ -158,7 +158,7 @@ export class JobController implements IJobController {
         try {
             const userId = (req as RequestWithUser).user?.userId;
             if (!userId) {
-                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
             }
 
             const jobId = req.params.jobId as string;
@@ -174,7 +174,7 @@ export class JobController implements IJobController {
         try {
             const userId = (req as RequestWithUser).user?.userId;
             if (!userId) {
-                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
             }
 
             const jobId = req.params.jobId as string;
@@ -191,7 +191,7 @@ export class JobController implements IJobController {
     public getJobAssignments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = (req as RequestWithUser).user?.userId;
-            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
 
             const jobId = req.params.jobId as string;
             const assignments = await this._assignmentService.getJobAssignments(jobId);

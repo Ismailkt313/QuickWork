@@ -209,7 +209,7 @@ export class AuthController implements IAuthController {
         try {
             const userId = req.user?.userId;
             if (!userId) {
-                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
             }
             const result = await this._authService.getProfile(userId);
             res.status(HttpStatusCode.OK).json({
@@ -230,7 +230,7 @@ export class AuthController implements IAuthController {
         try {
             const userId = req.user?.userId;
             if (!userId) {
-                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
             }
             const { name, number, profileImage } = req.body;
             const result = await this._authService.updateProfile(userId, { name, number, profileImage });
@@ -252,7 +252,7 @@ export class AuthController implements IAuthController {
         try {
             const userId = req.user?.userId;
             if (!userId) {
-                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
             }
             const { currentPassword, newPassword } = req.body;
             await this._authService.changePassword(userId, { currentPassword, newPassword });
@@ -273,7 +273,7 @@ export class AuthController implements IAuthController {
         try {
             const userId = req.user?.userId;
             if (!userId) {
-                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
             }
             const { newEmail } = req.body;
             const result = await this._authService.sendEmailUpdateOtp(userId, { newEmail });
@@ -291,7 +291,7 @@ export class AuthController implements IAuthController {
         try {
             const userId = req.user?.userId;
             if (!userId) {
-                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
             }
             const { newEmail, otp } = req.body;
             const result = await this._authService.verifyEmailUpdate(userId, { newEmail, otp });
@@ -309,7 +309,7 @@ export class AuthController implements IAuthController {
         try {
             const userId = req.user?.userId;
             if (!userId) {
-                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
             }
             const { newEmail } = req.body;
             const result = await this._authService.resendEmailUpdateOtp(userId, { newEmail });

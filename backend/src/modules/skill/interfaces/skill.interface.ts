@@ -44,6 +44,6 @@ export interface ISkillController {
     deleteSkill(req: Request, res: Response, next: NextFunction): Promise<void>;
     toggleSkillStatus(req: Request, res: Response, next: NextFunction): Promise<void>;
     getSkills(req: Request, res: Response, next: NextFunction): Promise<void>;
-    myskills(req: Request, res: Response, next: NextFunction): Promise<void>;
+    mySkills(req: Request, res: Response, next: NextFunction): Promise<void>;
 }
 

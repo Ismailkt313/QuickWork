@@ -50,6 +50,8 @@ export const SuccessMessages = {
   USER_FETCHED: "User fetched successfully",
   REVIEW_CREATED: "Review created successfully",
   REVIEWS_FETCHED: "Reviews fetched successfully",
+  REVIEW_UPDATED: "Review updated successfully",
+  REVIEW_DELETED: "Review deleted successfully",
 
   EMAIL_UPDATE_OTP_SENT: (email: string, minutes: number) => `Verification OTP sent to ${email}. Expires in ${minutes} minutes`,
   EMAIL_UPDATE_OTP_RESENT: (email: string, minutes: number) => `Verification OTP resent to ${email}. Expires in ${minutes} minutes`,
@@ -67,4 +69,9 @@ export const SuccessMessages = {
   NOTIFICATION_MARKED_READ: "Notification marked as read",
   ALL_NOTIFICATIONS_MARKED_READ: "All notifications marked as read",
   NOTIFICATION_DELETED: "Notification deleted",
+
+  REPORT_SUBMITTED: "Report submitted successfully",
+  REPORTS_FETCHED: "Reports fetched successfully",
+  REPORT_STATUS_UPDATED: "Report status updated successfully",
+  MODERATION_ACTION_TAKEN: (action: string) => `Action '${action}' taken successfully`,
 };

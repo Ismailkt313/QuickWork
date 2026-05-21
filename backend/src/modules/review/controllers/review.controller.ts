@@ -64,7 +64,7 @@ export class ReviewController implements IReviewController {
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
-                message: "Reviews for assignment fetched successfully",
+                message: SuccessMessages.REVIEWS_FETCHED,
                 data: reviews.map(mapReviewToResponseDTO)
             });
         } catch (error) {
@@ -81,7 +81,7 @@ export class ReviewController implements IReviewController {
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
-                message: "Your reviews fetched successfully",
+                message: SuccessMessages.REVIEWS_FETCHED,
                 data: reviewsRes.data.map(mapReviewToResponseDTO),
                 pagination: reviewsRes.pagination,
                 meta: reviewsRes.meta
@@ -101,7 +101,7 @@ export class ReviewController implements IReviewController {
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
-                message: "Provider reviews for client fetched successfully",
+                message: SuccessMessages.REVIEWS_FETCHED,
                 data: result.data,
                 pagination: result.pagination,
                 meta: result.meta
@@ -121,7 +121,7 @@ export class ReviewController implements IReviewController {
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
-                message: "Review updated successfully",
+                message: SuccessMessages.REVIEW_UPDATED,
                 data: mapReviewToResponseDTO(updated)
             });
         } catch (error) {
@@ -138,7 +138,7 @@ export class ReviewController implements IReviewController {
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
-                message: "Review deleted successfully"
+                message: SuccessMessages.REVIEW_DELETED
             });
         } catch (error) {
             next(error);

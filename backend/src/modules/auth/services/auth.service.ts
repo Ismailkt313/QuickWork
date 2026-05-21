@@ -143,7 +143,7 @@ export class AuthService implements IAuthService {
     public async login(input: ILoginInput): Promise<ILoginResponse> {
         const user = await this._authRepository.findByEmailWithPassword(input.email);
         if (!user) {
-            throw new AppError(ErrorMessages.INVALID_CREDENTIALS, HttpStatusCode.UNAUTH0RIZED);
+            throw new AppError(ErrorMessages.INVALID_CREDENTIALS, HttpStatusCode.UNAUTHORIZED);
         }
 
         if (user.isBlocked) {
@@ -154,7 +154,7 @@ export class AuthService implements IAuthService {
             if (user.authProvider === 'google') {
                 throw new AppError("This account was created using Google Sign-In. Please continue with Google or set a password.", HttpStatusCode.BAD_REQUEST);
             }
-            throw new AppError(ErrorMessages.INVALID_CREDENTIALS, HttpStatusCode.UNAUTH0RIZED);
+            throw new AppError(ErrorMessages.INVALID_CREDENTIALS, HttpStatusCode.UNAUTHORIZED);
         }
 
         const isPasswordValid = await bcrypt.compare(input.password, user.hashedPassword);
@@ -190,12 +190,12 @@ export class AuthService implements IAuthService {
         try {
             decoded = verifyRefreshToken(token);
         } catch {
-            throw new AppError(ErrorMessages.INVALID_OR_EXPIRED_TOKEN, HttpStatusCode.UNAUTH0RIZED);
+            throw new AppError(ErrorMessages.INVALID_OR_EXPIRED_TOKEN, HttpStatusCode.UNAUTHORIZED);
         }
 
         const user = await this._authRepository.findById(decoded.userId);
         if (!user) {
-            throw new AppError(ErrorMessages.USER_NOT_FOUND, HttpStatusCode.UNAUTH0RIZED);
+            throw new AppError(ErrorMessages.USER_NOT_FOUND, HttpStatusCode.UNAUTHORIZED);
         }
 
         if (user.isBlocked) {
@@ -220,7 +220,7 @@ export class AuthService implements IAuthService {
         };
     }
     public async adminLogin(input: ILoginInput): Promise<IAdminLoginResponse> {
-        const genericError = new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+        const genericError = new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
 
         const user = await this._authRepository.findByEmailWithPassword(input.email);
         if (!user) {
@@ -265,11 +265,11 @@ export class AuthService implements IAuthService {
         try {
             const varify = verifyRefreshToken(token);
             if (!varify) {
-                throw new AppError(ErrorMessages.INVALID_OR_EXPIRED_TOKEN, HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.INVALID_OR_EXPIRED_TOKEN, HttpStatusCode.UNAUTHORIZED);
             }
             await this._otpRepository.deleteByRefreshToken(token);
         } catch {
-            throw new AppError(ErrorMessages.INVALID_OR_EXPIRED_TOKEN, HttpStatusCode.UNAUTH0RIZED);
+            throw new AppError(ErrorMessages.INVALID_OR_EXPIRED_TOKEN, HttpStatusCode.UNAUTHORIZED);
         }
 
         return {

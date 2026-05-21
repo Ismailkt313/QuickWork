@@ -100,11 +100,11 @@ export class SkillController implements ISkillController {
             next(error);
         }
     }
-    public myskills = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    public mySkills = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
             if (!userId) {
-                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
             }
             const result = await this._skillService.getMySkills(userId)
             res.status(HttpStatusCode.OK).json({ ...result, data: result.data ? result.data.map(mapSkillToResponseDTO) : [] })

@@ -20,14 +20,14 @@ export const authMiddleware = async (
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
 
-            throw new AppError("Access denied. No token provided.", HttpStatusCode.UNAUTH0RIZED);
+            throw new AppError("Access denied. No token provided.", HttpStatusCode.UNAUTHORIZED);
         }
 
         const token = authHeader.split(" ")[1];
         const decoded = verifyAccessToken(token);
          const user = await UserModel.findById(decoded.userId).select("isBlocked");
         if (!user) {
-            throw new AppError("User not found", HttpStatusCode.UNAUTH0RIZED);
+            throw new AppError("User not found", HttpStatusCode.UNAUTHORIZED);
         }
         if (user.isBlocked) {
             throw new AppError("Your account has been blocked", HttpStatusCode.FORBIDDEN);
@@ -41,7 +41,7 @@ export const authMiddleware = async (
             next(error);
             return;
         }
-        next(new AppError("Invalid or expired token", HttpStatusCode.UNAUTH0RIZED));
+        next(new AppError("Invalid or expired token", HttpStatusCode.UNAUTHORIZED));
     }
 };
 

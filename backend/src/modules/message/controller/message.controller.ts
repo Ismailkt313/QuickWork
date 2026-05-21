@@ -30,7 +30,7 @@ export class MessageController implements IMessageController {
         try {
             const senderId = customReq.user?.userId || customReq.user?._id;
             if (!senderId) {
-                res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
+                res.status(HttpStatusCode.UNAUTHORIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
                 return;
             }
             customReq.log.debug({ body: req.body }, "Creating new message");
@@ -65,7 +65,7 @@ export class MessageController implements IMessageController {
             const err = error as { statusCode?: number; message?: string };
             customReq.log.error({ error: err.message }, "Error in createMessage");
 
-            res.status(err.statusCode || 500).json({ success: false, message: err.message });
+            res.status(err.statusCode || HttpStatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message || ErrorMessages.INTERNAL_SERVER_ERROR });
         }
     };
     public getMessages = async (req: Request, res: Response): Promise<void> => {
@@ -75,7 +75,7 @@ export class MessageController implements IMessageController {
             res.status(HttpStatusCode.OK).json({ success: true, data: result });
         } catch (error: unknown) {
             const err = error as { statusCode?: number; message?: string };
-            res.status(err.statusCode || 500).json({ success: false, message: err.message });
+            res.status(err.statusCode || HttpStatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message || ErrorMessages.INTERNAL_SERVER_ERROR });
         }
     };
 
@@ -87,7 +87,7 @@ export class MessageController implements IMessageController {
             if (!userId) {
                 customReq.log.warn("No userId found in req.user");
 
-                res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
+                res.status(HttpStatusCode.UNAUTHORIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
                 return;
             }
             const result = await this._messageService.getConversations(userId);
@@ -96,7 +96,7 @@ export class MessageController implements IMessageController {
             const err = error as { statusCode?: number; message?: string };
             customReq.log.error({ error: err.message }, "Error in getConversations");
 
-            res.status(err.statusCode || 500).json({ success: false, message: err.message });
+            res.status(err.statusCode || HttpStatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message || ErrorMessages.INTERNAL_SERVER_ERROR });
         }
     };
     public getConversation = async (req: Request, res: Response): Promise<void> => {
@@ -106,7 +106,7 @@ export class MessageController implements IMessageController {
             res.status(HttpStatusCode.OK).json({ success: true, data: result });
         } catch (error: unknown) {
             const err = error as { statusCode?: number; message?: string };
-            res.status(err.statusCode || 500).json({ success: false, message: err.message });
+            res.status(err.statusCode || HttpStatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message || ErrorMessages.INTERNAL_SERVER_ERROR });
         }
     };
 
@@ -130,7 +130,7 @@ export class MessageController implements IMessageController {
             res.status(HttpStatusCode.OK).json({ success: true, message: SuccessMessages.MESSAGE_DELETED, data: result });
         } catch (error: unknown) {
             const err = error as { statusCode?: number; message?: string };
-            res.status(err.statusCode || 500).json({ success: false, message: err.message });
+            res.status(err.statusCode || HttpStatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message || ErrorMessages.INTERNAL_SERVER_ERROR });
         }
     };
 
@@ -161,7 +161,7 @@ export class MessageController implements IMessageController {
             });
         } catch (error: unknown) {
             const err = error as { statusCode?: number; message?: string };
-            res.status(err.statusCode || 500).json({ success: false, message: err.message });
+            res.status(err.statusCode || HttpStatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message || ErrorMessages.INTERNAL_SERVER_ERROR });
         }
     };
 

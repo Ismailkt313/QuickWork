@@ -19,7 +19,7 @@ export class ServiceProviderController implements IServiceProviderController {
             const userId = req.user?.userId;
 
             if (!userId) {
-                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
             }
 
             const applicationData = SubmitApplicationDTO.create(req.body);
@@ -98,7 +98,7 @@ export class ServiceProviderController implements IServiceProviderController {
         try {
             const userId = req.user?.userId;
             if (!userId) {
-                res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
+                res.status(HttpStatusCode.UNAUTHORIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
                 return;
             }
 
@@ -121,7 +121,7 @@ export class ServiceProviderController implements IServiceProviderController {
         try {
             const userId = req.user?.userId;
             if (!userId) {
-                res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
+                res.status(HttpStatusCode.UNAUTHORIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
                 return;
             }
 
@@ -147,7 +147,7 @@ export class ServiceProviderController implements IServiceProviderController {
         try {
             const userId = req.user?.userId;
             if (!userId) {
-                res.status(HttpStatusCode.UNAUTH0RIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
+                res.status(HttpStatusCode.UNAUTHORIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
                 return;
             }
 
@@ -166,7 +166,7 @@ export class ServiceProviderController implements IServiceProviderController {
     public updateAvailability = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
-            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
 
             const { availability } = req.body;
             const result = await this._serviceProviderService.updateAvailability(userId, availability);
@@ -181,7 +181,7 @@ export class ServiceProviderController implements IServiceProviderController {
     public addBlockedDate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
-            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
 
             const { startDate, endDate, reason } = req.body;
             const result = await this._serviceProviderService.addBlockedDate(userId, { startDate, endDate, reason });
@@ -196,7 +196,7 @@ export class ServiceProviderController implements IServiceProviderController {
     public deleteBlockedDate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
-            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
 
             const { id } = req.params;
             const result = await this._serviceProviderService.deleteBlockedDate(userId, id as string);

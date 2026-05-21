@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { SuccessMessages } from '../../../constants/messages/successMessages';
 import { IReportService } from '../interfaces/report.interface';
 import { CreateReportSchema, UpdateReportStatusSchema, mapReportToResponseDTO } from '../dtos/report.dto';
 import { HttpStatusCode } from '../../../constants/httpStatusCode';
@@ -31,7 +32,7 @@ export class ReportController implements IReportController {
 
             res.status(HttpStatusCode.CREATED).json({
                 success: true,
-                message: "Report submitted successfully",
+                message: SuccessMessages.REPORT_SUBMITTED,
                 data: mapReportToResponseDTO(report)
             });
         } catch (error) {
@@ -48,7 +49,7 @@ export class ReportController implements IReportController {
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
-                message: "Reports fetched successfully",
+                message: SuccessMessages.REPORTS_FETCHED,
                 data: result.reports.map(mapReportToResponseDTO),
                 pagination: {
                     total: result.total,
@@ -75,7 +76,7 @@ export class ReportController implements IReportController {
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
-                message: "Report status updated successfully",
+                message: SuccessMessages.REPORT_STATUS_UPDATED,
                 data: updatedReport ? mapReportToResponseDTO(updatedReport) : null
             });
         } catch (error) {

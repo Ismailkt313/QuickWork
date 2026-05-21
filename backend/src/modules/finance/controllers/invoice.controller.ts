@@ -17,7 +17,7 @@ export class InvoiceController implements IInvoiceController {
     public getMyInvoices = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
-            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
 
             const { page = 1, limit = 10, role } = req.query;
 

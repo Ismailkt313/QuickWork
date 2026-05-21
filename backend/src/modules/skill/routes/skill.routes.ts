@@ -11,7 +11,7 @@ export const createSkillRouter = (controller: ISkillController): Router => {
     router.get('/', controller.searchSkills);
     router.get('/all', controller.getAllSkills);
     router.get('/list', controller.getSkills);
-    router.get('/my/skills', authMiddleware, controller.myskills);
+    router.get('/my/skills', authMiddleware, controller.mySkills);
 
     // Admin routes
     router.get('/admin/list', authMiddleware, authorizeRoles(ROLES.ADMIN), controller.getAdminSkills);

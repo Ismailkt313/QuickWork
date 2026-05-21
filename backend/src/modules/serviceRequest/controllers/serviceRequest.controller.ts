@@ -17,7 +17,7 @@ export class ServiceRequestController implements IServiceRequestController {
         try {
             const userId = req.user?.userId;
             if (!userId) {
-                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
             }
 
             const dto = CreateServiceRequestDTO.create(req.body);
@@ -38,7 +38,7 @@ export class ServiceRequestController implements IServiceRequestController {
         try {
             const userId = req.user?.userId;
             if (!userId) {
-                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
             }
 
             const result = await this._serviceRequestService.getUserRequests(userId);
@@ -64,7 +64,7 @@ export class ServiceRequestController implements IServiceRequestController {
         try {
             const adminId = req.user?.userId;
             if (!adminId) {
-                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
             }
 
             const id = req.params.id as string;
@@ -88,7 +88,7 @@ export class ServiceRequestController implements IServiceRequestController {
         try {
             const adminId = req.user?.userId;
             if (!adminId) {
-                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
             }
 
             const id = req.params.id as string;

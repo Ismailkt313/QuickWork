@@ -25,7 +25,7 @@ export class PaymentController implements IPaymentController {
         try {
             const { workHistoryId } = req.params as { workHistoryId: string };
             const clientId = req.user?.userId;
-            if (!clientId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+            if (!clientId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
 
             const result = await this._paymentService.markAsPaidCash(workHistoryId, clientId);
             res.status(result.success ? HttpStatusCode.OK : HttpStatusCode.BAD_REQUEST).json(result);
@@ -38,7 +38,7 @@ export class PaymentController implements IPaymentController {
         try {
             const { workHistoryId } = req.params as { workHistoryId: string };
             const userId = req.user?.userId;
-            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
 
             const provider = await this._serviceProviderService.getProviderByUserId(userId);
             if (!provider) throw new AppError(ErrorMessages.PROVIDER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
@@ -54,7 +54,7 @@ export class PaymentController implements IPaymentController {
         try {
             const { workHistoryId } = req.params as { workHistoryId: string };
             const userId = req.user?.userId;
-            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
 
             const provider = await this._serviceProviderService.getProviderByUserId(userId);
             if (!provider) throw new AppError(ErrorMessages.PROVIDER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
@@ -88,7 +88,7 @@ export class PaymentController implements IPaymentController {
     public getProviderWorkHistory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
-            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+            if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
 
             const { page = 1, limit = 10, status } = req.query;
 
@@ -133,20 +133,20 @@ export class PaymentController implements IPaymentController {
         try {
             const {
                 workHistoryId,
-                razorpay_order_id,
-                razorpay_payment_id,
-                razorpay_signature
+                razorpay_order_id: razorpayOrderId,
+                razorpay_payment_id: razorpayPaymentId,
+                razorpay_signature: razorpaySignature
             } = req.body;
 
-            if (!workHistoryId || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+            if (!workHistoryId || !razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
                 throw new AppError(ErrorMessages.RAZORPAY_DETAILS_REQUIRED, HttpStatusCode.BAD_REQUEST);
             }
 
             const result = await this._paymentService.verifyRazorpayPayment(
                 workHistoryId,
-                razorpay_order_id,
-                razorpay_payment_id,
-                razorpay_signature
+                razorpayOrderId,
+                razorpayPaymentId,
+                razorpaySignature
             );
 
             res.status(HttpStatusCode.OK).json(result);
@@ -171,20 +171,20 @@ export class PaymentController implements IPaymentController {
         try {
             const {
                 jobId,
-                razorpay_order_id,
-                razorpay_payment_id,
-                razorpay_signature
+                razorpay_order_id: razorpayOrderId,
+                razorpay_payment_id: razorpayPaymentId,
+                razorpay_signature: razorpaySignature
             } = req.body;
 
-            if (!jobId || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+            if (!jobId || !razorpayOrderId || !razorpayPaymentId || !razorpaySignature) {
                 throw new AppError(ErrorMessages.RAZORPAY_DETAILS_REQUIRED, HttpStatusCode.BAD_REQUEST);
             }
 
             const result = await this._paymentService.verifyJobRazorpayPayment(
                 jobId,
-                razorpay_order_id,
-                razorpay_payment_id,
-                razorpay_signature
+                razorpayOrderId,
+                razorpayPaymentId,
+                razorpaySignature
             );
 
             res.status(HttpStatusCode.OK).json(result);

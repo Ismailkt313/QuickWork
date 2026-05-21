@@ -29,7 +29,7 @@ export class AssignmentController implements IAssignmentController {
             const status = req.query.status as string;
 
             if (!userId) {
-                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
             }
 
             const provider = await this._serviceProviderService.getProviderByUserId(userId);
@@ -55,7 +55,7 @@ export class AssignmentController implements IAssignmentController {
             const freelancerId = assignment?.freelancerId?._id ? assignment.freelancerId._id.toString() : assignment?.freelancerId?.toString();
 
             if (!assignment || !provider || freelancerId !== provider._id.toString()) {
-                throw new AppError(ErrorMessages.ASSIGNMENT_NOT_FOUND, HttpStatusCode.UNAUTH0RIZED);
+                throw new AppError(ErrorMessages.ASSIGNMENT_NOT_FOUND, HttpStatusCode.UNAUTHORIZED);
             }
 
             const jobId = assignment.jobId?._id ? assignment.jobId._id.toString() : assignment.jobId.toString();
@@ -141,7 +141,7 @@ export class AssignmentController implements IAssignmentController {
 
             const updated = await this._assignmentService.cancelByProvider(id, provider._id.toString(), notes);
 
-            ApiResponse.sendSuccess(res, await mapAssignmentToResponseDTO(updated), 'Assignment cancelled successfully by provider');
+            ApiResponse.sendSuccess(res, await mapAssignmentToResponseDTO(updated), SuccessMessages.ASSIGNMENT_CANCELLED_PROVIDER);
         } catch (error) {
             next(error);
         }
@@ -155,7 +155,7 @@ export class AssignmentController implements IAssignmentController {
 
             const updated = await this._assignmentService.cancelByClient(id, userId as string, notes);
 
-            ApiResponse.sendSuccess(res, await mapAssignmentToResponseDTO(updated), 'Assignment cancelled successfully by client');
+            ApiResponse.sendSuccess(res, await mapAssignmentToResponseDTO(updated), SuccessMessages.ASSIGNMENT_CANCELLED_CLIENT);
         } catch (error) {
             next(error);
         }
@@ -168,7 +168,7 @@ export class AssignmentController implements IAssignmentController {
             const { notes, evidence } = req.body;
             const updated = await this._assignmentService.reportAbsence(id, userId as string, notes, evidence);
 
-            ApiResponse.sendSuccess(res, await mapAssignmentToResponseDTO(updated), 'Absence reported successfully');
+            ApiResponse.sendSuccess(res, await mapAssignmentToResponseDTO(updated), SuccessMessages.ABSENCE_REPORTED);
         } catch (error) {
             next(error);
         }
@@ -179,7 +179,7 @@ export class AssignmentController implements IAssignmentController {
             const userId = req.user?.userId;
             const id = req.params.id as string;
             const updated = await this._assignmentService.markAsPaidByCash(id, userId as string);
-            ApiResponse.sendSuccess(res, await mapAssignmentToResponseDTO(updated), 'Payment marked as paid by cash');
+            ApiResponse.sendSuccess(res, await mapAssignmentToResponseDTO(updated), SuccessMessages.PAYMENT_MARKED_CASH);
         } catch (error) {
             next(error);
         }
@@ -193,7 +193,7 @@ export class AssignmentController implements IAssignmentController {
             if (!provider) throw new AppError('Provider not found', HttpStatusCode.NOT_FOUND);
 
             const updated = await this._assignmentService.confirmPayment(id, provider._id.toString());
-            ApiResponse.sendSuccess(res, await mapAssignmentToResponseDTO(updated), 'Payment confirmed');
+            ApiResponse.sendSuccess(res, await mapAssignmentToResponseDTO(updated), SuccessMessages.PAYMENT_CONFIRMED);
         } catch (error) {
             next(error);
         }
@@ -208,7 +208,7 @@ export class AssignmentController implements IAssignmentController {
             if (!provider) throw new AppError('Provider not found', HttpStatusCode.NOT_FOUND);
 
             const updated = await this._assignmentService.providerMarkAsPaid(id, provider._id.toString());
-            ApiResponse.sendSuccess(res, await mapAssignmentToResponseDTO(updated), 'Payment marked as received by hand');
+            ApiResponse.sendSuccess(res, await mapAssignmentToResponseDTO(updated), SuccessMessages.PAYMENT_MARKED_RECEIVED_HAND);
         } catch (error) {
             next(error);
         }
@@ -222,7 +222,7 @@ export class AssignmentController implements IAssignmentController {
             if (!provider) throw new AppError('Provider not found', HttpStatusCode.NOT_FOUND);
 
             const updated = await this._assignmentService.rejectPayment(id, provider._id.toString());
-            ApiResponse.sendSuccess(res, await mapAssignmentToResponseDTO(updated), 'Payment confirmation rejected');
+            ApiResponse.sendSuccess(res, await mapAssignmentToResponseDTO(updated), SuccessMessages.PAYMENT_CONFIRMATION_REJECTED);
         } catch (error) {
             next(error);
         }

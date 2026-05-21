@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { SuccessMessages } from "../../../constants/messages/successMessages";
 import { IModerationController, IModerationService } from '../interfaces/report.interface';
 import { HttpStatusCode } from '../../../constants/httpStatusCode';
 import { AppError } from '../../../utils/AppError';
@@ -77,7 +78,7 @@ export class ModerationController implements IModerationController {
 
             res.status(HttpStatusCode.OK).json({
                 success: true,
-                message: `Action '${action}' taken successfully`,
+                message: SuccessMessages.MODERATION_ACTION_TAKEN(action),
                 data: result
             });
         } catch (error) {
