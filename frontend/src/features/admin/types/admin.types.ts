@@ -60,10 +60,7 @@ export interface IAdminJob {
   description: string;
   createdAt: string;
   status: string;
-  budget?: {
-    min: number;
-    max: number;
-  };
+  budget?: string;
   budgetRange?: {
     min: number;
     max: number;

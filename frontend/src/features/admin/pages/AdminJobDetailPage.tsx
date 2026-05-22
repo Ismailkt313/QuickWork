@@ -176,7 +176,6 @@ const AdminJobDetailPage: React.FC = () => {
   const clientName = job.userId?.name || job.clientName || 'Unknown';
   const district = job.location?.districtName || '—';
   const address = job.location?.address || '—';
-  const budget = `₹${(job.budget?.min || 0).toLocaleString()} – ₹${(job.budget?.max || 0).toLocaleString()}`;
   const duration = job.durationType?.replaceAll('_', ' ') || '—';
   const isCancelled = job.status === 'cancelled';
 
@@ -307,24 +306,23 @@ const AdminJobDetailPage: React.FC = () => {
             )}
           </Card>
         </div>
-
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18, position: 'sticky', top: 24 }}>
           <div style={{ background: 'linear-gradient(135deg,#6366f1,#4f46e5)', borderRadius: 18, padding: '22px 20px', color: '#fff', boxShadow: '0 6px 24px rgba(99,102,241,0.3)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
               <RiMoneyDollarCircleLine size={18} color="rgba(255,255,255,0.7)" />
               <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.6)' }}>Budget Range</span>
             </div>
-            <div style={{ fontSize: 26, fontWeight: 900, letterSpacing: '-0.02em', marginBottom: 6 }}>{budget}</div>
+            <div style={{ fontSize: 26, fontWeight: 900, letterSpacing: '-0.02em', marginBottom: 6 }}>{job.budget}</div>
             <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>Per provider · {duration}</div>
 
             <div style={{ marginTop: 18, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.15)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                 <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>Min per provider</span>
-                <span style={{ fontSize: 13, fontWeight: 800 }}>₹{(job.budget?.min || 0).toLocaleString()}</span>
+                <span style={{ fontSize: 13, fontWeight: 800 }}>₹{(job.budgetRange?.min || 0).toLocaleString()}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>Max per provider</span>
-                <span style={{ fontSize: 13, fontWeight: 800 }}>₹{(job.budget?.max || 0).toLocaleString()}</span>
+                <span style={{ fontSize: 13, fontWeight: 800 }}>₹{(job.budgetRange?.max || 0).toLocaleString()}</span>
               </div>
             </div>
           </div>
