@@ -62,10 +62,10 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
             <div className="notification-list">
               {notifications.map(notification => (
                 <div
-                  key={notification._id}
+                  key={notification.id}
                   className={`notification-item ${notification.isRead ? 'read' : 'unread'}`}
                   onClick={() => {
-                    if (!notification.isRead) onMarkRead(notification._id);
+                    if (!notification.isRead) onMarkRead(notification.id);
                     if (notification.link) {
                       window.location.href = notification.link;
                       onClose();
@@ -103,7 +103,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
                         className="mark-read-item-btn"
                         onClick={(e) => {
                           e.stopPropagation();
-                          onMarkRead(notification._id);
+                          onMarkRead(notification.id);
                         }}
                         title="Mark as read"
                       >
@@ -114,7 +114,7 @@ export const NotificationModal: React.FC<NotificationModalProps> = ({
                       className="delete-item-btn"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onDelete(notification._id);
+                        onDelete(notification.id);
                       }}
                       title="Delete"
                     >

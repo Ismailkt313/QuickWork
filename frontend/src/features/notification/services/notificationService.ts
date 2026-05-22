@@ -2,7 +2,7 @@ import { api } from "../../../services/api";
 import { ENDPOINTS } from "../../../constants/endpoints";
 
 export interface INotification {
-  _id: string;
+  id: string;
   title: string;
   message: string;
   type: 'JOB_ASSIGNMENT' | 'JOB_STATUS' | 'PAYMENT' | 'SYSTEM' | 'REVIEW';

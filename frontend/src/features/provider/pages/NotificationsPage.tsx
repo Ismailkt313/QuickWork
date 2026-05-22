@@ -37,9 +37,11 @@ const NotificationsPage: React.FC = () => {
               <p className="text-slate-500">We'll notify you when something important happens.</p>
             </div>
           ) : (
-            <div className="divide-y divide-slate-100">
-              {notifications.map((n) => (
-                <div key={n._id} className={`p-6 flex gap-4 transition-colors ${!n.isRead ? 'bg-blue-50/30' : 'hover:bg-slate-50'}`}>
+              <div className="divide-y divide-slate-100">
+                
+                {notifications.map((n) => (
+                
+                <div key={n.id} className={`p-6 flex gap-4 transition-colors ${!n.isRead ? 'bg-blue-50/30' : 'hover:bg-slate-50'}`}>
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
                     n.type === 'PAYMENT' ? 'bg-emerald-50 text-emerald-600' :
                     n.type === 'JOB_ASSIGNMENT' ? 'bg-blue-50 text-blue-600' :
@@ -56,14 +58,14 @@ const NotificationsPage: React.FC = () => {
                     <div className="flex items-center gap-4">
                       {!n.isRead && (
                         <button 
-                          onClick={() => markAsRead(n._id)}
+                          onClick={() => markAsRead(n.id)}
                           className="text-xs font-bold text-blue-600 hover:underline"
                         >
                           Mark as read
                         </button>
                       )}
                       <button 
-                        onClick={() => deleteNotification(n._id)}
+                        onClick={() => deleteNotification(n.id)}
                         className="text-xs font-bold text-slate-400 hover:text-rose-500 flex items-center gap-1"
                       >
                         <RiDeleteBin7Line size={14} />

@@ -25,7 +25,7 @@ export const useNotifications = () => {
     try {
       await notificationService.markAsRead(id);
       setNotifications(prev =>
-        prev.map(n => n._id === id ? { ...n, isRead: true } : n)
+        prev.map(n => n.id === id ? { ...n, isRead: true } : n)
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
@@ -48,8 +48,8 @@ export const useNotifications = () => {
   const deleteNotification = async (id: string) => {
     try {
       await notificationService.deleteNotification(id);
-      const wasUnread = notifications.find(n => n._id === id)?.isRead === false;
-      setNotifications(prev => prev.filter(n => n._id !== id));
+      const wasUnread = notifications.find(n => n.id === id)?.isRead === false;
+      setNotifications(prev => prev.filter(n => n.id !== id));
       if (wasUnread) setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Failed to delete notification:', error);
