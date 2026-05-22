@@ -154,7 +154,7 @@ const AdminJobsPage: React.FC<AdminJobsPageProps> = ({ defaultType }) => {
         const budget = job.budgetRange
           ? `₹${job.budgetRange.min.toLocaleString()} – ₹${job.budgetRange.max.toLocaleString()}`
           : job.budget
-            ? `₹${job.budget.min.toLocaleString()} – ₹${job.budget.max.toLocaleString()}`
+            ? `{}`
             : '—';
         return <span className="fw-bold text-dark">{budget}</span>;
       },
