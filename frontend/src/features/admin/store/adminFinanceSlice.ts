@@ -13,7 +13,7 @@ export interface Transaction {
     _id: string;
     jobId: { _id: string; title: string; jobCode?: string };
     workHistoryId: string;
-    providerId: string;
+    providerId: { _id: string; userId: { _id: string; name: string } };
     type: string;
     paymentMethod: 'CASH' | 'ONLINE';
     totalAmount: number;

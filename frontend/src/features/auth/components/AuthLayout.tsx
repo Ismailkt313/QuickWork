@@ -25,7 +25,7 @@ const AuthLayout = ({
       <div className="auth-bg-shape shape-blob-2"></div>
       
        <div className="auth-nav-container">
-        <AuthNavbar mode={mode as any} />
+        <AuthNavbar mode={mode as "/auth/login" | "/auth/signup"} />
       </div>
 
        <div className="auth-content-container">

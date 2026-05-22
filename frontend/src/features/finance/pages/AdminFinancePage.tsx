@@ -77,8 +77,8 @@ const AdminFinancePage: React.FC = () => {
     },
     {
       key: "providerId",
-      header: "Provider ID",
-      render: (tx) => <span className="text-muted small font-monospace">{tx.providerId}</span>,
+      header: "Provider",
+      render: (tx) => <span className="text-dark fw-medium">{tx.providerId?.userId?.name || "Unknown"}</span>,
     },
     {
       key: "method",
@@ -179,7 +179,7 @@ const AdminFinancePage: React.FC = () => {
       </div>
 
       <AdminFilterBar
-        searchPlaceholder="Search by ID..."
+        searchPlaceholder="Search by provider name, job code, or payment ID..."
         searchValue={searchInput}
         onSearchChange={setSearchInput}
         onReset={() => {

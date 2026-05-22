@@ -46,6 +46,10 @@ export class PlatformTransactionRepository implements IPlatformTransactionReposi
                 .skip(skip)
                 .limit(limit)
                 .populate('jobId', 'title jobCode')
+                .populate({
+                    path: 'providerId',
+                    populate: { path: 'userId', select: 'name' }
+                })
                 .lean(),
             PlatformTransactionModel.countDocuments(filter)
         ]);

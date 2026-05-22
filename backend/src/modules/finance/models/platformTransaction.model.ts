@@ -17,7 +17,7 @@ export interface IPlatformTransaction extends Document {
 const PlatformTransactionSchema: Schema = new Schema({
     jobId: { type: Schema.Types.ObjectId, ref: 'Job', required: true },
     workHistoryId: { type: Schema.Types.ObjectId, ref: 'WorkHistory', required: true },
-    providerId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    providerId: { type: Schema.Types.ObjectId, ref: 'ServiceProvider', required: true },
     type: {
         type: String,
         enum: ['platform_fee', 'payment', 'adjustment'],
