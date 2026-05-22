@@ -3,10 +3,22 @@ import AuthNavbar from "./AuthNavbar";
 
 interface AuthLayoutProps {
   children: React.ReactNode;
-  mode: "/auth/login" | "/auth/signup" | "/auth/forgot-password" | "/auth/reset-password" | "/auth/verify-otp";
+
+  mode:
+    | "/auth/login"
+    | "/auth/signup"
+    | "/auth/forgot-password"
+    | "/auth/reset-password"
+    | "/auth/verify-otp";
+
+  visualTitle?: string;
+  visualSubtitle?: string;
 }
 
-const AuthLayout = ({ children, mode }: AuthLayoutProps) => {
+const AuthLayout = ({
+  children,
+  mode,
+}: AuthLayoutProps) => {
   return (
     <div className="auth-layout-premium">
        <div className="auth-bg-shape shape-blob-1"></div>
