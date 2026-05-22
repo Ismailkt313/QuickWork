@@ -347,12 +347,6 @@ export class InvoiceService implements IInvoiceService {
             setFont('medium', 10, textNormal);
             doc.text('-' + formatCurr(invoice.platformFee || 0), 430, sy, { width: 115, align: 'right' });
 
-            sy += 22;
-            setFont('regular', 10, textMuted);
-            doc.text('Estimated Tax (0%)', 315, sy);
-            setFont('medium', 10, textNormal);
-            doc.text(formatCurr(0), 430, sy, { width: 115, align: 'right' });
-
             if (invoice.providerPayout) {
                 sy += 22;
                 setFont('regular', 10, textMuted);
