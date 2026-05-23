@@ -17,7 +17,6 @@ export interface IApiResponse<T = unknown> {
     data?: T;
     pagination?: IPaginationMeta;
     error?: unknown;
-    // Legacy top-level pagination support to ensure zero frontend breakage
     total?: number;
     page?: number;
     limit?: number;
@@ -26,9 +25,6 @@ export interface IApiResponse<T = unknown> {
 }
 
 export class ApiResponse {
-    /**
-     * Send a standardized success response
-     */
     public static sendSuccess<T>(
         res: Response,
         data: T,
@@ -43,16 +39,12 @@ export class ApiResponse {
             ...additionalMeta
         };
 
-        // Remove undefined fields for clean JSON output
         if (message === undefined) delete responsePayload.message;
         if (data === undefined) delete responsePayload.data;
 
         return res.status(statusCode).json(responsePayload);
     }
 
-    /**
-     * Send a standardized paginated response preserving top-level legacy fields for backward compatibility
-     */
     public static sendPagination<T>(
         res: Response,
         data: T,
@@ -74,7 +66,6 @@ export class ApiResponse {
             message,
             data,
             pagination: enrichedPagination,
-            // Legacy top-level fields required by existing frontend Redux slices & hooks
             total: paginationMeta.total,
             page: paginationMeta.page,
             limit: paginationMeta.limit,
@@ -87,9 +78,6 @@ export class ApiResponse {
         return res.status(statusCode).json(responsePayload);
     }
 
-    /**
-     * Send a standardized error response
-     */
     public static sendError(
         res: Response,
         message: string,
