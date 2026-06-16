@@ -64,13 +64,13 @@ export class JobService implements IJobService {
             return { success: false, message: ErrorMessages.INVALID_DISTRICT };
         }
 
-        const placeDistrict = dto.location.districtName.toLowerCase();
-        const chosenDistrictName = district.name.toLowerCase();
-        const formattedAddress = dto.location.address.toLowerCase();
+        // const placeDistrict = dto.location.districtName.toLowerCase();
+        // const chosenDistrictName = district.name.toLowerCase();
+        // const formattedAddress = dto.location.address.toLowerCase();
 
-        if (placeDistrict !== chosenDistrictName && !formattedAddress.includes(chosenDistrictName)) {
-            return { success: false, message: ErrorMessages.DISTRICT_MISMATCH };
-        }
+        // if (placeDistrict !== chosenDistrictName && !formattedAddress.includes(chosenDistrictName)) {
+        //     return { success: false, message: ErrorMessages.DISTRICT_MISMATCH };
+        // }
 
         if (!dto.budget || dto.budget.min === undefined || dto.budget.max === undefined) {
             return { success: false, message: ErrorMessages.BUDGET_REQUIRED };

@@ -337,23 +337,23 @@ export const DirectHireModal: React.FC<DirectHireModalProps> = ({
         return;
       }
 
-      const placeDistrict = formData.selectedLocation.district.toLowerCase();
-      const chosenDistrictName = selectedDistrict.name.toLowerCase();
-      const formattedAddress = formData.selectedLocation.address.toLowerCase();
+      // const placeDistrict = formData.selectedLocation.district.toLowerCase();
+      // const chosenDistrictName = selectedDistrict.name.toLowerCase();
+      // const formattedAddress = formData.selectedLocation.address.toLowerCase();
 
-      if (
-        placeDistrict !== chosenDistrictName &&
-        !formattedAddress.includes(chosenDistrictName)
-      ) {
-        const errorMsg = `The selected place must be within ${selectedDistrict.name}`;
-        setErrors((prev) => ({
-          ...prev,
-          selectedLocation: errorMsg,
-        }));
-        toast.error(errorMsg, { toastId: "location-error-direct" });
-        setIsSubmitting(false);
-        return;
-      }
+      // if (
+      //   placeDistrict !== chosenDistrictName &&
+      //   !formattedAddress.includes(chosenDistrictName)
+      // ) {
+      //   const errorMsg = `The selected place must be within ${selectedDistrict.name}`;
+      //   setErrors((prev) => ({
+      //     ...prev,
+      //     selectedLocation: errorMsg,
+      //   }));
+      //   toast.error(errorMsg, { toastId: "location-error-direct" });
+      //   setIsSubmitting(false);
+      //   return;
+      // }
 
       const result = await jobService.createJob({
         title: formData.title,
