@@ -3,14 +3,12 @@ import { ReviewService } from './services/review.service';
 import { ReviewController } from './controllers/review.controller';
 import { createReviewRouter } from './routes/review.routes';
 
-import { AssignmentRepository } from '../assignment/repositories/assignment.repository';
-import { JobRepository } from '../job/repositories/job.repository';
+// Import singletons from other modules
+import { assignmentRepository } from '../assignment';
+import { jobRepository } from '../job';
 
-const reviewRepository = new ReviewRepository();
-const assignmentRepository = new AssignmentRepository();
-const jobRepository = new JobRepository();
-const reviewService = new ReviewService(reviewRepository, assignmentRepository, jobRepository);
+export const reviewRepository = new ReviewRepository();
+export const reviewService = new ReviewService(reviewRepository, assignmentRepository, jobRepository);
 const reviewController = new ReviewController(reviewService);
 
 export const reviewRouter = createReviewRouter(reviewController);
-export { reviewRepository };

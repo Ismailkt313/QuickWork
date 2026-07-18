@@ -1,12 +1,11 @@
 import { Application } from "express";
 import { authRouter } from "./modules/auth";
-import { adminRouter } from "./modules/admin";
-import { serviceProviderRouter } from "./modules/serviceProvider";
-import { providerDashboardRouter } from "./modules/providerDashboard";
+import { adminRouter, adminDashboardRouter } from "./modules/admin";
+import { serviceProviderRouter, providerDashboardRouter } from "./modules/serviceProvider";
 import { serviceRequestRouter, adminServiceRequestRouter } from "./modules/serviceRequest";
 import { locationRouter } from "./modules/location";
 import { skillRouter } from "./modules/skill";
-import { uploadRouter } from "./modules/upload";
+import { uploadRouter } from "./shared/upload";
 import { landingRouter } from "./modules/landing";
 import { jobRouter, adminJobRouter } from "./modules/job";
 import { assignmentRouter } from "./modules/assignment";
@@ -15,7 +14,6 @@ import { reviewRouter } from "./modules/review";
 import { reportRouter, moderationRouter } from "./modules/report";
 import { notificationRouter } from "./modules/notification";
 import { paymentRouter, walletRouter, adminFinanceRouter, invoiceRouter } from "./modules/finance";
-import { adminDashboardRouter } from "./modules/adminDashboard";
 import { API_ROUTES } from "./constants/routes";
 
 export const registerdRoutes = (app: Application) => {

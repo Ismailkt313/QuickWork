@@ -1,5 +1,5 @@
 import { IProviderDashboardService, IDashboardOverview, IPerformanceStats, IChartData, IAvailabilitySummary } from '../interfaces/providerDashboard.interface';
-import { IServiceProviderRepository } from '../../serviceProvider/interfaces/serviceProvider.interface';
+import { IServiceProviderRepository } from '../interfaces/serviceProvider.interface';
 import { IAssignmentRepository } from '../../assignment/interfaces/assignment.interface';
 import { IWorkHistoryRepository, IWalletRepository } from '../../finance/interfaces/finance.interface';
 import { IReviewRepository } from '../../review/interfaces/review.interface';
@@ -149,5 +149,3 @@ export class ProviderDashboardService implements IProviderDashboardService {
         };
     }
 }
-
-

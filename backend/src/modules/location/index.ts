@@ -3,12 +3,8 @@ import { LocationService } from './services/location.service';
 import { LocationController } from './controllers/location.controller';
 import { createLocationRouter } from './routes/location.routes';
 
-const locationRepository = new LocationRepository();
-const locationService = new LocationService(locationRepository);
+export const locationRepository = new LocationRepository();
+export const locationService = new LocationService(locationRepository);
 const locationController = new LocationController(locationService);
 
-const locationRouter = createLocationRouter(locationController);
-
-export {
-    locationRouter
-};
+export const locationRouter = createLocationRouter(locationController);

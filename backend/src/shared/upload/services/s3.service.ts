@@ -1,6 +1,6 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { config } from "../../../config";
-import { ILogger } from '../../../shared/interfaces/ILogger';
+import { ILogger } from '../../interfaces/ILogger';
 import { IS3Service } from '../interfaces/upload.interface';
 
 export class S3Service implements IS3Service {
@@ -71,4 +71,3 @@ export class S3Service implements IS3Service {
         }
     }
 }
-

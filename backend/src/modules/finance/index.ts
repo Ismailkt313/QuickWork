@@ -1,13 +1,12 @@
-
 import { WalletRepository } from './repositories/wallet.repository';
 import { PlatformTransactionRepository } from './repositories/platformTransaction.repository';
 import { WorkHistoryRepository } from './repositories/workHistory.repository';
 import { InvoiceRepository } from './repositories/invoice.repository';
-import { JobRepository } from '../job/repositories/job.repository';
-import { ServiceProviderRepository } from '../serviceProvider/repositories/serviceProvider.repository';
-import { AuthRepository } from '../auth/repositories/auth.repository';
-import { AssignmentRepository } from '../assignment/repositories/assignment.repository';
-import { serviceProviderService } from '../serviceProvider';
+
+// Import singletons from other modules
+import { jobRepository } from '../job';
+import { authRepository } from '../auth';
+import { assignmentRepository } from '../assignment';
 
 import { WalletService } from './services/wallet.service';
 import { RazorpayService } from './services/razorpay.service';
@@ -28,26 +27,27 @@ import { createAdminFinanceRouter } from './routes/adminFinance.routes';
 
 import { appLogger } from '../../shared/logger';
 
-const walletRepository = new WalletRepository();
-const platformTransactionRepository = new PlatformTransactionRepository();
-const workHistoryRepository = new WorkHistoryRepository();
-const invoiceRepository = new InvoiceRepository();
-const jobRepository = new JobRepository();
-const serviceProviderRepository = new ServiceProviderRepository();
-const authRepository = new AuthRepository();
-const assignmentRepository = new AssignmentRepository();
+// Export Repository singletons
+export const walletRepository = new WalletRepository();
+export const platformTransactionRepository = new PlatformTransactionRepository();
+export const workHistoryRepository = new WorkHistoryRepository();
+export const invoiceRepository = new InvoiceRepository();
 
-const walletService = new WalletService(walletRepository, appLogger);
+export const walletService = new WalletService(walletRepository, appLogger);
 const razorpayService = new RazorpayService();
-const invoiceService = new InvoiceService(
+
+// Import serviceProviderRepository at the bottom of the instantiation section to avoid circular imports
+import { serviceProviderRepository, serviceProviderService } from '../serviceProvider';
+
+export const invoiceService = new InvoiceService(
     invoiceRepository,
     workHistoryRepository,
     jobRepository,
     serviceProviderRepository,
     authRepository
 );
-const workHistoryService = new WorkHistoryService(workHistoryRepository, jobRepository);
-const paymentService = new PaymentService(
+export const workHistoryService = new WorkHistoryService(workHistoryRepository, jobRepository);
+export const paymentService = new PaymentService(
     walletService,
     razorpayService,
     workHistoryRepository,
@@ -56,13 +56,12 @@ const paymentService = new PaymentService(
     assignmentRepository,
     appLogger
 );
-const adminFinanceService = new AdminFinanceService(platformTransactionRepository, walletRepository);
+export const adminFinanceService = new AdminFinanceService(platformTransactionRepository, walletRepository);
 
 const walletController = new WalletController(walletService, serviceProviderService);
 const paymentController = new PaymentController(paymentService, serviceProviderService, workHistoryService);
 const invoiceController = new InvoiceController(invoiceService, serviceProviderService);
 const adminFinanceController = new AdminFinanceController(adminFinanceService);
-
 
 const walletRouter = createWalletRouter(walletController);
 const paymentRouter = createPaymentRouter(paymentController);
@@ -74,8 +73,4 @@ export {
     paymentRouter,
     invoiceRouter,
     adminFinanceRouter,
-    workHistoryService,
-    paymentService,
-    walletService
 };
-

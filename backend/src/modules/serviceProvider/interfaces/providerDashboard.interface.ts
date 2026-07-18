@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { IAvailability } from '../../serviceProvider/interfaces/serviceProvider.interface';
+import { IAvailability } from './serviceProvider.interface';
 
 export interface IDashboardOverview {
     totalEarnings: number;

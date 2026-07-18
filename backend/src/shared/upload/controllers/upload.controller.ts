@@ -98,5 +98,3 @@ export class UploadController implements IUploadController {
         }
     };
 }
-
-

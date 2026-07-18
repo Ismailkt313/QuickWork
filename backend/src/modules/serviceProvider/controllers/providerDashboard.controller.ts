@@ -65,4 +65,3 @@ export class ProviderDashboardController implements IProviderDashboardController
         }
     }
 }
-

@@ -2,7 +2,7 @@ import cloudinary from '../../../config/cloudinary';
 import { config } from '../../../config';
 import { ErrorMessages } from '../../../constants/messages/errorMessages';
 import { IUploadService, IS3Service } from '../interfaces/upload.interface';
-import { ILogger } from '../../../shared/interfaces/ILogger';
+import { ILogger } from '../../interfaces/ILogger';
 import { randomUUID } from 'crypto';
 
 export class UploadService implements IUploadService {
@@ -15,31 +15,14 @@ export class UploadService implements IUploadService {
     }
 
     async uploadProfileImage(fileBuffer: Buffer, _mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
-        return this._uploadImage(fileBuffer, 'quickwork/profile-images');
-    }
-
-    async uploadPortfolioImage(fileBuffer: Buffer, _mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
-        return this._uploadImage(fileBuffer, 'quickwork/portfolio-images');
-    }
-
-    async uploadAssignmentProof(fileBuffer: Buffer, _mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
-        return this._uploadImage(fileBuffer, 'quickwork/assignment-proofs');
-    }
-
-    async uploadChatMessage(fileBuffer: Buffer, mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
-        if (!config.AWS_ACCESS_KEY_ID || !config.AWS_SECRET_ACCESS_KEY || !config.AWS_BUCKET_NAME) {
-            return this._uploadImage(fileBuffer, 'quickwork/chat-images');
-        }
-        const fileName = `chat/${randomUUID()}-${Date.now()}`;
-        return this._s3Service.uploadFile(fileBuffer, fileName, mimetype);
-    }
-
-    private _uploadImage(fileBuffer: Buffer, folder: string): Promise<{ imageUrl: string, publicId: string }> {
         return new Promise((resolve, reject) => {
-            const uploadStream = cloudinary.uploader.upload_stream(
+            const folder = 'quickwork/profile';
+            cloudinary.uploader.upload_stream(
                 {
                     folder,
-                    resource_type: 'image',
+                    transformation: [
+                        { width: 150, height: 150, crop: 'fill' }
+                    ]
                 },
                 (error, result) => {
                     if (error) {
@@ -56,37 +39,70 @@ export class UploadService implements IUploadService {
                         reject(new Error(ErrorMessages.INTERNAL_SERVER_ERROR));
                     }
                 }
-            );
-
-            uploadStream.end(fileBuffer);
+            ).end(fileBuffer);
         });
     }
 
-    async getUploadSignature(folder: string = 'quickwork/general') {
+    async uploadPortfolioImage(fileBuffer: Buffer, _mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
+        return new Promise((resolve, reject) => {
+            const folder = 'quickwork/portfolio';
+            cloudinary.uploader.upload_stream(
+                {
+                    folder,
+                    transformation: [
+                        { width: 800, height: 600, crop: 'limit' }
+                    ]
+                },
+                (error, result) => {
+                    if (error) {
+                        this._logger.error("Cloudinary Upload Failed", { error: error.message || error, folder });
+                        return reject(new Error(ErrorMessages.FILE_UPLOAD_FAILED));
+                    }
+                    if (result) {
+                        this._logger.info("File uploaded to Cloudinary successfully", { publicId: result.public_id, folder });
+                        resolve({
+                            imageUrl: result.secure_url,
+                            publicId: result.public_id
+                        });
+                    } else {
+                        reject(new Error(ErrorMessages.INTERNAL_SERVER_ERROR));
+                    }
+                }
+            ).end(fileBuffer);
+        });
+    }
+
+    async uploadAssignmentProof(fileBuffer: Buffer, mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
+        const fileName = `chat/${randomUUID()}-${Date.now()}`;
+        return this._s3Service.uploadFile(fileBuffer, fileName, mimetype);
+    }
+
+    async uploadChatMessage(fileBuffer: Buffer, mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
+        const fileName = `chat/${randomUUID()}-${Date.now()}`;
+        return this._s3Service.uploadFile(fileBuffer, fileName, mimetype);
+    }
+
+    async getUploadSignature(folder: string = 'quickwork/general'): Promise<unknown> {
         const timestamp = Math.round(new Date().getTime() / 1000);
-
-        const paramsToSign = {
-            timestamp,
-            folder,
-        };
-
         const signature = cloudinary.utils.api_sign_request(
-            paramsToSign,
+            {
+                timestamp,
+                folder,
+            },
             config.CLOUD_API_SECRET
         );
 
         return {
             signature,
             timestamp,
-            apiKey: config.CLOUD_API_KEY,
             cloudName: config.CLOUD_NAME,
-            folder
+            apiKey: config.CLOUD_API_KEY,
+            folder,
         };
     }
 
     async deleteImage(publicId: string): Promise<unknown> {
-
-        if (publicId.includes('/') && !publicId.startsWith('quickwork')) {
+        if (publicId.startsWith('chat/')) {
             return this._s3Service.deleteFile(publicId);
         }
 
@@ -101,4 +117,3 @@ export class UploadService implements IUploadService {
         });
     }
 }
-

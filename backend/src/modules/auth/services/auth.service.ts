@@ -45,7 +45,7 @@ import { mapUserToResponseDTO, UserResponseDTO } from "../dtos/userResponse.dto"
 import { SuccessMessages } from "../../../constants/messages/successMessages";
 import { ErrorMessages } from "../../../constants/messages/errorMessages";
 import { HttpStatusCode } from "../../../constants/httpStatusCode";
-import { IUploadService } from "../../upload/interfaces/upload.interface";
+import { IUploadService } from "../../../shared/upload/interfaces/upload.interface";
 import { ILogger } from "../../../shared/interfaces/ILogger";
 
 export class AuthService implements IAuthService {

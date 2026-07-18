@@ -8,14 +8,10 @@ import { SuccessMessages } from "../../../constants/messages/successMessages";
 
 import { ITokenPayload } from '../../auth/interfaces/auth.interface';
 
+import { appLogger } from "../../../shared/logger";
+
 interface RequestWithCustomProps extends Request {
     user?: ITokenPayload & { _id?: string };
-    log: {
-        debug: (obj: unknown, msg: string) => void;
-        info: (obj: unknown, msg: string) => void;
-        warn: (msg: string) => void;
-        error: (obj: unknown, msg: string) => void;
-    };
 }
 
 export class MessageController implements IMessageController {
@@ -33,7 +29,7 @@ export class MessageController implements IMessageController {
                 res.status(HttpStatusCode.UNAUTHORIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
                 return;
             }
-            customReq.log.debug({ body: req.body }, "Creating new message");
+            appLogger.debug("Creating new message", { body: req.body });
 
             const dto = CreateMessageDto.create(req.body);
 
@@ -63,7 +59,7 @@ export class MessageController implements IMessageController {
             });
         } catch (error: unknown) {
             const err = error as { statusCode?: number; message?: string };
-            customReq.log.error({ error: err.message }, "Error in createMessage");
+            appLogger.error("Error in createMessage", { error: err.message });
 
             res.status(err.statusCode || HttpStatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message || ErrorMessages.INTERNAL_SERVER_ERROR });
         }
@@ -85,7 +81,7 @@ export class MessageController implements IMessageController {
             const userId = customReq.user?.userId || customReq.user?._id;
 
             if (!userId) {
-                customReq.log.warn("No userId found in req.user");
+                appLogger.warn("No userId found in req.user");
 
                 res.status(HttpStatusCode.UNAUTHORIZED).json({ success: false, message: ErrorMessages.UNAUTHORIZED });
                 return;
@@ -94,7 +90,7 @@ export class MessageController implements IMessageController {
             res.status(HttpStatusCode.OK).json({ success: true, data: result });
         } catch (error: unknown) {
             const err = error as { statusCode?: number; message?: string };
-            customReq.log.error({ error: err.message }, "Error in getConversations");
+            appLogger.error("Error in getConversations", { error: err.message });
 
             res.status(err.statusCode || HttpStatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message || ErrorMessages.INTERNAL_SERVER_ERROR });
         }
@@ -120,7 +116,7 @@ export class MessageController implements IMessageController {
                 const senderRoom = String(result.sender);
                 const receiverRoom = String(result.receiver);
 
-                customReq.log.info({ senderRoom, receiverRoom, messageId: dto.messageId }, "DEBUG: Emitting messageDeleted");
+                appLogger.info("DEBUG: Emitting messageDeleted", { senderRoom, receiverRoom, messageId: dto.messageId });
 
                 io.emit("messageDeleted", { messageId: dto.messageId });
 
@@ -147,7 +143,7 @@ export class MessageController implements IMessageController {
 
                 conversation.participants.forEach((p: { _id?: string; id?: string } | string) => {
                     const participantId = typeof p === 'string' ? p : String(p._id || p.id);
-                    customReq.log.info({ participantId, conversationId: dto.conversationId }, "DEBUG: Emitting conversationDeleted");
+                    appLogger.info("DEBUG: Emitting conversationDeleted", { participantId, conversationId: dto.conversationId });
                     io.to(participantId).emit("conversationDeleted", {
                         conversationId: dto.conversationId
                     });

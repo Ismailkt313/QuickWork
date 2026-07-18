@@ -5,26 +5,22 @@ import { createReportRouter } from './routes/report.routes';
 import { ModerationService } from './services/moderation.service';
 import { ModerationController } from './controllers/moderation.controller';
 import { createModerationRouter } from './routes/moderation.routes';
-
-import { AssignmentRepository } from '../assignment/repositories/assignment.repository';
-
-import { AuthRepository } from '../auth/repositories/auth.repository';
 import { ModerationLogRepository } from './repositories/moderationLog.repository';
 
-const reportRepository = new ReportRepository();
-const assignmentRepository = new AssignmentRepository();
-const reportService = new ReportService(reportRepository, assignmentRepository);
-const reportController = new ReportController(reportService);
+// Import singletons from other modules
+import { assignmentRepository } from '../assignment';
+import { authRepository } from '../auth';
 
 import { notificationService } from '../notification';
 import { appLogger } from '../../shared/logger';
 
-const authRepository = new AuthRepository();
+export const reportRepository = new ReportRepository();
+const reportService = new ReportService(reportRepository, assignmentRepository);
+const reportController = new ReportController(reportService);
+
 const moderationLogRepository = new ModerationLogRepository();
 const moderationService = new ModerationService(reportRepository, moderationLogRepository, authRepository, notificationService, appLogger);
 const moderationController = new ModerationController(moderationService);
 
 export const reportRouter = createReportRouter(reportController);
 export const moderationRouter = createModerationRouter(moderationController);
-
-export { reportRepository };

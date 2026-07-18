@@ -20,7 +20,9 @@ export interface ISkillRepository extends IBaseRepository<ISkill> {
     getAllSkills(page: number, limit: number, search?: string, locationId?: string): Promise<{ data: ISkill[], total: number }>;
     getAdminSkills(page: number, limit: number, search?: string, status?: string): Promise<{ data: ISkill[], total: number }>;
     getSkills(): Promise<ISkill[]>;
-    getMySkill(userId: string): Promise<ISkill[]>
+    getMySkill(userId: string): Promise<ISkill[]>;
+    getSkillsByLocationId(locationId: string): Promise<ISkill[]>;
+    getAllSkillsList(): Promise<ISkill[]>;
 }
 
 export interface ISkillService {
