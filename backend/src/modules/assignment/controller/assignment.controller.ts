@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { IAssignmentController, IAssignmentService, IAssignment } from '../interfaces/assignment.interface';
 import { AppError } from '../../../utils/AppError';
 import { IServiceProviderService } from '../../serviceProvider/interfaces/serviceProvider.interface';
+import { serviceProviderService } from '../../serviceProvider';
 import { mapAssignmentToResponseDTO } from '../dtos/assignmentResponse.dto';
 import { HttpStatusCode } from '../../../constants/httpStatusCode'
 import { SuccessMessages } from '../../../constants/messages/successMessages';
@@ -10,14 +11,18 @@ import { ApiResponse } from '../../../utils/ApiResponse';
 
 export class AssignmentController implements IAssignmentController {
     private _assignmentService: IAssignmentService;
-    private _serviceProviderService: IServiceProviderService;
+    private _serviceProviderServiceInstance: IServiceProviderService;
+
+    private get _serviceProviderService(): IServiceProviderService {
+        return this._serviceProviderServiceInstance || serviceProviderService;
+    }
 
     constructor(
         assignmentService: IAssignmentService,
         serviceProviderService: IServiceProviderService
     ) {
         this._assignmentService = assignmentService;
-        this._serviceProviderService = serviceProviderService;
+        this._serviceProviderServiceInstance = serviceProviderService;
     }
 
     public getProviderAssignments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {

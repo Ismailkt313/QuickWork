@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { IWalletController, IWalletService } from '../interfaces/finance.interface';
 import { IServiceProviderService } from '../../serviceProvider/interfaces/serviceProvider.interface';
+import { serviceProviderService } from '../../serviceProvider';
 import { HttpStatusCode } from '../../../constants/httpStatusCode';
 import { AppError } from '../../../utils/AppError';
 import { ErrorMessages } from '../../../constants/messages/errorMessages';
@@ -19,6 +20,10 @@ export class WalletController implements IWalletController {
         this._serviceProviderService = serviceProviderService;
     }
 
+    private get serviceProviderService(): IServiceProviderService {
+        return this._serviceProviderService || serviceProviderService;
+    }
+
     public getMe = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
@@ -30,7 +35,7 @@ export class WalletController implements IWalletController {
                 return;
             }
 
-            const provider = await this._serviceProviderService.getProviderByUserId(userId);
+            const provider = await this.serviceProviderService.getProviderByUserId(userId);
             if (!provider) throw new AppError(ErrorMessages.PROVIDER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
 
             const wallet = await this._walletService.getOrCreateWallet(provider._id.toString());
@@ -62,7 +67,7 @@ export class WalletController implements IWalletController {
                 return;
             }
 
-            const provider = await this._serviceProviderService.getProviderByUserId(userId);
+            const provider = await this.serviceProviderService.getProviderByUserId(userId);
             if (!provider) throw new AppError(ErrorMessages.PROVIDER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
 
             const { transactions, total } = await this._walletService.getTransactions(
@@ -108,7 +113,7 @@ export class WalletController implements IWalletController {
                 throw new AppError(ErrorMessages.VALID_AMOUNT_REQUIRED, HttpStatusCode.BAD_REQUEST);
             }
 
-            const provider = await this._serviceProviderService.getProviderByUserId(userId);
+            const provider = await this.serviceProviderService.getProviderByUserId(userId);
             if (!provider) throw new AppError(ErrorMessages.PROVIDER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
 
             try {

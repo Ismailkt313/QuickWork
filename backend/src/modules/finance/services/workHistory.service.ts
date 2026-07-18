@@ -1,5 +1,6 @@
 import { IWorkHistory, IWorkHistoryRepository, IWorkHistoryService } from '../interfaces/finance.interface';
 import { IJobRepository } from '../../job/interfaces/job.interface';
+import { jobRepository } from '../../job';
 
 export class WorkHistoryService implements IWorkHistoryService {
     private _workHistoryRepo: IWorkHistoryRepository;
@@ -11,6 +12,10 @@ export class WorkHistoryService implements IWorkHistoryService {
     ) {
         this._workHistoryRepo = workHistoryRepo;
         this._jobRepo = jobRepo;
+    }
+
+    private get jobRepo(): IJobRepository {
+        return this._jobRepo || jobRepository;
     }
 
     async createFromAssignment(assignment: {
@@ -34,7 +39,7 @@ export class WorkHistoryService implements IWorkHistoryService {
                 clientId = assignment.jobId.userId._id || assignment.jobId.userId;
             } else {
 
-                const job = await this._jobRepo.findById(assignment.jobId as string);
+                const job = await this.jobRepo.findById(assignment.jobId as string);
                 if (job) clientId = job.userId;
             }
         }

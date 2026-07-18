@@ -2,6 +2,7 @@ import { IAssignment, IAssignmentRepository, IAssignmentService } from '../inter
 import { ASSIGNMENT_STATUS, WORK_STATUS } from '../../../constants/assignment';
 import { PAYMENT_STATUS, PAYMENT_METHOD } from '../../../constants/payment';
 import { IJobRepository } from '../../job/interfaces/job.interface';
+import { jobRepository } from '../../job';
 import { JOB_STATUS } from '../../../constants/jobStatus';
 import { Types } from 'mongoose';
 import { getObjectId } from '../../../utils/getObjectId';
@@ -13,11 +14,15 @@ import { ILogger } from '../../../shared/interfaces/ILogger';
 
 export class AssignmentService implements IAssignmentService {
     private _assignmentRepository: IAssignmentRepository;
-    private _jobRepository: IJobRepository;
+    private _jobRepositoryInstance: IJobRepository;
     private _notificationService: INotificationService;
     private _workHistoryService: IWorkHistoryService;
     private _paymentService: IPaymentService;
     private _logger: ILogger;
+
+    private get _jobRepository(): IJobRepository {
+        return this._jobRepositoryInstance || jobRepository;
+    }
 
     constructor(
         assignmentRepository: IAssignmentRepository,
@@ -28,7 +33,7 @@ export class AssignmentService implements IAssignmentService {
         logger: ILogger
     ) {
         this._assignmentRepository = assignmentRepository;
-        this._jobRepository = jobRepository;
+        this._jobRepositoryInstance = jobRepository;
         this._notificationService = notificationService;
         this._workHistoryService = workHistoryService;
         this._paymentService = paymentService;

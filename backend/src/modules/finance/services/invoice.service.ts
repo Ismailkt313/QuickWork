@@ -5,6 +5,7 @@ import {
     IWorkHistoryRepository
 } from '../interfaces/finance.interface';
 import { IJobRepository } from '../../job/interfaces/job.interface';
+import { jobRepository } from '../../job';
 import { IServiceProviderRepository } from '../../serviceProvider/interfaces/serviceProvider.interface';
 import { IAuthRepository } from '../../auth/interfaces/auth.interface';
 import PDFDocument from 'pdfkit';
@@ -59,6 +60,10 @@ export class InvoiceService implements IInvoiceService {
         this._authRepo = authRepo;
     }
 
+    private get jobRepo(): IJobRepository {
+        return this._jobRepo || jobRepository;
+    }
+
     async generateInvoice(workHistoryId: string): Promise<IInvoice> {
         const history = await this._workHistoryRepo.findById(workHistoryId);
         if (!history) throw new Error('Work history not found');
@@ -74,7 +79,7 @@ export class InvoiceService implements IInvoiceService {
             return String(val);
         };
 
-        const job = await this._jobRepo.findById(getIdStr(history.jobId));
+        const job = await this.jobRepo.findById(getIdStr(history.jobId));
         if (!job) throw new Error('Job not found');
 
         const client = await this._authRepo.findById(getIdStr(history.clientId));

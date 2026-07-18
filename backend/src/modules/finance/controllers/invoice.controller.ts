@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { IInvoiceController, IInvoiceService } from '../interfaces/finance.interface';
 import { HttpStatusCode } from '../../../constants/httpStatusCode';
 import { IServiceProviderService } from '../../serviceProvider/interfaces/serviceProvider.interface';
+import { serviceProviderService } from '../../serviceProvider';
 import { AppError } from '../../../utils/AppError';
 import { ErrorMessages } from '../../../constants/messages/errorMessages';
 import { mapInvoiceToResponseDTO } from '../dtos/financeResponse.dto';
@@ -14,6 +15,10 @@ export class InvoiceController implements IInvoiceController {
         this._providerService = providerService;
     }
 
+    private get providerService(): IServiceProviderService {
+        return this._providerService || serviceProviderService;
+    }
+
     public getMyInvoices = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user?.userId;
@@ -22,7 +27,7 @@ export class InvoiceController implements IInvoiceController {
             const { page = 1, limit = 10, role } = req.query;
 
             let result;
-            const provider = await this._providerService.getProviderByUserId(userId);
+            const provider = await this.providerService.getProviderByUserId(userId);
 
             if (role === 'provider' && provider) {
 
@@ -61,7 +66,7 @@ export class InvoiceController implements IInvoiceController {
             }
 
             const userId = req.user?.userId;
-            const provider = await this._providerService.getProviderByUserId(userId!);
+            const provider = await this.providerService.getProviderByUserId(userId!);
 
             const isClient = invoice.client.userId.toString() === userId;
             const isProvider = provider && invoice.provider.providerId.toString() === provider._id.toString();

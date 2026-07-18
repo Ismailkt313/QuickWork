@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { IPaymentController, IPaymentService, IWorkHistoryService } from '../interfaces/finance.interface';
 import { IServiceProviderService } from '../../serviceProvider/interfaces/serviceProvider.interface';
+import { serviceProviderService } from '../../serviceProvider';
 import { HttpStatusCode } from '../../../constants/httpStatusCode';
 import { AppError } from '../../../utils/AppError';
 import { ErrorMessages } from '../../../constants/messages/errorMessages';
@@ -19,6 +20,10 @@ export class PaymentController implements IPaymentController {
         this._paymentService = paymentService;
         this._serviceProviderService = serviceProviderService;
         this._workHistoryService = workHistoryService;
+    }
+
+    private get serviceProviderService(): IServiceProviderService {
+        return this._serviceProviderService || serviceProviderService;
     }
 
     public markAsPaidCash = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -40,7 +45,7 @@ export class PaymentController implements IPaymentController {
             const userId = req.user?.userId;
             if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
 
-            const provider = await this._serviceProviderService.getProviderByUserId(userId);
+            const provider = await this.serviceProviderService.getProviderByUserId(userId);
             if (!provider) throw new AppError(ErrorMessages.PROVIDER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
 
             const result = await this._paymentService.confirmCashPayment(workHistoryId, provider._id.toString());
@@ -56,7 +61,7 @@ export class PaymentController implements IPaymentController {
             const userId = req.user?.userId;
             if (!userId) throw new AppError(ErrorMessages.UNAUTHORIZED, HttpStatusCode.UNAUTHORIZED);
 
-            const provider = await this._serviceProviderService.getProviderByUserId(userId);
+            const provider = await this.serviceProviderService.getProviderByUserId(userId);
             if (!provider) throw new AppError(ErrorMessages.PROVIDER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
 
             const result = await this._paymentService.rejectCashPayment(workHistoryId, provider._id.toString());
@@ -92,7 +97,7 @@ export class PaymentController implements IPaymentController {
 
             const { page = 1, limit = 10, status } = req.query;
 
-            const provider = await this._serviceProviderService.getProviderByUserId(userId);
+            const provider = await this.serviceProviderService.getProviderByUserId(userId);
             if (!provider) throw new AppError(ErrorMessages.PROVIDER_NOT_FOUND, HttpStatusCode.NOT_FOUND);
 
             const { history, total } = await this._workHistoryService.getProviderHistory(

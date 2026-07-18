@@ -8,6 +8,7 @@ import {
     IInvoiceService
 } from '../interfaces/finance.interface';
 import { IAssignment, IAssignmentRepository } from '../../assignment/interfaces/assignment.interface';
+import { assignmentRepository } from '../../assignment';
 import { config } from '../../../config';
 import { ILogger } from '../../../shared/interfaces/ILogger';
 
@@ -36,6 +37,10 @@ export class PaymentService implements IPaymentService {
         this._invoiceService = invoiceService;
         this._assignmentRepo = assignmentRepo;
         this._logger = logger;
+    }
+
+    private get assignmentRepo(): IAssignmentRepository {
+        return this._assignmentRepo || assignmentRepository;
     }
 
     private async _createPlatformTransaction(history: IWorkHistory, razorpayPaymentId?: string) {
@@ -108,7 +113,7 @@ export class PaymentService implements IPaymentService {
         );
 
         if (history.assignmentId) {
-            await this._assignmentRepo.updateById(history.assignmentId.toString(), {
+            await this.assignmentRepo.updateById(history.assignmentId.toString(), {
                 'payment.status': 'completed',
                 'payment.method': 'ONLINE',
                 'payment.paidAt': new Date(),
@@ -162,7 +167,7 @@ export class PaymentService implements IPaymentService {
         await this._walletService.processCashPayment(providerId, history.payment.platformFee);
 
         if (history.assignmentId) {
-            await this._assignmentRepo.updateById(history.assignmentId.toString(), {
+            await this.assignmentRepo.updateById(history.assignmentId.toString(), {
                 'payment.status': 'completed',
                 'payment.method': 'CASH',
                 'payment.paidAt': new Date()
@@ -268,7 +273,7 @@ export class PaymentService implements IPaymentService {
                 );
 
                 if (history.assignmentId) {
-                    await this._assignmentRepo.updateById(history.assignmentId.toString(), {
+                    await this.assignmentRepo.updateById(history.assignmentId.toString(), {
                         'payment.status': 'completed',
                         'payment.method': 'ONLINE',
                         'payment.paidAt': new Date(),

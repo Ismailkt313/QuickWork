@@ -1,6 +1,7 @@
 import { IProviderDashboardService, IDashboardOverview, IPerformanceStats, IChartData, IAvailabilitySummary } from '../interfaces/providerDashboard.interface';
 import { IServiceProviderRepository } from '../interfaces/serviceProvider.interface';
 import { IAssignmentRepository } from '../../assignment/interfaces/assignment.interface';
+import { assignmentRepository } from '../../assignment';
 import { IWorkHistoryRepository, IWalletRepository } from '../../finance/interfaces/finance.interface';
 import { IReviewRepository } from '../../review/interfaces/review.interface';
 import { INotificationRepository } from '../../notification/interfaces/notification.interface';
@@ -18,6 +19,10 @@ export class ProviderDashboardService implements IProviderDashboardService {
         private _notificationRepo: INotificationRepository
     ) {}
 
+    private get assignmentRepo(): IAssignmentRepository {
+        return this._assignmentRepo || assignmentRepository;
+    }
+
     private async _getProviderId(userId: string) {
         const provider = await this._providerRepo.findByUserId(userId);
         if (!provider) {
@@ -31,7 +36,7 @@ export class ProviderDashboardService implements IProviderDashboardService {
 
         const [wallet, assignmentStats, reviewStats, workHistoryEarnings] = await Promise.all([
             this._walletRepo.findByProviderId(String(providerId)),
-            this._assignmentRepo.getDashboardStats(String(providerId)),
+            this.assignmentRepo.getDashboardStats(String(providerId)),
             this._reviewRepo.getDashboardStats(userId),
             this._workHistoryRepo.getEarningsStats(String(providerId))
         ]);
@@ -58,7 +63,7 @@ export class ProviderDashboardService implements IProviderDashboardService {
         const providerId = await this._getProviderId(userId);
 
         const [assignments, reviews, notifications] = await Promise.all([
-            this._assignmentRepo.findRecentAssignments(String(providerId), 5),
+            this.assignmentRepo.findRecentAssignments(String(providerId), 5),
             this._reviewRepo.findRecentReviews(userId, 5),
             this._notificationRepo.findByUserId(userId, 10)
         ]);
@@ -75,9 +80,10 @@ export class ProviderDashboardService implements IProviderDashboardService {
 
         const [earningsData, statusData, activityData] = await Promise.all([
             this._workHistoryRepo.getMonthlyEarnings(String(providerId), 6),
-            this._assignmentRepo.getStatusDistribution(String(providerId)),
-            this._assignmentRepo.getWeeklyActivity(String(providerId))
+            this.assignmentRepo.getStatusDistribution(String(providerId)),
+            this.assignmentRepo.getWeeklyActivity(String(providerId))
         ]);
+
 
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -110,7 +116,7 @@ export class ProviderDashboardService implements IProviderDashboardService {
         const providerId = await this._getProviderId(userId);
 
         const [assignmentStats, reviewStats] = await Promise.all([
-            this._assignmentRepo.getPerformanceStats(String(providerId)),
+            this.assignmentRepo.getPerformanceStats(String(providerId)),
             this._reviewRepo.getDashboardStats(userId)
         ]);
 
