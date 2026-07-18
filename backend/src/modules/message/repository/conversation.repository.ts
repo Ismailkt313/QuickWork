@@ -1,7 +1,6 @@
 import { IConversation, IConversationResponse, IConversationRepository } from "../interface/message.interface";
 import { Conversation } from "../models/conversation.model";
 import { Message } from "../models/message.model";
-import { logger } from "../../../utils/logger";
 
 export class ConversationRepository implements IConversationRepository {
     async createConversation(conversation: IConversation): Promise<IConversationResponse> {
@@ -11,16 +10,11 @@ export class ConversationRepository implements IConversationRepository {
     }
 
     async getConversations(userId: string): Promise<IConversationResponse[]> {
-        try {
-            const conversations = await Conversation.find({ participants: userId })
-                .populate("participants", "name email _id")
-                .sort({ updatedAt: -1 });
+        const conversations = await Conversation.find({ participants: userId })
+            .populate("participants", "name email _id")
+            .sort({ updatedAt: -1 });
 
-            return conversations.map((c: { toObject: () => unknown }) => c.toObject() as unknown as IConversationResponse);
-        } catch (error: unknown) {
-            logger.error({ error, userId }, "Error fetching conversations in repository");
-            throw error;
-        }
+        return conversations.map((c: { toObject: () => unknown }) => c.toObject() as unknown as IConversationResponse);
     }
 
     async getConversation(conversationId: string): Promise<IConversationResponse | null> {

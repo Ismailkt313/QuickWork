@@ -1,6 +1,6 @@
  import { Server, Socket } from "socket.io";
 import { verifyAccessToken } from "../utils/jwt.util";
-import { logger } from "../utils/logger";
+import { appLogger } from "../shared/logger";
 import { UserModel } from "../modules/auth/models/user.model";
 
 let io: Server;
@@ -32,7 +32,7 @@ export const setupSocket = (socketIo: Server) => {
             socket.data.user = decoded;
             next();
         } catch (error: unknown) {
-            logger.warn({ error: (error as Error).message }, "Socket auth failed");
+            appLogger.warn("Socket auth failed", { error: (error as Error).message });
             return next(new Error("Authentication error: " + (error as Error).message));
         }
     })
@@ -41,18 +41,18 @@ export const setupSocket = (socketIo: Server) => {
         const userId = String(socket.data.user.userId || socket.data.user.id || socket.data.user._id).trim();
 
         socket.join(userId);
-        logger.info({ userId, socketId: socket.id }, "User joined socket room");
+        appLogger.info("User joined socket room", { userId, socketId: socket.id });
 
         socket.on('disconnect', (reason) => {
-            logger.info({ userId, socketId: socket.id, reason }, "User disconnected from socket");
+            appLogger.info("User disconnected from socket", { userId, socketId: socket.id, reason });
         });
 
         socket.on("error", (error) => {
-            logger.error({ userId, error: error.message }, "Socket error occurred");
+            appLogger.error("Socket error occurred", { userId, error: error.message });
         });
     })
   } catch (error: unknown) {
-    logger.error({ error: (error as Error).message }, "Error in socket setup");
+    appLogger.error("Error in socket setup", { error: (error as Error).message });
   }
 }
 

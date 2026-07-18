@@ -1,10 +1,13 @@
 import { IWallet, IWalletTransaction, IWalletRepository, IWalletService } from '../interfaces/finance.interface';
+import { ILogger } from '../../../shared/interfaces/ILogger';
 
 export class WalletService implements IWalletService {
     private _walletRepository: IWalletRepository;
+    private _logger: ILogger;
 
-    constructor(walletRepository: IWalletRepository) {
+    constructor(walletRepository: IWalletRepository, logger: ILogger) {
         this._walletRepository = walletRepository;
+        this._logger = logger;
     }
 
     async getOrCreateWallet(providerId: string): Promise<IWallet> {
@@ -35,6 +38,12 @@ export class WalletService implements IWalletService {
             amount,
             updatedWallet.balance
         );
+
+        if (type === 'credit') {
+            this._logger.info("Wallet Credited", { providerId, amount, source });
+        } else if (type === 'debit') {
+            this._logger.info("Wallet Debited", { providerId, amount, source });
+        }
 
         return updatedWallet;
     }
@@ -73,6 +82,7 @@ export class WalletService implements IWalletService {
     }
 
     async requestWithdrawal(providerId: string, amount: number): Promise<IWallet> {
+        this._logger.info("Withdrawal Requested", { providerId, amount });
         const wallet = await this.getOrCreateWallet(providerId);
 
         if (wallet.balance < amount) {
@@ -83,6 +93,8 @@ export class WalletService implements IWalletService {
             throw new Error('Withdrawal amount must be greater than zero');
         }
 
-        return await this._updateBalance(providerId, amount, 'debit', 'withdrawal');
+        const updatedWallet = await this._updateBalance(providerId, amount, 'debit', 'withdrawal');
+        this._logger.info("Withdrawal Completed", { providerId, amount });
+        return updatedWallet;
     }
 }

@@ -9,23 +9,27 @@ import { IAuthRepository } from '../../auth/interfaces/auth.interface';
 import { INotificationService } from '../../notification/interfaces/notification.interface';
 import { AppError } from '../../../utils/AppError';
 import { HttpStatusCode } from '../../../constants/httpStatusCode';
+import { ILogger } from '../../../shared/interfaces/ILogger';
 
 export class ModerationService implements IModerationService {
     private _reportRepository: IReportRepository;
     private _notificationService: INotificationService;
     private _moderationLogRepository: IModerationLogRepository;
     private _authRepository: IAuthRepository;
+    private _logger: ILogger;
 
     constructor(
         reportRepository: IReportRepository,
         moderationLogRepository: IModerationLogRepository,
         authRepository: IAuthRepository,
-        notificationService: INotificationService
+        notificationService: INotificationService,
+        logger: ILogger
     ) {
         this._reportRepository = reportRepository;
         this._moderationLogRepository = moderationLogRepository;
         this._authRepository = authRepository;
         this._notificationService = notificationService;
+        this._logger = logger;
     }
 
     async getReports(query: { status?: string; search?: string; page?: number; limit?: number }) {
@@ -80,6 +84,8 @@ export class ModerationService implements IModerationService {
                 type: 'SYSTEM'
             });
 
+            this._logger.info("Warning Issued", { userId: reportedUserId, adminId, reason, reportId });
+
         } else if (action === 'block') {
             await this._authRepository.blockUser(reportedUserId);
 
@@ -99,6 +105,8 @@ export class ModerationService implements IModerationService {
                 message: `Your account has been blocked: ${reason}`,
                 type: 'SYSTEM'
             });
+
+            this._logger.info("User Blocked", { userId: reportedUserId, adminId, reason, reportId });
 
         } else if (action === 'reject') {
             await this._reportRepository.updateStatus(reportId, REPORT_STATUS.REJECTED);

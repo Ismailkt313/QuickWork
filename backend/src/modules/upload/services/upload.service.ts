@@ -1,15 +1,17 @@
 import cloudinary from '../../../config/cloudinary';
 import { config } from '../../../config';
 import { ErrorMessages } from '../../../constants/messages/errorMessages';
-import { logger } from '../../../utils/logger';
-import { randomUUID } from 'crypto';
 import { IUploadService, IS3Service } from '../interfaces/upload.interface';
+import { ILogger } from '../../../shared/interfaces/ILogger';
+import { randomUUID } from 'crypto';
 
 export class UploadService implements IUploadService {
     private _s3Service: IS3Service;
+    private _logger: ILogger;
 
-    constructor(s3Service: IS3Service) {
+    constructor(s3Service: IS3Service, logger: ILogger) {
         this._s3Service = s3Service;
+        this._logger = logger;
     }
 
     async uploadProfileImage(fileBuffer: Buffer, _mimetype: string): Promise<{ imageUrl: string, publicId: string }> {
@@ -41,11 +43,11 @@ export class UploadService implements IUploadService {
                 },
                 (error, result) => {
                     if (error) {
-                        logger.error({ error, folder }, "Cloudinary Upload Failed");
+                        this._logger.error("Cloudinary Upload Failed", { error: error.message || error, folder });
                         return reject(new Error(ErrorMessages.FILE_UPLOAD_FAILED));
                     }
                     if (result) {
-                        logger.info({ publicId: result.public_id, folder }, "File uploaded to Cloudinary successfully");
+                        this._logger.info("File uploaded to Cloudinary successfully", { publicId: result.public_id, folder });
                         resolve({
                             imageUrl: result.secure_url,
                             publicId: result.public_id
@@ -91,7 +93,7 @@ export class UploadService implements IUploadService {
         return new Promise((resolve, reject) => {
             cloudinary.uploader.destroy(publicId, (error, result) => {
                 if (error) {
-                    logger.error({ error, publicId }, "Cloudinary Deletion Failed");
+                    this._logger.error("Cloudinary Deletion Failed", { error: error.message || error, publicId });
                     return reject(new Error(ErrorMessages.INTERNAL_SERVER_ERROR));
                 }
                 resolve(result);

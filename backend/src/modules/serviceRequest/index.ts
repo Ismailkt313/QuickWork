@@ -5,6 +5,8 @@ import { ServiceRequestService } from './services/serviceRequest.service';
 import { ServiceRequestController } from './controllers/serviceRequest.controller';
 import { createServiceRequestRouter, createAdminServiceRequestRouter } from './routes/serviceRequest.routes';
 
+import { appLogger } from '../../shared/logger';
+
 const serviceRequestRepository = new ServiceRequestRepository();
 const skillRepository = new SkillRepository();
 const serviceProviderRepository = new ServiceProviderRepository();
@@ -12,7 +14,8 @@ const serviceProviderRepository = new ServiceProviderRepository();
 const serviceRequestService = new ServiceRequestService(
     serviceRequestRepository,
     skillRepository,
-    serviceProviderRepository
+    serviceProviderRepository,
+    appLogger
 );
 
 const serviceRequestController = new ServiceRequestController(serviceRequestService);

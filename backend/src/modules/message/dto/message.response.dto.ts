@@ -1,5 +1,4 @@
 import { IConversationResponse, IMessageResponse } from "../interface/message.interface";
-import { logger } from "../../../utils/logger";
 
 export interface MessageResponseDTO {
     id: string;
@@ -37,35 +36,30 @@ export interface ConversationResponseDTO {
 }
 
 export const mapConversationToResponseDTO = (conversation: IConversationResponse): ConversationResponseDTO => {
-    try {
-        if (!conversation) {
-            logger.warn("mapConversationToResponseDTO received null/undefined conversation");
-            return { id: "", participants: [], lastMessage: "", lastMessageAt: new Date(), createdAt: new Date(), updatedAt: new Date() };
-        }
-
-        const participants = Array.isArray(conversation.participants) ? conversation.participants.map((p: unknown) => {
-            if (typeof p === 'string') {
-                return { _id: p, name: "User", email: "" };
-            }
-            const pObj = p as { _id?: unknown; name?: string; email?: string } | null;
-            return {
-                _id: pObj?._id ? pObj._id.toString() : (pObj?.toString() || ""),
-                name: pObj?.name || "User",
-                email: pObj?.email || ""
-            };
-        }) : [];
-
-        return {
-            id: conversation._id ? conversation._id.toString() : "",
-            participants: participants,
-            lastMessage: conversation.lastMessage || "",
-            lastMessageAt: conversation.lastMessageAt || new Date(),
-            createdAt: conversation.createdAt || new Date(),
-            updatedAt: conversation.updatedAt || new Date(),
-        };
-    } catch (error: unknown) {
-        logger.error({ error }, "Error in mapConversationToResponseDTO");
-        throw error;
+    if (!conversation) {
+        return { id: "", participants: [], lastMessage: "", lastMessageAt: new Date(), createdAt: new Date(), updatedAt: new Date() };
     }
+
+    const participants = Array.isArray(conversation.participants) ? conversation.participants.map((p: unknown) => {
+        if (typeof p === 'string') {
+            return { _id: p, name: "User", email: "" };
+        }
+        const pObj = p as { _id?: unknown; name?: string; email?: string } | null;
+        return {
+            _id: pObj?._id ? pObj._id.toString() : (pObj?.toString() || ""),
+            name: pObj?.name || "User",
+            email: pObj?.email || ""
+        };
+    }) : [];
+
+    return {
+        id: conversation._id ? conversation._id.toString() : "",
+        participants: participants,
+        lastMessage: conversation.lastMessage || "",
+        lastMessageAt: conversation.lastMessageAt || new Date(),
+        createdAt: conversation.createdAt || new Date(),
+        updatedAt: conversation.updatedAt || new Date(),
+    };
 };
+
 

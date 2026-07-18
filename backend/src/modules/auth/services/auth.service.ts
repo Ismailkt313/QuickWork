@@ -46,21 +46,24 @@ import { SuccessMessages } from "../../../constants/messages/successMessages";
 import { ErrorMessages } from "../../../constants/messages/errorMessages";
 import { HttpStatusCode } from "../../../constants/httpStatusCode";
 import { IUploadService } from "../../upload/interfaces/upload.interface";
-import { logger } from "../../../utils/logger";
+import { ILogger } from "../../../shared/interfaces/ILogger";
 
 export class AuthService implements IAuthService {
     private readonly _authRepository: IAuthRepository;
     private readonly _otpRepository: IOtpRepository;
     private readonly _uploadService: IUploadService;
+    private readonly _logger: ILogger;
 
     constructor(
         authRepository: IAuthRepository,
         otpRepository: IOtpRepository,
-        uploadService: IUploadService
+        uploadService: IUploadService,
+        logger: ILogger
     ) {
         this._authRepository = authRepository;
         this._otpRepository = otpRepository;
         this._uploadService = uploadService;
+        this._logger = logger;
     }
 
     public async sendOtp(input: ISendOtpInput): Promise<ISendOtpResponse> {
@@ -112,7 +115,8 @@ export class AuthService implements IAuthService {
             throw new AppError(ErrorMessages.INVALID_OTP, HttpStatusCode.BAD_REQUEST);
         }
 
-        await this._authRepository.create(otpEntry.userData!);
+        const user = await this._authRepository.create(otpEntry.userData!);
+        this._logger.info("Registration", { email: user.email, role: user.role, userId: user._id });
         await this._otpRepository.deleteByEmailAndType(input.email, OTP_TYPE.REGISTRATION);
 
         return {
@@ -159,7 +163,7 @@ export class AuthService implements IAuthService {
 
         const isPasswordValid = await bcrypt.compare(input.password, user.hashedPassword);
         if (!isPasswordValid) {
-            logger.warn({ email: input.email, action: "login_attempt", status: "failed", reason: "invalid_password" }, "Login failed: Invalid password");
+            this._logger.warn("Login Failed", { email: input.email, status: "failed", reason: "invalid_password" });
             throw new AppError(ErrorMessages.INVALID_CREDENTIALS, HttpStatusCode.BAD_REQUEST);
         }
 
@@ -171,7 +175,7 @@ export class AuthService implements IAuthService {
         const accessToken = generateAccessToken(tokenPayload);
         const refreshToken = generateRefreshToken(tokenPayload);
 
-        logger.info({ userId: user._id, email: user.email, action: "login_success", role: user.role }, "User logged in successfully");
+        this._logger.info("Login Success", { userId: user._id, email: user.email, role: user.role });
 
         return {
             success: true,
@@ -353,8 +357,8 @@ export class AuthService implements IAuthService {
         if (data.profileImage && currentUser.profileImage?.public_id && currentUser.profileImage.public_id !== data.profileImage.public_id) {
             try {
                 await this._uploadService.deleteImage(currentUser.profileImage.public_id);
-            } catch (error) {
-                logger.error({ error, publicId: currentUser.profileImage.public_id }, "Failed to delete old profile image");
+            } catch (error: any) {
+                this._logger.error("Failed to delete old profile image", { error: error?.message, publicId: currentUser.profileImage.public_id });
             }
 
         }

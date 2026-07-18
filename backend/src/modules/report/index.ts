@@ -17,10 +17,11 @@ const reportService = new ReportService(reportRepository, assignmentRepository);
 const reportController = new ReportController(reportService);
 
 import { notificationService } from '../notification';
+import { appLogger } from '../../shared/logger';
 
 const authRepository = new AuthRepository();
 const moderationLogRepository = new ModerationLogRepository();
-const moderationService = new ModerationService(reportRepository, moderationLogRepository, authRepository, notificationService);
+const moderationService = new ModerationService(reportRepository, moderationLogRepository, authRepository, notificationService, appLogger);
 const moderationController = new ModerationController(moderationService);
 
 export const reportRouter = createReportRouter(reportController);

@@ -4,7 +4,17 @@ import { config } from './config'
 import http from "http";
 import { Server } from "socket.io";
 import { setupSocket } from './chat/socket';
-import { logger } from './utils/logger';
+import { appLogger } from './shared/logger';
+
+process.on('uncaughtException', (error) => {
+    appLogger.error("Unexpected Exception", { stack: error.stack, error });
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+    const error = reason instanceof Error ? reason : new Error(String(reason));
+    appLogger.error("Unhandled Promise Rejection", { stack: error.stack, error });
+});
 
 const startServer = async (): Promise<void> => {
     try {
@@ -13,7 +23,7 @@ const startServer = async (): Promise<void> => {
             connectTimeoutMS: 10000,
             socketTimeoutMS: 45000,
         });
-        logger.info('Database connected successfully');
+        appLogger.info('Database connected successfully');
         const httpServer = http.createServer(app);
         const io = new Server(httpServer, {
             cors: {
@@ -29,37 +39,37 @@ const startServer = async (): Promise<void> => {
         setupSocket(io);
         app.set("io", io);
         const server = httpServer.listen(config.PORT, () => {
-            logger.info(`Server connected on port ${config.PORT}`);
+            appLogger.info(`Server connected on port ${config.PORT}`);
         });
 
         const gracefulShutdown = async (signal: string) => {
-            logger.info(`${signal} received. Starting graceful shutdown...`);
+            appLogger.info(`${signal} received. Starting graceful shutdown...`);
             
             server.close(async () => {
-                logger.info('HTTP server closed.');
+                appLogger.info('HTTP server closed.');
                 
                 try {
                     if (io) {
                         await new Promise<void>((resolve) => {
                             io.close(() => {
-                                logger.info('Socket.IO server closed.');
+                                appLogger.info('Socket.IO server closed.');
                                 resolve();
                             });
                         });
                     }
 
                     await mongoose.connection.close();
-                    logger.info('MongoDB connection closed.');
+                    appLogger.info('MongoDB connection closed.');
                     
                     process.exit(0);
-                } catch (err) {
-                    logger.error({ err }, 'Error during graceful shutdown');
+                } catch (err: any) {
+                    appLogger.error('Error during graceful shutdown', { err: err?.message, stack: err?.stack });
                     process.exit(1);
                 }
             });
 
             setTimeout(() => {
-                logger.error('Could not close connections in time, forcefully shutting down');
+                appLogger.error('Could not close connections in time, forcefully shutting down');
                 process.exit(1);
             }, 10000);
         };
@@ -67,10 +77,11 @@ const startServer = async (): Promise<void> => {
         process.on('SIGINT', () => gracefulShutdown('SIGINT'));
         process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 
-    } catch (error) {
-        logger.error({ error }, 'Server startup failed');
+    } catch (error: any) {
+        appLogger.error('Server startup failed', { error: error?.message, stack: error?.stack });
         process.exit(1);
     }
 };
 
 startServer();
+

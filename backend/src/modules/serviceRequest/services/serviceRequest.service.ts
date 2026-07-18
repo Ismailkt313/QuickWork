@@ -8,21 +8,24 @@ import { generateSlug } from '../../../utils/slug.util';
 import { SKILL_STATUS } from '../../../constants/skill';
 import { SuccessMessages } from '../../../constants/messages/successMessages';
 import { ErrorMessages } from '../../../constants/messages/errorMessages';
-import { logger } from '../../../utils/logger';
+import { ILogger } from '../../../shared/interfaces/ILogger';
 
 export class ServiceRequestService implements IServiceRequestService {
     private _serviceRequestRepository: IServiceRequestRepository;
     private _skillRepository: ISkillRepository;
     private _serviceProviderRepository: IServiceProviderRepository;
+    private _logger: ILogger;
 
     constructor(
         serviceRequestRepository: IServiceRequestRepository,
         skillRepository: ISkillRepository,
-        serviceProviderRepository: IServiceProviderRepository
+        serviceProviderRepository: IServiceProviderRepository,
+        logger: ILogger
     ) {
         this._serviceRequestRepository = serviceRequestRepository;
         this._skillRepository = skillRepository;
         this._serviceProviderRepository = serviceProviderRepository;
+        this._logger = logger;
     }
 
     async createRequest(userId: string, dto: CreateServiceRequestDTO): Promise<{ success: boolean; message: string; data?: IServiceRequest }> {
@@ -111,7 +114,7 @@ export class ServiceRequestService implements IServiceRequestService {
           if (error && typeof error === 'object' && 'code' in error && (error as { code?: number }).code === 11000) {
             skill = await this._skillRepository.findBySlug(request.slug);
           } else {
-            logger.error({ error, requestId, slug: request.slug }, "Failed to create skill during approval");
+            this._logger.error("Failed to create skill during approval", { error: (error as Error).message || error, requestId, slug: request.slug });
 
             throw error;
           }

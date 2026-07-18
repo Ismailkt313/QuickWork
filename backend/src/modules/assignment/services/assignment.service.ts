@@ -9,6 +9,7 @@ import { INotificationService } from '../../notification/interfaces/notification
 import { IWorkHistoryService, IPaymentService } from '../../finance/interfaces/finance.interface';
 import { AppError } from '../../../utils/AppError';
 import { HttpStatusCode } from '../../../constants/httpStatusCode';
+import { ILogger } from '../../../shared/interfaces/ILogger';
 
 export class AssignmentService implements IAssignmentService {
     private _assignmentRepository: IAssignmentRepository;
@@ -16,19 +17,22 @@ export class AssignmentService implements IAssignmentService {
     private _notificationService: INotificationService;
     private _workHistoryService: IWorkHistoryService;
     private _paymentService: IPaymentService;
+    private _logger: ILogger;
 
     constructor(
         assignmentRepository: IAssignmentRepository,
         jobRepository: IJobRepository,
         notificationService: INotificationService,
         workHistoryService: IWorkHistoryService,
-        paymentService: IPaymentService
+        paymentService: IPaymentService,
+        logger: ILogger
     ) {
         this._assignmentRepository = assignmentRepository;
         this._jobRepository = jobRepository;
         this._notificationService = notificationService;
         this._workHistoryService = workHistoryService;
         this._paymentService = paymentService;
+        this._logger = logger;
     }
 
     async checkOverlap(freelancerId: string, startDate: Date, endDate: Date): Promise<boolean> {
@@ -62,7 +66,9 @@ export class AssignmentService implements IAssignmentService {
                 };
             }
         }
-        return await this._assignmentRepository.create(data);
+        const result = await this._assignmentRepository.create(data);
+        this._logger.info("Provider Assigned", { bookingId: result.jobId.toString(), providerId: result.freelancerId.toString() });
+        return result;
     }
 
     async getAssignmentsByProvider(providerId: string, options?: { page?: number, limit?: number, search?: string, status?: string }): Promise<{ assignments: IAssignment[], total: number, counts: { active: number, completed: number, cancelled: number, all: number } }> {
@@ -146,6 +152,14 @@ export class AssignmentService implements IAssignmentService {
 
         const updated = await this._assignmentRepository.updateById(id, updateData);
 
+        if (updated) {
+            if (status === WORK_STATUS.IN_PROGRESS) {
+                this._logger.info("Work Started", { bookingId: updated.jobId.toString(), providerId: updated.freelancerId.toString() });
+            } else if (status === WORK_STATUS.COMPLETED) {
+                this._logger.info("Work Completed", { bookingId: updated.jobId.toString(), providerId: updated.freelancerId.toString() });
+            }
+        }
+
         if (updated && status === WORK_STATUS.COMPLETED) {
             const jobId = getObjectId(updated.jobId);
             await this._checkAndCompleteJob(jobId);
@@ -175,6 +189,10 @@ export class AssignmentService implements IAssignmentService {
             workStatus: WORK_STATUS.COMPLETED,
             completedAt: new Date()
         });
+
+        if (updated) {
+            this._logger.info("Work Completed", { bookingId: updated.jobId.toString(), providerId: updated.freelancerId.toString() });
+        }
 
         if (updated) {
             const jobId = getObjectId(updated.jobId);

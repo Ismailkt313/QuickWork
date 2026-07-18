@@ -9,6 +9,7 @@ import {
 } from '../interfaces/finance.interface';
 import { IAssignment, IAssignmentRepository } from '../../assignment/interfaces/assignment.interface';
 import { config } from '../../../config';
+import { ILogger } from '../../../shared/interfaces/ILogger';
 
 export class PaymentService implements IPaymentService {
     private _walletService: IWalletService;
@@ -17,6 +18,7 @@ export class PaymentService implements IPaymentService {
     private _platformTransactionRepo: IPlatformTransactionRepository;
     private _invoiceService: IInvoiceService;
     private _assignmentRepo: IAssignmentRepository;
+    private _logger: ILogger;
 
     constructor(
         walletService: IWalletService,
@@ -24,7 +26,8 @@ export class PaymentService implements IPaymentService {
         workHistoryRepo: IWorkHistoryRepository,
         platformTransactionRepo: IPlatformTransactionRepository,
         invoiceService: IInvoiceService,
-        assignmentRepo: IAssignmentRepository
+        assignmentRepo: IAssignmentRepository,
+        logger: ILogger
     ) {
         this._walletService = walletService;
         this._razorpayService = razorpayService;
@@ -32,6 +35,7 @@ export class PaymentService implements IPaymentService {
         this._platformTransactionRepo = platformTransactionRepo;
         this._invoiceService = invoiceService;
         this._assignmentRepo = assignmentRepo;
+        this._logger = logger;
     }
 
     private async _createPlatformTransaction(history: IWorkHistory, razorpayPaymentId?: string) {
@@ -58,6 +62,8 @@ export class PaymentService implements IPaymentService {
 
         const order = await this._razorpayService.createOrder(history.payment.totalAmount, workHistoryId);
 
+        this._logger.info("Payment Initiated", { workHistoryId, orderId: order.id, amount: order.amount });
+
         return {
             orderId: order.id,
             amount: order.amount,
@@ -81,6 +87,8 @@ export class PaymentService implements IPaymentService {
         );
 
         if (!isValid) {
+            this._logger.warn("Razorpay Verification Failed", { workHistoryId, razorpayOrderId, razorpayPaymentId });
+            this._logger.warn("Payment Failed", { workHistoryId, razorpayOrderId, razorpayPaymentId, reason: "invalid_signature" });
             throw new Error('Invalid payment signature');
         }
 
@@ -109,6 +117,7 @@ export class PaymentService implements IPaymentService {
         }
 
         await this._createPlatformTransaction(history, razorpayPaymentId);
+        this._logger.info("Payment Success", { workHistoryId, razorpayOrderId, razorpayPaymentId, amount: history.payment.totalAmount });
 
         try {
             await this._invoiceService.generateInvoice(history._id.toString());
@@ -161,6 +170,7 @@ export class PaymentService implements IPaymentService {
         }
 
         await this._createPlatformTransaction(history);
+        this._logger.info("Payment Success", { workHistoryId, method: "CASH", amount: history.payment.totalAmount });
 
         try {
             await this._invoiceService.generateInvoice(history._id.toString());
@@ -196,6 +206,8 @@ export class PaymentService implements IPaymentService {
 
         const order = await this._razorpayService.createOrder(totalAmount, jobId);
 
+        this._logger.info("Payment Initiated", { jobId, orderId: order.id, amount: order.amount });
+
         return {
             orderId: order.id,
             amount: order.amount,
@@ -225,6 +237,8 @@ export class PaymentService implements IPaymentService {
         );
 
         if (!isValid) {
+            this._logger.warn("Razorpay Verification Failed", { jobId, razorpayOrderId, razorpayPaymentId });
+            this._logger.warn("Payment Failed", { jobId, razorpayOrderId, razorpayPaymentId, reason: "invalid_signature" });
             throw new Error('Invalid payment signature');
         }
 
@@ -263,6 +277,7 @@ export class PaymentService implements IPaymentService {
                 }
 
                 await this._createPlatformTransaction(history, razorpayPaymentId);
+                this._logger.info("Payment Success", { jobId, workHistoryId: history._id.toString(), razorpayOrderId, razorpayPaymentId, amount: history.payment.totalAmount });
 
                 try {
                     await this._invoiceService.generateInvoice(history._id.toString());

@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { AppError } from "../utils/AppError";
 import { HttpStatusCode } from "../constants/httpStatusCode";
 import { ErrorMessages } from "../constants/messages/errorMessages";
-import { logger } from "../utils/logger";
+import { appLogger } from "../shared/logger";
 
 interface CustomError extends Error {
     code?: string | number;
@@ -16,19 +16,22 @@ export const errorHandler = (
     res: Response,
     _next: NextFunction
 ): void => {
-    const log = (req as Request & { log?: typeof logger }).log || logger;
+    const user = (req as any).user;
+    const userId = user?.userId || user?.id || user?._id || user?.sub;
+    const requestId = (req as any).requestId;
 
     const errorDetails = {
-        message: err.message,
-        stack: process.env.NODE_ENV === "production" ? undefined : err.stack,
-        code: err.code,
-        name: err.name,
+        stack: err.stack,
         path: req.path,
         method: req.method,
+        userId: userId || undefined,
+        requestId: requestId || undefined,
+        code: err.code,
+        name: err.name,
     };
 
     if (err instanceof AppError) {
-        log.warn({ ...errorDetails, msg: "Application Error" });
+        appLogger.warn(err.message, { ...errorDetails, msg: "Application Error" });
         res.status(err.statusCode).json({
             success: false,
             message: err.message,
@@ -37,7 +40,7 @@ export const errorHandler = (
     }
 
     if (err.code === 11000) {
-        log.warn({ ...errorDetails, msg: "Duplicate Key Error" });
+        appLogger.warn(err.message, { ...errorDetails, msg: "Duplicate Key Error" });
         res.status(HttpStatusCode.CONFLICT).json({
             success: false,
             message: ErrorMessages.RESOURCE_ALREADY_EXISTS,
@@ -46,7 +49,7 @@ export const errorHandler = (
     }
 
     if (err.name === "ValidationError") {
-        log.warn({ ...errorDetails, msg: "Validation Error" });
+        appLogger.warn(err.message, { ...errorDetails, msg: "Validation Error" });
         res.status(HttpStatusCode.BAD_REQUEST).json({
             success: false,
             message: err.message,
@@ -55,7 +58,7 @@ export const errorHandler = (
     }
 
     if (err.code === "LIMIT_FILE_SIZE") {
-        log.warn({ ...errorDetails, msg: "File Size Limit Exceeded" });
+        appLogger.warn(err.message, { ...errorDetails, msg: "File Size Limit Exceeded" });
         res.status(HttpStatusCode.BAD_REQUEST).json({
             success: false,
             message: "File is too large. Maximum size is 5MB.",
@@ -64,7 +67,7 @@ export const errorHandler = (
     }
 
     if (err.name === "MulterError") {
-        log.warn({ ...errorDetails, msg: "Multer Error" });
+        appLogger.warn(err.message, { ...errorDetails, msg: "Multer Error" });
         res.status(HttpStatusCode.BAD_REQUEST).json({
             success: false,
             message: `Upload error: ${err.message}`,
@@ -72,7 +75,7 @@ export const errorHandler = (
         return;
     }
 
-    log.error({ ...errorDetails, msg: "Unhandled Exception" });
+    appLogger.error(err.message, { ...errorDetails, msg: "Unhandled Exception" });
     res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: ErrorMessages.INTERNAL_SERVER_ERROR,

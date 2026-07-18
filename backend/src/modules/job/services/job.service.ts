@@ -15,6 +15,7 @@ import { ErrorMessages } from '../../../constants/messages/errorMessages';
 import { IWorkHistoryRepository } from '../../finance/interfaces/finance.interface';
 import { AvailabilityValidator } from '../../serviceProvider/utils/availability.validator';
 import { IReviewRepository } from '../../review/interfaces/review.interface';
+import { ILogger } from '../../../shared/interfaces/ILogger';
 
 export class JobService implements IJobService {
     private _jobRepository: IJobRepository;
@@ -24,6 +25,7 @@ export class JobService implements IJobService {
     private _notificationService: INotificationService;
     private _workHistoryRepository: IWorkHistoryRepository;
     private _reviewRepository: IReviewRepository;
+    private _logger: ILogger;
 
     constructor(
         jobRepository: IJobRepository,
@@ -32,7 +34,8 @@ export class JobService implements IJobService {
         locationRepository: ILocationRepository,
         notificationService: INotificationService,
         workHistoryRepository: IWorkHistoryRepository,
-        reviewRepository: IReviewRepository
+        reviewRepository: IReviewRepository,
+        logger: ILogger
     ) {
         this._jobRepository = jobRepository;
         this._serviceProviderRepository = serviceProviderRepository;
@@ -41,6 +44,7 @@ export class JobService implements IJobService {
         this._notificationService = notificationService;
         this._workHistoryRepository = workHistoryRepository;
         this._reviewRepository = reviewRepository;
+        this._logger = logger;
     }
 
     private async _getClientMetrics(userId: { _id?: { toString: () => string }; toString: () => string } | undefined): Promise<{ averageRating: number; totalReviews: number }> {
@@ -153,6 +157,9 @@ export class JobService implements IJobService {
         });
 
         const job = await this._jobRepository.findById(newJob._id.toString());
+        if (job) {
+            this._logger.info("Booking Created", { bookingId: job._id.toString(), customerId: job.userId?.toString() });
+        }
 
         let assignmentData = null;
         if (job && job.hiredProviderId) {
@@ -466,6 +473,9 @@ export class JobService implements IJobService {
             await this._jobRepository.updateStatus(jobId, JOB_STATUS.PARTIALLY_ASSIGNED);
         }
 
+        this._logger.info("Booking Updated", { bookingId: jobId, status: updatedJob.acceptedFreelancers >= updatedJob.freelancersNeeded ? JOB_STATUS.FULLY_ASSIGNED : JOB_STATUS.PARTIALLY_ASSIGNED });
+        this._logger.info("Provider Assigned", { bookingId: jobId, providerId: provider._id.toString() });
+
         await this._notificationService.createNotification({
             recipient: updatedJob.userId.toString(),
             title: 'Job Accepted',
@@ -579,6 +589,9 @@ export class JobService implements IJobService {
             assignedAt: new Date()
         });
 
+        this._logger.info("Booking Updated", { bookingId: jobId, status: JOB_STATUS.FULLY_ASSIGNED });
+        this._logger.info("Provider Assigned", { bookingId: jobId, providerId: provider._id.toString() });
+
         await this._notificationService.createNotification({
             recipient: updatedJob.userId.toString(),
             title: 'Offer Accepted',
@@ -605,6 +618,8 @@ export class JobService implements IJobService {
             { _id: jobId },
             { $set: { status: JOB_STATUS.REJECTED, rejectionReason: reason || 'Provider declined the offer' } }
         );
+
+        this._logger.info("Booking Updated", { bookingId: jobId, status: JOB_STATUS.REJECTED, reason });
 
         await this._notificationService.createNotification({
             recipient: ((job.userId as { _id?: { toString: () => string } })._id?.toString()) || job.userId.toString(),
@@ -646,6 +661,7 @@ export class JobService implements IJobService {
         }
 
         await this._jobRepository.updateStatus(jobId, JOB_STATUS.CANCELLED);
+        this._logger.info("Booking Cancelled", { bookingId: jobId, cancelledBy: userId });
 
         if (job.status === JOB_STATUS.FULLY_ASSIGNED || job.status === JOB_STATUS.PARTIALLY_ASSIGNED || job.status === JOB_STATUS.IN_PROGRESS) {
             await this._assignmentService.cancelAssignmentsByJob(jobId);
@@ -782,6 +798,8 @@ export class JobService implements IJobService {
                 }
             }
         );
+
+        this._logger.info("Booking Cancelled", { bookingId: jobId, cancelledByAdmin: true, adminId, reason });
 
         await this._notificationService.createNotification({
             recipient: ((job.userId as { _id?: { toString: () => string } })._id?.toString()) || job.userId.toString(),

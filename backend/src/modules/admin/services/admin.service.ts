@@ -10,17 +10,19 @@ import { ROLES } from "../../../constants/roles";
 import { SuccessMessages } from "../../../constants/messages/successMessages";
 import { ErrorMessages } from "../../../constants/messages/errorMessages";
 import { IApiResponse } from "../../../types/api.types";
-import { logger } from "../../../utils/logger";
+import { ILogger } from "../../../shared/interfaces/ILogger";
 import { INotificationService } from "../../notification/interfaces/notification.interface";
 import { getIo } from "../../../chat/socket";
 
 export class AdminService implements IAdminService {
     private readonly _adminRepository: IAdminRepository;
     private readonly _notificationService: INotificationService;
+    private readonly _logger: ILogger;
 
-    constructor(adminRepository: IAdminRepository, notificationService: INotificationService) {
+    constructor(adminRepository: IAdminRepository, notificationService: INotificationService, logger: ILogger) {
         this._adminRepository = adminRepository;
         this._notificationService = notificationService;
+        this._logger = logger;
     }
 
     public async getUsers(query: IUserListQuery): Promise<IUserListResponse> {
@@ -53,7 +55,11 @@ export class AdminService implements IAdminService {
 
     public async toggleBlockUser(userId: string): Promise<IApiResponse<{ isBlocked: boolean }>> {
         const user = await this._adminRepository.toggleBlockUser(userId);
-        logger.info({ userId, action: user.isBlocked ? "user_blocked" : "user_unblocked" }, `User ${user.isBlocked ? "blocked" : "unblocked"} successfully`);
+        if (user.isBlocked) {
+            this._logger.info("User Blocked", { userId });
+        } else {
+            this._logger.info("User Unblocked", { userId });
+        }
 
         await this._notificationService.createNotification({
             recipient: userId,
@@ -109,7 +115,7 @@ export class AdminService implements IAdminService {
 
     public async approveProvider(providerId: string): Promise<IApiResponse<void>> {
         await this._adminRepository.approveProvider(providerId);
-        logger.info({ providerId, action: "provider_approved" }, "Provider approved successfully");
+        this._logger.info("Provider Approved", { providerId });
         return {
             success: true,
             message: SuccessMessages.PROVIDER_APPROVED,
@@ -119,7 +125,7 @@ export class AdminService implements IAdminService {
 
     public async rejectProvider(providerId: string, reason: string): Promise<IApiResponse<void>> {
         await this._adminRepository.rejectProvider(providerId, reason);
-        logger.info({ providerId, reason, action: "provider_rejected" }, "Provider rejected successfully");
+        this._logger.info("Provider Rejected", { providerId, reason });
         return {
             success: true,
             message: SuccessMessages.PROVIDER_REJECTED,

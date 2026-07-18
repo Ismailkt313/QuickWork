@@ -26,6 +26,8 @@ import { createPaymentRouter } from './routes/payment.routes';
 import { createInvoiceRouter } from './routes/invoice.routes';
 import { createAdminFinanceRouter } from './routes/adminFinance.routes';
 
+import { appLogger } from '../../shared/logger';
+
 const walletRepository = new WalletRepository();
 const platformTransactionRepository = new PlatformTransactionRepository();
 const workHistoryRepository = new WorkHistoryRepository();
@@ -35,7 +37,7 @@ const serviceProviderRepository = new ServiceProviderRepository();
 const authRepository = new AuthRepository();
 const assignmentRepository = new AssignmentRepository();
 
-const walletService = new WalletService(walletRepository);
+const walletService = new WalletService(walletRepository, appLogger);
 const razorpayService = new RazorpayService();
 const invoiceService = new InvoiceService(
     invoiceRepository,
@@ -51,7 +53,8 @@ const paymentService = new PaymentService(
     workHistoryRepository,
     platformTransactionRepository,
     invoiceService,
-    assignmentRepository
+    assignmentRepository,
+    appLogger
 );
 const adminFinanceService = new AdminFinanceService(platformTransactionRepository, walletRepository);
 
