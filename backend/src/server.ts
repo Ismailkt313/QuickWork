@@ -62,8 +62,9 @@ const startServer = async (): Promise<void> => {
                     appLogger.info('MongoDB connection closed.');
                     
                     process.exit(0);
-                } catch (err: any) {
-                    appLogger.error('Error during graceful shutdown', { err: err?.message, stack: err?.stack });
+                } catch (err: unknown) {
+                    const errorObj = err instanceof Error ? err : new Error(String(err));
+                    appLogger.error('Error during graceful shutdown', { err: errorObj.message, stack: errorObj.stack });
                     process.exit(1);
                 }
             });
@@ -77,8 +78,9 @@ const startServer = async (): Promise<void> => {
         process.on('SIGINT', () => gracefulShutdown('SIGINT'));
         process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 
-    } catch (error: any) {
-        appLogger.error('Server startup failed', { error: error?.message, stack: error?.stack });
+    } catch (error: unknown) {
+        const errorObj = error instanceof Error ? error : new Error(String(error));
+        appLogger.error('Server startup failed', { error: errorObj.message, stack: errorObj.stack });
         process.exit(1);
     }
 };

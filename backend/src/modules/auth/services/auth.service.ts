@@ -357,8 +357,9 @@ export class AuthService implements IAuthService {
         if (data.profileImage && currentUser.profileImage?.public_id && currentUser.profileImage.public_id !== data.profileImage.public_id) {
             try {
                 await this._uploadService.deleteImage(currentUser.profileImage.public_id);
-            } catch (error: any) {
-                this._logger.error("Failed to delete old profile image", { error: error?.message, publicId: currentUser.profileImage.public_id });
+            } catch (error: unknown) {
+                const message = error instanceof Error ? error.message : String(error);
+                this._logger.error("Failed to delete old profile image", { error: message, publicId: currentUser.profileImage.public_id });
             }
 
         }

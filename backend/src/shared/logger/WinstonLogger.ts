@@ -14,19 +14,19 @@ export class WinstonLogger implements ILogger {
         });
     }
 
-    public info(message: string, metadata?: Record<string, any>): void {
+    public info(message: string, metadata?: Record<string, unknown>): void {
         this.logger.info(message, metadata);
     }
 
-    public warn(message: string, metadata?: Record<string, any>): void {
+    public warn(message: string, metadata?: Record<string, unknown>): void {
         this.logger.warn(message, metadata);
     }
 
-    public error(message: string, metadata?: Record<string, any>): void {
+    public error(message: string, metadata?: Record<string, unknown>): void {
         this.logger.error(message, metadata);
     }
 
-    public debug(message: string, metadata?: Record<string, any>): void {
+    public debug(message: string, metadata?: Record<string, unknown>): void {
         this.logger.debug(message, metadata);
     }
 }

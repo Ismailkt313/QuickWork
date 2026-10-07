@@ -107,7 +107,6 @@ export class MessageController implements IMessageController {
     };
 
     public deleteMessage = async (req: Request, res: Response): Promise<void> => {
-        const customReq = req as RequestWithCustomProps;
         try {
             const dto = MessageIdDto.create(req.query);
             const result = await this._messageService.deleteMessage(dto.messageId);
@@ -131,7 +130,6 @@ export class MessageController implements IMessageController {
     };
 
     public deleteConversation = async (req: Request, res: Response): Promise<void> => {
-        const customReq = req as RequestWithCustomProps;
         try {
             const dto = ConversationIdDto.create(req.query);
             const conversation = await this._messageService.getConversation(dto.conversationId);

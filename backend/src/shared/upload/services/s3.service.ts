@@ -65,8 +65,9 @@ export class S3Service implements IS3Service {
 
             await this._s3Client.send(command);
             this._logger.info("File deleted from S3 successfully", { bucket: config.AWS_BUCKET_NAME, fileName });
-        } catch (error: any) {
-            this._logger.error("S3 Deletion Failed", { error: error?.message, stack: error?.stack, bucket: config.AWS_BUCKET_NAME, fileName });
+        } catch (error: unknown) {
+            const err = error instanceof Error ? error : new Error(String(error));
+            this._logger.error("S3 Deletion Failed", { error: err.message, stack: err.stack, bucket: config.AWS_BUCKET_NAME, fileName });
             throw error;
         }
     }

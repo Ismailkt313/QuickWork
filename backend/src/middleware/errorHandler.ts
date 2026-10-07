@@ -16,9 +16,13 @@ export const errorHandler = (
     res: Response,
     _next: NextFunction
 ): void => {
-    const user = (req as any).user;
+    const customReq = req as Request & {
+        user?: { userId?: string; id?: string; _id?: string; sub?: string };
+        requestId?: string;
+    };
+    const user = customReq.user;
     const userId = user?.userId || user?.id || user?._id || user?.sub;
-    const requestId = (req as any).requestId;
+    const requestId = customReq.requestId;
 
     const errorDetails = {
         stack: err.stack,

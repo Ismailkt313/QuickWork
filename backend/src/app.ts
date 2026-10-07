@@ -1,11 +1,11 @@
-import express, { Application } from "express";
+import express, { Application, Request, Response } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import passport from "./config/passport";
 import { registerdRoutes } from "./routes";
 import { errorHandler } from "./middleware/errorHandler";
 import { config } from "./config/index";
-import morgan from "morgan";
+import morgan, { TokenIndexer } from "morgan";
 import { appLogger, MorganStream } from "./shared/logger";
 import { requestIdMiddleware } from "./middleware/requestId.middleware";
 
@@ -18,20 +18,20 @@ const allowedOrigins = [
 
 app.use(requestIdMiddleware);
 
-const morganFormat = (tokens: any, req: any, res: any) => {
-    return JSON.stringify({
-        method: tokens.method(req, res),
-        url: tokens.url(req, res),
-        status: parseInt(tokens.status(req, res) || "0", 10),
-        responseTime: `${tokens["response-time"](req, res)}ms`,
-        ip: req.ip || req.connection?.remoteAddress,
-        userAgent: tokens["user-agent"](req, res),
-    });
+const morganFormat = (tokens: TokenIndexer<Request, Response>, req: Request, res: Response) => {
+  return JSON.stringify({
+    method: tokens.method(req, res),
+    url: tokens.url(req, res),
+    status: parseInt(tokens.status(req, res) || "0", 10),
+    responseTime: `${tokens["response-time"](req, res)}ms`,
+    ip: req.ip || req.socket?.remoteAddress,
+    userAgent: tokens["user-agent"](req, res),
+  });
 };
 
-app.use(morgan(morganFormat, { 
-    stream: new MorganStream(appLogger),
-    skip: (req) => req.method === "OPTIONS"
+app.use(morgan(morganFormat, {
+  stream: new MorganStream(appLogger),
+  skip: (req) => req.method === "OPTIONS"
 }));
 
 app.use(cookieParser());
@@ -47,7 +47,7 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true
 }));
-  
+
 app.options("*", cors());
 
 app.use(express.json({ limit: "50mb" }));
