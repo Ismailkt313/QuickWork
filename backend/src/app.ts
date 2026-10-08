@@ -13,8 +13,11 @@ const app: Application = express();
 
 const allowedOrigins = [
   config.FRONTEND_URL,
-  config.VERCEL_URL
+  config.VERCEL_URL,
+  "https://quickwork.site",
+  "https://www.quickwork.site",
 ];
+
 
 app.use(requestIdMiddleware);
 
@@ -47,8 +50,6 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true
 }));
-
-app.options("*", cors());
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));

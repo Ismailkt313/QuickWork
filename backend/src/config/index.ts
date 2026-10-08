@@ -28,7 +28,7 @@ export const config = {
     CLOUD_API_SECRET: process.env.CLOUD_API_SECRET || "",
 
     url: process.env.URL,
-    FRONTEND_URL: process.env.FRONTEND_URL || "",
+    FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:5173",
     VERCEL_URL: process.env.VERCEL_URL,
 
     AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID || "",
